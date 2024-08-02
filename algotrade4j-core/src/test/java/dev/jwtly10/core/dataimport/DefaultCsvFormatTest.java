@@ -47,6 +47,6 @@ class DefaultCsvFormatTest {
 
     @Test
     void testGetTimePeriod() {
-        assertEquals(Duration.ofMinutes(1), format.getTimePeriod());
+        assertEquals(Duration.ofMinutes(1), format.timePeriod());
     }
 }

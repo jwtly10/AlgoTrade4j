@@ -34,14 +34,8 @@ import java.time.format.DateTimeFormatter;
  *    </pre>
  * </p>
  */
-public class DefaultCsvFormat implements CsvFormat {
-    private final Duration timePeriod;
+public record DefaultCsvFormat(Duration timePeriod) implements CsvFormat {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm");
-
-
-    public DefaultCsvFormat(Duration timePeriod) {
-        this.timePeriod = timePeriod;
-    }
 
     @Override
     public boolean hasHeader() {
@@ -64,10 +58,5 @@ public class DefaultCsvFormat implements CsvFormat {
                 .close(new Price(Double.parseDouble(fields[4])))
                 .volume(Long.parseLong(fields[5]))
                 .build();
-    }
-
-    @Override
-    public Duration getTimePeriod() {
-        return timePeriod;
     }
 }

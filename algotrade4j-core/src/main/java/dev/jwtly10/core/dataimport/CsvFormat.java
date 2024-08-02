@@ -6,7 +6,10 @@ import java.time.Duration;
 
 public interface CsvFormat {
     boolean hasHeader();
+
     String getDelimiter();
+
     Bar parseBar(String[] fields);
-    Duration getTimePeriod();
+
+    Duration timePeriod();
 }
