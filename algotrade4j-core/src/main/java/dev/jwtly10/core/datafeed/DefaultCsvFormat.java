@@ -2,7 +2,7 @@ package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.Bar;
 import dev.jwtly10.core.DefaultBar;
-import dev.jwtly10.core.Price;
+import dev.jwtly10.core.Number;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -34,7 +34,7 @@ import java.time.format.DateTimeFormatter;
  *    </pre>
  * </p>
  */
-public record DefaultCsvFormat(Duration timePeriod) implements CsvFormat {
+public record DefaultCsvFormat(Duration timePeriod) implements CsvParseFormat {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm");
 
     @Override
@@ -48,14 +48,15 @@ public record DefaultCsvFormat(Duration timePeriod) implements CsvFormat {
     }
 
     @Override
-    public Bar parseBar(String[] fields) {
+    public Bar parseBar(String symbol, String[] fields) {
         return DefaultBar.builder()
                 .timePeriod(timePeriod)
+                .symbol(symbol)
                 .dateTime(LocalDateTime.parse(fields[0], DATE_TIME_FORMATTER))
-                .open(new Price(Double.parseDouble(fields[1])))
-                .high(new Price(Double.parseDouble(fields[2])))
-                .low(new Price(Double.parseDouble(fields[3])))
-                .close(new Price(Double.parseDouble(fields[4])))
+                .open(new Number(Double.parseDouble(fields[1])))
+                .high(new Number(Double.parseDouble(fields[2])))
+                .low(new Number(Double.parseDouble(fields[3])))
+                .close(new Number(Double.parseDouble(fields[4])))
                 .volume(Long.parseLong(fields[5]))
                 .build();
     }

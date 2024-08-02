@@ -9,11 +9,12 @@ import java.time.LocalDateTime;
 @Value
 @Builder
 public class DefaultBar implements Bar {
+    String symbol;
     Duration timePeriod;
     LocalDateTime dateTime;
-    Price open;
-    Price high;
-    Price low;
-    Price close;
+    Number open;
+    Number high;
+    Number low;
+    Number close;
     long volume;
 }

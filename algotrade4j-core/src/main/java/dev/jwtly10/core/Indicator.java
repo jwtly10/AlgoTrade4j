@@ -19,7 +19,7 @@ public interface Indicator {
      *
      * @return the current value of the indicator as a Price object
      */
-    Price getValue();
+    Number getValue();
 
     /**
      * Retrieves a historical value of the indicator.
@@ -29,7 +29,7 @@ public interface Indicator {
      * @return the historical value of the indicator at the specified index as a Price object
      * @throws IndexOutOfBoundsException if the index is negative or exceeds the number of available values
      */
-    Price getValue(int index);
+    Number getValue(int index);
 
     /**
      * Retrieves the name of the indicator.

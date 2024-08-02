@@ -4,12 +4,12 @@ import dev.jwtly10.core.Bar;
 
 import java.time.Duration;
 
-public interface CsvFormat {
+public interface CsvParseFormat {
     boolean hasHeader();
 
     String getDelimiter();
 
-    Bar parseBar(String[] fields);
+    Bar parseBar(String symbol, String[] fields);
 
     Duration timePeriod();
 }

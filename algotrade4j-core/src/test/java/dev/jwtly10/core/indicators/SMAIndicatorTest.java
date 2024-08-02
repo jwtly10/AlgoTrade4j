@@ -1,7 +1,7 @@
 package dev.jwtly10.core.indicators;
 
 import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.Price;
+import dev.jwtly10.core.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,11 +14,11 @@ import static org.mockito.Mockito.when;
 
 class SMAIndicatorTest {
 
-    private SMAIndicator smaIndicator;
+    private SMA smaIndicator;
 
     @BeforeEach
     void setUp() {
-        smaIndicator = new SMAIndicator(3);
+        smaIndicator = new SMA(3);
     }
 
     @Test
@@ -26,7 +26,7 @@ class SMAIndicatorTest {
         assertEquals("SMA 3", smaIndicator.getName());
         assertEquals(3, smaIndicator.getRequiredPeriods());
         assertFalse(smaIndicator.isReady());
-        assertEquals(Price.ZERO, smaIndicator.getValue());
+        assertEquals(Number.ZERO, smaIndicator.getValue());
     }
 
     @Test
@@ -37,15 +37,15 @@ class SMAIndicatorTest {
 
         smaIndicator.update(bar1);
         assertFalse(smaIndicator.isReady());
-        assertEquals(Price.ZERO, smaIndicator.getValue());
+        assertEquals(Number.ZERO, smaIndicator.getValue());
 
         smaIndicator.update(bar2);
         assertFalse(smaIndicator.isReady());
-        assertEquals(Price.ZERO, smaIndicator.getValue());
+        assertEquals(Number.ZERO, smaIndicator.getValue());
 
         smaIndicator.update(bar3);
         assertTrue(smaIndicator.isReady());
-        assertEquals(new Price("20.00"), smaIndicator.getValue());
+        assertEquals(new Number("20.00"), smaIndicator.getValue());
     }
 
     @Test
@@ -60,8 +60,8 @@ class SMAIndicatorTest {
         smaIndicator.update(bar3);
         smaIndicator.update(bar4);
 
-        assertEquals(new Price("30.00"), smaIndicator.getValue());
-        assertEquals(new Price("20.00"), smaIndicator.getValue(1));
+        assertEquals(new Number("30.00"), smaIndicator.getValue());
+        assertEquals(new Number("20.00"), smaIndicator.getValue(1));
     }
 
     @Test
@@ -72,18 +72,18 @@ class SMAIndicatorTest {
 
     @Test
     void testLongerPeriod() {
-        SMAIndicator sma5 = new SMAIndicator(5);
+        SMA sma5 = new SMA(5);
         for (int i = 1; i <= 5; i++) {
             sma5.update(createMockBar(i * 10));
         }
 
         assertTrue(sma5.isReady());
-        assertEquals(new Price("30.00"), sma5.getValue());
+        assertEquals(new Number("30.00"), sma5.getValue());
     }
 
     private Bar createMockBar(double closePrice) {
         Bar mockBar = Mockito.mock(Bar.class);
-        when(mockBar.getClose()).thenReturn(new Price(BigDecimal.valueOf(closePrice).setScale(2, RoundingMode.HALF_UP)));
+        when(mockBar.getClose()).thenReturn(new Number(BigDecimal.valueOf(closePrice).setScale(2, RoundingMode.HALF_UP)));
         return mockBar;
     }
 }

@@ -11,19 +11,21 @@ import java.util.List;
 
 public class CsvDataFeed implements DataFeed {
     private final String filePath;
-    private final CsvFormat format;
+    private final CsvParseFormat format;
     private final List<BarDataListener> listeners;
     private volatile boolean running;
+    private final String symbol;
 
     // Only used for backtesting testing purposes
     // This should be ignored for api/realtime data feeds
     private final DataFeedSpeed speed;
 
-    public CsvDataFeed(String filePath, CsvFormat format, DataFeedSpeed speed) {
+    public CsvDataFeed(String symbol, String filePath, CsvParseFormat format, DataFeedSpeed speed) {
         this.filePath = filePath;
         this.format = format;
         this.listeners = new ArrayList<>();
         this.speed = speed;
+        this.symbol = symbol;
     }
 
     @Override
@@ -42,7 +44,7 @@ public class CsvDataFeed implements DataFeed {
             while ((line = reader.readLine()) != null && running) {
                 String[] fields = line.split(format.getDelimiter());
                 try {
-                    Bar bar = format.parseBar(fields);
+                    Bar bar = format.parseBar(symbol, fields);
                     for (BarDataListener listener : listeners) {
                         listener.onBar(bar);
                     }

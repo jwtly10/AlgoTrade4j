@@ -1,7 +1,7 @@
 package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.Price;
+import dev.jwtly10.core.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -23,7 +23,7 @@ class CsvDataFeedTest {
     Path tempDir;
 
     private File csvFile;
-    private CsvFormat format;
+    private CsvParseFormat format;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -39,7 +39,7 @@ class CsvDataFeedTest {
 
     @Test
     void testCsvDataFeed() throws DataFeedException {
-        CsvDataFeed dataFeed = new CsvDataFeed(csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
+        CsvDataFeed dataFeed = new CsvDataFeed("NAS100_USD", csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
         List<Bar> receivedBars = new ArrayList<>();
 
         dataFeed.addBarDataListener(receivedBars::add);
@@ -50,24 +50,24 @@ class CsvDataFeedTest {
 
         Bar firstBar = receivedBars.getFirst();
         assertEquals(LocalDateTime.parse("2022-01-02T22:00"), firstBar.getDateTime());
-        assertEquals(new Price("16419.7"), firstBar.getOpen());
-        assertEquals(new Price("16526.0"), firstBar.getHigh());
-        assertEquals(new Price("16310.6"), firstBar.getLow());
-        assertEquals(new Price("16512.8"), firstBar.getClose());
+        assertEquals(new Number("16419.7"), firstBar.getOpen());
+        assertEquals(new Number("16526.0"), firstBar.getHigh());
+        assertEquals(new Number("16310.6"), firstBar.getLow());
+        assertEquals(new Number("16512.8"), firstBar.getClose());
         assertEquals(209249, firstBar.getVolume());
 
         Bar secondBar = receivedBars.get(1);
         assertEquals(LocalDateTime.parse("2022-01-03T22:00"), secondBar.getDateTime());
-        assertEquals(new Price("16516.0"), secondBar.getOpen());
-        assertEquals(new Price("16579.2"), secondBar.getHigh());
-        assertEquals(new Price("16155.8"), secondBar.getLow());
-        assertEquals(new Price("16276.6"), secondBar.getClose());
+        assertEquals(new Number("16516.0"), secondBar.getOpen());
+        assertEquals(new Number("16579.2"), secondBar.getHigh());
+        assertEquals(new Number("16155.8"), secondBar.getLow());
+        assertEquals(new Number("16276.6"), secondBar.getClose());
         assertEquals(255990, secondBar.getVolume());
     }
 
     @Test
     void testStopDataFeed() throws InterruptedException {
-        CsvDataFeed dataFeed = new CsvDataFeed(csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
+        CsvDataFeed dataFeed = new CsvDataFeed("NAS100_USD", csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
         List<Bar> receivedBars = new ArrayList<>();
 
         dataFeed.addBarDataListener(receivedBars::add);
