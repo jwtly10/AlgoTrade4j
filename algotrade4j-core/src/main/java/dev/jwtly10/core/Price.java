@@ -11,7 +11,8 @@ import java.math.RoundingMode;
 @EqualsAndHashCode
 @ToString
 public class Price implements Comparable<Price> {
-    private static final int DECIMAL_PLACES = 2;
+    public static final int DECIMAL_PLACES = 2;
+    public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private final BigDecimal value;
 
     public Price(BigDecimal value) {
