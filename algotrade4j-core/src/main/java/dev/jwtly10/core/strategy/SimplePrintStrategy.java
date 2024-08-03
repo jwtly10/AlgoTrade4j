@@ -1,13 +1,14 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.*;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Slf4j
 public class SimplePrintStrategy implements Strategy {
+    private final String strategyId = "SimplePrintStrategy";
 
     @Override
     public void onInit(BarSeries series, List<Indicator> indicators, TradeManager tradeManager) {
@@ -31,6 +32,11 @@ public class SimplePrintStrategy implements Strategy {
     @Override
     public void onDeInit() {
         log.info("Strategy de-initialized.");
+    }
+
+    @Override
+    public String getStrategyId() {
+        return strategyId;
     }
 
     private String formatBar(Bar bar) {

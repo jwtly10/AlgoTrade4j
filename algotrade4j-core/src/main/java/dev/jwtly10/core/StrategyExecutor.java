@@ -4,6 +4,8 @@ import dev.jwtly10.core.backtest.BacktestPriceFeed;
 import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.DataFeed;
 import dev.jwtly10.core.datafeed.DataFeedException;
+import dev.jwtly10.core.event.BarEvent;
+import dev.jwtly10.core.event.EventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +15,20 @@ public class StrategyExecutor implements BarDataListener {
     private final Strategy strategy;
     private final List<Indicator> indicators;
     private final DataFeed dataFeed;
+    private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
-    private final PriceFeed priceFeed;
 
-    public StrategyExecutor(Strategy strategy, DataFeed dataFeed, Number initialCash, int barSeriesSize) {
+    private final String strategyId;
+
+    public StrategyExecutor(Strategy strategy, DataFeed dataFeed, Number initialCash, int barSeriesSize, EventPublisher eventPublisher) {
+        this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataFeed = dataFeed;
         this.indicators = new ArrayList<>();
         this.barSeries = new DefaultBarSeries(barSeriesSize);
-        this.priceFeed = new BacktestPriceFeed(this.barSeries, new Number(10));
-        this.tradeManager = new BacktestTradeManager(initialCash, priceFeed);
+        PriceFeed priceFeed = new BacktestPriceFeed(this.barSeries, new Number(10));
+        this.eventPublisher = eventPublisher;
+        this.tradeManager = new BacktestTradeManager(strategyId, initialCash, priceFeed, eventPublisher);
     }
 
     public void run() throws DataFeedException {
@@ -39,6 +45,7 @@ public class StrategyExecutor implements BarDataListener {
     @Override
     public void onBar(Bar bar) {
         barSeries.addBar(bar);
+        eventPublisher.publishEvent(new BarEvent(strategyId, bar.getSymbol(), bar));
 
         for (Indicator indicator : indicators) {
             indicator.update(bar);

@@ -2,6 +2,8 @@ package dev.jwtly10.core.indicators;
 
 import dev.jwtly10.core.Bar;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.IndicatorEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -10,15 +12,19 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
-class SMAIndicatorTest {
+class SMATest {
 
     private SMA smaIndicator;
+    private EventPublisher mockEventPublisher;
+
 
     @BeforeEach
     void setUp() {
-        smaIndicator = new SMA(3);
+        mockEventPublisher = mock(EventPublisher.class);
+        smaIndicator = new SMA("SMATest", 3, mockEventPublisher);
     }
 
     @Test
@@ -36,6 +42,7 @@ class SMAIndicatorTest {
         Bar bar3 = createMockBar(30);
 
         smaIndicator.update(bar1);
+
         assertFalse(smaIndicator.isReady());
         assertEquals(Number.ZERO, smaIndicator.getValue());
 
@@ -46,6 +53,10 @@ class SMAIndicatorTest {
         smaIndicator.update(bar3);
         assertTrue(smaIndicator.isReady());
         assertEquals(new Number("20.00"), smaIndicator.getValue());
+
+        verify(mockEventPublisher, times(3)).publishEvent(argThat(event ->
+                event instanceof IndicatorEvent
+        ));
     }
 
     @Test
@@ -60,6 +71,9 @@ class SMAIndicatorTest {
         smaIndicator.update(bar3);
         smaIndicator.update(bar4);
 
+        verify(mockEventPublisher, times(4)).publishEvent(argThat(event ->
+                event instanceof IndicatorEvent
+        ));
         assertEquals(new Number("30.00"), smaIndicator.getValue());
         assertEquals(new Number("20.00"), smaIndicator.getValue(1));
     }
@@ -72,11 +86,14 @@ class SMAIndicatorTest {
 
     @Test
     void testLongerPeriod() {
-        SMA sma5 = new SMA(5);
+        SMA sma5 = new SMA("SMATest", 5, mockEventPublisher);
         for (int i = 1; i <= 5; i++) {
             sma5.update(createMockBar(i * 10));
         }
 
+        verify(mockEventPublisher, times(5)).publishEvent(argThat(event ->
+                event instanceof IndicatorEvent
+        ));
         assertTrue(sma5.isReady());
         assertEquals(new Number("30.00"), sma5.getValue());
     }

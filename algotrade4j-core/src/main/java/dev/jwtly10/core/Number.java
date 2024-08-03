@@ -168,4 +168,8 @@ public class Number implements Comparable<Number> {
     public int compareTo(Number other) {
         return this.value.compareTo(other.value);
     }
+
+    public boolean isEquals(Number other) {
+        return this.value.compareTo(other.value) == 0;
+    }
 }

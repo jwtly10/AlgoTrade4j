@@ -1,6 +1,7 @@
 package dev.jwtly10.core;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.util.UUID;
@@ -12,6 +13,8 @@ public class Trade {
     private final String symbol;
     private final Number quantity;
     private final Number entryPrice;
+    @Setter
+    private Number closePrice = Number.ZERO;
     private final Number stopLoss;
     private final Number takeProfit;
     private final boolean isLong;

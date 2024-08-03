@@ -3,6 +3,8 @@ package dev.jwtly10.core.indicators;
 import dev.jwtly10.core.Bar;
 import dev.jwtly10.core.Indicator;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.IndicatorEvent;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,19 +16,23 @@ import java.util.List;
  * and then dividing by the number of periods.
  */
 public class SMA implements Indicator {
+    private final String strategyId;
     private final int period;
     private final List<Number> values;
     private final List<Number> smaValues;
+    private final EventPublisher eventPublisher;
 
     /**
      * Constructs a new SMA indicator with the specified period.
      *
      * @param period the number of periods to use in the SMA calculation
      */
-    public SMA(int period) {
+    public SMA(String strategyId, int period, EventPublisher eventPublisher) {
+        this.strategyId = strategyId;
         this.period = period;
         this.values = new ArrayList<>();
         this.smaValues = new ArrayList<>();
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -44,8 +50,10 @@ public class SMA implements Indicator {
             BigDecimal average = sum.divide(BigDecimal.valueOf(period), Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
             Number smaPrice = new Number(average);
             smaValues.add(smaPrice);
+            eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice));
         } else {
             smaValues.add(Number.ZERO);
+            eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO));
         }
     }
 

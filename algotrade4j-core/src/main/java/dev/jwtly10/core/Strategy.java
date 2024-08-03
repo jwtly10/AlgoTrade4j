@@ -18,6 +18,13 @@ public interface Strategy {
     void onInit(BarSeries series, List<Indicator> indicators, TradeManager tradeManager);
 
     /**
+     * Returns a unique identifier for the strategy. TODO: Should this be unique? I guess callers can handle that - adding some unique key in the case of optimisation etc where multiple runs are happening TBC.
+     *
+     * @return The unique identifier for the strategy.
+     */
+    String getStrategyId();
+
+    /**
      * Called on each new bar in the market data feed.
      * This is the main method where trading logic should be implemented.
      *

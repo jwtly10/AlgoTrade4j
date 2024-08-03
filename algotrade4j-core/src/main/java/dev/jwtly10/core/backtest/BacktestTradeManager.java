@@ -1,7 +1,9 @@
 package dev.jwtly10.core.backtest;
 
-import dev.jwtly10.core.*;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.*;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.TradeEvent;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,11 +19,15 @@ public class BacktestTradeManager implements TradeManager {
     @Getter
     private final Account account;
     private final PriceFeed priceFeed;
+    private final EventPublisher eventPublisher;
+    private final String strategyId;
 
-    public BacktestTradeManager(Number initialCash, PriceFeed priceFeed) {
+    public BacktestTradeManager(String strategyId, Number initialCash, PriceFeed priceFeed, EventPublisher eventPublisher) {
+        this.strategyId = strategyId;
         this.account = new Account(initialCash);
         this.trades = new HashMap<>();
         this.priceFeed = priceFeed;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -29,7 +35,9 @@ public class BacktestTradeManager implements TradeManager {
         Number entryPrice = priceFeed.getAsk(symbol);
         Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, true);
         log.debug("Opening long position: {}", trade);
+
         trades.put(trade.getId(), trade);
+        eventPublisher.publishEvent(new TradeEvent(strategyId, symbol, trade, TradeEvent.Action.OPEN));
         return trade.getId();
     }
 
@@ -80,6 +88,8 @@ public class BacktestTradeManager implements TradeManager {
                 isLong ? "long" : "short", symbol, entryPrice, stopLoss, takeProfit, quantity, riskAmount);
 
         Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, isLong);
+
+        eventPublisher.publishEvent(new TradeEvent(strategyId, symbol, trade, TradeEvent.Action.OPEN));
         trades.put(trade.getId(), trade);
 
         return trade.getId();
@@ -90,7 +100,9 @@ public class BacktestTradeManager implements TradeManager {
         Number entryPrice = priceFeed.getBid(symbol);
         Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, false);
         log.debug("Opening short position: {}", trade);
+
         trades.put(trade.getId(), trade);
+        eventPublisher.publishEvent(new TradeEvent(strategyId, symbol, trade, TradeEvent.Action.OPEN));
         return trade.getId();
     }
 
@@ -111,6 +123,7 @@ public class BacktestTradeManager implements TradeManager {
 
         Number closingPrice = trade.isLong() ? priceFeed.getBid(trade.getSymbol()) : priceFeed.getAsk(trade.getSymbol());
         log.debug("Closing price: {}", closingPrice);
+        trade.setClosePrice(closingPrice);
 
         Number priceDifference;
         if (trade.isLong()) {
@@ -131,6 +144,7 @@ public class BacktestTradeManager implements TradeManager {
         log.debug("Updating balance: {} + {} = {}",
                 account.getBalance(), profitLoss, newBalance);
 
+        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getSymbol(), trade, TradeEvent.Action.CLOSE));
         account.setBalance(newBalance);
     }
 

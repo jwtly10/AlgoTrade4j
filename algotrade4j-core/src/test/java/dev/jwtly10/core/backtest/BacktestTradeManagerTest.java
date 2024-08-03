@@ -1,7 +1,9 @@
 package dev.jwtly10.core.backtest;
 
-import dev.jwtly10.core.*;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.*;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.TradeEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,16 +11,20 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 class BacktestTradeManagerTest {
+    private final String SYMBOL = "AAPL";
     private BacktestTradeManager executor;
     private MockPriceFeed mockPriceFeed;
-    private final String SYMBOL = "AAPL";
+    private EventPublisher mockEventPublisher;
 
     @BeforeEach
     void setUp() {
         mockPriceFeed = new MockPriceFeed();
-        executor = new BacktestTradeManager(new Number("10000"), mockPriceFeed);
+        mockEventPublisher = mock(EventPublisher.class);
+        executor = new BacktestTradeManager("BacktestTradeManagerTest", new Number("10000"), mockPriceFeed, mockEventPublisher);
     }
 
     @Test
@@ -26,6 +32,12 @@ class BacktestTradeManagerTest {
         // TODO: Spreads can instantly effect equity. This may be ignored for now, but needs to be considered in the future.
         mockPriceFeed.setPrice(new Number("99"));
         String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("95"), new Number("110"));
+
+        verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
         assertNotNull(tradeId);
         assertEquals(new Number("0"), executor.getOpenPositionValue());
         assertEquals(new Number("10000"), executor.getBalance());
@@ -37,6 +49,12 @@ class BacktestTradeManagerTest {
     void testOpenShortPosition() {
         mockPriceFeed.setPrice(new Number("100"));
         String tradeId = executor.openShortPosition(SYMBOL, new Number("10"), new Number("105"), new Number("90"));
+
+        verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
         assertNotNull(tradeId);
         assertEquals(new Number("0"), executor.getOpenPositionValue());
         assertEquals(new Number("10000"), executor.getBalance());
@@ -54,6 +72,11 @@ class BacktestTradeManagerTest {
 
         String tradeId = executor.openLongPosition(SYMBOL, stopLoss, riskRatio, risk, balanceType);
 
+        verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
         assertNotNull(tradeId);
         assertEquals(new Number("10000"), executor.getBalance());
         assertEquals(new Number("10000"), executor.getEquity());
@@ -87,6 +110,11 @@ class BacktestTradeManagerTest {
 
         String tradeId = executor.openShortPosition(SYMBOL, stopLoss, riskRatio, risk, balanceType);
 
+        verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
         assertNotNull(tradeId);
         assertEquals(new Number("10000"), executor.getBalance());
         assertEquals(new Number("10000"), executor.getEquity());
@@ -115,10 +143,24 @@ class BacktestTradeManagerTest {
     void testClosePositionLongProfit() {
         mockPriceFeed.setPrice(new Number("100"));
         String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("95"), new Number("110"));
-        // We simulate that the next bar close triggers the closing of the position
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
+
         Bar bar = createBar(new Number("105"), new Number("110"), new Number("100"), new Number("108"));
         executor.updateTrades(bar);
         executor.closePosition(tradeId);
+
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.CLOSE &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
+        verifyNoMoreInteractions(mockEventPublisher);
         // Equity change
         // Profit per unit = 107.99 - 100.01 = 7.98 (Current price - Entry price)
         // Total profit = 7.98 * 10 = 79.8 (Profit per unit * Quantity)
@@ -130,9 +172,24 @@ class BacktestTradeManagerTest {
     void testClosePositionLongLoss() {
         mockPriceFeed.setPrice(new Number("100"));
         String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("95"), new Number("110"));
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
+
         Bar bar = createBar(new Number("108"), new Number("110"), new Number("100"), new Number("97"));
         executor.updateTrades(bar);
         executor.closePosition(tradeId);
+
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.CLOSE &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
+        verifyNoMoreInteractions(mockEventPublisher);
         // Equity change
         // Profit per unit = 96.99 - 100.01 = -3.02 (Current price - Entry price)
         // Total profit = -3.02 * 10 = -30.20 (Profit per unit * Quantity)
@@ -144,9 +201,23 @@ class BacktestTradeManagerTest {
     void testClosePositionShortProfit() {
         mockPriceFeed.setPrice(new Number("100"));
         String tradeId = executor.openShortPosition(SYMBOL, new Number("10"), new Number("110"), new Number("95"));
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.OPEN &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
+
         Bar bar = createBar(new Number("108"), new Number("110"), new Number("100"), new Number("97"));
         executor.updateTrades(bar);
         executor.closePosition(tradeId);
+
+        // Verify that the trade events are published
+        verify(mockEventPublisher).publishEvent(argThat(event ->
+                event instanceof TradeEvent &&
+                        ((TradeEvent) event).getAction() == TradeEvent.Action.CLOSE &&
+                        ((TradeEvent) event).getSymbol().equals(SYMBOL)
+        ));
         // Equity change
         // Profit per unit = 99.99 - 97.01 = 2.98 (Current price - Entry price)
         // Total profit = 2.98 * 10 = 29.80 (Profit per unit * Quantity)
