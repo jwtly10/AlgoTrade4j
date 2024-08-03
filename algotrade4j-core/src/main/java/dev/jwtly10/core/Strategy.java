@@ -6,12 +6,12 @@ public interface Strategy {
     /**
      * Called once before the processing starts.
      */
-    void onInit(BarSeries series, List<Indicator> indicators, TradeExecutor tradeExecutor);
+    void onInit(BarSeries series, List<Indicator> indicators, TradeManager tradeManager);
 
     /**
      * Called on each bar.
      */
-    void onBar(Bar bar, BarSeries series, List<Indicator> indicators, TradeExecutor tradeExecutor);
+    void onBar(Bar bar, BarSeries series, List<Indicator> indicators, TradeManager tradeManager);
 
     /**
      * Called on each tick.

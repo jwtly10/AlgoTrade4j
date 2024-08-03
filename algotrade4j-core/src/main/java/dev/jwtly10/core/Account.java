@@ -1,8 +1,10 @@
 package dev.jwtly10.core;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class Account {
     private final Number initialBalance;
     private Number balance;
@@ -14,17 +16,5 @@ public class Account {
         this.balance = initialBalance;
         this.equity = initialBalance;
         this.openPositionValue = Number.ZERO;
-    }
-
-    void updateBalance(Number newBalance) {
-        this.balance = newBalance;
-    }
-
-    void updateEquity(Number newEquity) {
-        this.equity = newEquity;
-    }
-
-    void updateOpenPositionValue(Number newOpenPositionValue) {
-        this.openPositionValue = newOpenPositionValue;
     }
 }

@@ -3,32 +3,61 @@ package dev.jwtly10.core;
 /**
  * The TradeExecutor interface defines the contract for executing trades and managing trading positions.
  * It provides methods for opening and closing positions, retrieving trade information, and updating account status.
+ * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
-public interface TradeExecutor {
+public interface TradeManager {
+
+    enum BALANCE_TYPE {
+        EQUITY,
+        BALANCE,
+        INITIAL
+    }
 
     /**
-     * Opens a long position for the specified symbol.
+     * Opens a long position for the specified symbol, uses the current ask price as the entry price.
      *
      * @param symbol     The trading symbol (e.g., stock ticker or currency pair)
      * @param quantity   The quantity of the asset to purchase
-     * @param entryPrice The price at which to enter the position
      * @param stopLoss   The price at which to exit the position if the trade moves against the position
      * @param takeProfit The price at which to exit the position if the trade moves in favor of the position
      * @return A unique identifier for the opened trade
      */
-    String openLongPosition(String symbol, Number quantity, Number entryPrice, Number stopLoss, Number takeProfit);
+    String openLongPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit);
 
     /**
-     * Opens a short position for the specified symbol.
+     * Opens a long position for the specified symbol, uses the current ask price as the entry price.
+     * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
+     *
+     * @param symbol    The trading symbol (e.g., stock ticker or currency pair)
+     * @param stopLoss  The price at which to exit the position if the trade moves against the position
+     * @param riskRatio The size of the take profit target relative to the stop loss distance
+     * @param risk      The maximum amount of account equity to risk on this trade (in percentage)
+     * @return A unique identifier for the opened trade
+     */
+    String openLongPosition(String symbol, Number stopLoss, Number riskRatio, Number risk, BALANCE_TYPE balanceType);
+
+    /**
+     * Opens a short position for the specified symbol, uses the current bid price as the entry price.
+     * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
+     *
+     * @param symbol    The trading symbol (e.g., stock ticker or currency pair)
+     * @param stopLoss  The price at which to exit the position if the trade moves against the position
+     * @param riskRatio The size of the take profit target relative to the stop loss distance
+     * @param risk      The maximum amount of account equity to risk on this trade (in percentage)
+     * @return A unique identifier for the opened trade
+     */
+    String openShortPosition(String symbol, Number stopLoss, Number riskRatio, Number risk, BALANCE_TYPE balanceType);
+
+    /**
+     * Opens a short position for the specified symbol, uses the current bid price as the entry price.
      *
      * @param symbol     The trading symbol (e.g., stock ticker or currency pair)
      * @param quantity   The quantity of the asset to sell short
-     * @param entryPrice The price at which to enter the position
      * @param stopLoss   The price at which to exit the position if the trade moves against the position
      * @param takeProfit The price at which to exit the position if the trade moves in favor of the position
      * @return A unique identifier for the opened trade
      */
-    String openShortPosition(String symbol, Number quantity, Number entryPrice, Number stopLoss, Number takeProfit);
+    String openShortPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit);
 
     /**
      * Closes an existing position identified by the trade ID.

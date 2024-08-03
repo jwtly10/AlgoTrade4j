@@ -83,6 +83,10 @@ public class Number implements Comparable<Number> {
         return new Number(this.value.subtract(other.value));
     }
 
+    public Number abs() {
+        return new Number(this.value.abs());
+    }
+
     /**
      * Multiplies this Number by a BigDecimal multiplier.
      *
@@ -101,6 +105,27 @@ public class Number implements Comparable<Number> {
      */
     public Number divide(BigDecimal divisor) {
         return new Number(this.value.divide(divisor, ROUNDING_MODE));
+    }
+
+    /**
+     * Divides this Number by an integer divisor.
+     *
+     * @param divisor The integer to divide by
+     * @return A new Number representing the quotient
+     */
+    public Number divide(int divisor) {
+        return new Number(this.value.divide(new Number(divisor).getValue(), ROUNDING_MODE));
+    }
+
+    /**
+     * Rounds this Number to the specified number of decimal places.
+     *
+     * @param scale        The number of decimal places to round to
+     * @param roundingMode The rounding mode to use
+     * @return A new Number representing the rounded value
+     */
+    public Number setScale(int scale, RoundingMode roundingMode) {
+        return new Number(this.value.setScale(scale, roundingMode));
     }
 
     /**
