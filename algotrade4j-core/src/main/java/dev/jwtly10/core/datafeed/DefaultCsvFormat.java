@@ -1,8 +1,8 @@
 package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.DefaultBar;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.defaults.DefaultBar;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

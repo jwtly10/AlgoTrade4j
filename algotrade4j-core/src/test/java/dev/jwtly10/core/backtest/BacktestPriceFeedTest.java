@@ -1,21 +1,22 @@
 package dev.jwtly10.core.backtest;
 
 import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.DefaultBar;
-import dev.jwtly10.core.DefaultBarSeries;
 import dev.jwtly10.core.Number;
+import dev.jwtly10.core.defaults.DefaultBar;
+import dev.jwtly10.core.defaults.DefaultBarSeries;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 class BacktestPriceFeedTest {
-    private BacktestPriceFeed priceFeed;
     private final String symbol = "TEST";
     private final Number spread = new Number(0.02);
+    private BacktestPriceFeed priceFeed;
 
     @BeforeEach
     void setUp() {

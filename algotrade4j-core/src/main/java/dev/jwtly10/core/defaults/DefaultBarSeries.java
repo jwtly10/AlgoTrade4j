@@ -1,4 +1,7 @@
-package dev.jwtly10.core;
+package dev.jwtly10.core.defaults;
+
+import dev.jwtly10.core.Bar;
+import dev.jwtly10.core.BarSeries;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +17,7 @@ public class DefaultBarSeries implements BarSeries {
         this.bars = new LinkedList<>();
     }
 
-    public DefaultBarSeries(int maximumBarCount){
+    public DefaultBarSeries(int maximumBarCount) {
         this("DefaultBarSeries", maximumBarCount);
     }
 

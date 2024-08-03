@@ -2,6 +2,7 @@ package dev.jwtly10.core.backtest;
 
 import dev.jwtly10.core.Number;
 import dev.jwtly10.core.*;
+import dev.jwtly10.core.defaults.DefaultBar;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
 import org.junit.jupiter.api.BeforeEach;

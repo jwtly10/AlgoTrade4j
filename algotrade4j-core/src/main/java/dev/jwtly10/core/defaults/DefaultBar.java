@@ -1,5 +1,7 @@
-package dev.jwtly10.core;
+package dev.jwtly10.core.defaults;
 
+import dev.jwtly10.core.Bar;
+import dev.jwtly10.core.Number;
 import lombok.Builder;
 import lombok.Value;
 

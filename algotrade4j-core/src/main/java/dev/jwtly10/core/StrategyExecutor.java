@@ -4,6 +4,7 @@ import dev.jwtly10.core.backtest.BacktestPriceFeed;
 import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.DataFeed;
 import dev.jwtly10.core.datafeed.DataFeedException;
+import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 
