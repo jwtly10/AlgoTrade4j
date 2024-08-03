@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class BacktestTradeExecutorTest {
+class BacktestTradeManagerTest {
     private BacktestTradeManager executor;
     private MockPriceFeed mockPriceFeed;
     private final String SYMBOL = "AAPL";
