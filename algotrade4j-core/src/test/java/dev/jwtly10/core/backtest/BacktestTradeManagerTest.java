@@ -69,6 +69,11 @@ class BacktestTradeManagerTest {
         assertEquals(expectedQuantity, trade.getQuantity());
         assertEquals(expectedTakeProfit, trade.getTakeProfit());
 
+        // The stop loss size should be half as much as take profit
+        var stopLossSize = trade.getEntryPrice().subtract(trade.getStopLoss()).abs();
+        var takeProfitSize = trade.getTakeProfit().subtract(trade.getEntryPrice()).abs();
+        assertEquals(stopLossSize.multiply(new Number("2").getValue()), takeProfitSize);
+
         assertTrue(trade.isLong());
     }
 
@@ -96,6 +101,11 @@ class BacktestTradeManagerTest {
 
         assertEquals(expectedQuantity, trade.getQuantity());
         assertEquals(expectedTakeProfit, trade.getTakeProfit());
+
+        // The stop loss size should be half as much as take profit
+        var stopLossSize = trade.getEntryPrice().subtract(trade.getStopLoss()).abs();
+        var takeProfitSize = trade.getTakeProfit().subtract(trade.getEntryPrice()).abs();
+        assertEquals(stopLossSize.multiply(new Number("2").getValue()), takeProfitSize);
 
         // Verify that it's a short position
         assertFalse(trade.isLong());

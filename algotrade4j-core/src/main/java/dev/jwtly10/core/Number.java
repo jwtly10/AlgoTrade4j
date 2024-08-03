@@ -129,6 +129,15 @@ public class Number implements Comparable<Number> {
     }
 
     /**
+     * Converts this Number to a double value.
+     *
+     * @return The double value of this Number
+     */
+    public double doubleValue() {
+        return this.value.doubleValue();
+    }
+
+    /**
      * Checks if this Number is greater than another Number.
      *
      * @param other The Number to compare against

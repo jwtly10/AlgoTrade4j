@@ -44,6 +44,8 @@ public class BacktestTradeManager implements TradeManager {
     }
 
     public String openPosition(String symbol, Number stopLoss, Number riskRatio, Number risk, BALANCE_TYPE balanceType, boolean isLong) {
+        log.debug("Opening {} position for symbol: {}, stopLoss={}, riskRatio={}, risk={}, balanceType={}",
+                isLong ? "long" : "short", symbol, stopLoss, riskRatio, risk, balanceType);
         Number entryPrice = isLong ? priceFeed.getAsk(symbol) : priceFeed.getBid(symbol);
         log.debug("Entry price ({}) for {}: {}", isLong ? "ask" : "bid", symbol, entryPrice);
 
