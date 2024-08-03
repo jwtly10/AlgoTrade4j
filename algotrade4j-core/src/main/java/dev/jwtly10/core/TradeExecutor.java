@@ -1,7 +1,5 @@
 package dev.jwtly10.core;
 
-import dev.jwtly10.core.Bar;
-
 /**
  * The TradeExecutor interface defines the contract for executing trades and managing trading positions.
  * It provides methods for opening and closing positions, retrieving trade information, and updating account status.

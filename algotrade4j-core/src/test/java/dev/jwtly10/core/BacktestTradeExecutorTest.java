@@ -21,24 +21,70 @@ class BacktestTradeExecutorTest {
     void testOpenLongPosition() {
         String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("100"), new Number("95"), new Number("110"));
         assertNotNull(tradeId);
-        assertEquals(new Number("9000"), executor.getBalance());
+        assertEquals(new Number("0"), executor.getOpenPositionValue());
+        assertEquals(new Number("10000"), executor.getBalance());
+        assertEquals(new Number("10000"), executor.getEquity());
     }
 
     @Test
     void testOpenShortPosition() {
         String tradeId = executor.openShortPosition(SYMBOL, new Number("10"), new Number("100"), new Number("105"), new Number("90"));
         assertNotNull(tradeId);
-        assertEquals(new Number("11000"), executor.getBalance());
+        assertEquals(new Number("0"), executor.getOpenPositionValue());
+        assertEquals(new Number("10000"), executor.getBalance());
+        assertEquals(new Number("10000"), executor.getEquity());
     }
 
     @Test
-    void testClosePosition() {
+    void testClosePositionLongProfit() {
         String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("100"), new Number("95"), new Number("110"));
         Bar bar = createBar(new Number("105"), new Number("110"), new Number("100"), new Number("108"));
         executor.updateTrades(bar);
         executor.closePosition(tradeId);
+        // Equity change
+        // Profit per unit = 105 - 100 = 5 (Current price - Entry price)
+        // Total profit = 5 * 10 = 50 (Profit per unit * Quantity)
         assertEquals(new Number("10050"), executor.getBalance());
     }
+
+    @Test
+    void testClosePositionLongLoss() {
+        String tradeId = executor.openLongPosition(SYMBOL, new Number("10"), new Number("100"), new Number("95"), new Number("110"));
+        Bar bar = createBar(new Number("97"), new Number("110"), new Number("100"), new Number("108"));
+        executor.updateTrades(bar);
+        executor.closePosition(tradeId);
+        // Equity change
+        // Profit per unit = 97 - 100 = -3 (Current price - Entry price)
+        // Total profit = -3 * 10 = -30 (Profit per unit * Quantity)
+        assertEquals(new Number("9970"), executor.getBalance());
+    }
+
+    @Test
+    void testClosePositionShortProfit() {
+        String tradeId = executor.openShortPosition(SYMBOL, new Number("10"), new Number("100"), new Number("110"), new Number("95"));
+        Bar bar = createBar(new Number("97"), new Number("110"), new Number("100"), new Number("108"));
+        executor.updateTrades(bar);
+        executor.closePosition(tradeId);
+        // Equity change
+        // Profit per unit = 100 - 97 = 3 (Current price - Entry price)
+        // Total profit = 3 * 10 = 30 (Profit per unit * Quantity)
+        assertEquals(new Number("10030"), executor.getBalance());
+    }
+
+
+    @Test
+    void testClosePositionShortLoss() {
+        String tradeId = executor.openShortPosition(SYMBOL, new Number("10"), new Number("100"), new Number("110"), new Number("95"));
+        Bar bar = createBar(new Number("105"), new Number("110"), new Number("100"), new Number("108"));
+        executor.updateTrades(bar);
+        executor.closePosition(tradeId);
+        // Equity change
+        // Profit per unit = 100 - 105 = -5 (Current price - Entry price)
+        // Total profit = -5 * 10 = -50 (Profit per unit * Quantity)
+        assertEquals(new Number("9950"), executor.getBalance());
+        assertEquals(new Number("9950"), executor.getEquity());
+    }
+
 
     @Test
     void testGetPosition() {
@@ -57,10 +103,11 @@ class BacktestTradeExecutorTest {
 
     @Test
     void testUpdateTradesTakeProfit() {
-        executor.openShortPosition(SYMBOL, new Number("10"), new Number("100"), new Number("105"), new Number("90"));
+        executor.openShortPosition(SYMBOL, new Number("10"), new Number("100"), new Number("105"), new Number("95"));
         Bar bar = createBar(new Number("92"), new Number("93"), new Number("89"), new Number("90"));
         executor.updateTrades(bar);
-        assertEquals(new Number("11080"), executor.getBalance());
+
+        assertEquals(new Number("10080"), executor.getBalance());
     }
 
     @Test
@@ -68,7 +115,8 @@ class BacktestTradeExecutorTest {
         executor.openLongPosition(SYMBOL, new Number("10"), new Number("100"), new Number("95"), new Number("110"));
         Bar bar = createBar(new Number("105"), new Number("110"), new Number("100"), new Number("108"));
         executor.updateTrades(bar);
-        assertEquals(new Number("9000"), executor.getBalance());
+        assertEquals(new Number("10000"), executor.getBalance());
+        assertEquals(new Number("50"), executor.getOpenPositionValue());
         assertEquals(new Number("10050"), executor.getEquity());
     }
 

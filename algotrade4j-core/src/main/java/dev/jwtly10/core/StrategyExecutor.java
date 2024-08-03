@@ -22,6 +22,7 @@ public class StrategyExecutor implements BarDataListener {
     }
 
     public void run() throws DataFeedException {
+        // TODO: On init we should load all trades from broker (when in live mode)
         strategy.onInit(barSeries, indicators, tradeExecutor);
         dataFeed.addBarDataListener(this);
         dataFeed.start();

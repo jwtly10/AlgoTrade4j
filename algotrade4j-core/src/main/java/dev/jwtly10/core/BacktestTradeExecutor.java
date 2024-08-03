@@ -22,8 +22,6 @@ public class BacktestTradeExecutor implements TradeExecutor {
     public String openLongPosition(String symbol, Number quantity, Number entryPrice, Number stopLoss, Number takeProfit) {
         Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, true);
         trades.put(trade.getId(), trade);
-        account.updateBalance(account.getBalance().subtract(quantity.multiply(entryPrice.getValue())));
-        updateAccountState();
         return trade.getId();
     }
 
@@ -31,13 +29,12 @@ public class BacktestTradeExecutor implements TradeExecutor {
     public String openShortPosition(String symbol, Number quantity, Number entryPrice, Number stopLoss, Number takeProfit) {
         Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, false);
         trades.put(trade.getId(), trade);
-        account.updateBalance(account.getBalance().add(quantity.multiply(entryPrice.getValue())));
-        updateAccountState();
         return trade.getId();
     }
 
     @Override
     public void closePosition(String tradeId) {
+        // Remove trade from the list of trades
         Trade trade = trades.remove(tradeId);
         if (trade == null) {
             throw new IllegalArgumentException("Trade not found: " + tradeId);
@@ -58,11 +55,32 @@ public class BacktestTradeExecutor implements TradeExecutor {
         // (This gives us more precision but increase the complexity of the system)
 
         if (trade.isLong()) {
-            account.updateBalance(account.getBalance().add(trade.getQuantity().multiply(currentBar.getOpen().getValue())));
+            // If LONG, if current bar open is less than entry price, then we made a loss
+            if (currentBar.getOpen().isLessThan(trade.getEntryPrice())) {
+                var lossPerUnit = trade.getEntryPrice().subtract(currentBar.getOpen());
+                var loss = lossPerUnit.multiply(trade.getQuantity().getValue());
+                account.updateBalance(account.getBalance().subtract(loss));
+//                account.updateEquity(account.getBalance().subtract(loss));
+            } else {
+                var profitPerUnit = currentBar.getOpen().subtract(trade.getEntryPrice());
+                var profit = profitPerUnit.multiply(trade.getQuantity().getValue());
+                account.updateBalance(account.getBalance().add(profit));
+//                account.updateEquity(account.getBalance().add(profit));
+            }
         } else {
-            account.updateBalance(account.getBalance().subtract(trade.getQuantity().multiply(currentBar.getOpen().getValue())));
+            // If SHORT, if current bar open is more than entry price, then we made a loss
+            if (currentBar.getOpen().isGreaterThan(trade.getEntryPrice())) {
+                var lossPerUnit = currentBar.getOpen().subtract(trade.getEntryPrice());
+                var loss = lossPerUnit.multiply(trade.getQuantity().getValue());
+                account.updateBalance(account.getBalance().subtract(loss));
+//                account.updateEquity(account.getBalance().subtract(loss));
+            } else {
+                var profitPerUnit = trade.getEntryPrice().subtract(currentBar.getOpen());
+                var profit = profitPerUnit.multiply(trade.getQuantity().getValue());
+                account.updateBalance(account.getBalance().add(profit));
+//                account.updateEquity(account.getBalance().add(profit));
+            }
         }
-        updateAccountState();
     }
 
     @Override
@@ -94,22 +112,22 @@ public class BacktestTradeExecutor implements TradeExecutor {
     }
 
     public void updateTrades(Bar bar) {
-        currentBar = bar;
+        this.currentBar = bar;
 
+        // TODO: Review using candle open for stop loss and take profit
         String symbol = bar.getSymbol();
-        Number high = bar.getHigh();
-        Number low = bar.getLow();
+        Number open = bar.getOpen();
 
         List<String> tradesToClose = new ArrayList<>();
 
         for (Trade trade : trades.values()) {
             if (trade.getSymbol().equals(symbol)) {
                 if (trade.isLong()) {
-                    if (low.isLessThan(trade.getStopLoss()) || high.isGreaterThan(trade.getTakeProfit())) {
+                    if (open.isLessThan(trade.getStopLoss()) || open.isGreaterThan(trade.getTakeProfit())) {
                         tradesToClose.add(trade.getId());
                     }
                 } else {
-                    if (high.isGreaterThan(trade.getStopLoss()) || low.isLessThan(trade.getTakeProfit())) {
+                    if (open.isGreaterThan(trade.getStopLoss()) || open.isLessThan(trade.getTakeProfit())) {
                         tradesToClose.add(trade.getId());
                     }
                 }
@@ -124,11 +142,40 @@ public class BacktestTradeExecutor implements TradeExecutor {
     }
 
     private void updateAccountState() {
-        Number openPositionValue = trades.values().stream()
-                .map(trade -> trade.getQuantity().multiply(trade.getEntryPrice().getValue()))
-                .reduce(Number.ZERO, Number::add);
+        // This happens whenever we get a new bar.
+        // Iterate over all open trades, calculate the open position value and update the account equity
+        // Based on the current bar open
 
-        account.updateOpenPositionValue(openPositionValue);
-        account.updateEquity(account.getBalance().add(openPositionValue));
+        if (currentBar == null) {
+            throw new IllegalStateException("Current bar is not set");
+        }
+
+        for (Trade trade : trades.values()) {
+            if (trade.isLong()) {
+                // If LONG, if current bar open is less than entry price, then we made a loss
+                if (currentBar.getOpen().isLessThan(trade.getEntryPrice())) {
+                    var lossPerUnit = trade.getEntryPrice().subtract(currentBar.getOpen());
+                    var loss = lossPerUnit.multiply(trade.getQuantity().getValue());
+                    account.updateEquity(account.getBalance().subtract(loss));
+                } else {
+                    var profitPerUnit = currentBar.getOpen().subtract(trade.getEntryPrice());
+                    var profit = profitPerUnit.multiply(trade.getQuantity().getValue());
+                    account.updateEquity(account.getBalance().add(profit));
+                }
+            } else {
+                // If SHORT, if current bar open is more than entry price, then we made a loss
+                if (currentBar.getOpen().isGreaterThan(trade.getEntryPrice())) {
+                    var lossPerUnit = currentBar.getOpen().subtract(trade.getEntryPrice());
+                    var loss = lossPerUnit.multiply(trade.getQuantity().getValue());
+                    account.updateEquity(account.getBalance().subtract(loss));
+                } else {
+                    var profitPerUnit = trade.getEntryPrice().subtract(currentBar.getOpen());
+                    var profit = profitPerUnit.multiply(trade.getQuantity().getValue());
+                    account.updateEquity(account.getBalance().add(profit));
+                }
+            }
+        }
+
+        account.updateOpenPositionValue(account.getEquity().subtract(account.getInitialBalance()));
     }
 }
