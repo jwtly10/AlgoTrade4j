@@ -36,6 +36,15 @@ public class StrategyExecutor implements BarDataListener {
         this.tradeManager = new BacktestTradeManager(strategyId, initialCash, priceFeed, eventPublisher);
     }
 
+    /**
+     * Runs the strategy.
+     * This will subscribe the executor to a datafeed, and then start the data feed in a virtual thread
+     * In a live trading environment, the data feed would be connected to a broker.
+     * The strategy will be initialized, and then the executor will wait for bar data to be received, and then
+     * call the strategy's onBar method.
+     *
+     * @throws DataFeedException if there is an error starting the data feed
+     */
     public void run() throws DataFeedException {
         running = true;
         // TODO: On init we should load all trades from broker (when in live mode)
@@ -64,29 +73,13 @@ public class StrategyExecutor implements BarDataListener {
         cleanup();
     }
 
-    public void stop() {
-        running = false;
-        try {
-            dataFeed.stop();
-            dataFeed.removeBarDataListener(this);
-        } catch (DataFeedException e) {
-            log.error("Error stopping data feed", e);
-        }
-    }
-
-    private void cleanup() {
-        log.info("Cleaning up strategy");
-        strategy.onDeInit();
-        eventPublisher.publishEvent(new StrategyStopEvent(
-                strategyId,
-                "Strategy stopped"
-        ));
-    }
-
-    public void addIndicator(Indicator indicator) {
-        indicators.add(indicator);
-    }
-
+    /*
+     * This method is called when a new bar is received from the data feed.
+     * The bar is added to the bar series, and then the strategy is called with the new bar.
+     * The strategy will then update any indicators, and then update any trades.
+     * Finally, the strategies on bar event will be called with the updated bar series, indicators, and trades.
+     * @param bar the new bar received from the data feed
+     */
     @Override
     public void onBar(Bar bar) {
         if (!running) {
@@ -109,6 +102,30 @@ public class StrategyExecutor implements BarDataListener {
                 ", Balance: " + account.getBalance() +
                 ", Equity: " + account.getEquity() +
                 ", Open Position Value: " + account.getOpenPositionValue());
+    }
+
+
+    public void stop() {
+        running = false;
+        try {
+            dataFeed.stop();
+            dataFeed.removeBarDataListener(this);
+        } catch (DataFeedException e) {
+            log.error("Error stopping data feed", e);
+        }
+    }
+
+    private void cleanup() {
+        log.info("Cleaning up strategy");
+        strategy.onDeInit();
+        eventPublisher.publishEvent(new StrategyStopEvent(
+                strategyId,
+                "Strategy stopped"
+        ));
+    }
+
+    public void addIndicator(Indicator indicator) {
+        indicators.add(indicator);
     }
 
     @Override
