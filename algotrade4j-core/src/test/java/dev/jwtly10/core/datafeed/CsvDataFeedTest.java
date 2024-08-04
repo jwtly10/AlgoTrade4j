@@ -1,6 +1,7 @@
 package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.Bar;
+import dev.jwtly10.core.BarDataListener;
 import dev.jwtly10.core.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,17 @@ class CsvDataFeedTest {
         CsvDataFeed dataFeed = new CsvDataFeed("NAS100_USD", csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
         List<Bar> receivedBars = new ArrayList<>();
 
-        dataFeed.addBarDataListener(receivedBars::add);
+        dataFeed.addBarDataListener(new BarDataListener() {
+            @Override
+            public void onBar(Bar bar) {
+                receivedBars.add(bar);
+            }
+
+            @Override
+            public void onStop() {
+
+            }
+        });
 
         dataFeed.start();
 
@@ -78,7 +89,17 @@ class CsvDataFeedTest {
         CsvDataFeed dataFeed = new CsvDataFeed("NAS100_USD", csvFile.getAbsolutePath(), format, DataFeedSpeed.INSTANT);
         List<Bar> receivedBars = new ArrayList<>();
 
-        dataFeed.addBarDataListener(receivedBars::add);
+        dataFeed.addBarDataListener(new BarDataListener() {
+            @Override
+            public void onBar(Bar bar) {
+                receivedBars.add(bar);
+            }
+
+            @Override
+            public void onStop() {
+
+            }
+        });
 
         Thread feedThread = new Thread(() -> {
             try {
