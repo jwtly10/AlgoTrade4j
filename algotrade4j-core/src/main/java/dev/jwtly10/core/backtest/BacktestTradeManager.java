@@ -117,6 +117,7 @@ public class BacktestTradeManager implements TradeManager {
             throw new IllegalStateException("Price not found for symbol: " + trade.getSymbol());
         }
 
+        // TODO: Noticed potential bug with this. REview
         log.debug("Closing position: {}", trade);
         log.debug("Trade details - Symbol: {}, Long: {}, Quantity: {}, Entry Price: {}",
                 trade.getSymbol(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());

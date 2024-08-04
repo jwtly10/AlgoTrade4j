@@ -29,6 +29,15 @@ public class EventPublisher {
     }
 
     /**
+     * Removes an event listener from the list of subscribers.
+     *
+     * @param listener The EventListener to be removed.
+     */
+    public void removeListener(EventListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
      * Publishes an event to all registered listeners.
      * This method iterates through all registered listeners and calls their onEvent method,
      * passing the event as an argument.
@@ -39,6 +48,12 @@ public class EventPublisher {
     public void publishEvent(BaseEvent event) {
         for (EventListener listener : listeners) {
             executorService.submit(() -> listener.onEvent(event));
+        }
+    }
+
+    public void publishErrorEvent(String strategyId, Exception e) {
+        for (EventListener listener : listeners) {
+            executorService.submit(() -> listener.onError(strategyId, e));
         }
     }
 

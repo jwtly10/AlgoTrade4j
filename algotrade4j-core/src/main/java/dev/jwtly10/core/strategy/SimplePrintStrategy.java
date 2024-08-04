@@ -8,7 +8,14 @@ import java.util.List;
 
 @Slf4j
 public class SimplePrintStrategy implements Strategy {
-    private final String strategyId = "SimplePrintStrategy";
+    private String strategyId = "SimplePrintStrategy";
+
+    public SimplePrintStrategy(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
+    public SimplePrintStrategy() {
+    }
 
     @Override
     public void onInit(BarSeries series, List<Indicator> indicators, TradeManager tradeManager) {
