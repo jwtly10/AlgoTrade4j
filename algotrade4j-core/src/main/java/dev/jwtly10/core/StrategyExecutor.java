@@ -19,7 +19,6 @@ public class StrategyExecutor implements BarDataListener {
     private final Strategy strategy;
     private final List<Indicator> indicators;
     private final DataFeed dataFeed;
-    private final PriceFeed priceFeed;
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final String strategyId;
@@ -31,9 +30,9 @@ public class StrategyExecutor implements BarDataListener {
         this.dataFeed = dataFeed;
         this.indicators = new ArrayList<>();
         this.barSeries = barSeries;
-        this.priceFeed = priceFeed;
         this.eventPublisher = eventPublisher;
         this.tradeManager = new BacktestTradeManager(strategyId, initialCash, priceFeed, eventPublisher);
+        strategy.onInit(barSeries, priceFeed, tradeManager, eventPublisher);
     }
 
     /**
@@ -49,7 +48,7 @@ public class StrategyExecutor implements BarDataListener {
         running = true;
         // TODO: On init we should load all trades from broker (when in live mode)
         // We should also load a number of bars, depending on the indicator
-        strategy.onInit(barSeries, priceFeed, indicators, tradeManager);
+        strategy.onStart();
         dataFeed.addBarDataListener(this);
 
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -98,10 +97,7 @@ public class StrategyExecutor implements BarDataListener {
 
         // Print account information after each bar
         Account account = tradeManager.getAccount();
-        System.out.println("Bar: " + bar.getDateTime() +
-                ", Balance: " + account.getBalance() +
-                ", Equity: " + account.getEquity() +
-                ", Open Position Value: " + account.getOpenPositionValue());
+        log.info("Bar: {}, Balance: {}, Equity: {}, Open Position Value: {}", bar.getDateTime(), account.getBalance(), account.getEquity(), account.getOpenPositionValue());
     }
 
 

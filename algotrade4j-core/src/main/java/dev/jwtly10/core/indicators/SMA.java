@@ -16,23 +16,23 @@ import java.util.List;
  * and then dividing by the number of periods.
  */
 public class SMA implements Indicator {
-    private final String strategyId;
     private final int period;
     private final List<Number> values;
     private final List<Number> smaValues;
-    private final EventPublisher eventPublisher;
+    private final String name;
+    private String strategyId;
+    private EventPublisher eventPublisher;
 
     /**
      * Constructs a new SMA indicator with the specified period.
      *
      * @param period the number of periods to use in the SMA calculation
      */
-    public SMA(String strategyId, int period, EventPublisher eventPublisher) {
-        this.strategyId = strategyId;
+    public SMA(int period) {
         this.period = period;
         this.values = new ArrayList<>();
         this.smaValues = new ArrayList<>();
-        this.eventPublisher = eventPublisher;
+        this.name = "SMA " + period;
     }
 
     /**
@@ -43,17 +43,21 @@ public class SMA implements Indicator {
     public void update(Bar bar) {
         values.add(bar.getClose());
 
-        if (values.size() >= period) {
+        if (isReady()) {
             BigDecimal sum = values.subList(values.size() - period, values.size()).stream()
                     .map(Number::getValue)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal average = sum.divide(BigDecimal.valueOf(period), Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
             Number smaPrice = new Number(average);
             smaValues.add(smaPrice);
-            eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice));
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice));
+            }
         } else {
             smaValues.add(Number.ZERO);
-            eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO));
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO));
+            }
         }
     }
 
@@ -84,7 +88,7 @@ public class SMA implements Indicator {
      */
     @Override
     public String getName() {
-        return "SMA " + period;
+        return name;
     }
 
     /**
@@ -104,4 +108,23 @@ public class SMA implements Indicator {
     public int getRequiredPeriods() {
         return period;
     }
+
+    /**
+     * {@inheritDoc}
+     * Sets the event publisher for the SMA.
+     */
+    @Override
+    public void setEventPublisher(EventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    /**
+     * {@inheritDoc}
+     * Sets the strategy id
+     */
+    @Override
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
+    }
+
 }

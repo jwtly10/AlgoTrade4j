@@ -1,22 +1,30 @@
 package dev.jwtly10.core;
 
+import dev.jwtly10.core.event.EventPublisher;
+
 import java.util.List;
 
 /**
  * Represents a trading strategy in the AlgoTrade4j framework.
  */
 public interface Strategy {
+
     /**
      * Called once before the strategy processing starts.
-     * Use this method to initialize strategy-specific variables,
-     * set up initial indicators, or perform any one-time setup tasks.
+     * Abstracts away the initialisation of the strategy, and required dependencies.
      *
-     * @param series       The initial BarSeries available at strategy start.
-     * @param priceFeed    The PriceFeed instance for retrieving market data.
-     * @param indicators   List of indicators available to the strategy.
-     * @param tradeManager The TradeManager instance for executing trades.
+     * @param series         The initial BarSeries available at strategy start.
+     * @param priceFeed      The PriceFeed instance for retrieving market data.
+     * @param tradeManager   The TradeManager instance for executing trades.
+     * @param eventPublisher The EventPublisher instance for publishing events.
      */
-    void onInit(BarSeries series, PriceFeed priceFeed, List<Indicator> indicators, TradeManager tradeManager);
+    void onInit(BarSeries series, PriceFeed priceFeed, TradeManager tradeManager, EventPublisher eventPublisher);
+
+    /**
+     * Called once after the strategy processing starts.
+     * Use this method to perform any custom initialisation logic.
+     */
+    void onStart();
 
     /**
      * Returns a unique identifier for the strategy. TODO: Should this be unique? I guess callers can handle that - adding some unique key in the case of optimisation etc where multiple runs are happening TBC.

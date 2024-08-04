@@ -1,5 +1,7 @@
 package dev.jwtly10.core;
 
+import dev.jwtly10.core.event.EventPublisher;
+
 /**
  * Represents a financial indicator used in technical analysis.
  * Indicators are tools used to analyze price movements and trends in financial markets.
@@ -54,4 +56,20 @@ public interface Indicator {
      * @return the number of periods required for the indicator to produce a valid value
      */
     int getRequiredPeriods();
+
+    /**
+     * Sets the event publisher for the indicator.
+     * The event publisher is used to publish events related to the indicator's calculations.
+     *
+     * @param eventPublisher the event publisher to be used by the indicator
+     */
+    void setEventPublisher(EventPublisher eventPublisher);
+
+    /**
+     * Sets the strategy ID for the indicator.
+     * The strategy ID is used to uniquely identify the strategy that owns the indicator.
+     *
+     * @param strategyId the unique identifier of the strategy that owns the indicator
+     */
+    void setStrategyId(String strategyId);
 }

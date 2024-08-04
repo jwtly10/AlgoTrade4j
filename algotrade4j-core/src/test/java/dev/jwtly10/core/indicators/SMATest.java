@@ -24,7 +24,8 @@ class SMATest {
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
-        smaIndicator = new SMA("SMATest", 3, mockEventPublisher);
+        smaIndicator = new SMA(3);
+        smaIndicator.setEventPublisher(mockEventPublisher);
     }
 
     @Test
@@ -86,7 +87,8 @@ class SMATest {
 
     @Test
     void testLongerPeriod() {
-        SMA sma5 = new SMA("SMATest", 5, mockEventPublisher);
+        SMA sma5 = new SMA(5);
+        sma5.setEventPublisher(mockEventPublisher);
         for (int i = 1; i <= 5; i++) {
             sma5.update(createMockBar(i * 10));
         }

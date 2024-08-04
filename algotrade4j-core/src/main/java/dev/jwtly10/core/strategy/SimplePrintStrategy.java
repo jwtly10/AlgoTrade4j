@@ -7,22 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 @Slf4j
-public class SimplePrintStrategy implements Strategy {
-    private String strategyId = "SimplePrintStrategy";
-
-    private PriceFeed priceFeed;
-
-    public SimplePrintStrategy(String strategyId) {
-        this.strategyId = strategyId;
-    }
-
+public class SimplePrintStrategy extends BaseStrategy {
     public SimplePrintStrategy() {
+        super("SimplePrintStrategy");
     }
 
     @Override
-    public void onInit(BarSeries series, PriceFeed priceFeed, List<Indicator> indicators, TradeManager tradeManager) {
-        log.info("Strategy initialized. Initial bar count: {}", series.getBarCount());
-        this.priceFeed = priceFeed;
+    public void onStart() {
+        log.info("Strategy initialized.");
     }
 
     @Override
@@ -42,11 +34,6 @@ public class SimplePrintStrategy implements Strategy {
     @Override
     public void onDeInit() {
         log.info("Strategy de-initialized.");
-    }
-
-    @Override
-    public String getStrategyId() {
-        return strategyId;
     }
 
     private String formatBar(Bar bar) {
