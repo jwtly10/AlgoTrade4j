@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +27,12 @@ class DefaultCsvFormatTest {
         Bar bar = format.parseBar("NAS100_USD", fields);
 
         assertNotNull(bar);
-        assertEquals(LocalDateTime.of(2022, 1, 2, 22, 0), bar.getDateTime());
+
+        var date = LocalDateTime.parse("2022-01-02T22:00");
+        ZonedDateTime dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
+
+
+        assertEquals(dateTime, bar.getDateTime());
         assertEquals(new Number(16419.7), bar.getOpen());
         assertEquals(new Number(16526.0), bar.getHigh());
         assertEquals(new Number(16310.6), bar.getLow());

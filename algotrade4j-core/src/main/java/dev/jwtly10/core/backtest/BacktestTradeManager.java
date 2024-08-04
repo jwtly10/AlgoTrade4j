@@ -33,7 +33,7 @@ public class BacktestTradeManager implements TradeManager {
     @Override
     public String openLongPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
         Number entryPrice = priceFeed.getAsk(symbol);
-        Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, true);
+        Trade trade = new Trade(symbol, quantity, entryPrice, priceFeed.getDateTime(symbol), stopLoss, takeProfit, true);
         log.debug("Opening long position: {}", trade);
 
         trades.put(trade.getId(), trade);
@@ -87,7 +87,7 @@ public class BacktestTradeManager implements TradeManager {
         log.debug("Opening {} position: symbol={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={}",
                 isLong ? "long" : "short", symbol, entryPrice, stopLoss, takeProfit, quantity, riskAmount);
 
-        Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, isLong);
+        Trade trade = new Trade(symbol, quantity, entryPrice, priceFeed.getDateTime(symbol), stopLoss, takeProfit, isLong);
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, symbol, trade, TradeEvent.Action.OPEN));
         trades.put(trade.getId(), trade);
@@ -98,7 +98,7 @@ public class BacktestTradeManager implements TradeManager {
     @Override
     public String openShortPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
         Number entryPrice = priceFeed.getBid(symbol);
-        Trade trade = new Trade(symbol, quantity, entryPrice, stopLoss, takeProfit, false);
+        Trade trade = new Trade(symbol, quantity, entryPrice, priceFeed.getDateTime(symbol), stopLoss, takeProfit, false);
         log.debug("Opening short position: {}", trade);
 
         trades.put(trade.getId(), trade);
@@ -139,6 +139,8 @@ public class BacktestTradeManager implements TradeManager {
         Number profitLoss = priceDifference.multiply(trade.getQuantity().getValue());
         log.debug("Profit/Loss calculation: {} * {} = {}",
                 priceDifference, trade.getQuantity().getValue(), profitLoss);
+
+        trade.setProfit(profitLoss);
 
         Number newBalance = account.getBalance().add(profitLoss);
         log.debug("Updating balance: {} + {} = {}",

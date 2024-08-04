@@ -1,7 +1,7 @@
 package dev.jwtly10.core;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * A bar represents a single time period in a financial market. It is composed of four prices: open, high, low, and close.
@@ -24,7 +24,7 @@ public interface Bar {
     /**
      * @return the date time of the bar
      */
-    LocalDateTime getDateTime();
+    ZonedDateTime getDateTime();
 
     /**
      * @return the open price of the bar

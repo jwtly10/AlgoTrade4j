@@ -12,10 +12,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class CsvDataFeedTest {
 
@@ -49,7 +51,10 @@ class CsvDataFeedTest {
         assertEquals(2, receivedBars.size(), "Should have received 2 bars");
 
         Bar firstBar = receivedBars.getFirst();
-        assertEquals(LocalDateTime.parse("2022-01-02T22:00"), firstBar.getDateTime());
+        var date = LocalDateTime.parse("2022-01-02T22:00");
+        ZonedDateTime dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
+
+        assertEquals(dateTime, firstBar.getDateTime());
         assertEquals(new Number("16419.7"), firstBar.getOpen());
         assertEquals(new Number("16526.0"), firstBar.getHigh());
         assertEquals(new Number("16310.6"), firstBar.getLow());
@@ -57,7 +62,10 @@ class CsvDataFeedTest {
         assertEquals(209249, firstBar.getVolume());
 
         Bar secondBar = receivedBars.get(1);
-        assertEquals(LocalDateTime.parse("2022-01-03T22:00"), secondBar.getDateTime());
+        date = LocalDateTime.parse("2022-01-03T22:00");
+        dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
+
+        assertEquals(dateTime, secondBar.getDateTime());
         assertEquals(new Number("16516.0"), secondBar.getOpen());
         assertEquals(new Number("16579.2"), secondBar.getHigh());
         assertEquals(new Number("16155.8"), secondBar.getLow());

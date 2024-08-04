@@ -6,6 +6,7 @@ import dev.jwtly10.core.defaults.DefaultBar;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -49,10 +50,13 @@ public record DefaultCsvFormat(Duration timePeriod) implements CsvParseFormat {
 
     @Override
     public Bar parseBar(String symbol, String[] fields) {
+        LocalDateTime date = LocalDateTime.parse(fields[0], DATE_TIME_FORMATTER);
+        ZonedDateTime dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
+
         return DefaultBar.builder()
                 .timePeriod(timePeriod)
                 .symbol(symbol)
-                .dateTime(LocalDateTime.parse(fields[0], DATE_TIME_FORMATTER))
+                .dateTime(dateTime)
                 .open(new Number(Double.parseDouble(fields[1])))
                 .high(new Number(Double.parseDouble(fields[2])))
                 .low(new Number(Double.parseDouble(fields[3])))

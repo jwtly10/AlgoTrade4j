@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -297,7 +297,7 @@ class BacktestTradeManagerTest {
         return DefaultBar.builder()
                 .symbol(SYMBOL)
                 .timePeriod(Duration.ofMinutes(1))
-                .dateTime(LocalDateTime.now())
+                .dateTime(ZonedDateTime.now())
                 .open(open)
                 .high(high)
                 .low(low)

@@ -1,17 +1,26 @@
 package dev.jwtly10.core;
 
+import java.time.ZonedDateTime;
+
 public class MockPriceFeed implements PriceFeed {
     private Number bid;
     private Number ask;
+    private ZonedDateTime dateTime;
 
     public void setPrice(Number price) {
         this.bid = price.subtract(new Number("0.01"));
         this.ask = price.add(new Number("0.01"));
+        this.dateTime = ZonedDateTime.now();
     }
 
     @Override
     public Number getBid(String symbol) {
         return bid;
+    }
+
+    @Override
+    public ZonedDateTime getDateTime(String symbol) {
+        return dateTime;
     }
 
     @Override

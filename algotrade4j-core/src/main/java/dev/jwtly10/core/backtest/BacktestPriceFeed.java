@@ -5,6 +5,8 @@ import dev.jwtly10.core.BarSeries;
 import dev.jwtly10.core.Number;
 import dev.jwtly10.core.PriceFeed;
 
+import java.time.ZonedDateTime;
+
 public class BacktestPriceFeed implements PriceFeed {
     private final BarSeries barSeries;
     private final Number spread; // Spread in price units, not percentage
@@ -30,6 +32,12 @@ public class BacktestPriceFeed implements PriceFeed {
     public Number getOpen(String symbol) {
         Bar lastBar = barSeries.getLastBar();
         return (lastBar != null) ? lastBar.getOpen() : null;
+    }
+
+    @Override
+    public ZonedDateTime getDateTime(String symbol) {
+        Bar lastBar = barSeries.getLastBar();
+        return (lastBar != null) ? lastBar.getDateTime() : null;
     }
 
     @Override

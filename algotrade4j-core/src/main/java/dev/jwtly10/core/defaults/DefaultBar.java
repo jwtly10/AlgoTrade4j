@@ -6,14 +6,14 @@ import lombok.Builder;
 import lombok.Value;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Value
 @Builder
 public class DefaultBar implements Bar {
     String symbol;
     Duration timePeriod;
-    LocalDateTime dateTime;
+    ZonedDateTime dateTime;
     Number open;
     Number high;
     Number low;

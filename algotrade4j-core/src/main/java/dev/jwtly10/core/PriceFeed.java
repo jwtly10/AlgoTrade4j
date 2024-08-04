@@ -1,5 +1,7 @@
 package dev.jwtly10.core;
 
+import java.time.ZonedDateTime;
+
 /**
  * The PriceFeed interface provides methods to retrieve various price-related
  * information for financial instruments identified by their symbol.
@@ -20,6 +22,14 @@ public interface PriceFeed {
      * @return The ask price as a Number.
      */
     Number getAsk(String symbol);
+
+    /**
+     * Retrieves the date and time of the most recent price update for the specified symbol.
+     *
+     * @param symbol The identifier for the financial instrument.
+     * @return The date and time as a ZonedDateTime.
+     */
+    ZonedDateTime getDateTime(String symbol);
 
     /**
      * Retrieves the opening price for the specified symbol in the current trading period.

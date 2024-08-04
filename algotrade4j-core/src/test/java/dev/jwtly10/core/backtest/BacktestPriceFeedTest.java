@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -21,7 +21,7 @@ class BacktestPriceFeedTest {
     @BeforeEach
     void setUp() {
         DefaultBarSeries barSeries = new DefaultBarSeries(10);
-        LocalDateTime time = LocalDateTime.now();
+        ZonedDateTime time = ZonedDateTime.now();
         Bar bar = DefaultBar.builder()
                 .symbol(symbol)
                 .timePeriod(Duration.ofMinutes(5))
