@@ -40,26 +40,28 @@ export const client = {
     },
 
     connectWebSocket: (strategyId, onMessage) => {
-        const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
+        return new Promise((resolve, reject) => {
+            const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
 
-        socket.onopen = () => {
-            console.log('WebSocket connected');
-            socket.send(`STRATEGY:${strategyId}`);
-        };
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                socket.send(`STRATEGY:${strategyId}`);
+                resolve(socket);
+            };
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            onMessage(data);
-        };
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                onMessage(data);
+            };
 
-        socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                reject(error);
+            };
 
-        socket.onclose = () => {
-            console.log('WebSocket disconnected');
-        };
-
-        return socket;
+            socket.onclose = () => {
+                console.log('WebSocket disconnected');
+            };
+        });
     },
 };

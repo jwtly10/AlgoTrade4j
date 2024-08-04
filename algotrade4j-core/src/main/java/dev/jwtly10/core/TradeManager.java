@@ -7,12 +7,6 @@ package dev.jwtly10.core;
  */
 public interface TradeManager {
 
-    enum BALANCE_TYPE {
-        EQUITY,
-        BALANCE,
-        INITIAL
-    }
-
     /**
      * Opens a long position for the specified symbol, uses the current ask price as the entry price.
      *
@@ -116,4 +110,18 @@ public interface TradeManager {
      * @return The Account object containing detailed account information
      */
     Account getAccount();
+
+    /**
+     * Retrieves the PriceFeed object associated with this TradeExecutor.
+     * Gives strategies option to access the price feed directly
+     *
+     * @return The PriceFeed object used to retrieve price information
+     */
+    PriceFeed getPriceFeed();
+
+    enum BALANCE_TYPE {
+        EQUITY,
+        BALANCE,
+        INITIAL
+    }
 }

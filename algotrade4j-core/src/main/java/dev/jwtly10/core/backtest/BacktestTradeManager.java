@@ -18,6 +18,7 @@ public class BacktestTradeManager implements TradeManager {
     private final Map<String, Trade> trades;
     @Getter
     private final Account account;
+    @Getter
     private final PriceFeed priceFeed;
     private final EventPublisher eventPublisher;
     private final String strategyId;
@@ -125,6 +126,7 @@ public class BacktestTradeManager implements TradeManager {
         Number closingPrice = trade.isLong() ? priceFeed.getBid(trade.getSymbol()) : priceFeed.getAsk(trade.getSymbol());
         log.debug("Closing price: {}", closingPrice);
         trade.setClosePrice(closingPrice);
+        trade.setCloseTime(priceFeed.getDateTime(trade.getSymbol()));
 
         Number priceDifference;
         if (trade.isLong()) {

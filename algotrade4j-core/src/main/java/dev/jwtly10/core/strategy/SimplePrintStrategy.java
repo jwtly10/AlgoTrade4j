@@ -9,6 +9,7 @@ import java.util.List;
 @Slf4j
 public class SimplePrintStrategy implements Strategy {
     private String strategyId = "SimplePrintStrategy";
+    private String symbol = "BTCUSD";
 
     public SimplePrintStrategy(String strategyId) {
         this.strategyId = strategyId;
@@ -29,9 +30,12 @@ public class SimplePrintStrategy implements Strategy {
         // Randomly decide to open a trade
         if (Math.random() > 0.5) {
             if (Math.random() > 0.5) {
-                tradeManager.openShortPosition(bar.getSymbol(), new Number(10000), new Number(2), new Number(1), TradeManager.BALANCE_TYPE.EQUITY);
+                // TODO: Do we need to be passing around the symbol, or should it just be inferred as part of the strategy definition
+                if (tradeManager.getPriceFeed().getBid("NAS100_USD").isGreaterThan(new Number(14300))) {
+                    tradeManager.openShortPosition(bar.getSymbol(), new Number(10), new Number(17000), new Number(14000));
+                }
             } else {
-                tradeManager.openLongPosition(bar.getSymbol(), new Number(100), new Number(2), new Number(1), TradeManager.BALANCE_TYPE.EQUITY);
+//                tradeManager.openLongPosition(bar.getSymbol(), new Number(100), new Number(2), new Number(1), TradeManager.BALANCE_TYPE.EQUITY);
             }
         }
     }
