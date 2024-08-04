@@ -18,7 +18,6 @@ public class BacktestTradeManager implements TradeManager {
     private final Map<String, Trade> trades;
     @Getter
     private final Account account;
-    @Getter
     private final PriceFeed priceFeed;
     private final EventPublisher eventPublisher;
     private final String strategyId;
