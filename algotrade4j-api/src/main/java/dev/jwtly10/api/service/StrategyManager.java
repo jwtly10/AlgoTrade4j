@@ -1,9 +1,11 @@
 package dev.jwtly10.api.service;
 
 import dev.jwtly10.api.models.StrategyConfig;
-import dev.jwtly10.core.Strategy;
-import dev.jwtly10.core.StrategyExecutor;
+import dev.jwtly10.core.Number;
+import dev.jwtly10.core.*;
+import dev.jwtly10.core.backtest.BacktestPriceFeed;
 import dev.jwtly10.core.datafeed.*;
+import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.strategy.SimplePrintStrategy;
@@ -22,20 +24,22 @@ public class StrategyManager {
     private final ConcurrentHashMap<String, StrategyExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
-
     public StrategyManager(EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
 
     public String startStrategy(StrategyConfig config) {
-        Strategy strategy = createStrategy(config);
         DataFeed dataFeed = createDataFeed(config);
+        BarSeries barSeries = new DefaultBarSeries(100);
+        PriceFeed priceFeed = new BacktestPriceFeed(barSeries, new Number(10));
+        Strategy strategy = createStrategy(config, priceFeed);
 
         StrategyExecutor executor = new StrategyExecutor(
                 strategy,
+                priceFeed,
+                barSeries,
                 dataFeed,
                 config.getInitialCash(),
-                config.getBarSeriesSize(),
                 eventPublisher
         );
 
@@ -68,7 +72,7 @@ public class StrategyManager {
         return false;
     }
 
-    private Strategy createStrategy(StrategyConfig config) {
+    private Strategy createStrategy(StrategyConfig config, PriceFeed priceFeed) {
         // TODO: This should be loaded by passing in the class name
         return new SimplePrintStrategy();
     }

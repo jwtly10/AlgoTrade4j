@@ -1,10 +1,8 @@
 package dev.jwtly10.core;
 
-import dev.jwtly10.core.backtest.BacktestPriceFeed;
 import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.DataFeed;
 import dev.jwtly10.core.datafeed.DataFeedException;
-import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
@@ -21,18 +19,19 @@ public class StrategyExecutor implements BarDataListener {
     private final Strategy strategy;
     private final List<Indicator> indicators;
     private final DataFeed dataFeed;
+    private final PriceFeed priceFeed;
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final String strategyId;
     private volatile boolean running = false;
 
-    public StrategyExecutor(Strategy strategy, DataFeed dataFeed, Number initialCash, int barSeriesSize, EventPublisher eventPublisher) {
+    public StrategyExecutor(Strategy strategy, PriceFeed priceFeed, BarSeries barSeries, DataFeed dataFeed, Number initialCash, EventPublisher eventPublisher) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataFeed = dataFeed;
         this.indicators = new ArrayList<>();
-        this.barSeries = new DefaultBarSeries(barSeriesSize);
-        PriceFeed priceFeed = new BacktestPriceFeed(this.barSeries, new Number(10));
+        this.barSeries = barSeries;
+        this.priceFeed = priceFeed;
         this.eventPublisher = eventPublisher;
         this.tradeManager = new BacktestTradeManager(strategyId, initialCash, priceFeed, eventPublisher);
     }
@@ -40,7 +39,8 @@ public class StrategyExecutor implements BarDataListener {
     public void run() throws DataFeedException {
         running = true;
         // TODO: On init we should load all trades from broker (when in live mode)
-        strategy.onInit(barSeries, indicators, tradeManager);
+        // We should also load a number of bars, depending on the indicator
+        strategy.onInit(barSeries, priceFeed, indicators, tradeManager);
         dataFeed.addBarDataListener(this);
 
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {

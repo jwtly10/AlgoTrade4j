@@ -1,9 +1,10 @@
 package dev.jwtly10;
 
 import dev.jwtly10.core.Number;
-import dev.jwtly10.core.Strategy;
-import dev.jwtly10.core.StrategyExecutor;
+import dev.jwtly10.core.*;
+import dev.jwtly10.core.backtest.BacktestPriceFeed;
 import dev.jwtly10.core.datafeed.*;
+import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.strategy.SimplePrintStrategy;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +21,12 @@ public class SimplePrintStrategyExample {
         Strategy strategy = new SimplePrintStrategy();
         Number initialCash = new Number("10000");
         int barSeriesSize = 4000;
+        BarSeries barSeries = new DefaultBarSeries(barSeriesSize);
+        PriceFeed priceFeed = new BacktestPriceFeed(barSeries, new Number(10));
 
         EventPublisher eventPublisher = new EventPublisher();
 
-        StrategyExecutor executor = new StrategyExecutor(strategy, dataFeed, initialCash, barSeriesSize, eventPublisher);
+        StrategyExecutor executor = new StrategyExecutor(strategy, priceFeed, barSeries, dataFeed, initialCash, eventPublisher);
 
         try {
             executor.run();

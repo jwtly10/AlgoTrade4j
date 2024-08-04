@@ -12,10 +12,11 @@ public interface Strategy {
      * set up initial indicators, or perform any one-time setup tasks.
      *
      * @param series       The initial BarSeries available at strategy start.
+     * @param priceFeed    The PriceFeed instance for retrieving market data.
      * @param indicators   List of indicators available to the strategy.
      * @param tradeManager The TradeManager instance for executing trades.
      */
-    void onInit(BarSeries series, List<Indicator> indicators, TradeManager tradeManager);
+    void onInit(BarSeries series, PriceFeed priceFeed, List<Indicator> indicators, TradeManager tradeManager);
 
     /**
      * Returns a unique identifier for the strategy. TODO: Should this be unique? I guess callers can handle that - adding some unique key in the case of optimisation etc where multiple runs are happening TBC.

@@ -111,14 +111,6 @@ public interface TradeManager {
      */
     Account getAccount();
 
-    /**
-     * Retrieves the PriceFeed object associated with this TradeExecutor.
-     * Gives strategies option to access the price feed directly
-     *
-     * @return The PriceFeed object used to retrieve price information
-     */
-    PriceFeed getPriceFeed();
-
     enum BALANCE_TYPE {
         EQUITY,
         BALANCE,
