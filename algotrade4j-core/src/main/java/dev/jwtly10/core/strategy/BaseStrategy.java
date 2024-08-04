@@ -51,13 +51,71 @@ public abstract class BaseStrategy implements Strategy {
     // Factory method for creating indicators
     protected <T extends Indicator> T createIndicator(Class<T> indicatorClass, Object... params) {
         try {
-            Constructor<T> constructor = indicatorClass.getConstructor(params.getClass());
+            Class<?>[] paramTypes = new Class<?>[params.length];
+            for (int i = 0; i < params.length; i++) {
+                if (params[i] == null) {
+                    paramTypes[i] = Object.class;
+                } else {
+                    Class<?> paramClass = params[i].getClass();
+                    paramTypes[i] = getPrimitiveType(paramClass);
+                }
+            }
+
+            // Try to find a matching constructor
+            Constructor<T> constructor = findMatchingConstructor(indicatorClass, paramTypes);
+            if (constructor == null) {
+                throw new NoSuchMethodException("No matching constructor found");
+            }
+
             T indicator = constructor.newInstance(params);
+            // Ensure deps are set
             indicator.setEventPublisher(eventPublisher);
             indicator.setStrategyId(strategyId);
             return indicator;
         } catch (Exception e) {
             throw new RuntimeException("Failed to create indicator: " + indicatorClass.getSimpleName(), e);
         }
+    }
+
+    // These methods are used to handle primitive types, in order to find the correct constructor
+    private Class<?> getPrimitiveType(Class<?> cls) {
+        if (cls == Integer.class) return int.class;
+        if (cls == Long.class) return long.class;
+        if (cls == Float.class) return float.class;
+        if (cls == Double.class) return double.class;
+        if (cls == Boolean.class) return boolean.class;
+        if (cls == Byte.class) return byte.class;
+        if (cls == Character.class) return char.class;
+        if (cls == Short.class) return short.class;
+        return cls;
+    }
+
+    private <T> Constructor<T> findMatchingConstructor(Class<T> cls, Class<?>[] paramTypes) {
+        Constructor<?>[] constructors = cls.getConstructors();
+        for (Constructor<?> constructor : constructors) {
+            Class<?>[] ctorParamTypes = constructor.getParameterTypes();
+            if (isAssignable(ctorParamTypes, paramTypes)) {
+                return (Constructor<T>) constructor;
+            }
+        }
+        return null;
+    }
+
+    private boolean isAssignable(Class<?>[] ctorParamTypes, Class<?>[] paramTypes) {
+        if (ctorParamTypes.length != paramTypes.length) {
+            return false;
+        }
+        for (int i = 0; i < ctorParamTypes.length; i++) {
+            if (!ctorParamTypes[i].isAssignableFrom(paramTypes[i]) &&
+                    !isPrimitiveAssignable(ctorParamTypes[i], paramTypes[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isPrimitiveAssignable(Class<?> ctorParamType, Class<?> paramType) {
+        return (ctorParamType.isPrimitive() && getPrimitiveType(paramType) == ctorParamType) ||
+                (paramType.isPrimitive() && getPrimitiveType(ctorParamType) == paramType);
     }
 }

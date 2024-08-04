@@ -10,6 +10,7 @@ const StrategyChart = () => {
     const [trades, setTrades] = useState([]);
     const [tradeIdMap, setTradeIdMap] = useState(new Map());
     const tradeCounterRef = useRef(1);
+    const [indicators, setIndicators] = useState({});
 
 
     const [chartData, setChartData] = useState([]);
@@ -43,13 +44,32 @@ const StrategyChart = () => {
         window.addEventListener('resize', handleResize);
         handleResize();
 
-
         const candlestickSeries = chart.addCandlestickSeries({
             upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
             wickUpColor: '#26a69a', wickDownColor: '#ef5350',
         });
 
         candlestickSeries.setData(chartData);
+
+        // Add indicator series
+        const indicatorSeries = {};
+        Object.keys(indicators).forEach(indicatorName => {
+            const indicatorData = indicators[indicatorName];
+            if (indicatorData && indicatorData.length > 0) {
+                // Filter out zero values and invalid entries
+                const validData = indicatorData
+                    .filter(item => !isNaN(item.time) && !isNaN(item.value) && item.value !== 0)
+                    .sort((a, b) => a.time - b.time);
+
+                if (validData.length > 0) {
+                    indicatorSeries[indicatorName] = chart.addLineSeries({
+                        color: getIndicatorColor(indicatorName),
+                        lineWidth: 2,
+                    });
+                    indicatorSeries[indicatorName].setData(validData);
+                }
+            }
+        });
 
         const markers = trades.map(trade => ({
             time: trade.action === 'OPEN' ? trade.openTime : trade.closeTime,
@@ -68,6 +88,11 @@ const StrategyChart = () => {
         };
     }, [chartData, trades]);
 
+    const getIndicatorColor = (indicatorName) => {
+        const colors = ['#2196F3', '#FF9800', '#4CAF50', '#E91E63', '#9C27B0'];
+        return colors[indicatorName.length % colors.length];
+    };
+
 
     const startStrategy = async () => {
         setMessages([]);
@@ -75,14 +100,14 @@ const StrategyChart = () => {
         console.log('Starting strategy...');
         try {
             const config = {
-                'strategyId': 'SimplePrintStrategy',
-                'subscriptions': ['BAR', 'TRADE'],
+                'strategyId': 'SimpleSMAStrategy',
+                'subscriptions': ['BAR', 'TRADE', 'INDICATOR'],
                 'initialCash': '10000',
                 'barSeriesSize': 10000,
             };
-            setStrategyId('SimplePrintStrategy');
+            setStrategyId('SimpleSMAStrategy');
 
-            socketRef.current = await client.connectWebSocket('SimplePrintStrategy', handleWebSocketMessage);
+            socketRef.current = await client.connectWebSocket('SimpleSMAStrategy', handleWebSocketMessage);
             console.log('WebSocket connected');
             await client.startStrategy(config);
         } catch (error) {
@@ -107,12 +132,28 @@ const StrategyChart = () => {
     };
 
     const handleWebSocketMessage = (data) => {
+        console.log('New data from websocket:', data);
         setMessages((prevMessages) => [...prevMessages, data]);
-        updateTradingViewChart(data);
+        if (data.type === 'BAR' || data.type === 'TRADE') {
+            updateTradingViewChart(data);
+        } else if (data.type === 'INDICATOR') {
+            updateIndicator(data);
+        }
+    };
+
+    const updateIndicator = (data) => {
+        if (data.value.value !== 0) {  // Only add non-zero values
+            setIndicators(prevIndicators => ({
+                ...prevIndicators,
+                [data.indicatorName]: [
+                    ...(prevIndicators[data.indicatorName] || []),
+                    { time: data.dateTime / 1000, value: data.value.value },
+                ],
+            }));
+        }
     };
 
     const updateTradingViewChart = useCallback((data) => {
-        console.log('Updating TradingView chart with:', data);
         if (data.type === 'BAR') {
             const bar = data.bar;
             setChartData(prevData => [...prevData, {

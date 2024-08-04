@@ -5,6 +5,7 @@ import dev.jwtly10.core.Indicator;
 import dev.jwtly10.core.Number;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
  * The SMA is calculated by summing the closing prices over a specified number of periods
  * and then dividing by the number of periods.
  */
+@Slf4j
 public class SMA implements Indicator {
     private final int period;
     private final List<Number> values;
@@ -41,6 +43,7 @@ public class SMA implements Indicator {
      */
     @Override
     public void update(Bar bar) {
+        log.debug("Updating SMA with new bar. Close price: {}", bar.getClose());
         values.add(bar.getClose());
 
         if (isReady()) {
@@ -51,12 +54,14 @@ public class SMA implements Indicator {
             Number smaPrice = new Number(average);
             smaValues.add(smaPrice);
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice));
+                log.debug("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
+                        strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime());
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime()));
             }
         } else {
             smaValues.add(Number.ZERO);
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO));
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO, bar.getDateTime()));
             }
         }
     }
@@ -97,6 +102,7 @@ public class SMA implements Indicator {
      */
     @Override
     public boolean isReady() {
+        log.debug("Checking if SMA is ready. Values size: {}, Period: {}", values.size(), period);
         return values.size() >= period;
     }
 

@@ -8,7 +8,7 @@ import dev.jwtly10.core.datafeed.*;
 import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
-import dev.jwtly10.core.strategy.SimplePrintStrategy;
+import dev.jwtly10.core.strategy.SimpleSMAStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +74,8 @@ public class StrategyManager {
 
     private Strategy createStrategy(StrategyConfig config, PriceFeed priceFeed) {
         // TODO: This should be loaded by passing in the class name
-        return new SimplePrintStrategy();
+        return new SimpleSMAStrategy();
+//        return new SimplePrintStrategy();
     }
 
     private DataFeed createDataFeed(StrategyConfig config) {

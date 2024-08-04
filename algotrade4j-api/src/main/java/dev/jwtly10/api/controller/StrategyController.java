@@ -5,6 +5,7 @@ import dev.jwtly10.api.service.StrategyManager;
 import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import dev.jwtly10.api.service.WebSocketEventListener;
 import dev.jwtly10.core.event.BarEvent;
+import dev.jwtly10.core.event.IndicatorEvent;
 import dev.jwtly10.core.event.TradeEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +45,10 @@ public class StrategyController {
                         case "TRADE":
                             listener.subscribe(TradeEvent.class);
                             break;
+                        case "INDICATOR":
+                            listener.subscribe(IndicatorEvent.class);
+                            break;
+                        // TODO: Subscribe to errors too
                     }
                 }
             }

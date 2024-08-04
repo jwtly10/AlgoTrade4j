@@ -6,6 +6,7 @@ import dev.jwtly10.core.datafeed.DataFeedException;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
+import dev.jwtly10.core.indicators.IndicatorUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -88,9 +89,7 @@ public class StrategyExecutor implements BarDataListener {
         barSeries.addBar(bar);
         eventPublisher.publishEvent(new BarEvent(strategyId, bar.getSymbol(), bar));
 
-        for (Indicator indicator : indicators) {
-            indicator.update(bar);
-        }
+        IndicatorUtils.updateIndicators(strategy, bar);
 
         tradeManager.updateTrades(bar);
         strategy.onBar(bar, barSeries, indicators, tradeManager);
