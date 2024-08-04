@@ -4,6 +4,7 @@ import { client } from '../api/client';
 const StrategyChart = () => {
     const [strategyId, setStrategyId] = useState(null);
     const [messages, setMessages] = useState([]);
+    const [isRunning, setIsRunning] = useState(false);
     const socketRef = useRef(null);
 
     useEffect(() => {
@@ -28,9 +29,25 @@ const StrategyChart = () => {
             console.log('Waiting for 2 seconds before starting strategy...');
             setTimeout(async () => {
                 await client.startStrategy(config);
+                setIsRunning(true);
             }, 2000);
         } catch (error) {
             console.error('Failed to start strategy:', error);
+        }
+    };
+
+    const stopStrategy = async () => {
+        try {
+            if (strategyId) {
+                await client.stopStrategy(strategyId);
+                setIsRunning(false);
+                if (socketRef.current) {
+                    socketRef.current.close();
+                }
+                setMessages([]);
+            }
+        } catch (error) {
+            console.error('Failed to stop strategy:', error);
         }
     };
 
@@ -46,7 +63,11 @@ const StrategyChart = () => {
     return (
         <div>
             <h1>Strategy Chart</h1>
-            <button onClick={startStrategy}>Start Strategy</button>
+            {!isRunning ? (
+                <button onClick={startStrategy}>Start Strategy</button>
+            ) : (
+                <button onClick={stopStrategy}>Stop Strategy</button>
+            )}
             {strategyId && <p>Strategy ID: {strategyId}</p>}
             <div>
                 <h2>Messages:</h2>

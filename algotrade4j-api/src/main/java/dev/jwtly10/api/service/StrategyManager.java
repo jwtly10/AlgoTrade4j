@@ -5,6 +5,7 @@ import dev.jwtly10.core.Strategy;
 import dev.jwtly10.core.StrategyExecutor;
 import dev.jwtly10.core.datafeed.*;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.strategy.SimplePrintStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,17 @@ public class StrategyManager {
         runningStrategies.put(strategy.getStrategyId(), executor);
 
         return strategy.getStrategyId();
+    }
+
+    public boolean stopStrategy(String strategyId) {
+        StrategyExecutor executor = runningStrategies.get(strategyId);
+        if (executor != null) {
+            executor.stop();
+            runningStrategies.remove(strategyId);
+            eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "User requested stop"));
+            return true;
+        }
+        return false;
     }
 
     private Strategy createStrategy(StrategyConfig config) {

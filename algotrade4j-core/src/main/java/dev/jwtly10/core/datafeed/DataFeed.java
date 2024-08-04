@@ -18,5 +18,12 @@ public interface DataFeed {
     /**
      * Stops the data feed
      */
-    void stop();
+    void stop() throws DataFeedException;
+
+    /**
+     * Removes a listener from the data feed
+     *
+     * @param listener the listener to be removed
+     */
+    void removeBarDataListener(BarDataListener listener);
 }

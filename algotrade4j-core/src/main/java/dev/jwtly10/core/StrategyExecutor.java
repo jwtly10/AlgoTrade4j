@@ -7,10 +7,15 @@ import dev.jwtly10.core.datafeed.DataFeedException;
 import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.StrategyStopEvent;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Slf4j
 public class StrategyExecutor implements BarDataListener {
     private final BarSeries barSeries;
     private final Strategy strategy;
@@ -18,8 +23,8 @@ public class StrategyExecutor implements BarDataListener {
     private final DataFeed dataFeed;
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
-
     private final String strategyId;
+    private volatile boolean running = false;
 
     public StrategyExecutor(Strategy strategy, DataFeed dataFeed, Number initialCash, int barSeriesSize, EventPublisher eventPublisher) {
         this.strategyId = strategy.getStrategyId();
@@ -33,10 +38,49 @@ public class StrategyExecutor implements BarDataListener {
     }
 
     public void run() throws DataFeedException {
+        running = true;
         // TODO: On init we should load all trades from broker (when in live mode)
         strategy.onInit(barSeries, indicators, tradeManager);
         dataFeed.addBarDataListener(this);
-        dataFeed.start();
+
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            executor.submit(() -> {
+                try {
+                    dataFeed.start();
+                } catch (DataFeedException e) {
+                    log.error("Data feed error", e);
+                    stop();
+                }
+            });
+
+            while (running) {
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            stop();
+        }
+
+        cleanup();
+    }
+
+    public void stop() {
+        running = false;
+        try {
+            dataFeed.stop();
+            dataFeed.removeBarDataListener(this);
+        } catch (DataFeedException e) {
+            log.error("Error stopping data feed", e);
+        }
+    }
+
+    private void cleanup() {
+        log.info("Cleaning up strategy");
+        strategy.onDeInit();
+        eventPublisher.publishEvent(new StrategyStopEvent(
+                strategyId,
+                "Strategy stopped"
+        ));
     }
 
     public void addIndicator(Indicator indicator) {
@@ -45,6 +89,10 @@ public class StrategyExecutor implements BarDataListener {
 
     @Override
     public void onBar(Bar bar) {
+        if (!running) {
+            return;
+        }
+
         barSeries.addBar(bar);
         eventPublisher.publishEvent(new BarEvent(strategyId, bar.getSymbol(), bar));
 

@@ -53,4 +53,17 @@ public class StrategyController {
 
         return ResponseEntity.ok(strategyId);
     }
+
+    @PostMapping("/{strategyId}/stop")
+    public ResponseEntity<String> stopStrategy(@PathVariable("strategyId") String strategyId) {
+        log.debug("Stopping strategy: {}", strategyId);
+        boolean stopped = strategyManager.stopStrategy(strategyId);
+        if (stopped) {
+            log.info("Stopped strategy: {}", strategyId);
+            return ResponseEntity.ok("Stopped strategy: " + strategyId);
+        } else {
+            log.warn("Failed to stop strategy: {}", strategyId);
+            return ResponseEntity.badRequest().body("Failed to stop strategy: " + strategyId);
+        }
+    }
 }

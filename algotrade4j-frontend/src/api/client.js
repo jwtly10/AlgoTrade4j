@@ -30,6 +30,15 @@ export const client = {
         }
     },
 
+    stopStrategy: async (strategyId) => {
+        try {
+            const response = await axiosInstance.post(`/strategies/${strategyId}/stop`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
     connectWebSocket: (strategyId, onMessage) => {
         const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
 

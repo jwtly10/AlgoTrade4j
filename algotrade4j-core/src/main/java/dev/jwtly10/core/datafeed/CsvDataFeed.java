@@ -13,12 +13,11 @@ public class CsvDataFeed implements DataFeed {
     private final String filePath;
     private final CsvParseFormat format;
     private final List<BarDataListener> listeners;
-    private volatile boolean running;
     private final String symbol;
-
     // Only used for backtesting testing purposes
     // This should be ignored for api/realtime data feeds
     private final DataFeedSpeed speed;
+    private volatile boolean running;
 
     public CsvDataFeed(String symbol, String filePath, CsvParseFormat format, DataFeedSpeed speed) {
         this.filePath = filePath;
@@ -42,13 +41,16 @@ public class CsvDataFeed implements DataFeed {
                 reader.readLine(); // Skip header
             }
             while ((line = reader.readLine()) != null && running) {
+                if (!running) break;
+
                 String[] fields = line.split(format.getDelimiter());
                 try {
                     Bar bar = format.parseBar(symbol, fields);
                     for (BarDataListener listener : listeners) {
+                        if (!running) break;
                         listener.onBar(bar);
                     }
-                    if (speed != DataFeedSpeed.INSTANT) {
+                    if (speed != DataFeedSpeed.INSTANT && running) {
                         Thread.sleep(speed.getDelayMillis());
                     }
                 } catch (Exception e) {
@@ -63,5 +65,10 @@ public class CsvDataFeed implements DataFeed {
     @Override
     public void stop() {
         running = false;
+    }
+
+    @Override
+    public void removeBarDataListener(BarDataListener listener) {
+        listeners.remove(listener);
     }
 }

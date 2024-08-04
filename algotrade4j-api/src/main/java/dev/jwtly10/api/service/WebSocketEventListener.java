@@ -15,6 +15,8 @@ public class WebSocketEventListener implements EventListener {
     private final WebSocketSession session;
     private final Set<Class<? extends BaseEvent>> subscribedEventTypes = new HashSet<>();
 
+    private final Object lock = new Object();
+
     public WebSocketEventListener(WebSocketSession session) {
         this.session = session;
     }
@@ -22,12 +24,14 @@ public class WebSocketEventListener implements EventListener {
     @Override
     public void onEvent(BaseEvent event) {
         if (subscribedEventTypes.contains(event.getClass())) {
-            try {
-                session.sendMessage(new TextMessage(event.toJson()));
-            } catch (IOException e) {
-                log.error("Failed to send message to WS session", e);
-            } catch (Exception e) {
-                log.error("Unexpected error sending message to WS session", e);
+            synchronized (lock) {
+                try {
+                    session.sendMessage(new TextMessage(event.toJson()));
+                } catch (IOException e) {
+                    log.error("Failed to send message to WS session", e);
+                } catch (Exception e) {
+                    log.error("Unexpected error sending message to WS session", e);
+                }
             }
         }
     }
