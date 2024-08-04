@@ -7,4 +7,9 @@ public interface BarDataListener {
      * @param bar the new bar
      */
     void onBar(Bar bar);
+
+    /**
+     * Called when the data feed is stopped
+     */
+    void onStop();
 }

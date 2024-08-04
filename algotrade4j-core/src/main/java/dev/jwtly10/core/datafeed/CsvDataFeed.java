@@ -60,6 +60,10 @@ public class CsvDataFeed implements DataFeed {
         } catch (IOException e) {
             throw new DataFeedException("Error reading file: " + filePath, e);
         }
+
+        for (BarDataListener listener : listeners) {
+            listener.onStop();
+        }
     }
 
     @Override

@@ -80,6 +80,6 @@ public class StrategyManager {
                 "NAS100_USD",
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
                 format,
-                DataFeedSpeed.SLOW);
+                DataFeedSpeed.FAST);
     }
 }

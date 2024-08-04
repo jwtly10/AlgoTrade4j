@@ -110,4 +110,9 @@ public class StrategyExecutor implements BarDataListener {
                 ", Equity: " + account.getEquity() +
                 ", Open Position Value: " + account.getOpenPositionValue());
     }
+
+    @Override
+    public void onStop() {
+        stop();
+    }
 }
