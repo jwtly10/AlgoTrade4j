@@ -2,6 +2,7 @@ package dev.jwtly10.core;
 
 import dev.jwtly10.core.datafeed.DataFeed;
 import dev.jwtly10.core.datafeed.DataFeedException;
+import dev.jwtly10.core.defaults.DefaultBar;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
@@ -9,20 +10,19 @@ import dev.jwtly10.core.indicators.IndicatorUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
-public class StrategyExecutor implements BarDataListener {
+public class StrategyExecutor implements MarketDataListener {
     private final BarSeries barSeries;
     private final Strategy strategy;
-    private final List<Indicator> indicators;
     private final DataFeed dataFeed;
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final String strategyId;
+    private Bar currentBar;
     @Setter
     private volatile boolean running = false;
 
@@ -30,29 +30,17 @@ public class StrategyExecutor implements BarDataListener {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataFeed = dataFeed;
-        this.indicators = new ArrayList<>();
         this.barSeries = barSeries;
         this.eventPublisher = eventPublisher;
         this.tradeManager = tradeManager;
         strategy.onInit(barSeries, priceFeed, tradeManager, eventPublisher);
     }
 
-    /**
-     * Runs the strategy.
-     * This will subscribe the executor to a datafeed, and then start the data feed in a virtual thread
-     * In a live trading environment, the data feed would be connected to a broker.
-     * The strategy will be initialized, and then the executor will wait for bar data to be received, and then
-     * call the strategy's onBar method.
-     *
-     * @throws DataFeedException if there is an error starting the data feed
-     */
     public void run() throws DataFeedException {
         running = true;
         log.info("Running strategy: {}", strategyId);
-        // TODO: On init we should load all trades from broker (when in live mode)
-        // We should also load a number of bars, depending on the indicator
         strategy.onStart();
-        dataFeed.addBarDataListener(this);
+        dataFeed.addMarketDataListener(this);
 
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             executor.submit(() -> {
@@ -75,38 +63,53 @@ public class StrategyExecutor implements BarDataListener {
         cleanup();
     }
 
-    /*
-     * This method is called when a new bar is received from the data feed.
-     * The bar is added to the bar series, and then the strategy is called with the new bar.
-     * The strategy will then update any indicators, and then update any trades.
-     * Finally, the strategies on bar event will be called with the updated bar series, indicators, and trades.
-     * @param bar the new bar received from the data feed
-     */
     @Override
-    public void onBar(Bar bar) {
-        if (!running) {
-            return;
+    public void onTick(Tick tick) {
+        if (!running) return;
+
+        if (this.currentBar == null ||
+                (tick.getDateTime().isAfter(this.currentBar.getOpenTime()) &&
+                        tick.getDateTime().isBefore(this.currentBar.getCloseTime()))) {
+            // If the current bar is not available (first tick) or the tick is outside the current bar
+            if (this.currentBar != null) {
+                // If tick is outside the current bar, add it to the series, and notify the strategy of the bar closing
+                barSeries.addBar(this.currentBar);
+                onBarClose(this.currentBar);
+            }
+            // If the current bar is not available, or the tick is outside the current bar, create a new bar
+            // This only happens on the first tick, or when the tick is outside the current bar
+            this.currentBar = new DefaultBar(tick.getSymbol(), Duration.ofDays(1), tick.getDateTime(), tick.getPrice(), tick.getPrice(), tick.getPrice(), tick.getPrice(), tick.getVolume());
+        } else {
+            this.currentBar.update(tick);
+            // TODO: Check how this would work - we should keep updating the last value of the indicator basic on this partial bar.
+            IndicatorUtils.updateIndicators(strategy, this.currentBar);
         }
 
-        barSeries.addBar(bar);
-        eventPublisher.publishEvent(new BarEvent(strategyId, bar.getSymbol(), bar));
-
-        IndicatorUtils.updateIndicators(strategy, bar);
-
-        tradeManager.updateTrades(bar);
-        strategy.onBar(bar, barSeries, indicators, tradeManager);
-
-        // Print account information after each bar
-        Account account = tradeManager.getAccount();
-        log.debug("Bar: {}, Balance: {}, Equity: {}, Open Position Value: {}", bar, account.getBalance(), account.getEquity(), account.getOpenPositionValue());
+        // Now we can send the tick, and the current bar to the strategy
+        strategy.onTick(tick, this.currentBar);
+        // Update trades on tick
+        tradeManager.updateTrades(tick);
     }
 
+    @Override
+    public void onBarClose(Bar closedBar) {
+        if (!running) return;
+
+        eventPublisher.publishEvent(new BarEvent(strategyId, closedBar.getSymbol(), closedBar));
+        // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
+        IndicatorUtils.updateIndicators(strategy, closedBar);
+
+        strategy.onBarClose(closedBar);
+
+        Account account = tradeManager.getAccount();
+        log.debug("Bar: {}, Balance: {}, Equity: {}, Open Position Value: {}", closedBar, account.getBalance(), account.getEquity(), account.getOpenPositionValue());
+    }
 
     public void stop() {
         running = false;
         try {
             dataFeed.stop();
-            dataFeed.removeBarDataListener(this);
+            dataFeed.removeMarketDataListener(this);
         } catch (DataFeedException e) {
             log.error("Error stopping data feed", e);
         }
@@ -115,14 +118,7 @@ public class StrategyExecutor implements BarDataListener {
     private void cleanup() {
         log.info("Cleaning up strategy");
         strategy.onDeInit();
-        eventPublisher.publishEvent(new StrategyStopEvent(
-                strategyId,
-                "Strategy stopped"
-        ));
-    }
-
-    public void addIndicator(Indicator indicator) {
-        indicators.add(indicator);
+        eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
     }
 
     @Override

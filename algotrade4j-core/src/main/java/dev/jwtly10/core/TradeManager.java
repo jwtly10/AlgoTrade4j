@@ -93,9 +93,9 @@ public interface TradeManager {
     /**
      * Updates the status of all trades based on the latest price bar.
      *
-     * @param bar The latest price bar containing updated market information
+     * @param tick The latest price bar containing updated market information
      */
-    void updateTrades(Bar bar);
+    void updateTrades(Tick tick);
 
     /**
      * Retrieves the current balance of the trading account.

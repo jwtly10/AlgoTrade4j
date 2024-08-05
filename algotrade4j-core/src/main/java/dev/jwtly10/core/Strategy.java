@@ -2,8 +2,6 @@ package dev.jwtly10.core;
 
 import dev.jwtly10.core.event.EventPublisher;
 
-import java.util.List;
-
 /**
  * Represents a trading strategy in the AlgoTrade4j framework.
  */
@@ -34,25 +32,21 @@ public interface Strategy {
     String getStrategyId();
 
     /**
-     * Called on each new bar in the market data feed.
-     * This is the main method where trading logic should be implemented.
+     * Called on each bar close (the bar is completed)
+     * This method can be used to perform strategy logic based on the most recent bar of completed market data.
      *
-     * @param bar          The most recent bar of market data.
-     * @param series       The updated BarSeries including the new bar.
-     * @param indicators   List of indicators, updated with the new bar's data.
-     * @param tradeManager The TradeManager instance for executing trades.
+     * @param bar The most recent bar of market data.
      */
-    void onBar(Bar bar, BarSeries series, List<Indicator> indicators, TradeManager tradeManager);
+    void onBarClose(Bar bar);
 
     /**
      * Called on each tick of market data.
-     * NOT IMPLEMENTED YET - DO NOT USE
+     * This method can be used to perform additional processing on each tick.
      *
-     * @throws UnsupportedOperationException if called before implementation.
+     * @param tick       The most recent tick of market data.
+     * @param currentBar The current bar of market data (may be incomplete)
      */
-    default void onTick() {
-        throw new UnsupportedOperationException("onTick is not implemented yet.");
-    }
+    void onTick(Tick tick, Bar currentBar);
 
     /**
      * Called once after the strategy processing ends.

@@ -7,7 +7,7 @@ import java.time.ZonedDateTime;
  * A bar represents a single time period in a financial market. It is composed of four prices: open, high, low, and close.
  * It also includes the volume of the time period.
  *
- * @see Number [Price] for smart handling of prices
+ * @see Number [Number] for smart handling of prices
  */
 public interface Bar {
 
@@ -16,15 +16,22 @@ public interface Bar {
      */
     String getSymbol();
 
+    void update(Tick tick);
+
     /**
      * @return the time period of the bar (e.g. 1 minute, 5 minutes, 1 day, etc.)
      */
     Duration getTimePeriod();
 
     /**
-     * @return the date time of the bar
+     * @return the date time of the bar open
      */
-    ZonedDateTime getDateTime();
+    ZonedDateTime getOpenTime();
+
+    /**
+     * @return the date time of the bar close
+     */
+    ZonedDateTime getCloseTime();
 
     /**
      * @return the open price of the bar

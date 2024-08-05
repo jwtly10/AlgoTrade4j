@@ -37,7 +37,7 @@ public class BacktestPriceFeed implements PriceFeed {
     @Override
     public ZonedDateTime getDateTime(String symbol) {
         Bar lastBar = barSeries.getLastBar();
-        return (lastBar != null) ? lastBar.getDateTime() : null;
+        return (lastBar != null) ? lastBar.getOpenTime() : null;
     }
 
     @Override

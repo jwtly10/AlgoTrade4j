@@ -55,13 +55,13 @@ public class SMA implements Indicator {
             smaValues.add(smaPrice);
             if (eventPublisher != null) {
                 log.debug("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
-                        strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime());
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime()));
+                        strategyId, bar.getSymbol(), getName(), smaPrice, bar.getOpenTime());
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice, bar.getOpenTime()));
             }
         } else {
             smaValues.add(Number.ZERO);
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO, bar.getDateTime()));
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO, bar.getOpenTime()));
             }
         }
     }

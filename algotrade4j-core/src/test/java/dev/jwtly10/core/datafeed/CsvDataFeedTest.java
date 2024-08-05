@@ -65,7 +65,7 @@ class CsvDataFeedTest {
         var date = LocalDateTime.parse("2022-01-02T22:00");
         ZonedDateTime dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
 
-        assertEquals(dateTime, firstBar.getDateTime());
+        assertEquals(dateTime, firstBar.getOpenTime());
         assertEquals(new Number("16419.7"), firstBar.getOpen());
         assertEquals(new Number("16526.0"), firstBar.getHigh());
         assertEquals(new Number("16310.6"), firstBar.getLow());
@@ -76,7 +76,7 @@ class CsvDataFeedTest {
         date = LocalDateTime.parse("2022-01-03T22:00");
         dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
 
-        assertEquals(dateTime, secondBar.getDateTime());
+        assertEquals(dateTime, secondBar.getOpenTime());
         assertEquals(new Number("16516.0"), secondBar.getOpen());
         assertEquals(new Number("16579.2"), secondBar.getHigh());
         assertEquals(new Number("16155.8"), secondBar.getLow());

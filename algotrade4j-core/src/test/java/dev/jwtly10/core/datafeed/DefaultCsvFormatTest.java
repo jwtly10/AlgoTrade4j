@@ -32,7 +32,7 @@ class DefaultCsvFormatTest {
         ZonedDateTime dateTime = ZonedDateTime.of(date, ZonedDateTime.now().getZone());
 
 
-        assertEquals(dateTime, bar.getDateTime());
+        assertEquals(dateTime, bar.getOpenTime());
         assertEquals(new Number(16419.7), bar.getOpen());
         assertEquals(new Number(16526.0), bar.getHigh());
         assertEquals(new Number(16310.6), bar.getLow());

@@ -44,7 +44,7 @@ class StrategyExecutorTest {
 
     @Test
     void testRun() throws DataFeedException {
-        doNothing().when(mockDataFeed).addBarDataListener(any());
+        doNothing().when(mockDataFeed).addMarketDataListener(any());
         doNothing().when(mockStrategy).onStart();
         doThrow(new DataFeedException("Test exception")).when(mockDataFeed).start();
 
@@ -54,10 +54,10 @@ class StrategyExecutorTest {
         // We also assert that if the dateFeed fails, we stop the data feed and remove the listener
         // and publish a strategy stop event
         verify(mockStrategy).onStart();
-        verify(mockDataFeed).addBarDataListener(strategyExecutor);
+        verify(mockDataFeed).removeMarketDataListener(strategyExecutor);
         verify(mockDataFeed).start();
         verify(mockDataFeed).stop();
-        verify(mockDataFeed).removeBarDataListener(strategyExecutor);
+        verify(mockDataFeed).removeMarketDataListener(strategyExecutor);
         verify(mockStrategy).onDeInit();
         verify(mockEventPublisher).publishEvent(any(StrategyStopEvent.class));
     }
@@ -65,7 +65,7 @@ class StrategyExecutorTest {
     @Test
     void testOnBar() {
         when(mockBar.getSymbol()).thenReturn("AAPL");
-        when(mockBar.getDateTime()).thenReturn(ZonedDateTime.now());
+        when(mockBar.getOpenTime()).thenReturn(ZonedDateTime.now());
         when(mockPriceFeed.getBid(anyString())).thenReturn(new Number("10"));
         when(mockPriceFeed.getAsk(anyString())).thenReturn(new Number("10"));
         when(mockTradeManager.getAccount()).thenReturn(mockAccount);
@@ -73,11 +73,11 @@ class StrategyExecutorTest {
         // We dont process on bar if we are not running
         strategyExecutor.setRunning(true);
 
-        strategyExecutor.onBar(mockBar);
+        strategyExecutor.onBarClose(mockBar);
 
         // Assert we call the strategy and publish the new bar event
         verify(mockEventPublisher).publishEvent(any(BarEvent.class));
-        verify(mockStrategy).onBar(eq(mockBar), eq(mockBarSeries), anyList(), any(TradeManager.class));
+        verify(mockStrategy).onBarClose(eq(mockBar), eq(mockBarSeries), anyList(), any(TradeManager.class));
     }
 
     @Test
@@ -85,7 +85,7 @@ class StrategyExecutorTest {
         strategyExecutor.stop();
 
         verify(mockDataFeed).stop();
-        verify(mockDataFeed).removeBarDataListener(strategyExecutor);
+        verify(mockDataFeed).removeMarketDataListener(strategyExecutor);
     }
 
 
@@ -94,6 +94,6 @@ class StrategyExecutorTest {
         strategyExecutor.onStop();
 
         verify(mockDataFeed).stop();
-        verify(mockDataFeed).removeBarDataListener(strategyExecutor);
+        verify(mockDataFeed).removeMarketDataListener(strategyExecutor);
     }
 }

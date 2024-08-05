@@ -180,8 +180,8 @@ public class BacktestTradeManager implements TradeManager {
         return account.getOpenPositionValue();
     }
 
-    public void updateTrades(Bar bar) {
-        String symbol = bar.getSymbol();
+    public void updateTrades(Tick tick) {
+        String symbol = tick.getSymbol();
         Number bid = priceFeed.getBid(symbol);
         Number ask = priceFeed.getAsk(symbol);
 

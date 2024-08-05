@@ -89,7 +89,7 @@ class BaseStrategyTest {
         }
 
         @Override
-        public void onBar(Bar bar, BarSeries series, List<Indicator> indicators, TradeManager tradeManager) {
+        public void onBarClose(Bar bar, BarSeries series, List<Indicator> indicators, TradeManager tradeManager) {
             // Not needed for this test
 
         }

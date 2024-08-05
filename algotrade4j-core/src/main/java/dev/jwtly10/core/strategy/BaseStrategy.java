@@ -1,5 +1,6 @@
 package dev.jwtly10.core.strategy;
 
+import dev.jwtly10.core.Number;
 import dev.jwtly10.core.*;
 import dev.jwtly10.core.event.EventPublisher;
 import lombok.Getter;
@@ -12,13 +13,47 @@ import java.lang.reflect.Constructor;
 public abstract class BaseStrategy implements Strategy {
     protected final String strategyId;
     protected PriceFeed priceFeed;
-    protected TradeManager tradeManager;
     protected BarSeries barSeries;
     protected EventPublisher eventPublisher;
+    private TradeManager tradeManager;
 
     public BaseStrategy(String strategyId) {
         this.strategyId = strategyId;
     }
+
+    public String openLongPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
+        return tradeManager.openLongPosition(symbol, quantity, stopLoss, takeProfit);
+    }
+
+    public String openShortPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
+        return tradeManager.openShortPosition(symbol, quantity, stopLoss, takeProfit);
+    }
+
+    public Number getBalance() {
+        return tradeManager.getBalance();
+    }
+
+    public Number getEquity() {
+        return tradeManager.getEquity();
+    }
+
+    public Bar getLastBar() {
+        return barSeries.getLastBar();
+    }
+
+    public Bar getBar(int index) {
+        return barSeries.getBar(index);
+    }
+
+
+    public Number Ask(String symbol) {
+        return priceFeed.getAsk(symbol);
+    }
+
+    public Number Bid(String symbol) {
+        return priceFeed.getBid(symbol);
+    }
+
 
     @Override
     public void onInit(BarSeries series, PriceFeed priceFeed, TradeManager tradeManager, EventPublisher eventPublisher) {

@@ -1,6 +1,7 @@
 package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.BarDataListener;
+import dev.jwtly10.core.MarketDataListener;
 
 public interface DataFeed {
     /**
@@ -9,6 +10,13 @@ public interface DataFeed {
      * @param listener the listener to be added
      */
     void addBarDataListener(BarDataListener listener);
+
+    /**
+     * Adds a listener to the data feed
+     *
+     * @param listener the listener to be added
+     */
+    void addMarketDataListener(MarketDataListener listener);
 
     /**
      * Starts the data feed
@@ -26,4 +34,11 @@ public interface DataFeed {
      * @param listener the listener to be removed
      */
     void removeBarDataListener(BarDataListener listener);
+
+    /**
+     * Removes a listener from the data feed
+     *
+     * @param listener the listener to be removed
+     */
+    void removeMarketDataListener(MarketDataListener listener);
 }
