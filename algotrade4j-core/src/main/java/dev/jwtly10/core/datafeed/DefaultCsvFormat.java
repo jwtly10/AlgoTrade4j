@@ -56,12 +56,11 @@ public record DefaultCsvFormat(Duration timePeriod) implements CsvParseFormat {
         return DefaultBar.builder()
                 .timePeriod(timePeriod)
                 .symbol(symbol)
-                .dateTime(dateTime)
                 .open(new Number(Double.parseDouble(fields[1])))
                 .high(new Number(Double.parseDouble(fields[2])))
                 .low(new Number(Double.parseDouble(fields[3])))
                 .close(new Number(Double.parseDouble(fields[4])))
-                .volume(Long.parseLong(fields[5]))
+                .volume(new Number(Double.parseDouble(fields[5])))
                 .build();
     }
 }

@@ -2,6 +2,7 @@ package dev.jwtly10.core.datafeed;
 
 import dev.jwtly10.core.Bar;
 import dev.jwtly10.core.BarDataListener;
+import dev.jwtly10.core.MarketDataListener;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -30,6 +31,11 @@ public class CsvDataFeed implements DataFeed {
     @Override
     public void addBarDataListener(BarDataListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    public void addMarketDataListener(MarketDataListener listener) {
+
     }
 
     @Override
@@ -74,5 +80,10 @@ public class CsvDataFeed implements DataFeed {
     @Override
     public void removeBarDataListener(BarDataListener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public void removeMarketDataListener(MarketDataListener listener) {
+
     }
 }

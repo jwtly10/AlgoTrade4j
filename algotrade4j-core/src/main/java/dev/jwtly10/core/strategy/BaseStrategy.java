@@ -21,21 +21,21 @@ public abstract class BaseStrategy implements Strategy {
         this.strategyId = strategyId;
     }
 
-    public String openLongPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
-        return tradeManager.openLongPosition(symbol, quantity, stopLoss, takeProfit);
+    public String openLong(TradeParameters params) {
+        return tradeManager.openLong(params);
     }
 
-    public String openShortPosition(String symbol, Number quantity, Number stopLoss, Number takeProfit) {
-        return tradeManager.openShortPosition(symbol, quantity, stopLoss, takeProfit);
+    public String openShort(TradeParameters params) {
+        return tradeManager.openShort(params);
     }
 
-    public Number getBalance() {
-        return tradeManager.getBalance();
-    }
-
-    public Number getEquity() {
-        return tradeManager.getEquity();
-    }
+//    public Number getBalance() {
+//        return tradeManager.getBalance();
+//    }
+//
+//    public Number getEquity() {
+//        return tradeManager.getEquity();
+//    }
 
     public Bar getLastBar() {
         return barSeries.getLastBar();

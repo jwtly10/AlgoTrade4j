@@ -22,9 +22,9 @@ public class DefaultBar implements Bar {
     private Number high;
     private Number low;
     private Number close;
-    private long volume;
+    private Number volume;
 
-    public DefaultBar(String symbol, Duration timePeriod, ZonedDateTime openTime, Number open, Number high, Number low, Number close, long volume) {
+    public DefaultBar(String symbol, Duration timePeriod, ZonedDateTime openTime, Number open, Number high, Number low, Number close, Number volume) {
         this.symbol = symbol;
         this.timePeriod = timePeriod;
         this.open = open;
@@ -37,17 +37,18 @@ public class DefaultBar implements Bar {
 
     public void update(Tick tick) {
         if (open == null) {
-            open = (tick.getPrice());
+            open = (tick.getMid());
             openTime = tick.getDateTime();
         }
-        if (high == null || tick.getPrice().compareTo(high) > 0) {
-            high = tick.getPrice();
+        if (high == null || tick.getMid().compareTo(high) > 0) {
+            high = tick.getMid();
         }
-        if (low == null || tick.getPrice().compareTo(low) < 0) {
-            low = tick.getPrice();
+        if (low == null || tick.getMid().compareTo(low) < 0) {
+            low = tick.getMid();
         }
-        close = tick.getPrice();
+        close = tick.getMid();
         closeTime = tick.getDateTime();
-        volume += tick.getVolume();
+        // For now we wont get tick data volume
+//        volume = volume.add(tick.getVolume());
     }
 }

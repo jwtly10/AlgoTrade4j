@@ -14,19 +14,18 @@ public interface Tick {
      */
     String getSymbol();
 
-    /**
-     * Gets the price of the financial instrument at the time of the tick.
-     *
-     * @return the price of the financial instrument
-     */
-    Number getPrice();
+    Number getBid();
+
+    Number getAsk();
+
+    Number getMid();
 
     /**
      * Gets the volume of the financial instrument traded at the time of the tick.
      *
      * @return the volume of the financial instrument
      */
-    long getVolume();
+    Number getVolume();
 
     /**
      * Gets the date and time of the tick.
@@ -34,4 +33,6 @@ public interface Tick {
      * @return the date and time of the tick
      */
     ZonedDateTime getDateTime();
+
+    void update(Tick tick);
 }

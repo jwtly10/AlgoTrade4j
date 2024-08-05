@@ -57,7 +57,7 @@ public interface Bar {
     /**
      * @return the volume of the bar
      */
-    long getVolume();
+    Number getVolume();
 
     /**
      * @return True if the bar is bullish, false otherwise

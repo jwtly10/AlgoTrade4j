@@ -25,12 +25,12 @@ class BacktestPriceFeedTest {
         Bar bar = DefaultBar.builder()
                 .symbol(symbol)
                 .timePeriod(Duration.ofMinutes(5))
-                .dateTime(time)
+//                .dateTime(time)
                 .open(new Number(100))
                 .high(new Number(110))
                 .low(new Number(90))
                 .close(new Number(105))
-                .volume(1000)
+                .volume(new Number(1000))
                 .build();
         barSeries.addBar(bar);
         priceFeed = new BacktestPriceFeed(barSeries, spread);
