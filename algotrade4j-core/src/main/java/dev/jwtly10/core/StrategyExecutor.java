@@ -1,12 +1,12 @@
 package dev.jwtly10.core;
 
-import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.DataFeed;
 import dev.jwtly10.core.datafeed.DataFeedException;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.indicators.IndicatorUtils;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -23,16 +23,17 @@ public class StrategyExecutor implements BarDataListener {
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final String strategyId;
+    @Setter
     private volatile boolean running = false;
 
-    public StrategyExecutor(Strategy strategy, PriceFeed priceFeed, BarSeries barSeries, DataFeed dataFeed, Number initialCash, EventPublisher eventPublisher) {
+    public StrategyExecutor(Strategy strategy, TradeManager tradeManager, PriceFeed priceFeed, BarSeries barSeries, DataFeed dataFeed, EventPublisher eventPublisher) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataFeed = dataFeed;
         this.indicators = new ArrayList<>();
         this.barSeries = barSeries;
         this.eventPublisher = eventPublisher;
-        this.tradeManager = new BacktestTradeManager(strategyId, initialCash, priceFeed, eventPublisher);
+        this.tradeManager = tradeManager;
         strategy.onInit(barSeries, priceFeed, tradeManager, eventPublisher);
     }
 
@@ -47,6 +48,7 @@ public class StrategyExecutor implements BarDataListener {
      */
     public void run() throws DataFeedException {
         running = true;
+        log.info("Running strategy: {}", strategyId);
         // TODO: On init we should load all trades from broker (when in live mode)
         // We should also load a number of bars, depending on the indicator
         strategy.onStart();
@@ -96,7 +98,7 @@ public class StrategyExecutor implements BarDataListener {
 
         // Print account information after each bar
         Account account = tradeManager.getAccount();
-        log.info("Bar: {}, Balance: {}, Equity: {}, Open Position Value: {}", bar.getDateTime(), account.getBalance(), account.getEquity(), account.getOpenPositionValue());
+        log.debug("Bar: {}, Balance: {}, Equity: {}, Open Position Value: {}", bar, account.getBalance(), account.getEquity(), account.getOpenPositionValue());
     }
 
 

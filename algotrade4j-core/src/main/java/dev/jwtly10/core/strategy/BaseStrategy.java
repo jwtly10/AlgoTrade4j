@@ -2,9 +2,13 @@ package dev.jwtly10.core.strategy;
 
 import dev.jwtly10.core.*;
 import dev.jwtly10.core.event.EventPublisher;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 
+@Slf4j
+@Getter
 public abstract class BaseStrategy implements Strategy {
     protected final String strategyId;
     protected PriceFeed priceFeed;
@@ -18,6 +22,7 @@ public abstract class BaseStrategy implements Strategy {
 
     @Override
     public void onInit(BarSeries series, PriceFeed priceFeed, TradeManager tradeManager, EventPublisher eventPublisher) {
+        log.debug("Initializing strategy from BaseStrategy: {}", strategyId);
         this.barSeries = series;
         this.priceFeed = priceFeed;
         this.tradeManager = tradeManager;
@@ -34,10 +39,6 @@ public abstract class BaseStrategy implements Strategy {
         // Strategy developers can override this method to add custom initialization logic
     }
 
-    /**
-     * Custom de-initialization method that can be overridden by strategy implementations.
-     * This method is called after the strategy has finished processing bars.
-     */
     protected void initIndicators() {
         // Default implementation is empty
         // Strategy developers can use this to instantiate and configure indicators, using the createIndicator method
@@ -50,6 +51,7 @@ public abstract class BaseStrategy implements Strategy {
 
     // Factory method for creating indicators
     protected <T extends Indicator> T createIndicator(Class<T> indicatorClass, Object... params) {
+        log.info("Creating indicator: '{}' with params: '{}'", indicatorClass.getSimpleName(), params);
         try {
             Class<?>[] paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {
@@ -73,6 +75,7 @@ public abstract class BaseStrategy implements Strategy {
             indicator.setStrategyId(strategyId);
             return indicator;
         } catch (Exception e) {
+            log.error("Failed to create indicator '{}' for params '{}'", indicatorClass.getSimpleName(), params, e);
             throw new RuntimeException("Failed to create indicator: " + indicatorClass.getSimpleName(), e);
         }
     }

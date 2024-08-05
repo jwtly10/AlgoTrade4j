@@ -4,6 +4,7 @@ import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.core.Number;
 import dev.jwtly10.core.*;
 import dev.jwtly10.core.backtest.BacktestPriceFeed;
+import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.*;
 import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.EventPublisher;
@@ -34,12 +35,14 @@ public class StrategyManager {
         PriceFeed priceFeed = new BacktestPriceFeed(barSeries, new Number(10));
         Strategy strategy = createStrategy(config, priceFeed);
 
+        TradeManager tradeManager = new BacktestTradeManager(strategy.getStrategyId(), config.getInitialCash(), priceFeed, eventPublisher);
+
         StrategyExecutor executor = new StrategyExecutor(
                 strategy,
+                tradeManager,
                 priceFeed,
                 barSeries,
                 dataFeed,
-                config.getInitialCash(),
                 eventPublisher
         );
 

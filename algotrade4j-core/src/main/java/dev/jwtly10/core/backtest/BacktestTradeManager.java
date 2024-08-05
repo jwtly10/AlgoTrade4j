@@ -213,6 +213,7 @@ public class BacktestTradeManager implements TradeManager {
     }
 
     private void updateAccountState() {
+        log.info("Updating account state");
         Number totalOpenPositionValue = Number.ZERO;
 
         for (Trade trade : trades.values()) {
@@ -228,6 +229,7 @@ public class BacktestTradeManager implements TradeManager {
         }
 
         Number newEquity = account.getBalance().add(totalOpenPositionValue);
+        log.debug("Updating equity: {} + {} = {}", account.getBalance(), totalOpenPositionValue, newEquity);
         account.setEquity(newEquity);
         account.setOpenPositionValue(totalOpenPositionValue);
     }

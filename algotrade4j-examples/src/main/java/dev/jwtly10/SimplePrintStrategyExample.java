@@ -3,6 +3,7 @@ package dev.jwtly10;
 import dev.jwtly10.core.Number;
 import dev.jwtly10.core.*;
 import dev.jwtly10.core.backtest.BacktestPriceFeed;
+import dev.jwtly10.core.backtest.BacktestTradeManager;
 import dev.jwtly10.core.datafeed.*;
 import dev.jwtly10.core.defaults.DefaultBarSeries;
 import dev.jwtly10.core.event.EventPublisher;
@@ -18,6 +19,16 @@ public class SimplePrintStrategyExample {
         // TODO: Dont hardcode path, have a specific directory for example data
         DataFeed dataFeed = new CsvDataFeed("NAS100_USD", "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv", format, DataFeedSpeed.INSTANT);
 
+        StrategyExecutor executor = getStrategyExecutor(dataFeed);
+
+        try {
+            executor.run();
+        } catch (DataFeedException e) {
+            log.error("Error running strategy", e);
+        }
+    }
+
+    private static StrategyExecutor getStrategyExecutor(DataFeed dataFeed) {
         Strategy strategy = new SimplePrintStrategy();
         Number initialCash = new Number("10000");
         int barSeriesSize = 4000;
@@ -26,12 +37,9 @@ public class SimplePrintStrategyExample {
 
         EventPublisher eventPublisher = new EventPublisher();
 
-        StrategyExecutor executor = new StrategyExecutor(strategy, priceFeed, barSeries, dataFeed, initialCash, eventPublisher);
+        TradeManager tradeManager = new BacktestTradeManager(strategy.getStrategyId(), initialCash, priceFeed, eventPublisher);
 
-        try {
-            executor.run();
-        } catch (DataFeedException e) {
-            log.error("Error running strategy", e);
-        }
+        StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, priceFeed, barSeries, dataFeed, eventPublisher);
+        return executor;
     }
 }
