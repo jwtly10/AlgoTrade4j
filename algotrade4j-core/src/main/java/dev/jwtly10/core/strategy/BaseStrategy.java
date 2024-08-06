@@ -1,8 +1,14 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.Number;
-import dev.jwtly10.core.*;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.indicators.Indicator;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.TradeParameters;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,10 +18,12 @@ import java.lang.reflect.Constructor;
 @Getter
 public abstract class BaseStrategy implements Strategy {
     protected final String strategyId;
-    protected PriceFeed priceFeed;
+    public String SYMBOL;
     protected BarSeries barSeries;
     protected EventPublisher eventPublisher;
     private TradeManager tradeManager;
+    private DataManager dataManager;
+    private AccountManager accountManager;
 
     public BaseStrategy(String strategyId) {
         this.strategyId = strategyId;
@@ -29,13 +37,13 @@ public abstract class BaseStrategy implements Strategy {
         return tradeManager.openShort(params);
     }
 
-//    public Number getBalance() {
-//        return tradeManager.getBalance();
-//    }
-//
-//    public Number getEquity() {
-//        return tradeManager.getEquity();
-//    }
+    public Number getBalance() {
+        return accountManager.getBalance();
+    }
+
+    public Number getEquity() {
+        return accountManager.getEquity();
+    }
 
     public Bar getLastBar() {
         return barSeries.getLastBar();
@@ -45,23 +53,23 @@ public abstract class BaseStrategy implements Strategy {
         return barSeries.getBar(index);
     }
 
-
-    public Number Ask(String symbol) {
-        return priceFeed.getAsk(symbol);
+    public Number Ask() {
+        return dataManager.getCurrentAsk();
     }
 
-    public Number Bid(String symbol) {
-        return priceFeed.getBid(symbol);
+    public Number Bid() {
+        return dataManager.getCurrentBid();
     }
-
 
     @Override
-    public void onInit(BarSeries series, PriceFeed priceFeed, TradeManager tradeManager, EventPublisher eventPublisher) {
+    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher) {
         log.debug("Initializing strategy from BaseStrategy: {}", strategyId);
         this.barSeries = series;
-        this.priceFeed = priceFeed;
+        this.dataManager = dataManager;
+        this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.eventPublisher = eventPublisher;
+        this.SYMBOL = dataManager.getSymbol();
         initIndicators();
     }
 
@@ -74,6 +82,9 @@ public abstract class BaseStrategy implements Strategy {
         // Strategy developers can override this method to add custom initialization logic
     }
 
+    /**
+     * Strategy developers can override this method to init new indicators using the createIndicatorMethod
+     */
     protected void initIndicators() {
         // Default implementation is empty
         // Strategy developers can use this to instantiate and configure indicators, using the createIndicator method

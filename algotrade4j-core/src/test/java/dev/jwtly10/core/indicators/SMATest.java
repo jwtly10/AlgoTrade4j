@@ -1,7 +1,7 @@
 package dev.jwtly10.core.indicators;
 
-import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.Number;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,27 +1,12 @@
 package dev.jwtly10.api.service;
 
-import dev.jwtly10.api.models.StrategyConfig;
-import dev.jwtly10.core.Number;
-import dev.jwtly10.core.*;
-import dev.jwtly10.core.backtest.BacktestPriceFeed;
-import dev.jwtly10.core.backtest.BacktestTradeManager;
-import dev.jwtly10.core.datafeed.*;
-import dev.jwtly10.core.defaults.DefaultBarSeries;
-import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.StrategyStopEvent;
-import dev.jwtly10.core.strategy.SimpleSMAStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
 public class StrategyManager {
-    private final EventPublisher eventPublisher;
+   /* private final EventPublisher eventPublisher;
     private final ConcurrentHashMap<String, StrategyExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -89,5 +74,5 @@ public class StrategyManager {
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
                 format,
                 DataFeedSpeed.FAST);
-    }
+    }*/
 }

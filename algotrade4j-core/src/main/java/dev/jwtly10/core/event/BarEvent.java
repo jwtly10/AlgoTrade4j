@@ -1,6 +1,6 @@
 package dev.jwtly10.core.event;
 
-import dev.jwtly10.core.Bar;
+import dev.jwtly10.core.model.Bar;
 import lombok.Getter;
 
 @Getter

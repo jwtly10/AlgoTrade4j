@@ -1,8 +1,7 @@
 package dev.jwtly10.core.indicators;
 
-import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.Indicator;
-import dev.jwtly10.core.Strategy;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.strategy.Strategy;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

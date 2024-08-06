@@ -1,6 +1,6 @@
 package dev.jwtly10.core.event;
 
-import dev.jwtly10.core.Trade;
+import dev.jwtly10.core.model.Trade;
 import lombok.Getter;
 
 @Getter
