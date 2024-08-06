@@ -91,15 +91,18 @@ public class StrategyExecutor implements DataListener {
     public void stop() {
         running = false;
         try {
-            dataManager.stop();
-            dataManager.removeDataListener(this);
+            if (dataManager.isRunning()) {
+                dataManager.stop();
+            }
         } catch (Exception e) {
             log.error("Error stopping data feed", e);
         }
+        log.debug("Strategy executor stopped");
+        cleanup();
     }
 
     private void cleanup() {
-        log.info("Cleaning up strategy");
+        log.debug("Cleaning up strategy");
         strategy.onDeInit();
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
     }

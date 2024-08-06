@@ -1,35 +1,54 @@
 package dev.jwtly10;
 
+import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.account.DefaultAccountManager;
+import dev.jwtly10.core.data.CSVDataProvider;
+import dev.jwtly10.core.data.DefaultDataManager;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.*;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.strategy.SimplePrintStrategy;
+import dev.jwtly10.core.strategy.Strategy;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.Duration;
 
 @Slf4j
 public class SimplePrintStrategyExample {
     public static void main(String[] args) {
-//        CsvParseFormat format = new DefaultCsvFormat(Duration.ofDays(1));
-//        // TODO: Dont hardcode path, have a specific directory for example data
-//        DataFeed dataFeed = new CsvDataFeed("NAS100_USD", "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv", format, DataFeedSpeed.INSTANT);
-//
-//        StrategyExecutor executor = getStrategyExecutor(dataFeed);
-//
-//        try {
-//            executor.run();
-//        } catch (CSVDataProvider.DataProviderException e) {
-//            log.error("Error running strategy", e);
-//        }
-    }
+        Duration period = Duration.ofDays(1);
+        CSVDataProvider csvDataProvider = new CSVDataProvider(
+                "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
+                10,
+                new Number(0.1),
+                period
+        );
 
-//    private static StrategyExecutor getStrategyExecutor(DataFeed dataFeed) {
-//        Strategy strategy = new SimplePrintStrategy();
-//        Number initialCash = new Number("10000");
-//        int barSeriesSize = 4000;
-//        BarSeries barSeries = new DefaultBarSeries(barSeriesSize);
-//        PriceFeed priceFeed = new BacktestPriceFeed(barSeries, new Number(10));
-//
-//        EventPublisher eventPublisher = new EventPublisher();
-//
-//        TradeManager tradeManager = new BacktestTradeManager(strategy.getStrategyId(), initialCash, priceFeed, eventPublisher);
-//
-//        StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, priceFeed, barSeries, dataFeed, eventPublisher);
-//        return executor;
-//    }
+        BarSeries barSeries = new DefaultBarSeries(4000);
+
+        DefaultDataManager dataManager = new DefaultDataManager("NAS100USD", csvDataProvider, period, barSeries);
+
+        Tick currentTick = new DefaultTick();
+
+        EventPublisher eventPublisher = new EventPublisher();
+
+        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, "SimplePrintStrategy", eventPublisher);
+
+        AccountManager accountManager = new DefaultAccountManager(new Number(10000), new Number(10000), new Number(10000));
+
+        TradeStateManager tradeStateManager = new DefaultTradeStateManager();
+
+        Strategy strategy = new SimplePrintStrategy();
+
+        StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
+
+        dataManager.addDataListener(executor);
+
+        try {
+            dataManager.start();
+        } catch (Exception e) {
+            log.error("Error running strategy", e);
+        }
+    }
 }

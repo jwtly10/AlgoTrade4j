@@ -2,11 +2,13 @@ package dev.jwtly10.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class DefaultTick implements Tick {
     private String symbol;
     private Number bid;
