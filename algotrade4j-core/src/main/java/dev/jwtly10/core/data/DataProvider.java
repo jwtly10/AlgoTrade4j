@@ -9,5 +9,7 @@ public interface DataProvider {
 
     void stop();
 
+    boolean isRunning();
+
     void addDataProviderListener(DataProviderListener listener);
 }

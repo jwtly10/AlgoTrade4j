@@ -11,6 +11,8 @@ public interface DataManager {
 
     void removeDataListener(DataListener listener);
 
+    boolean isRunning();
+
     Number getCurrentBid();
 
     Number getCurrentAsk();

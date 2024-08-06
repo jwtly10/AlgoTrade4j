@@ -1,10 +1,7 @@
 package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.DefaultBar;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +23,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private volatile Number currentBid;
     @Getter
     private Bar currentPartialBar;
+    @Getter
     private boolean running = false;
     private ZonedDateTime nextBarCloseTime;
     @Getter
@@ -50,7 +48,9 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     public void stop() {
         log.debug("Stopping data manager");
         running = false;
-        dataProvider.stop();
+        if (dataProvider.isRunning()) {
+            dataProvider.stop();
+        }
     }
 
     @Override

@@ -53,6 +53,7 @@ public class CSVDataProvider implements DataProvider {
     private final Number spread;
     private final Duration period;
     private BufferedReader reader;
+    @Getter
     private boolean isRunning;
 
     public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, long seed) {
@@ -85,15 +86,20 @@ public class CSVDataProvider implements DataProvider {
             while (isRunning && (line = reader.readLine()) != null) {
                 processBar(line);
             }
+
+            log.debug("End of file reached");
         } catch (IOException e) {
             log.error("Error reading file", e);
         } finally {
-            stop();
+            if (isRunning) {
+                stop();
+            }
         }
     }
 
     @Override
     public void stop() {
+        log.debug("Stopping data provider");
         isRunning = false;
         try {
             if (reader != null) {
@@ -101,6 +107,10 @@ public class CSVDataProvider implements DataProvider {
             }
         } catch (IOException e) {
             log.error("Error closing file", e);
+        }
+
+        for (DataProviderListener listener : listeners) {
+            listener.onStop();
         }
     }
 
