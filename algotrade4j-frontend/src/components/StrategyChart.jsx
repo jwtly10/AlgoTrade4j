@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ColorType, createChart } from 'lightweight-charts';
-import { client } from '../api/client';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ColorType, createChart} from 'lightweight-charts';
+import {client} from '../api/client';
 
 const StrategyChart = () => {
     const [strategyId, setStrategyId] = useState(null);
@@ -36,7 +36,7 @@ const StrategyChart = () => {
             width: 600,
             height: 500,
             layout: {
-                background: { type: ColorType.Solid, color: '#ffffff' },
+                background: {type: ColorType.Solid, color: '#ffffff'},
                 textColor: 'black',
             },
         });
@@ -147,7 +147,7 @@ const StrategyChart = () => {
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    { time: data.dateTime / 1000, value: data.value.value },
+                    {time: data.dateTime / 1000, value: data.value.value},
                 ],
             }));
         }
@@ -156,13 +156,29 @@ const StrategyChart = () => {
     const updateTradingViewChart = useCallback((data) => {
         if (data.type === 'BAR') {
             const bar = data.bar;
-            setChartData(prevData => [...prevData, {
-                time: bar.dateTime / 1000,
-                open: bar.open.value,
-                high: bar.high.value,
-                low: bar.low.value,
-                close: bar.close.value,
-            }]);
+            setChartData(prevData => {
+                const lastBar = prevData[prevData.length - 1];
+                if (lastBar && lastBar.time === bar.openTime / 1000) {
+                    console.log("New tick");
+                    // Update the existing bar
+                    const updatedBar = {
+                        ...lastBar,
+                        high: Math.max(lastBar.high, bar.high.value),
+                        low: Math.min(lastBar.low, bar.low.value),
+                        close: bar.close.value
+                    };
+                    return [...prevData.slice(0, -1), updatedBar];
+                } else {
+                    // Add a new bar
+                    return [...prevData, {
+                        time: bar.openTime / 1000,
+                        open: bar.open.value,
+                        high: bar.high.value,
+                        low: bar.low.value,
+                        close: bar.close.value,
+                    }];
+                }
+            });
         } else if (data.type === 'TRADE') {
             const trade = data.trade;
 
@@ -196,7 +212,7 @@ const StrategyChart = () => {
                 <button onClick={stopStrategy}>Stop Strategy</button>
             )}
             <p>Strategy ID: {strategyId}</p>
-            <div style={{ width: '100%' }} ref={chartContainerRef} />
+            <div style={{width: '100%'}} ref={chartContainerRef}/>
         </div>
     );
 };
