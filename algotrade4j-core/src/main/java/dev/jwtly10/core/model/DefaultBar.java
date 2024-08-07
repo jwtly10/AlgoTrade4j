@@ -3,6 +3,7 @@ package dev.jwtly10.core.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -10,6 +11,7 @@ import java.time.ZonedDateTime;
 @Builder
 @Getter
 @AllArgsConstructor
+@ToString
 public class DefaultBar implements Bar {
     private String symbol;
     private Duration timePeriod;

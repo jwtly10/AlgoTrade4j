@@ -57,6 +57,11 @@ public class CSVDataProvider implements DataProvider {
     @Getter
     private boolean isRunning;
 
+    private boolean hitLow = false;
+    private boolean hitHigh = false;
+    private int lowIndex = -1;
+    private int highIndex = -1;
+
     public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, String symbol, long seed) {
         this.fileName = fileName;
         this.ticksPerBar = ticksPerBar;
@@ -78,6 +83,8 @@ public class CSVDataProvider implements DataProvider {
             return;
         }
         isRunning = true;
+
+        log.debug("Starting data provider with period: {}, ticksPerBar: {}", period, ticksPerBar);
 
         try {
             reader = new BufferedReader(new FileReader(fileName));
@@ -130,6 +137,11 @@ public class CSVDataProvider implements DataProvider {
         Number close = new Number(data[4]);
         Number volume = new Number(data[5]);
 
+        hitLow = false;
+        hitHigh = false;
+        lowIndex = -1;
+        highIndex = -1;
+
         for (int i = 0; i < ticksPerBar; i++) {
             DefaultTick tick = generateTick(openTime, i, open, high, low, close, volume);
             notifyListeners(tick);
@@ -137,20 +149,52 @@ public class CSVDataProvider implements DataProvider {
     }
 
     private DefaultTick generateTick(ZonedDateTime openTime, int tickIndex, Number open, Number high, Number low, Number close, Number volume) {
-        double tickProgress = (double) tickIndex / (ticksPerBar - 1);
-        long nanosDuration = (long) (period.toNanos() * tickProgress);
+        if (ticksPerBar < 4) {
+            throw new IllegalArgumentException("Ticks per bar must be at least 4");
+        }
+
+        long nanosDuration = (long) ((double) tickIndex / (ticksPerBar - 1) * period.toNanos());
         ZonedDateTime tickTime = openTime.plus(Duration.ofNanos(nanosDuration));
 
         Number mid;
-        if (tickIndex == 0) {
-            mid = open;
-        } else if (tickIndex == ticksPerBar - 1) {
-            mid = close;
+        if (ticksPerBar == 4) {
+            mid = switch (tickIndex) {
+                case 0 -> open;
+                case 1 -> high;
+                case 2 -> low;
+                case 3 -> close;
+                default -> throw new IllegalStateException("Unexpected tickIndex: " + tickIndex);
+            };
         } else {
-            // Generate a random price within the bar's range
-            double randomFactor = random.nextDouble();
-            Number range = high.subtract(low);
-            mid = low.add(range.multiply(BigDecimal.valueOf(randomFactor)));
+            // If more than 4 ticks, generate a random price within the bar's range
+            // But ensure that the first and last ticks are the open and close prices
+            // and at some point, the high and low prices are represented
+            if (tickIndex == 0) {
+                mid = open;
+            } else if (tickIndex == ticksPerBar - 1) {
+                mid = close;
+            } else {
+                if (lowIndex == -1 || highIndex == -1) {
+                    // Initialize indices if not set
+                    lowIndex = 1 + random.nextInt(ticksPerBar - 3);
+                    do {
+                        highIndex = 1 + random.nextInt(ticksPerBar - 3);
+                    } while (highIndex == lowIndex);
+                }
+
+                if (tickIndex == lowIndex || (!hitLow && tickIndex == ticksPerBar - 2)) {
+                    mid = low;
+                    hitLow = true;
+                } else if (tickIndex == highIndex || (!hitHigh && tickIndex == ticksPerBar - 2)) {
+                    mid = high;
+                    hitHigh = true;
+                } else {
+                    // Generate a random price within the bar's range
+                    double randomFactor = random.nextDouble();
+                    Number range = high.subtract(low);
+                    mid = low.add(range.multiply(BigDecimal.valueOf(randomFactor)));
+                }
+            }
         }
 
         Number bid = mid.subtract(spread.divide(2));
@@ -162,8 +206,10 @@ public class CSVDataProvider implements DataProvider {
         return new DefaultTick(symbol, bid, mid, ask, tickVolume, tickTime);
     }
 
+
     private void notifyListeners(DefaultTick tick) {
         for (DataProviderListener listener : listeners) {
+            System.out.println(tick);
             listener.onTick(tick);
         }
     }

@@ -72,4 +72,9 @@ public interface Bar {
     default boolean isBullish() {
         return getClose().isGreaterThan(getOpen());
     }
+
+    /**
+     * @return a string representation of the bar
+     */
+    String toString();
 }
