@@ -71,7 +71,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             initializeNewBar(tick);
             log.debug("New bar initialized: {}", currentBar);
             log.debug("Next bar close time: {}", nextBarCloseTime);
-        } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) {
+        } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
             log.debug("Closing current bar because: {} ({})",
                     tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
             closeCurrentBar();
@@ -109,8 +109,8 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         log.debug("Next bar close time: {}", nextBarCloseTime);
         // TODO: Currently we are setting the close time to the next bar close time. This may not be accurate in live trading
         // HOWEVER. It may actually be more representative of the actual close time in live trading
-        // To be reviewed
-        currentBar.setCloseTime(nextBarCloseTime);
+        // To be reviews
+        currentBar.setCloseTime(nextBarCloseTime.minusSeconds(1));
     }
 
 
@@ -151,6 +151,8 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     @Override
     public void onStop() {
         running = false;
+        // When this stops, we trigger the close of the latest bar
+        closeCurrentBar();
         for (DataListener listener : listeners) {
             listener.onStop();
         }

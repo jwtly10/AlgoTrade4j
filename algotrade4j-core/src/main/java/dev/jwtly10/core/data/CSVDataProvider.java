@@ -3,6 +3,7 @@ package dev.jwtly10.core.data;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Number;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -53,6 +54,8 @@ public class CSVDataProvider implements DataProvider {
     private final Number spread;
     private final Duration period;
     private final String symbol;
+    @Setter
+    private DataSpeed dataSpeed = DataSpeed.NORMAL;
     private BufferedReader reader;
     @Getter
     private boolean isRunning;
@@ -130,7 +133,7 @@ public class CSVDataProvider implements DataProvider {
 
     private void processBar(String barData) {
         String[] data = barData.split(",");
-        ZonedDateTime openTime = ZonedDateTime.parse(data[0], dateTimeFormatter);
+        ZonedDateTime dateTime = ZonedDateTime.parse(data[0], dateTimeFormatter);
         Number open = new Number(data[1]);
         Number high = new Number(data[2]);
         Number low = new Number(data[3]);
@@ -142,19 +145,29 @@ public class CSVDataProvider implements DataProvider {
         lowIndex = -1;
         highIndex = -1;
 
+        long delayPerTick = dataSpeed.delayMillis / ticksPerBar;
+
+
         for (int i = 0; i < ticksPerBar; i++) {
-            DefaultTick tick = generateTick(openTime, i, open, high, low, close, volume);
+            DefaultTick tick = generateTick(dateTime, i, open, high, low, close, volume);
             notifyListeners(tick);
+            if (delayPerTick > 0) {
+                try {
+                    Thread.sleep(delayPerTick);
+                } catch (InterruptedException e) {
+                    log.error("Error sleeping", e);
+                }
+            }
         }
     }
 
-    private DefaultTick generateTick(ZonedDateTime openTime, int tickIndex, Number open, Number high, Number low, Number close, Number volume) {
+    private DefaultTick generateTick(ZonedDateTime dateTime, int tickIndex, Number open, Number high, Number low, Number close, Number volume) {
         if (ticksPerBar < 4) {
             throw new IllegalArgumentException("Ticks per bar must be at least 4");
         }
 
         long nanosDuration = (long) ((double) tickIndex / (ticksPerBar - 1) * period.toNanos());
-        ZonedDateTime tickTime = openTime.plus(Duration.ofNanos(nanosDuration));
+        ZonedDateTime tickTime = dateTime.plus(Duration.ofNanos(nanosDuration));
 
         Number mid;
         if (ticksPerBar == 4) {
@@ -162,7 +175,12 @@ public class CSVDataProvider implements DataProvider {
                 case 0 -> open;
                 case 1 -> high;
                 case 2 -> low;
-                case 3 -> close;
+                case 3 -> {
+                    // We should make sure we always end a second before next bar
+                    tickTime = tickTime.minusSeconds(1);
+                    System.out.println("HEY" + tickTime);
+                    yield close;
+                }
                 default -> throw new IllegalStateException("Unexpected tickIndex: " + tickIndex);
             };
         } else {
@@ -172,7 +190,11 @@ public class CSVDataProvider implements DataProvider {
             if (tickIndex == 0) {
                 mid = open;
             } else if (tickIndex == ticksPerBar - 1) {
+                // This is the last tick
                 mid = close;
+                // We should make sure we always end a second before next bar
+                tickTime = tickTime.minusSeconds(1);
+                System.out.println("HEY" + tickTime);
             } else {
                 if (lowIndex == -1 || highIndex == -1) {
                     // Initialize indices if not set
@@ -209,7 +231,6 @@ public class CSVDataProvider implements DataProvider {
 
     private void notifyListeners(DefaultTick tick) {
         for (DataProviderListener listener : listeners) {
-            System.out.println(tick);
             listener.onTick(tick);
         }
     }
