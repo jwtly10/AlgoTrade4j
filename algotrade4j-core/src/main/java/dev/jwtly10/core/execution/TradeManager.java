@@ -7,6 +7,7 @@ import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.model.TradeParameters;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The TradeExecutor interface defines the contract for executing trades and managing trading positions.
@@ -62,7 +63,7 @@ public interface TradeManager {
 
     Map<String, Trade> getAllTrades();
 
-    Map<String, Trade> getOpenTrades();
+    ConcurrentHashMap<String, Trade> getOpenTrades();
 
     void setCurrentTick(Tick tick);
 

@@ -9,11 +9,11 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
     @Override
     public void updateTradeStates(AccountManager accountManager, TradeManager tradeManager, Tick tick) {
-//        tradeManager.getOpenTrades().values().forEach(trade -> {
-//            updateTradeProfitLoss(trade, tick);
-//            checkAndExecuteStopLoss(trade, tradeManager, tick);
-//        });
-//        updateAccountBalanceAndEquity(accountManager, tradeManager);
+        tradeManager.getOpenTrades().values().forEach(trade -> {
+            updateTradeProfitLoss(trade, tick);
+            checkAndExecuteStopLoss(trade, tradeManager, tick);
+        });
+        updateAccountBalanceAndEquity(accountManager, tradeManager);
     }
 
     private void updateTradeProfitLoss(Trade trade, Tick tick) {

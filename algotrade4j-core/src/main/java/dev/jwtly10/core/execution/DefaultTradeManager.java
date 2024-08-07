@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class DefaultTradeManager implements TradeManager {
@@ -18,7 +19,7 @@ public class DefaultTradeManager implements TradeManager {
     @Getter
     private final Map<String, Trade> allTrades;
     @Getter
-    private final Map<String, Trade> openTrades;
+    private final ConcurrentHashMap<String, Trade> openTrades;
     private final EventPublisher eventPublisher;
     private final BarSeries barSeries;
     @Setter
@@ -26,7 +27,7 @@ public class DefaultTradeManager implements TradeManager {
 
     public DefaultTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher) {
         this.allTrades = new HashMap<>();
-        this.openTrades = new HashMap<>();
+        this.openTrades = new ConcurrentHashMap<>();
         this.eventPublisher = eventPublisher;
         this.strategyId = strategyId;
         this.barSeries = barSeries;

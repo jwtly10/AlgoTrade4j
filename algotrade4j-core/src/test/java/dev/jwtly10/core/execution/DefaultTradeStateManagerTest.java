@@ -10,8 +10,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -36,7 +35,7 @@ class DefaultTradeStateManagerTest {
 
     @Test
     void updateTradeStates_updatesTradesAndAccount() {
-        Map<String, Trade> openTrades = new HashMap<>();
+        ConcurrentHashMap<String, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade("EURUSD", new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
         Trade shortTrade = new Trade("EURUSD", new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
@@ -63,7 +62,7 @@ class DefaultTradeStateManagerTest {
 
     @Test
     void updateTradeStates_executesStopLoss() {
-        Map<String, Trade> openTrades = new HashMap<>();
+        ConcurrentHashMap<String, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade("EURUSD", new Number("1"), new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
         openTrades.put("1", longTrade);
@@ -81,7 +80,7 @@ class DefaultTradeStateManagerTest {
 
     @Test
     void updateTradeStates_doesNotExecuteStopLoss() {
-        Map<String, Trade> openTrades = new HashMap<>();
+        ConcurrentHashMap<String, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade shortTrade = new Trade("GBPUSD", new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put("2", shortTrade);
