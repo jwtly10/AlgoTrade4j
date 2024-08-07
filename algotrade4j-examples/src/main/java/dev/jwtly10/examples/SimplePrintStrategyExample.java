@@ -47,7 +47,7 @@ public class SimplePrintStrategyExample {
         dataManager.addDataListener(executor);
 
         try {
-            dataManager.start();
+            executor.run();
         } catch (Exception e) {
             log.error("Error running strategy", e);
         }

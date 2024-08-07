@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 public class StrategyExecutor implements DataListener {
-    private final BarSeries barSeries;
     private final Strategy strategy;
     private final DataManager dataManager;
     private final AccountManager accountManager;
@@ -34,7 +33,6 @@ public class StrategyExecutor implements DataListener {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataManager = dataManager;
-        this.barSeries = barSeries;
         this.eventPublisher = eventPublisher;
         this.tradeStateManager = tradeStateManager;
         this.accountManager = accountManager;
@@ -65,8 +63,6 @@ public class StrategyExecutor implements DataListener {
             Thread.currentThread().interrupt();
             stop();
         }
-
-        cleanup();
     }
 
     @Override
@@ -85,7 +81,6 @@ public class StrategyExecutor implements DataListener {
         IndicatorUtils.updateIndicators(strategy, closedBar);
         strategy.onBarClose(closedBar);
         log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
-        barSeries.addBar(closedBar);
     }
 
     public void stop() {
