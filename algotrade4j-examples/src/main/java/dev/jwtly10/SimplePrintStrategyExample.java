@@ -20,7 +20,7 @@ public class SimplePrintStrategyExample {
         Duration period = Duration.ofDays(1);
         CSVDataProvider csvDataProvider = new CSVDataProvider(
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
-                3,
+                4,
                 new Number(0.1),
                 period,
                 "NAS100USD"

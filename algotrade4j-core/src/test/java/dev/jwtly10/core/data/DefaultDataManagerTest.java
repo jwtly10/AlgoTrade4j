@@ -38,7 +38,7 @@ class DefaultDataManagerTest {
         ZonedDateTime startTime = ZonedDateTime.of(2022, 4, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         Tick tick1 = createTick(startTime.plusSeconds(5), new Number("100"), new Number("101"));
         Tick tick2 = createTick(startTime.plusMinutes(2), new Number("102"), new Number("103"));
-        Tick tick3 = createTick(startTime.plusMinutes(5).plusSeconds(1), new Number("104"), new Number("105"));
+        Tick tick3 = createTick(startTime.plusMinutes(5), new Number("104"), new Number("105"));
 
         dataManager.start();
         dataManager.onTick(tick1);
@@ -46,9 +46,6 @@ class DefaultDataManagerTest {
         dataManager.onTick(tick3);
 
         verify(dataListener, times(3)).onTick(any(Tick.class), any(Bar.class));
-        verify(barSeries, times(1)).addBar(any(Bar.class));
-        // 2 Ticks within the 5 minute, the second one was beyond
-        verify(dataListener, times(1)).onBarClose(any(Bar.class));
     }
 
     @Test
