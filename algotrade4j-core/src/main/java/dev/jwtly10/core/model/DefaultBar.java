@@ -1,9 +1,6 @@
 package dev.jwtly10.core.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -17,6 +14,7 @@ public class DefaultBar implements Bar {
     private Duration timePeriod;
     private Number open;
     private ZonedDateTime openTime;
+    @Setter
     private ZonedDateTime closeTime;
     private Number high;
     private Number low;
@@ -46,7 +44,7 @@ public class DefaultBar implements Bar {
             low = tick.getMid();
         }
         close = tick.getMid();
-        closeTime = tick.getDateTime();
+//        closeTime = tick.getDateTime();
         // TODO: We simulate volume data in backtesting. For live trading this may not exist
         volume = volume.add(tick.getVolume());
     }

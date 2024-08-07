@@ -1,4 +1,4 @@
-package dev.jwtly10;
+package dev.jwtly10.examples;
 
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;

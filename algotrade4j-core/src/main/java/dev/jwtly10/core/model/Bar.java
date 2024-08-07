@@ -16,6 +16,19 @@ public interface Bar {
      */
     String getSymbol();
 
+    /**
+     * Update the bar with a new tick
+     * <p>
+     * If the bar is not initialized, the open price and open time will be set to the tick values.
+     * If the tick mid price is higher than the current high price, the high price will be updated.
+     * If the tick mid price is lower than the current low price, the low price will be updated.
+     * The close price will be updated with the tick mid price.
+     * The close time will be set to the tick time.
+     * The volume will be updated with the tick volume.
+     * <p>
+     *
+     * @param tick the tick to update the bar with
+     */
     void update(Tick tick);
 
     /**
@@ -32,6 +45,13 @@ public interface Bar {
      * @return the date time of the bar close
      */
     ZonedDateTime getCloseTime();
+
+    /**
+     * Set the close time of the bar
+     *
+     * @param closeTime the close time of the bar
+     */
+    void setCloseTime(ZonedDateTime closeTime);
 
     /**
      * @return the open price of the bar

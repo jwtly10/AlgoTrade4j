@@ -6,42 +6,36 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+@Getter
 public class DefaultDataManager implements DataManager, DataProviderListener {
     private final DataProvider dataProvider;
     private final List<DataListener> listeners = new ArrayList<>();
-    private final Duration barDuration;
-    @Getter
+    private final Duration period;
     private final BarSeries barSeries;
-    @Getter
     private final String symbol;
-    @Getter
     private volatile Number currentBid;
-    @Getter
-    private Bar currentPartialBar;
-    @Getter
+    private volatile Number currentAsk;
+    private Bar currentBar;
     private boolean running = false;
     private ZonedDateTime nextBarCloseTime;
-    @Getter
-    private volatile Number currentAsk;
-    private ZonedDateTime expectedNextBarCloseTime;
 
     public DefaultDataManager(String symbol, DataProvider dataProvider, Duration barDuration, BarSeries barSeries) {
         this.dataProvider = dataProvider;
-        this.barDuration = barDuration;
+        this.period = barDuration;
         this.barSeries = barSeries;
-        this.dataProvider.addDataProviderListener(this);
         this.symbol = symbol;
+        this.dataProvider.addDataProviderListener(this);
     }
 
     @Override
     public void start() {
-        log.debug("Starting data manager");
+        log.debug("Starting data manager with symbol: {}, period: {}", symbol, period);
         running = true;
         dataProvider.start();
     }
@@ -72,13 +66,26 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
         updateCurrentPrices(tick);
 
-        if (currentPartialBar == null) {
-            initializeFirstBar(tick);
+        if (currentBar == null) {
+            log.debug("Initializing new bar");
+            initializeNewBar(tick);
+            log.debug("New bar initialized: {}", currentBar);
+            log.debug("Next bar close time: {}", nextBarCloseTime);
+        } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) {
+            log.debug("Closing current bar because: {} ({})",
+                    tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
+            closeCurrentBar();
+            log.debug("Initializing new bar");
+            initializeNewBar(tick);
+            log.debug("New bar initialized: {}", currentBar);
+            log.debug("Next bar close time: {}", nextBarCloseTime);
         } else {
-            processTickForExistingBar(tick);
+            log.debug("Updating current bar");
+            log.debug("Next bar close time: {}", nextBarCloseTime);
+            updateBar(tick);
         }
 
-        notifyTick(tick, currentPartialBar);
+        notifyTick(tick, currentBar);
     }
 
     private void updateCurrentPrices(Tick tick) {
@@ -86,159 +93,52 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         this.currentAsk = tick.getAsk();
     }
 
-    private void processTickForExistingBar(Tick tick) {
-        ZonedDateTime tickDateTime = tick.getDateTime();
-
-        if (tickDateTime.isAfter(nextBarCloseTime)) {
-            handleSkippedPeriod(tick);
-        } else if (tickDateTime.isEqual(nextBarCloseTime) || tickDateTime.isAfter(currentPartialBar.getOpenTime().plus(barDuration))) {
-            closeCurrentBarAndCreateNew(tick);
-        } else {
-            currentPartialBar.update(tick);
-        }
-    }
-
-    private void handleSkippedPeriod(Tick tick) {
-        // Close the current bar
-        barSeries.addBar(currentPartialBar);
-        notifyBarClose(currentPartialBar);
-
-        // Align the new bar's open time with the tick time
-        ZonedDateTime newBarOpenTime = alignToBarPeriod(tick.getDateTime());
-        nextBarCloseTime = newBarOpenTime.plus(barDuration);
-
-        // Create a new bar starting from the current tick
-        currentPartialBar = createNewBar(tick, newBarOpenTime);
-
-        log.info("Skipped period(s). New bar: {}, Next close time: {}", currentPartialBar, nextBarCloseTime);
-    }
-
-    private void closeCurrentBarAndCreateNew(Tick tick) {
-        barSeries.addBar(currentPartialBar);
-        notifyBarClose(currentPartialBar);
-
-        ZonedDateTime newBarOpenTime = nextBarCloseTime;
-        nextBarCloseTime = newBarOpenTime.plus(barDuration);
-        currentPartialBar = createNewBar(tick, newBarOpenTime);
-
-        log.debug("Closed bar: {}, New bar open time: {}", currentPartialBar, newBarOpenTime);
-    }
-
-    private void initializeFirstBar(Tick tick) {
-        ZonedDateTime barOpenTime = alignToBarPeriod(tick.getDateTime());
-        nextBarCloseTime = barOpenTime.plus(barDuration);
-        currentPartialBar = createNewBar(tick, barOpenTime);
-        log.debug("Initialized first bar: {}, Next close time: {}", currentPartialBar, nextBarCloseTime);
-    }V
-
-    private Bar createNewBar(Tick tick, ZonedDateTime openTime) {
-        return new DefaultBar(
+    private void initializeNewBar(Tick tick) {
+        ZonedDateTime barOpenTime = tick.getDateTime().truncatedTo(ChronoUnit.MINUTES);
+        currentBar = new DefaultBar(
                 tick.getSymbol(),
-                barDuration,
-                openTime,
+                period,
+                barOpenTime,
                 tick.getMid(),
                 tick.getMid(),
                 tick.getMid(),
                 tick.getMid(),
                 tick.getVolume()
         );
+        nextBarCloseTime = barOpenTime.plus(period);
+        log.debug("Next bar close time: {}", nextBarCloseTime);
+        // TODO: Currently we are setting the close time to the next bar close time. This may not be accurate in live trading
+        // HOWEVER. It may actually be more representative of the actual close time in live trading
+        // To be reviewed
+        currentBar.setCloseTime(nextBarCloseTime);
     }
 
-    private ZonedDateTime alignToBarPeriod(ZonedDateTime dateTime) {
-        long epochSeconds = dateTime.toEpochSecond();
-        long barSeconds = barDuration.getSeconds();
-        long alignedSeconds = (epochSeconds / barSeconds) * barSeconds;
-        return ZonedDateTime.ofInstant(Instant.ofEpochSecond(alignedSeconds), dateTime.getZone());
+
+    private ChronoUnit getChronoUnitFromDuration(Duration duration) {
+        if (duration.toMinutes() <= 60) {
+            return ChronoUnit.MINUTES;
+        } else if (duration.toHours() <= 24) {
+            return ChronoUnit.HOURS;
+        } else {
+            return ChronoUnit.DAYS;
+        }
     }
 
-//    @Override
-//    public void onTick(Tick tick) {
-//        if (!running) return;
-//        log.debug("Received tick: {}", tick);
-//
-//        // Update current bid/ask
-//        this.currentBid = tick.getBid();
-//        this.currentAsk = tick.getAsk();
-//
-//        if (currentPartialBar == null) {
-//            initializeFirstBar(tick);
-//        } else if (tick.getDateTime().isAfter(nextBarCloseTime)) {
-//            // We've skipped at least one period
-//            handleSkippedPeriod(tick);
-//        } else if (tick.getDateTime().isEqual(nextBarCloseTime) || tick.getDateTime().isAfter(currentPartialBar.getOpenTime().plus(barDuration))) {
-//            // This tick is the close of the current bar or we're at the exact next period.
-//            currentPartialBar.update(tick);
-//            closeCurrentBarAndCreateNew(tick);
-//        } else {
-//            // Update the current bar
-//            currentPartialBar.update(tick);
-//        }
-//
-//        // Notify listeners of the new tick and current bar
-//        notifyTick(tick, currentPartialBar);
-//    }
-//
-//    private void handleSkippedPeriod(Tick tick) {
-//        // Close the current bar with the last known data
-//        barSeries.addBar(currentPartialBar);
-//        notifyBarClose(currentPartialBar);
-//
-//        // Calculate how many periods we've skipped
-//        long periodsSkipped = Duration.between(nextBarCloseTime, tick.getDateTime()).dividedBy(barDuration);
-//        log.info("Skipped {} period(s)", periodsSkipped);
-//
-//        // Adjust the next bar close time to align with the current tick
-//        nextBarCloseTime = alignToBarPeriod(tick.getDateTime()).plus(barDuration);
-//
-//        // Create a new bar starting from the current tick
-//        ZonedDateTime newBarOpenTime = nextBarCloseTime.minus(barDuration);
-//        currentPartialBar = createNewBar(tick, newBarOpenTime);
-//
-//        log.debug("Created new bar after skipped period(s): {}, Next close time: {}", currentPartialBar, nextBarCloseTime);
-//    }
-//
-//    private void closeCurrentBarAndCreateNew(Tick tick) {
-//        // Close the current bar
-//        barSeries.addBar(currentPartialBar);
-//        notifyBarClose(currentPartialBar);
-//
-//        // Create a new bar
-//        ZonedDateTime newBarOpenTime = nextBarCloseTime;
-//        nextBarCloseTime = newBarOpenTime.plus(barDuration);
-//        log.debug("Closed A Bar: {}, Updated next bar close time: {}", currentPartialBar, nextBarCloseTime);
-//        currentPartialBar = createNewBar(tick, newBarOpenTime);
-//    }
-//
-//    private ZonedDateTime alignToBarPeriod(ZonedDateTime dateTime) {
-//        long epochSeconds = dateTime.toEpochSecond();
-//        long barSeconds = barDuration.getSeconds();
-//        long alignedSeconds = (epochSeconds / barSeconds) * barSeconds;
-//        return ZonedDateTime.ofInstant(Instant.ofEpochSecond(alignedSeconds), dateTime.getZone());
-//    }
-//
-//    private void initializeFirstBar(Tick tick) {
-//        ZonedDateTime barOpenTime = alignToBarPeriod(tick.getDateTime());
-//        nextBarCloseTime = barOpenTime.plus(barDuration);
-//        currentPartialBar = createNewBar(tick, barOpenTime);
-//        log.debug("Initialised bar: {}, Next Bar Close Time: {}", currentPartialBar, nextBarCloseTime);
-//    }
-//
-//    private Bar createNewBar(Tick tick, ZonedDateTime openTime) {
-//        return new DefaultBar(
-//                tick.getSymbol(),
-//                barDuration,
-//                openTime,
-//                tick.getMid(),
-//                tick.getMid(),
-//                tick.getMid(),
-//                tick.getMid(),
-//                tick.getVolume()
-//        );
-//    }
+    private void updateBar(Tick tick) {
+        currentBar.update(tick);
+    }
 
-    private void notifyTick(Tick tick, Bar currentPartialBar) {
+    private void closeCurrentBar() {
+        log.debug("Bar being closed: {}", currentBar);
+        if (currentBar != null) {
+            barSeries.addBar(currentBar);
+            notifyBarClose(currentBar);
+        }
+    }
+
+    private void notifyTick(Tick tick, Bar currentBar) {
         for (DataListener listener : listeners) {
-            listener.onTick(tick, currentPartialBar);
+            listener.onTick(tick, currentBar);
         }
     }
 
