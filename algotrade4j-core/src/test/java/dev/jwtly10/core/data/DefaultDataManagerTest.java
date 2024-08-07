@@ -96,7 +96,7 @@ class DefaultDataManagerTest {
 
         verify(mockBarSeries, times(1)).addBar(any(Bar.class));
         assertEquals(time2.toLocalDate(), dataManager.getCurrentBar().getOpenTime().toLocalDate());
-        assertEquals(time2.plus(Duration.ofDays(1)), dataManager.getCurrentBar().getCloseTime(), "Current bar should close 1 day after the last tick");
+        assertEquals(time2.plus(Duration.ofDays(1).minusSeconds(1)), dataManager.getCurrentBar().getCloseTime(), "Current bar should close 1 day after the last tick");
         assertEquals(time2.plus(Duration.ofDays(1)), dataManager.getNextBarCloseTime(), "Next bar close time should be 1 day after the last tick");
     }
 
@@ -131,7 +131,7 @@ class DefaultDataManagerTest {
 
         verify(mockBarSeries, times(1)).addBar(any(Bar.class));
         assertEquals(time2.toLocalDate(), dataManager.getCurrentBar().getOpenTime().toLocalDate());
-        assertEquals(time2.plus(Duration.ofHours(1)), dataManager.getCurrentBar().getCloseTime(), "Current bar should close 1 hour after the last tick");
+        assertEquals(time2.plus(Duration.ofHours(1)).minusSeconds(1), dataManager.getCurrentBar().getCloseTime(), "Current bar should close 1 hour after the last tick");
     }
 
     @Test
@@ -152,7 +152,7 @@ class DefaultDataManagerTest {
 
         Bar currentBar = dataManager.getCurrentBar();
         assertNotNull(currentBar, "Current bar should not be null");
-        assertEquals(mondayTime.plus(Duration.ofDays(1)), currentBar.getCloseTime(), "Current bar should close 1 day after the last tick");
+        assertEquals(mondayTime.plus(Duration.ofDays(1)).minusSeconds(1), currentBar.getCloseTime(), "Current bar should close 1 day after the last tick");
         assertEquals(mondayTime.toLocalDate(), currentBar.getOpenTime().toLocalDate(), "Current bar should open on Monday");
         assertEquals(mondayTime, currentBar.getOpenTime(), "Bar open time should match Monday's tick time");
     }
