@@ -96,7 +96,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         List<Tick> ticks = new ArrayList<>();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), 5, spread, Duration.ofMinutes(1), seed);
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), 5, spread, Duration.ofMinutes(1), "TEST", seed);
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {
@@ -165,7 +165,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         capturedTicks.clear();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, period);
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, period, "TEST");
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {
@@ -218,7 +218,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         capturedTicks.clear();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, new Number("0.01"), period);
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, new Number("0.01"), period, "TEST");
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {

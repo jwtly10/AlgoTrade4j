@@ -52,22 +52,24 @@ public class CSVDataProvider implements DataProvider {
     private final Random random;
     private final Number spread;
     private final Duration period;
+    private final String symbol;
     private BufferedReader reader;
     @Getter
     private boolean isRunning;
 
-    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, long seed) {
+    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, String symbol, long seed) {
         this.fileName = fileName;
         this.ticksPerBar = ticksPerBar;
         this.spread = spread;
         this.period = period;
         this.listeners = new ArrayList<>();
         this.random = new Random(seed);
+        this.symbol = symbol;
     }
 
     // Overload the constructor to allow creation without a seed
-    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period) {
-        this(fileName, ticksPerBar, spread, period, System.currentTimeMillis());
+    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, String symbol) {
+        this(fileName, ticksPerBar, spread, period, symbol, System.currentTimeMillis());
     }
 
     @Override
@@ -157,7 +159,7 @@ public class CSVDataProvider implements DataProvider {
         // Generate a random volume for each tick
         Number tickVolume = volume.multiply(BigDecimal.valueOf(random.nextDouble())).divide(BigDecimal.valueOf(ticksPerBar));
 
-        return new DefaultTick("SYMBOL", bid, mid, ask, tickVolume, tickTime);
+        return new DefaultTick(symbol, bid, mid, ask, tickVolume, tickTime);
     }
 
     private void notifyListeners(DefaultTick tick) {

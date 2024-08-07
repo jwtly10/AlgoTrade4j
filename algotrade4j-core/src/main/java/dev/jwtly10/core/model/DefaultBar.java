@@ -45,7 +45,7 @@ public class DefaultBar implements Bar {
         }
         close = tick.getMid();
         closeTime = tick.getDateTime();
-        // For now we wont get tick data volume
-//        volume = volume.add(tick.getVolume());
+        // TODO: We simulate volume data in backtesting. For live trading this may not exist
+        volume = volume.add(tick.getVolume());
     }
 }

@@ -74,12 +74,21 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
         if (currentPartialBar == null) {
             // Initialize the first bar and set the next bar close time
-            log.debug("Initializing the first bar");
             initializeFirstBar(tick);
-        } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) {
-            // Close the current bar and create a new one
-            log.debug("Closing the current bar and creating a new one");
+        } else if (tick.getDateTime().isEqual(nextBarCloseTime)) {
+            // This tick is the close of the current bar.
+            currentPartialBar.update(tick);
+            log.debug("""
+                            Closed A Bar:
+                            OpenTime: {},
+                            CloseTime: {},
+                            Open: {},
+                            Close: {}
+                            Next Bar Close Time: {}""",
+                    currentPartialBar.getOpenTime(), currentPartialBar.getCloseTime(), currentPartialBar.getOpen(), currentPartialBar.getClose(), nextBarCloseTime);
             closeCurrentBarAndCreateNew(tick);
+        } else if (tick.getDateTime().isAfter(nextBarCloseTime)) {
+            log.warn("We shouldnt generate a tick after the next bar close time");
         } else {
             // Update the current bar
             log.debug("Updating the current bar");
@@ -91,11 +100,16 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     }
 
     private void initializeFirstBar(Tick tick) {
-        ZonedDateTime barOpenTime = calculateBarOpenTime(tick.getDateTime());
+        ZonedDateTime barOpenTime = tick.getDateTime(); // The first tick of a file is always where it starts from
         nextBarCloseTime = barOpenTime.plus(barDuration);
         currentPartialBar = createNewBar(tick, barOpenTime);
-        log.debug("First bar initialized: {}", currentPartialBar);
-        log.debug("Next bar close time: {}", nextBarCloseTime);
+        log.debug("""
+                        Initialised Bar:
+                        OpenTime: {},
+                        CloseTime: {},
+                        Open: {},
+                        Close: {}""",
+                currentPartialBar.getOpenTime(), currentPartialBar.getCloseTime(), currentPartialBar.getOpen(), currentPartialBar.getClose());
     }
 
     private void closeCurrentBarAndCreateNew(Tick tick) {
@@ -107,14 +121,6 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         ZonedDateTime newBarOpenTime = nextBarCloseTime;
         nextBarCloseTime = newBarOpenTime.plus(barDuration);
         currentPartialBar = createNewBar(tick, newBarOpenTime);
-    }
-
-    private ZonedDateTime calculateBarOpenTime(ZonedDateTime tickTime) {
-        long barDurationSeconds = barDuration.getSeconds();
-        long tickSeconds = tickTime.toEpochSecond();
-        long barOpenSeconds = (tickSeconds / barDurationSeconds) * barDurationSeconds;
-        log.debug("Calculated bar open time: {}", ZonedDateTime.ofInstant(java.time.Instant.ofEpochSecond(barOpenSeconds), tickTime.getZone()));
-        return ZonedDateTime.ofInstant(java.time.Instant.ofEpochSecond(barOpenSeconds), tickTime.getZone());
     }
 
     private Bar createNewBar(Tick tick, ZonedDateTime openTime) {
