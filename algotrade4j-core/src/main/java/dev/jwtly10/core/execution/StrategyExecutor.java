@@ -101,6 +101,7 @@ public class StrategyExecutor implements DataListener {
     private void cleanup() {
         log.debug("Cleaning up strategy");
         strategy.onDeInit();
+        strategy.onEnd();
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
     }
 

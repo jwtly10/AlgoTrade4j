@@ -172,12 +172,31 @@ public abstract class BaseStrategy implements Strategy {
     }
 
     /**
+     * Called to de initialize the strategy. Used by the system
+     */
+    @Override
+    public void onDeInit() {
+
+    }
+
+
+    /**
      * Custom initialization method that can be overridden by strategy implementations.
      * This method is called after indicators are initialized but before the strategy starts processing bars.
      */
     public void onStart() {
         // Default implementation is empty
         // Strategy developers can override this method to add custom initialization logic
+    }
+
+    /**
+     * Called when the strategy processing ends.
+     * This method is called after the strategy has finished running
+     */
+    @Override
+    public void onEnd() {
+        // Default implementation is empty
+        // Strategy developers can override this method to add custom cleanup logic
     }
 
     /**

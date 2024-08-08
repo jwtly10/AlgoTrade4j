@@ -1,12 +1,12 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.Tick;
 
 /**
  * Represents a trading strategy in the AlgoTrade4j framework.
@@ -24,6 +24,12 @@ public interface Strategy {
      * @param eventPublisher The EventPublisher instance for publishing events.
      */
     void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher);
+
+    /**
+     * Called once after the strategy processing ends.
+     * This method is used by the system to do strategy clean up and analysis.
+     */
+    void onDeInit();
 
     /**
      * Called once after the strategy processing starts.
@@ -59,5 +65,6 @@ public interface Strategy {
      * Called once after the strategy processing ends.
      * Use this method to perform any cleanup tasks or final calculations.
      */
-    void onDeInit();
+    void onEnd();
+
 }

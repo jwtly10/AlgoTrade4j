@@ -49,7 +49,7 @@ public class SimpleSMAStrategy extends BaseStrategy {
     }
 
     @Override
-    public void onDeInit() {
+    public void onEnd() {
         log.info("SimpleSMAStrategy shutting down. Final balance: {} Final Equity: {}", getBalance(), getEquity());
     }
 }
