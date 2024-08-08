@@ -11,6 +11,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.Strategy;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,7 @@ public class StrategyExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
     private final String strategyId;
+    @Getter
     @Setter
     private volatile boolean running = false;
 
@@ -40,7 +42,7 @@ public class StrategyExecutor implements DataListener {
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher);
     }
 
-    public void run() throws Exception {
+    public void run() {
         running = true;
         log.info("Running strategy: {}", strategyId);
         strategy.onStart();

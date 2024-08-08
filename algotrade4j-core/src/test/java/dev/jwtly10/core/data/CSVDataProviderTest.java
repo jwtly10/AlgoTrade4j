@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,7 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testSeedReproducibility() throws IOException {
+    void testSeedReproducibility() throws IOException, DataProviderException {
         String csvContent =
                 "Date,Open,High,Low,Close,Volume\n" +
                         "2023.01.01T00:00:00+00:00,100.0,105.0,98.0,102.0,1000\n" +
@@ -48,7 +49,7 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testRandomness() throws IOException {
+    void testRandomness() throws IOException, DataProviderException {
         String csvContent =
                 "Date,Open,High,Low,Close,Volume\n" +
                         "2023.01.01T00:00:00+00:00,100.0,105.0,98.0,102.0,1000\n" +
@@ -71,14 +72,12 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testPricesWithinRange() throws IOException {
+    void testPricesWithinRange() throws IOException, DataProviderException {
         String csvContent =
                 "Date,Open,High,Low,Close,Volume\n" +
                         "2023.01.01T00:00:00+00:00,100.0,105.0,98.0,102.0,1000\n";
 
         List<Tick> ticks = generateTicks(csvContent, 4, 12345L);
-
-        System.out.println(ticks);
 
         assertEquals(100.0, ticks.getFirst().getMid().getValue().doubleValue(), 0.0001);
         assertEquals(102.0, ticks.getLast().getMid().getValue().doubleValue(), 0.0001);
@@ -99,7 +98,7 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testPricesWithinRangeAdditionalTicks() throws IOException {
+    void testPricesWithinRangeAdditionalTicks() throws IOException, DataProviderException {
         String csvContent =
                 "Date,Open,High,Low,Close,Volume\n" +
                         "2023.01.01T00:00:00+00:00,100.0,105.0,98.0,102.0,1000\n";
@@ -107,10 +106,6 @@ class CSVDataProviderTest {
         // We should use different ticks every time to be sure
         List<Tick> ticks = generateTicks(csvContent, 10, System.currentTimeMillis());
 
-        for (Tick tick : ticks) {
-            System.out.println(tick);
-        }
-
         assertEquals(100.0, ticks.getFirst().getMid().getValue().doubleValue(), 0.0001);
         assertEquals(102.0, ticks.getLast().getMid().getValue().doubleValue(), 0.0001);
 
@@ -130,7 +125,7 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testTickGenerationWithVariousPeriods() throws IOException {
+    void testTickGenerationWithVariousPeriods() throws IOException, DataProviderException {
         testTickGeneration(Duration.ofMinutes(1), 5, 3);
         testTickGeneration(Duration.ofMinutes(5), 5, 3);
         testTickGeneration(Duration.ofMinutes(15), 5, 3);
@@ -139,17 +134,13 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testTickGenerationWithMissingData() throws IOException {
+    void testTickGenerationWithMissingData() throws IOException, DataProviderException {
         String csvContent =
                 "Date,Open,High,Low,Close,Volume\n" +
                         "2023.01.01T00:00:00+00:00,100.0,105.0,98.0,102.0,1000\n" +
                         "2023.01.04T00:00:00+00:00,104.0,107.0,103.0,105.0,1100\n";
 
         List<Tick> ticks = generateTicks(csvContent, 5, 12345L);
-
-        for (Tick tick : ticks) {
-            System.out.println(tick);
-        }
 
         assertEquals(10, ticks.size(), "Should generate ticks for 2 days only");
 
@@ -161,7 +152,7 @@ class CSVDataProviderTest {
     }
 
     @Test
-    void testEdgeCases() throws IOException {
+    void testEdgeCases() throws IOException, DataProviderException {
         // Test with minimum allowed ticks per bar (4)
         testEdgeCase(4, Duration.ofMinutes(1), 3);
 
@@ -175,7 +166,13 @@ class CSVDataProviderTest {
         testEdgeCase(5, Duration.ofDays(7), 3);
     }
 
-    private void testEdgeCase(int ticksPerBar, Duration period, int expectedBars) throws IOException {
+    @Test
+    void testDataProviderThrows() {
+        CSVDataProvider provider = new CSVDataProvider("INVALID_FILE_PATH", 5, new Number("0.01"), Duration.ofMinutes(1), "TEST");
+        assertThrows(DataProviderException.class, provider::start);
+    }
+
+    private void testEdgeCase(int ticksPerBar, Duration period, int expectedBars) throws IOException, DataProviderException {
         String csvContent = generateCsvContent(period, expectedBars);
         Path csvFile = tempDir.resolve("test_data.csv");
         Files.writeString(csvFile, csvContent);
@@ -236,7 +233,7 @@ class CSVDataProviderTest {
     }
 
 
-    private List<Tick> generateTicks(String csvContent, int ticksPerBar, long seed) throws IOException {
+    private List<Tick> generateTicks(String csvContent, int ticksPerBar, long seed) throws IOException, DataProviderException {
         Path csvFile = tempDir.resolve("test_data.csv");
         Files.writeString(csvFile, csvContent);
 
@@ -258,7 +255,7 @@ class CSVDataProviderTest {
         return ticks;
     }
 
-    void testTickGeneration(Duration period, int ticksPerBar, int expectedBars) throws IOException {
+    void testTickGeneration(Duration period, int ticksPerBar, int expectedBars) throws IOException, DataProviderException {
         String csvContent = generateCsvContent(period, expectedBars);
         Path csvFile = tempDir.resolve("test_data.csv");
         Files.writeString(csvFile, csvContent);

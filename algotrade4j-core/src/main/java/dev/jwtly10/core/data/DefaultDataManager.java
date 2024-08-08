@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
@@ -37,7 +38,12 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     public void start() {
         log.debug("Starting data manager with symbol: {}, period: {}", symbol, period);
         running = true;
-        dataProvider.start();
+        try {
+            dataProvider.start();
+        } catch (DataProviderException e) {
+            log.error("Error starting data provider", e);
+            running = false;
+        }
     }
 
     @Override
@@ -106,22 +112,15 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
                 tick.getVolume()
         );
         nextBarCloseTime = barOpenTime.plus(period);
-        log.debug("Next bar close time: {}", nextBarCloseTime);
         // TODO: Currently we are setting the close time to the next bar close time. This may not be accurate in live trading
         // HOWEVER. It may actually be more representative of the actual close time in live trading
         // To be reviews
+        // We did add minus 1 second but this will need to be reviewed
         currentBar.setCloseTime(nextBarCloseTime.minusSeconds(1));
-    }
+
+        log.debug("New bar initialized: {}. Next bar close time: {}", currentBar);
 
 
-    private ChronoUnit getChronoUnitFromDuration(Duration duration) {
-        if (duration.toMinutes() <= 60) {
-            return ChronoUnit.MINUTES;
-        } else if (duration.toHours() <= 24) {
-            return ChronoUnit.HOURS;
-        } else {
-            return ChronoUnit.DAYS;
-        }
     }
 
     private void updateBar(Tick tick) {

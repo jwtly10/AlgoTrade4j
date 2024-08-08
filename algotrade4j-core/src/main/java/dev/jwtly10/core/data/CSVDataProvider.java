@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Number;
 import lombok.Getter;
@@ -81,7 +82,7 @@ public class CSVDataProvider implements DataProvider {
     }
 
     @Override
-    public void start() {
+    public void start() throws DataProviderException {
         if (isRunning) {
             return;
         }
@@ -102,6 +103,10 @@ public class CSVDataProvider implements DataProvider {
             log.debug("End of file reached");
         } catch (IOException e) {
             log.error("Error reading file", e);
+            throw new DataProviderException("Error reading file. Stopping data feed.", e);
+        } catch (Exception e) {
+            log.error("Unexpected error", e);
+            throw new DataProviderException("Unexpected error. Stopping data feed.", e);
         } finally {
             if (isRunning) {
                 stop();
@@ -178,7 +183,6 @@ public class CSVDataProvider implements DataProvider {
                 case 3 -> {
                     // We should make sure we always end a second before next bar
                     tickTime = tickTime.minusSeconds(1);
-                    System.out.println("HEY" + tickTime);
                     yield close;
                 }
                 default -> throw new IllegalStateException("Unexpected tickIndex: " + tickIndex);
@@ -194,7 +198,6 @@ public class CSVDataProvider implements DataProvider {
                 mid = close;
                 // We should make sure we always end a second before next bar
                 tickTime = tickTime.minusSeconds(1);
-                System.out.println("HEY" + tickTime);
             } else {
                 if (lowIndex == -1 || highIndex == -1) {
                     // Initialize indices if not set

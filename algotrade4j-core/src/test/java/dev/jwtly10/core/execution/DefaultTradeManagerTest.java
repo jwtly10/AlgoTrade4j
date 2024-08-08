@@ -120,7 +120,6 @@ class DefaultTradeManagerTest {
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
         assertEquals(new Number(6), backtestTradeManager.getOpenTrades().get(tradeId).getTakeProfit());
         assertEquals(new Number(0.5), backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
-        System.out.println(backtestTradeManager.getOpenTrades().get(tradeId));
     }
 
     @Test
