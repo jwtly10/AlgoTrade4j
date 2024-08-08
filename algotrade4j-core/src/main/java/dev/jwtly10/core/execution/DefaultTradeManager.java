@@ -2,6 +2,7 @@ package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
@@ -87,12 +88,11 @@ public class DefaultTradeManager implements TradeManager {
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getSymbol(), trade, TradeEvent.Action.OPEN));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
-
         return trade.getId();
     }
 
     @Override
-    public void closePosition(Integer tradeId) {
+    public void closePosition(Integer tradeId) throws InvalidTradeException {
         Trade trade = openTrades.remove(tradeId);
         if (trade == null) {
             throw new IllegalArgumentException("Trade not found: " + tradeId);

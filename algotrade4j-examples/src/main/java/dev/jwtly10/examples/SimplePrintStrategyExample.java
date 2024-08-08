@@ -2,6 +2,7 @@ package dev.jwtly10.examples;
 
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
@@ -41,8 +42,10 @@ public class SimplePrintStrategyExample {
 
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
 
+        PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-        StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
+
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
 
         dataManager.addDataListener(executor);
 

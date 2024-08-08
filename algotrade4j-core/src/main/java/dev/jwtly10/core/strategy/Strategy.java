@@ -1,6 +1,7 @@
 package dev.jwtly10.core.strategy;
 
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
@@ -17,13 +18,14 @@ public interface Strategy {
      * Called once before the strategy processing starts.
      * Abstracts away the initialisation of the strategy, and required dependencies.
      *
-     * @param series         The initial BarSeries available at strategy start.
-     * @param dataManager    The DataManager instance for accessing market data.
-     * @param accountManager The AccountManager instance for managing account balances.
-     * @param tradeManager   The TradeManager instance for executing trades.
-     * @param eventPublisher The EventPublisher instance for publishing events.
+     * @param series              The initial BarSeries available at strategy start.
+     * @param dataManager         The DataManager instance for accessing market data.
+     * @param accountManager      The AccountManager instance for managing account balances.
+     * @param tradeManager        The TradeManager instance for executing trades.
+     * @param eventPublisher      The EventPublisher instance for publishing events.
+     * @param performanceAnalyser The PerformanceAnalyser instance for analysing strategy performance.
      */
-    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher);
+    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser);
 
     /**
      * Called once after the strategy processing ends.

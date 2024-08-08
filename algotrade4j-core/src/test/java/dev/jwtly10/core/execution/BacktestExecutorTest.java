@@ -1,6 +1,7 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
@@ -15,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-class StrategyExecutorTest {
+class BacktestExecutorTest {
 
     @Mock
     private Strategy strategy;
@@ -38,15 +40,17 @@ class StrategyExecutorTest {
     @Mock
     private BarSeries barSeries;
     @Mock
+    private PerformanceAnalyser performanceAnalyser;
+    @Mock
     private EventPublisher eventPublisher;
 
-    private StrategyExecutor strategyExecutor;
+    private BacktestExecutor strategyExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(strategy.getStrategyId()).thenReturn("testStrategy");
-        strategyExecutor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
+        strategyExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
     }
 
     @Test
@@ -68,6 +72,7 @@ class StrategyExecutorTest {
         verify(dataManager).addDataListener(strategyExecutor);
         verify(dataManager).start();
 
+        when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
         strategyExecutor.stop();
         executor.shutdownNow();
     }
@@ -84,6 +89,10 @@ class StrategyExecutorTest {
         verify(strategy).onTick(tick, currentBar);
         verify(tradeManager).setCurrentTick(tick);
         verify(tradeStateManager).updateTradeStates(accountManager, tradeManager, tick);
+
+        // TODO: Fix this test
+//        when(accountManager)
+//        verify(performanceAnalyser).update(any(Number.class), any(ZonedDateTime.class));
     }
 
     @Test
@@ -102,6 +111,7 @@ class StrategyExecutorTest {
     void testStop() throws Exception {
         when(dataManager.isRunning()).thenReturn(true);
 
+        when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
         strategyExecutor.stop();
 
         verify(dataManager).stop();
@@ -112,6 +122,7 @@ class StrategyExecutorTest {
 
     @Test
     void testOnStop() {
+        when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
         strategyExecutor.onStop();
 
         assertFalse(strategyExecutor.isRunning());

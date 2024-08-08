@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ColorType, createChart} from 'lightweight-charts';
+import Chart from 'chart.js/auto';
 import {client} from '../api/client';
+import 'chartjs-adapter-date-fns';
+
 
 const StrategyChart = () => {
     const socketRef = useRef(null);
@@ -20,6 +23,8 @@ const StrategyChart = () => {
     const chartContainerRef = useRef();
     const [tradeIdMap, setTradeIdMap] = useState(new Map());
     const tradeCounterRef = useRef(1);
+
+    let equityChart;
 
     useEffect(() => {
         return () => {
@@ -154,9 +159,6 @@ const StrategyChart = () => {
     const handleWebSocketMessage = (data) => {
         console.log('New data from websocket:', data);
 
-        console.log(tradeIdMap)
-
-
         if (data.type === 'BAR' || data.type === 'TRADE' && (data.action === "OPEN" || data.action === "CLOSE")) {
             updateTradingViewChart(data);
         } else if (data.type === 'INDICATOR') {
@@ -165,12 +167,121 @@ const StrategyChart = () => {
             updateAccount(data)
         } else if (data.type === 'STRATEGY_STOP') {
             setIsRunning(false);
+        } else if (data.type === 'ANALYSIS') {
+            setAnalysis(data)
         } else if (data.type === 'TRADE' && data.action === "UPDATE") {
             console.log("Trade update event")
             updateTrades(data);
         } else {
             console.log("WHAT OTHER EVENT WAS SENT?" + data)
         }
+    };
+
+    const setAnalysis = (data) => {
+        const {
+            equityHistory,
+            maxDrawdown,
+            totalTrades,
+            totalLongTrades,
+            totalLongWinningTrades,
+            averageLongTradeReturn,
+            totalShortTrades,
+            totalShortWinningTrades,
+            averageShortTradeReturn,
+            totalTicks
+        } = data;
+
+        // Convert equityHistory to a format Chart.js can use
+        const chartData = equityHistory.map(point => ({
+            x: point.timestamp * 1000,
+            y: point.equity.value
+        }));
+
+        // If a chart already exists, destroy it before creating a new one
+        if (equityChart) {
+            equityChart.destroy();
+        }
+
+        // Create a new chart
+        const ctx = document.getElementById('equityChart').getContext('2d');
+        equityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Equity',
+                    data: chartData,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Equity'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Equity Over Time'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Display analysis
+        const analysisDiv = document.createElement('div');
+        analysisDiv.id = 'analysisData';
+        analysisDiv.innerHTML = `
+        <h2>Trading Analysis</h2>
+        <p>Max Drawdown: ${(maxDrawdown.value * 100).toFixed(2)}%</p>
+        <p>Total Trades: ${totalTrades}</p>
+        <h3>Long Trades</h3>
+        <p>Total Long Trades: ${totalLongTrades}</p>
+        <p>Long Winning Trades: ${totalLongWinningTrades}</p>
+        <p>Long Win Rate: ${((totalLongWinningTrades / totalLongTrades) * 100).toFixed(2)}%</p>
+        <p>Average Long Trade Return: ${(averageLongTradeReturn.value * 100).toFixed(2)}%</p>
+        <h3>Short Trades</h3>
+        <p>Total Short Trades: ${totalShortTrades}</p>
+        <p>Short Winning Trades: ${totalShortWinningTrades}</p>
+        <p>Short Win Rate: ${((totalShortWinningTrades / totalShortTrades) * 100).toFixed(2)}%</p>
+        <p>Average Short Trade Return: ${(averageShortTradeReturn.value * 100).toFixed(2)}%</p>
+        <h3>Additional Information</h3>
+        <p>Total Ticks: ${totalTicks}</p>
+    `;
+
+        // Insert the new div after the chart
+        const chartElement = document.getElementById('equityChart');
+        chartElement.parentNode.insertBefore(analysisDiv, chartElement.nextSibling);
+
     };
 
     const updateTrades = (data) => {
@@ -316,7 +427,7 @@ const StrategyChart = () => {
                 </tbody>
             </table>
 
-
+            <canvas id="equityChart"></canvas>
         </div>
     );
 };

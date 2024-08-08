@@ -39,7 +39,7 @@ public interface TradeManager {
      *
      * @param tradeId The unique identifier of the trade to close
      */
-    void closePosition(Integer tradeId);
+    void closePosition(Integer tradeId) throws InvalidTradeException;
 
     /**
      * Loads all trades from the trading account.

@@ -1,6 +1,7 @@
 package dev.jwtly10.core.strategy;
 
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
@@ -56,6 +57,11 @@ public abstract class BaseStrategy implements Strategy {
      * The account manager used by the strategy.
      */
     private AccountManager accountManager;
+
+    /**
+     * The performance analyser used by the strategy.
+     */
+    private PerformanceAnalyser performanceAnalyser;
 
     /**
      * Constructs a BaseStrategy with the specified strategy ID.
@@ -160,7 +166,7 @@ public abstract class BaseStrategy implements Strategy {
      * @param eventPublisher the event publisher
      */
     @Override
-    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher) {
+    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
         log.debug("Initializing strategy from BaseStrategy: {}", strategyId);
         this.barSeries = series;
         this.dataManager = dataManager;
@@ -168,6 +174,7 @@ public abstract class BaseStrategy implements Strategy {
         this.tradeManager = tradeManager;
         this.eventPublisher = eventPublisher;
         this.SYMBOL = dataManager.getSymbol();
+        this.performanceAnalyser = performanceAnalyser;
         initIndicators();
     }
 
