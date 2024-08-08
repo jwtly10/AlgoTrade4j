@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The TradeExecutor interface defines the contract for executing trades and managing trading positions.
+ * The TradeManager interface defines the contract for executing trades and managing trading positions.
  * It provides methods for opening and closing positions, retrieving trade information, and updating account status.
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */

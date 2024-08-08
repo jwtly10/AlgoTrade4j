@@ -83,6 +83,9 @@ public class Number implements Comparable<Number> {
         return new Number(this.value.subtract(other.value));
     }
 
+    /*
+     * Returns the absolute value of this Number.
+     */
     public Number abs() {
         return new Number(this.value.abs());
     }
