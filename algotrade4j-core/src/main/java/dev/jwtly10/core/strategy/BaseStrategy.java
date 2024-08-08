@@ -72,7 +72,7 @@ public abstract class BaseStrategy implements Strategy {
      * @param params the trade parameters
      * @return the trade ID
      */
-    public String openLong(TradeParameters params) {
+    public Integer openLong(TradeParameters params) {
         return tradeManager.openLong(params);
     }
 
@@ -82,7 +82,7 @@ public abstract class BaseStrategy implements Strategy {
      * @param params the trade parameters
      * @return the trade ID
      */
-    public String openShort(TradeParameters params) {
+    public Integer openShort(TradeParameters params) {
         return tradeManager.openShort(params);
     }
 

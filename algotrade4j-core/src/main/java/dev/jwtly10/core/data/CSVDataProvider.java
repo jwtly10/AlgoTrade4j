@@ -100,7 +100,9 @@ public class CSVDataProvider implements DataProvider {
                 processBar(line);
             }
 
-            log.debug("End of file reached");
+            if (isRunning) {
+                log.debug("End of file reached. Stopping data feed.");
+            }
         } catch (IOException e) {
             log.error("Error reading file", e);
             throw new DataProviderException("Error reading file. Stopping data feed.", e);
@@ -109,6 +111,7 @@ public class CSVDataProvider implements DataProvider {
             throw new DataProviderException("Unexpected error. Stopping data feed.", e);
         } finally {
             if (isRunning) {
+                log.debug("Data feed stopped");
                 stop();
             }
         }

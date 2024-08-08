@@ -9,15 +9,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DefaultAccountManagerTest {
 
     private DefaultAccountManager accountManager;
+    private Number currentBalance;
+    private Number currentEquity;
     private Number initialBalance;
-    private Number initialEquity;
+    private Number openPositionValue;
 
     @BeforeEach
     void setUp() {
         initialBalance = new Number(1000.0);
-        initialEquity = new Number(500.0);
-        Number initialInitialBalance = new Number(1000.0);
-        accountManager = new DefaultAccountManager(initialBalance, initialEquity, initialInitialBalance);
+        currentBalance = new Number(1000.0);
+        currentEquity = new Number(500.0);
+        openPositionValue = new Number(-500.0); // equity - balance
+        accountManager = new DefaultAccountManager(initialBalance, currentBalance, currentEquity);
     }
 
     @Test
@@ -34,7 +37,7 @@ class DefaultAccountManagerTest {
 
     @Test
     void testGetEquity() {
-        assertEquals(initialEquity, accountManager.getEquity());
+        assertEquals(currentEquity, accountManager.getEquity());
     }
 
     @Test
@@ -50,14 +53,30 @@ class DefaultAccountManagerTest {
     }
 
     @Test
+    void testGetOpenPositionValue() {
+        assertEquals(openPositionValue, accountManager.getOpenPositionValue());
+    }
+
+    @Test
     void testConstructor() {
         Number balance = new Number(2000.0);
         Number equity = new Number(1000.0);
         Number initialBalance = new Number(2000.0);
-        DefaultAccountManager newManager = new DefaultAccountManager(balance, equity, initialBalance);
+        DefaultAccountManager newManager = new DefaultAccountManager(initialBalance, balance, equity);
 
         assertEquals(balance, newManager.getBalance());
         assertEquals(equity, newManager.getEquity());
         assertEquals(initialBalance, newManager.getInitialBalance());
     }
+
+    @Test
+    void testNewConstructor() {
+        Number initialBalance = new Number(2000.0);
+        DefaultAccountManager newManager = new DefaultAccountManager(initialBalance);
+
+        assertEquals(initialBalance, newManager.getBalance());
+        assertEquals(initialBalance, newManager.getEquity());
+        assertEquals(initialBalance, newManager.getInitialBalance());
+    }
+
 }

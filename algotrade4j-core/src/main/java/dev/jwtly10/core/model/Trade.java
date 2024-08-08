@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 /**
  * Represents a trade in the trading system.
@@ -14,10 +13,12 @@ import java.util.UUID;
 @Setter
 @ToString
 public class Trade {
+    private static Integer idCounter = 0;
+
     /**
      * The unique identifier of the trade.
      */
-    private final String id;
+    private final Integer id;
 
     /**
      * The symbol associated with the trade.
@@ -82,7 +83,7 @@ public class Trade {
      * @param isLong     indicates whether the trade is a long position
      */
     public Trade(String symbol, Number quantity, Number entryPrice, ZonedDateTime openTime, Number stopLoss, Number takeProfit, boolean isLong) {
-        this.id = UUID.randomUUID().toString();
+        this.id = ++idCounter;
         this.symbol = symbol;
         this.quantity = quantity;
         this.entryPrice = entryPrice;
@@ -104,7 +105,7 @@ public class Trade {
      * @param takeProfit the take profit price of the trade
      * @param isLong     indicates whether the trade is a long position
      */
-    public Trade(String id, String symbol, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
+    public Trade(int id, String symbol, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
         this.id = id;
         this.symbol = symbol;
         this.quantity = quantity;
@@ -113,6 +114,7 @@ public class Trade {
         this.stopLoss = stopLoss;
         this.takeProfit = takeProfit;
         this.isLong = isLong;
+        idCounter = Math.max(idCounter, id);
     }
 
     /**

@@ -42,4 +42,18 @@ public interface AccountManager {
      * @return the initial balance
      */
     Number getInitialBalance();
+
+    /**
+     * Gets the total value of all open positions.
+     *
+     * @return the total value of open positions
+     */
+    Number getOpenPositionValue();
+
+    /**
+     * Get the account instance
+     *
+     * @return the account instance
+     */
+    Account getAccount();
 }

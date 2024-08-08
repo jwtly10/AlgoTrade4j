@@ -1,6 +1,9 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.event.AccountEvent;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
@@ -8,9 +11,17 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DefaultTradeStateManager implements TradeStateManager {
+    private final EventPublisher eventPublisher;
+    private final String strategyId;
+
+    public DefaultTradeStateManager(String strategyId, EventPublisher eventPublisher) {
+        this.strategyId = strategyId;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Override
     public void updateTradeStates(AccountManager accountManager, TradeManager tradeManager, Tick tick) {
+        log.debug("Current prices - Ask: {}, Bid: {}", tick.getAsk(), tick.getBid());
         tradeManager.getOpenTrades().values().forEach(trade -> {
             updateTradeProfitLoss(trade, tick);
             checkAndExecuteStopLossTakeProfit(trade, tradeManager, tick);
@@ -26,8 +37,8 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
         Number profit = priceDifference.multiply(trade.getQuantity().getValue());
         trade.setProfit(profit);
+        eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getSymbol(), trade, TradeEvent.Action.UPDATE));
         log.debug("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
-        log.debug("Current price: {}, entry price: {}", currentPrice, trade.getEntryPrice());
     }
 
     private void checkAndExecuteStopLossTakeProfit(Trade trade, TradeManager tradeManager, Tick tick) {
@@ -85,5 +96,6 @@ public class DefaultTradeStateManager implements TradeStateManager {
         Number equity = currentBalance.add(unrealizedProfitLoss);
         accountManager.setEquity(equity);
         log.debug("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
+        eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
     }
 }

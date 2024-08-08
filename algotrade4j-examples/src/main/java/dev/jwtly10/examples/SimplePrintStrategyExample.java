@@ -28,19 +28,19 @@ public class SimplePrintStrategyExample {
 
         BarSeries barSeries = new DefaultBarSeries(4000);
 
+        Strategy strategy = new SimplePrintStrategy();
         DefaultDataManager dataManager = new DefaultDataManager("NAS100USD", csvDataProvider, period, barSeries);
 
         Tick currentTick = new DefaultTick();
 
         EventPublisher eventPublisher = new EventPublisher();
 
-        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, "SimplePrintStrategy", eventPublisher);
+        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
 
         AccountManager accountManager = new DefaultAccountManager(new Number(10000), new Number(10000), new Number(10000));
 
-        TradeStateManager tradeStateManager = new DefaultTradeStateManager();
+        TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
 
-        Strategy strategy = new SimplePrintStrategy();
 
         StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
 

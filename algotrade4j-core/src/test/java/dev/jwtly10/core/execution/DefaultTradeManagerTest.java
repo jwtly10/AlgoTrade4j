@@ -40,7 +40,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(new Number("10000"));
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -62,7 +62,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(new Number("10000"));
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params);
 
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -85,7 +85,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(new Number("100"));
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -109,7 +109,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(new Number("100"));
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -132,7 +132,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(new Number("1"));
         params.setBalanceToRisk(new Number("100"));
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("14"), new Number("12"), new Number("10"), new Number("100"), ZonedDateTime.now()));
@@ -159,7 +159,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(new Number("1"));
         params.setBalanceToRisk(new Number("100"));
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("8"), new Number("7"), new Number("9"), new Number("100"), ZonedDateTime.now()));
@@ -185,7 +185,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(new Number("1"));
         params.setBalanceToRisk(new Number("100"));
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("6"), new Number("5"), new Number("7"), new Number("100"), ZonedDateTime.now()));
@@ -211,7 +211,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(new Number("1"));
         params.setBalanceToRisk(new Number("100"));
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar("BTCUSD", Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
-        String tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("12"), new Number("11"), new Number("13"), new Number("100"), ZonedDateTime.now()));

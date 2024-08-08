@@ -5,13 +5,49 @@ import lombok.Data;
 
 @Data
 public class DefaultAccountManager implements AccountManager {
-    private Number balance;
-    private Number equity;
-    private Number initialBalance;
+    private final Account account;
 
-    public DefaultAccountManager(Number balance, Number equity, Number initialBalance) {
-        this.balance = balance;
-        this.equity = equity;
-        this.initialBalance = initialBalance;
+    public DefaultAccountManager(Number initialBalance, Number balance, Number equity) {
+        this.account = new Account(initialBalance, balance, equity);
+    }
+
+    // In cases of a new, empty account
+    public DefaultAccountManager(Number initialBalance) {
+        this.account = new Account(initialBalance);
+    }
+
+    @Override
+    public Number getBalance() {
+        return account.getBalance();
+    }
+
+    @Override
+    public void setBalance(Number balance) {
+        account.setBalance(balance);
+    }
+
+    @Override
+    public Number getEquity() {
+        return account.getEquity();
+    }
+
+    @Override
+    public void setEquity(Number equity) {
+        account.setEquity(equity);
+    }
+
+    @Override
+    public Number getInitialBalance() {
+        return account.getInitialBalance();
+    }
+
+    @Override
+    public Account getAccount() {
+        return account;
+    }
+
+    @Override
+    public Number getOpenPositionValue() {
+        return getEquity().subtract(getBalance());
     }
 }

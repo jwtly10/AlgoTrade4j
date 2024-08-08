@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultTradeManager implements TradeManager {
     private final String strategyId;
     @Getter
-    private final Map<String, Trade> allTrades;
+    private final Map<Integer, Trade> allTrades;
     @Getter
-    private final ConcurrentHashMap<String, Trade> openTrades;
+    private final ConcurrentHashMap<Integer, Trade> openTrades;
     private final EventPublisher eventPublisher;
     private final BarSeries barSeries;
     @Setter
@@ -35,16 +35,16 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public String openLong(TradeParameters params) {
+    public Integer openLong(TradeParameters params) {
         return openPosition(params, true);
     }
 
     @Override
-    public String openShort(TradeParameters params) {
+    public Integer openShort(TradeParameters params) {
         return openPosition(params, false);
     }
 
-    private String openPosition(TradeParameters params, boolean isLong) {
+    private Integer openPosition(TradeParameters params, boolean isLong) {
         log.debug("Opening {} position for symbol: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 isLong ? "long" : "short", params.getSymbol(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
@@ -92,7 +92,7 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public void closePosition(String tradeId) {
+    public void closePosition(Integer tradeId) {
         Trade trade = openTrades.remove(tradeId);
         if (trade == null) {
             throw new IllegalArgumentException("Trade not found: " + tradeId);
@@ -130,6 +130,7 @@ public class DefaultTradeManager implements TradeManager {
         trade.setProfit(profitLoss);
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getSymbol(), trade, TradeEvent.Action.CLOSE));
+        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getSymbol(), trade, TradeEvent.Action.UPDATE));
     }
 
     @Override
@@ -138,7 +139,7 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public Trade getTrade(String tradeId) {
+    public Trade getTrade(Integer tradeId) {
         return allTrades.get(tradeId);
     }
 

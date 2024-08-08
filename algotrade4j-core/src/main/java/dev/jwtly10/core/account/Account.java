@@ -10,12 +10,16 @@ public class Account {
     private final Number initialBalance;
     private Number balance;
     private Number equity;
-    private Number openPositionValue;
 
     public Account(Number initialBalance) {
         this.initialBalance = initialBalance;
         this.balance = initialBalance;
         this.equity = initialBalance;
-        this.openPositionValue = Number.ZERO;
+    }
+
+    public Account(Number initialBalance, Number balance, Number equity) {
+        this.initialBalance = initialBalance;
+        this.balance = balance;
+        this.equity = equity;
     }
 }

@@ -23,7 +23,7 @@ public interface TradeManager {
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
      * @return A unique identifier for the opened trade
      */
-    String openLong(TradeParameters params) throws InvalidTradeException;
+    Integer openLong(TradeParameters params) throws InvalidTradeException;
 
     /**
      * Opens a short position for the specified symbol, uses the current bid price as the entry price.
@@ -32,14 +32,14 @@ public interface TradeManager {
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
      * @return A unique identifier for the opened trade
      */
-    String openShort(TradeParameters params) throws InvalidTradeException;
+    Integer openShort(TradeParameters params) throws InvalidTradeException;
 
     /**
      * Closes an existing position identified by the trade ID.
      *
      * @param tradeId The unique identifier of the trade to close
      */
-    void closePosition(String tradeId);
+    void closePosition(Integer tradeId);
 
     /**
      * Loads all trades from the trading account.
@@ -52,7 +52,7 @@ public interface TradeManager {
      * @param tradeId The unique identifier of the trade
      * @return The Trade object containing the details of the specified trade
      */
-    Trade getTrade(String tradeId);
+    Trade getTrade(Integer tradeId);
 
     /**
      * Gets the total value of all open positions.
@@ -61,9 +61,9 @@ public interface TradeManager {
      */
     Number getOpenPositionValue(String symbol);
 
-    Map<String, Trade> getAllTrades();
+    Map<Integer, Trade> getAllTrades();
 
-    ConcurrentHashMap<String, Trade> getOpenTrades();
+    ConcurrentHashMap<Integer, Trade> getOpenTrades();
 
     void setCurrentTick(Tick tick);
 

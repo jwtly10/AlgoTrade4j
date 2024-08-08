@@ -7,7 +7,6 @@ import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.execution.*;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
@@ -50,13 +49,14 @@ public class StrategyManager {
 
         Tick currentTick = new DefaultTick();
 
-        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, "SimplePrintStrategy", eventPublisher);
-
-        AccountManager accountManager = new DefaultAccountManager(new Number(10000), new Number(10000), new Number(10000));
-
-        TradeStateManager tradeStateManager = new DefaultTradeStateManager();
-
         Strategy strategy = new SimpleSMAStrategy();
+
+        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
+
+        AccountManager accountManager = new DefaultAccountManager(new Number(10000));
+
+        TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
+
 
         StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
 
@@ -79,7 +79,6 @@ public class StrategyManager {
         if (executor != null) {
             executor.stop();
             runningStrategies.remove(strategyId);
-            eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "User requested stop"));
             return true;
         }
         return false;
