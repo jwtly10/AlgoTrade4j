@@ -1,14 +1,12 @@
 package dev.jwtly10.core.strategy;
 
 
-import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.BarSeries;
-import dev.jwtly10.core.Indicator;
-import dev.jwtly10.core.TradeManager;
 import dev.jwtly10.core.indicators.SMA;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.TradeParameters;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 @Slf4j
 public class SimpleSMAStrategy extends BaseStrategy {
@@ -26,38 +24,32 @@ public class SimpleSMAStrategy extends BaseStrategy {
     @Override
     public void onStart() {
         log.info("SimpleSMAStrategy starting. Strategy ID: {}", getStrategyId());
-        log.info("Initial balance: {}", tradeManager.getAccount().getBalance());
+        log.info("Initial balance of run: {}", getBalance());
     }
 
     @Override
-    public void onBar(Bar bar, BarSeries series, List<Indicator> indicators, TradeManager tradeManager) {
-        String barInfo = String.format("New bar - Time: %s, Open: %.2f, High: %.2f, Low: %.2f, Close: %.2f, Volume: %.2f",
-                bar.getDateTime(),
-                bar.getOpen().doubleValue(),
-                bar.getHigh().doubleValue(),
-                bar.getLow().doubleValue(),
-                bar.getClose().doubleValue(),
-                (double) bar.getVolume());
+    public void onTick(Tick tick, Bar currentBar) {
+    }
 
-        log.info(barInfo);
-
+    @Override
+    public void onBarClose(Bar bar) {
         if (sma20.isReady()) {
-            String smaInfo = String.format("SMA(20) value: %.2f", sma20.getValue().doubleValue());
-            log.info(smaInfo);
-
-            String comparisonInfo = String.format("Close price (%.2f) is %s SMA(20) (%.2f)",
-                    bar.getClose().doubleValue(),
-                    bar.getClose().isGreaterThan(sma20.getValue()) ? "above" : "below",
-                    sma20.getValue().doubleValue());
-            log.info(comparisonInfo);
+            // If bearish candle below the sma sell
+            if (bar.getClose().isLessThan(sma20.getValue()) && bar.isBearish() && bar.getClose().isGreaterThan(new Number(13200))) {
+                TradeParameters params = new TradeParameters();
+                params.setSymbol(SYMBOL);
+                params.setEntryPrice(Ask());
+                params.setStopLoss(new Number("15600"));
+                params.setRiskRatio(new Number("2"));
+                params.setRiskPercentage(new Number("20"));
+                params.setBalanceToRisk(getInitialBalance());
+                var tradeID = openShort(params);
+            }
         }
-
-        log.info("Current balance: {}", tradeManager.getAccount().getBalance());
-        log.info("--------------------");
     }
 
     @Override
     public void onDeInit() {
-        log.info("SimpleSMAStrategy shutting down. Final balance: {}", tradeManager.getAccount().getBalance());
+        log.info("SimpleSMAStrategy shutting down. Final balance: {} Final Equity: {}", getBalance(), getEquity());
     }
 }

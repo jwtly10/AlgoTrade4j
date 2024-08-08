@@ -1,20 +1,25 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ColorType, createChart } from 'lightweight-charts';
-import { client } from '../api/client';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ColorType, createChart} from 'lightweight-charts';
+import {client} from '../api/client';
 
 const StrategyChart = () => {
-    const [strategyId, setStrategyId] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [isRunning, setIsRunning] = useState(false);
     const socketRef = useRef(null);
+
+    const [isRunning, setIsRunning] = useState(false);
+    const [strategyId, setStrategyId] = useState(null);
+    const [account, setAccount] = useState({
+        initialBalance: 0,
+        balance: 0,
+        equity: 0,
+    })
+
+    // Charting state
     const [trades, setTrades] = useState([]);
-    const [tradeIdMap, setTradeIdMap] = useState(new Map());
-    const tradeCounterRef = useRef(1);
     const [indicators, setIndicators] = useState({});
-
-
     const [chartData, setChartData] = useState([]);
     const chartContainerRef = useRef();
+    const [tradeIdMap, setTradeIdMap] = useState(new Map());
+    const tradeCounterRef = useRef(1);
 
     useEffect(() => {
         return () => {
@@ -36,7 +41,7 @@ const StrategyChart = () => {
             width: 600,
             height: 500,
             layout: {
-                background: { type: ColorType.Solid, color: '#ffffff' },
+                background: {type: ColorType.Solid, color: '#ffffff'},
                 textColor: 'black',
             },
         });
@@ -49,7 +54,12 @@ const StrategyChart = () => {
             wickUpColor: '#26a69a', wickDownColor: '#ef5350',
         });
 
-        candlestickSeries.setData(chartData);
+        try {
+            candlestickSeries.setData(chartData);
+        } catch (e) {
+            console.error('Failed to set data:', e);
+            console.log(chartData)
+        }
 
         // Add indicator series
         const indicatorSeries = {};
@@ -76,11 +86,17 @@ const StrategyChart = () => {
             position: trade.position === 'long' ? 'belowBar' : 'aboveBar',
             color: trade.position === 'long' ? '#26a69a' : '#ef5350',
             shape: trade.action === 'OPEN' ? 'arrowUp' : 'arrowDown',
-            text: `#${trade.id} ${trade.action} ${trade.position.toUpperCase()} @ ${trade.price}`,
+            text: `#${trade.tradeId} ${trade.action} ${trade.position.toUpperCase()} @ ${trade.price}`,
         }));
 
 
-        candlestickSeries.setMarkers(markers);
+        markers.sort((a, b) => a.time - b.time);
+        try {
+            candlestickSeries.setMarkers(markers);
+        } catch (e) {
+            console.error('Failed to set trade markers:', e);
+            console.log(markers)
+        }
 
         return () => {
             window.removeEventListener('resize', handleResize);
@@ -93,10 +109,14 @@ const StrategyChart = () => {
         return colors[indicatorName.length % colors.length];
     };
 
-
     const startStrategy = async () => {
-        setMessages([]);
         setIsRunning(true);
+        // Clean previous data
+        setChartData([]);
+        setTrades([]);
+        setTradeIdMap(new Map());
+        tradeCounterRef.current = 1;
+        setIndicators({});
         console.log('Starting strategy...');
         try {
             const config = {
@@ -133,13 +153,44 @@ const StrategyChart = () => {
 
     const handleWebSocketMessage = (data) => {
         console.log('New data from websocket:', data);
-        setMessages((prevMessages) => [...prevMessages, data]);
-        if (data.type === 'BAR' || data.type === 'TRADE') {
+
+        console.log(tradeIdMap)
+
+
+        if (data.type === 'BAR' || data.type === 'TRADE' && (data.action === "OPEN" || data.action === "CLOSE")) {
             updateTradingViewChart(data);
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
+        } else if (data.type === 'ACCOUNT') {
+            updateAccount(data)
+        } else if (data.type === 'STRATEGY_STOP') {
+            setIsRunning(false);
+        } else if (data.type === 'TRADE' && data.action === "UPDATE") {
+            console.log("Trade update event")
+            updateTrades(data);
+        } else {
+            console.log("WHAT OTHER EVENT WAS SENT?" + data)
         }
     };
+
+    const updateTrades = (data) => {
+        // Update the profit value of the trade
+        const trade = data.trade;
+        setTrades(prevTrades => {
+            const updatedTrades = prevTrades.map(prevTrade => {
+                if (prevTrade.tradeId === trade.id) {
+                    return {
+                        ...prevTrade,
+                        profit: trade.profit.value,
+                        closePrice: trade.closePrice.value,
+                        closeTime: trade.closeTime,
+                    };
+                }
+                return prevTrade;
+            });
+            return updatedTrades;
+        });
+    }
 
     const updateIndicator = (data) => {
         if (data.value.value !== 0) {  // Only add non-zero values
@@ -147,25 +198,48 @@ const StrategyChart = () => {
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    { time: data.dateTime / 1000, value: data.value.value },
+                    {time: data.dateTime, value: data.value.value},
                 ],
             }));
         }
     };
 
+    const updateAccount = (data) => {
+        setAccount({
+            initialBalance: data.account.initialBalance.value,
+            balance: data.account.balance.value,
+            equity: data.account.equity.value,
+        });
+    }
+
     const updateTradingViewChart = useCallback((data) => {
         if (data.type === 'BAR') {
             const bar = data.bar;
-            setChartData(prevData => [...prevData, {
-                time: bar.dateTime / 1000,
-                open: bar.open.value,
-                high: bar.high.value,
-                low: bar.low.value,
-                close: bar.close.value,
-            }]);
+            setChartData(prevData => {
+                const lastBar = prevData[prevData.length - 1];
+                if (lastBar && lastBar.time === bar.openTime) {
+                    console.log("New tick");
+                    // Update the existing bar
+                    const updatedBar = {
+                        ...lastBar,
+                        high: Math.max(lastBar.high, bar.high.value),
+                        low: Math.min(lastBar.low, bar.low.value),
+                        close: bar.close.value
+                    };
+                    return [...prevData.slice(0, -1), updatedBar];
+                } else {
+                    // Add a new bar
+                    return [...prevData, {
+                        time: bar.openTime,
+                        open: bar.open.value,
+                        high: bar.high.value,
+                        low: bar.low.value,
+                        close: bar.close.value,
+                    }];
+                }
+            });
         } else if (data.type === 'TRADE') {
             const trade = data.trade;
-
             setTradeIdMap(prevMap => {
                 const newMap = new Map(prevMap);
                 if (!newMap.has(trade.id)) {
@@ -175,13 +249,22 @@ const StrategyChart = () => {
                 return newMap;
             });
 
+            console.log(trade)
             setTrades(prevTrades => [...prevTrades, {
                 id: tradeIdMap.get(trade.id) || tradeCounterRef.current - 1,
                 tradeId: trade.id,
-                openTime: trade.openTime / 1000,
-                closeTime: trade.closeTime / 1000,
+                openTime: trade.openTime,
+                closeTime: trade.closeTime,
+                symbol: trade.symbol,
+                entry: trade.entryPrice.value,
+                stopLoss: trade.stopLoss.value,
+                closePrice: trade.closePrice.value,
+                takeProfit: trade.takeProfit.value,
+                quantity: trade.quantity.value,
+                isLong: trade.long,
                 position: trade.long ? 'long' : 'short',
                 price: data.action === 'CLOSE' ? trade.closePrice.value : trade.entryPrice.value,
+                profit: trade.profit.value,
                 action: data.action,
             }]);
         }
@@ -196,7 +279,44 @@ const StrategyChart = () => {
                 <button onClick={stopStrategy}>Stop Strategy</button>
             )}
             <p>Strategy ID: {strategyId}</p>
-            <div style={{ width: '100%' }} ref={chartContainerRef} />
+            <p>Initial Balance: ${account.initialBalance} Current Balance: ${account.balance} Equity: ${account.equity} Open Position Value: ${
+                Math.round(((account.equity - account.balance) + Number.EPSILON) * 100) / 100
+            } </p>
+            <div style={{width: '100%'}} ref={chartContainerRef}/>
+            <table>
+                <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>State</th>
+                    <th>Size</th>
+                    <th>Symbol</th>
+                    <th>Price</th>
+                    <th>S/L</th>
+                    <th>T/P</th>
+                    <th>Profit</th>
+                </tr>
+                </thead>
+                <tbody>
+                {trades.map(trade => (
+                    <tr key={trade.id}>
+                        <td>{trade.tradeId}</td>
+                        <td>{new Date(trade.openTime * 1000).toLocaleString()}</td>
+                        <td>{trade.isLong ? "LONG" : "SHORT"}</td>
+                        <td>{trade.closePrice === 0 ? "OPEN" : "CLOSED"}</td>
+                        <td>{trade.quantity}</td>
+                        <td>{trade.symbol}</td>
+                        <td>{trade.entry}</td>
+                        <td>{trade.stopLoss}</td>
+                        <td>{trade.takeProfit}</td>
+                        <td>{trade.profit}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+
+
         </div>
     );
 };

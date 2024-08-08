@@ -4,9 +4,7 @@ import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.api.service.StrategyManager;
 import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import dev.jwtly10.api.service.WebSocketEventListener;
-import dev.jwtly10.core.event.BarEvent;
-import dev.jwtly10.core.event.IndicatorEvent;
-import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.event.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,20 +35,11 @@ public class StrategyController {
         if (session != null) {
             WebSocketEventListener listener = webSocketHandler.getListenerForSession(session);
             if (listener != null) {
-                for (String eventType : config.getSubscriptions()) {
-                    switch (eventType) {
-                        case "BAR":
-                            listener.subscribe(BarEvent.class);
-                            break;
-                        case "TRADE":
-                            listener.subscribe(TradeEvent.class);
-                            break;
-                        case "INDICATOR":
-                            listener.subscribe(IndicatorEvent.class);
-                            break;
-                        // TODO: Subscribe to errors too
-                    }
-                }
+                listener.subscribe(BarEvent.class);
+                listener.subscribe(TradeEvent.class);
+                listener.subscribe(IndicatorEvent.class);
+                listener.subscribe(StrategyStopEvent.class);
+                listener.subscribe(AccountEvent.class);
             }
         } else {
             return ResponseEntity.badRequest().body("No active WebSocket session found for the strategy");

@@ -1,8 +1,7 @@
 package dev.jwtly10.core.indicators;
 
-import dev.jwtly10.core.Bar;
-import dev.jwtly10.core.Indicator;
-import dev.jwtly10.core.Number;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -55,13 +54,13 @@ public class SMA implements Indicator {
             smaValues.add(smaPrice);
             if (eventPublisher != null) {
                 log.debug("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
-                        strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime());
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice, bar.getDateTime()));
+                        strategyId, bar.getSymbol(), getName(), smaPrice, bar.getOpenTime());
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), smaPrice, bar.getOpenTime()));
             }
         } else {
             smaValues.add(Number.ZERO);
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO, bar.getDateTime()));
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getSymbol(), getName(), Number.ZERO, bar.getOpenTime()));
             }
         }
     }

@@ -1,5 +1,7 @@
 package dev.jwtly10.core.event;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +11,7 @@ import java.util.concurrent.Executors;
  * The EventPublisher class is responsible for managing event listeners and publishing events to them.
  * It implements a simple publish-subscribe pattern for event handling in the AlgoTrade4j framework.
  */
+@Slf4j
 public class EventPublisher {
     private final List<EventListener> listeners = new ArrayList<>();
     private final ExecutorService executorService;
@@ -46,6 +49,7 @@ public class EventPublisher {
      * @param event The BaseEvent to be published to all listeners.
      */
     public void publishEvent(BaseEvent event) {
+        log.debug("Publishing event: {}", event);
         for (EventListener listener : listeners) {
             executorService.submit(() -> listener.onEvent(event));
         }
