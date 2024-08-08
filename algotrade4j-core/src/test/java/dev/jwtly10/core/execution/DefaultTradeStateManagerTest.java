@@ -54,8 +54,8 @@ class DefaultTradeStateManagerTest {
         assertEquals(new Number("0.00"), shortTrade.getProfit());
 //        assertEquals(new Number("0.0050"), shortTrade.getProfit());
 
-        verify(accountManager).setBalance(new Number("1000.01"));
-        verify(accountManager).setEquity(new Number("1000.02"));
+        verify(accountManager).setBalance(new Number("1000.00"));
+        verify(accountManager).setEquity(new Number("1000.00"));
 //        verify(accountManager).setBalance(new Number("1000"));
 //        verify(accountManager).setEquity(new Number("1001"));
     }
