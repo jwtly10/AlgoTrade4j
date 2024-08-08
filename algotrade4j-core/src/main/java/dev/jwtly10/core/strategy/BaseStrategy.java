@@ -1,6 +1,5 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
@@ -8,6 +7,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.TradeParameters;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +35,10 @@ public abstract class BaseStrategy implements Strategy {
 
     public String openShort(TradeParameters params) {
         return tradeManager.openShort(params);
+    }
+
+    public Number getInitialBalance() {
+        return accountManager.getInitialBalance();
     }
 
     public Number getBalance() {

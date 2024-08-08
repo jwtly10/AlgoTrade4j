@@ -134,6 +134,7 @@ public class DefaultTradeManager implements TradeManager {
 
     @Override
     public void loadTrades() {
+        log.debug("Loading trades (During backtesting this is not needed)");
     }
 
     @Override

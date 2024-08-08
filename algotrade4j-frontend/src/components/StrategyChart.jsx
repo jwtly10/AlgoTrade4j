@@ -49,7 +49,12 @@ const StrategyChart = () => {
             wickUpColor: '#26a69a', wickDownColor: '#ef5350',
         });
 
-        candlestickSeries.setData(chartData);
+        try {
+            candlestickSeries.setData(chartData);
+        } catch (e) {
+            console.error('Failed to set data:', e);
+            console.log(chartData)
+        }
 
         // Add indicator series
         const indicatorSeries = {};
@@ -80,7 +85,13 @@ const StrategyChart = () => {
         }));
 
 
-        candlestickSeries.setMarkers(markers);
+        markers.sort((a, b) => a.time - b.time);
+        try {
+            candlestickSeries.setMarkers(markers);
+        } catch (e) {
+            console.error('Failed to set trade markers:', e);
+            console.log(markers)
+        }
 
         return () => {
             window.removeEventListener('resize', handleResize);
@@ -93,6 +104,9 @@ const StrategyChart = () => {
         return colors[indicatorName.length % colors.length];
     };
 
+    const convertToUnixTimestamp = (isoString) => {
+        return Math.floor(new Date(isoString).getTime() / 1000);
+    };
 
     const startStrategy = async () => {
         setMessages([]);
@@ -147,7 +161,7 @@ const StrategyChart = () => {
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    {time: data.dateTime / 1000, value: data.value.value},
+                    {time: convertToUnixTimestamp(data.dateTime), value: data.value.value},
                 ],
             }));
         }
@@ -158,7 +172,7 @@ const StrategyChart = () => {
             const bar = data.bar;
             setChartData(prevData => {
                 const lastBar = prevData[prevData.length - 1];
-                if (lastBar && lastBar.time === bar.openTime / 1000) {
+                if (lastBar && lastBar.time === convertToUnixTimestamp(bar.openTime)) {
                     console.log("New tick");
                     // Update the existing bar
                     const updatedBar = {
@@ -171,7 +185,7 @@ const StrategyChart = () => {
                 } else {
                     // Add a new bar
                     return [...prevData, {
-                        time: bar.openTime / 1000,
+                        time: convertToUnixTimestamp(bar.openTime),
                         open: bar.open.value,
                         high: bar.high.value,
                         low: bar.low.value,
@@ -194,8 +208,8 @@ const StrategyChart = () => {
             setTrades(prevTrades => [...prevTrades, {
                 id: tradeIdMap.get(trade.id) || tradeCounterRef.current - 1,
                 tradeId: trade.id,
-                openTime: trade.openTime / 1000,
-                closeTime: trade.closeTime / 1000,
+                openTime: convertToUnixTimestamp(trade.openTime),
+                closeTime: convertToUnixTimestamp(trade.closeTime),
                 position: trade.long ? 'long' : 'short',
                 price: data.action === 'CLOSE' ? trade.closePrice.value : trade.entryPrice.value,
                 action: data.action,
