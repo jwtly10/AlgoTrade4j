@@ -1,12 +1,13 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.Tick;
 
 /**
  * Represents a trading strategy in the AlgoTrade4j framework.
@@ -17,13 +18,20 @@ public interface Strategy {
      * Called once before the strategy processing starts.
      * Abstracts away the initialisation of the strategy, and required dependencies.
      *
-     * @param series         The initial BarSeries available at strategy start.
-     * @param dataManager    The DataManager instance for accessing market data.
-     * @param accountManager The AccountManager instance for managing account balances.
-     * @param tradeManager   The TradeManager instance for executing trades.
-     * @param eventPublisher The EventPublisher instance for publishing events.
+     * @param series              The initial BarSeries available at strategy start.
+     * @param dataManager         The DataManager instance for accessing market data.
+     * @param accountManager      The AccountManager instance for managing account balances.
+     * @param tradeManager        The TradeManager instance for executing trades.
+     * @param eventPublisher      The EventPublisher instance for publishing events.
+     * @param performanceAnalyser The PerformanceAnalyser instance for analysing strategy performance.
      */
-    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher);
+    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser);
+
+    /**
+     * Called once after the strategy processing ends.
+     * This method is used by the system to do strategy clean up and analysis.
+     */
+    void onDeInit();
 
     /**
      * Called once after the strategy processing starts.
@@ -59,5 +67,6 @@ public interface Strategy {
      * Called once after the strategy processing ends.
      * Use this method to perform any cleanup tasks or final calculations.
      */
-    void onDeInit();
+    void onEnd();
+
 }

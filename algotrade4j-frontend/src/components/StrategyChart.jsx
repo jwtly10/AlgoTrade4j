@@ -1,6 +1,10 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ColorType, createChart} from 'lightweight-charts';
 import {client} from '../api/client';
+import 'chartjs-adapter-date-fns';
+import AnalysisReport from "./AnalysisReport.jsx";
+import {EquityChart} from "./EquityChart.jsx";
+
 
 const StrategyChart = () => {
     const socketRef = useRef(null);
@@ -20,6 +24,10 @@ const StrategyChart = () => {
     const chartContainerRef = useRef();
     const [tradeIdMap, setTradeIdMap] = useState(new Map());
     const tradeCounterRef = useRef(1);
+
+    // Analysis state
+    const [analysisData, setAnalysisData] = useState(null);
+    const [equityHistory, setEquityHistory] = useState([]);
 
     useEffect(() => {
         return () => {
@@ -113,6 +121,8 @@ const StrategyChart = () => {
         setIsRunning(true);
         // Clean previous data
         setChartData([]);
+        setAnalysisData(null);
+        setEquityHistory([])
         setTrades([]);
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
@@ -154,9 +164,6 @@ const StrategyChart = () => {
     const handleWebSocketMessage = (data) => {
         console.log('New data from websocket:', data);
 
-        console.log(tradeIdMap)
-
-
         if (data.type === 'BAR' || data.type === 'TRADE' && (data.action === "OPEN" || data.action === "CLOSE")) {
             updateTradingViewChart(data);
         } else if (data.type === 'INDICATOR') {
@@ -165,12 +172,20 @@ const StrategyChart = () => {
             updateAccount(data)
         } else if (data.type === 'STRATEGY_STOP') {
             setIsRunning(false);
+        } else if (data.type === 'ANALYSIS') {
+            setAnalysis(data)
         } else if (data.type === 'TRADE' && data.action === "UPDATE") {
             console.log("Trade update event")
             updateTrades(data);
         } else {
             console.log("WHAT OTHER EVENT WAS SENT?" + data)
         }
+    };
+
+    const setAnalysis = (data) => {
+        console.log(data)
+        setAnalysisData(data)
+        setEquityHistory(data.equityHistory);
     };
 
     const updateTrades = (data) => {
@@ -279,9 +294,10 @@ const StrategyChart = () => {
                 <button onClick={stopStrategy}>Stop Strategy</button>
             )}
             <p>Strategy ID: {strategyId}</p>
-            <p>Initial Balance: ${account.initialBalance} Current Balance: ${account.balance} Equity: ${account.equity} Open Position Value: ${
-                Math.round(((account.equity - account.balance) + Number.EPSILON) * 100) / 100
-            } </p>
+            <p>Initial Balance: ${account.initialBalance} Current Balance: ${account.balance} Equity:
+                ${account.equity} Open Position Value: ${
+                    Math.round(((account.equity - account.balance) + Number.EPSILON) * 100) / 100
+                } </p>
             <div style={{width: '100%'}} ref={chartContainerRef}/>
             <table>
                 <thead>
@@ -316,7 +332,16 @@ const StrategyChart = () => {
                 </tbody>
             </table>
 
-
+            {analysisData !== null && (
+                <div>
+                    <AnalysisReport data={analysisData}/>
+                    {
+                        equityHistory.length > 0 && (
+                            <EquityChart equityHistory={equityHistory}/>
+                        )
+                    }
+                </div>
+            )}
         </div>
     );
 };
