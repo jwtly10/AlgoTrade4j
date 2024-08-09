@@ -82,14 +82,23 @@ public class PerformanceAnalyser {
     private Number averageConsecutiveWins = Number.ZERO;
     private Number averageConsecutiveLosses = Number.ZERO;
 
-    // Runs on tick
+    /*
+     * Update the equity history on each tick
+     * @param equity The current equity
+     * @param timestamp The timestamp of the tick
+     */
     public void updateOnTick(Number equity, ZonedDateTime timestamp) {
         ticksModelled++;
         equityHistory.add(new EquityPoint(equity, timestamp));
         updateMaxDrawdown(equity);
     }
 
-    // Runs on strategy end (backtesting only)
+    /*
+     * Calculate the performance statistics of the trading strategy
+     * WARNING: This method should only be called during backtests/optimisations
+     * @param trades The trades executed by the strategy
+     * @param initialBalance The initial balance of the strategy
+     */
     public void calculateStatistics(Map<Integer, Trade> trades, Number initialBalance) {
         this.initialDeposit = initialBalance;
         this.totalTrades = trades.size();
@@ -102,6 +111,11 @@ public class PerformanceAnalyser {
         calculateSharpeRatio(tradeList);
     }
 
+
+    /*
+     * Calculate the performance statistics of the trading strategy
+     * @param trades The trades executed by the strategy
+     */
     private void calculateBalanceStats(List<Trade> trades) {
         this.grossProfit = trades.stream()
                 .map(Trade::getProfit)
@@ -122,6 +136,10 @@ public class PerformanceAnalyser {
                 this.totalNetProfit.divide(this.totalTrades);
     }
 
+    /*
+     * Calculate the trade statistics of the trading strategy
+     * @param trades The trades executed by the strategy
+     */
     private void calculateTradeStats(List<Trade> trades) {
         for (Trade trade : trades) {
             if (trade.isLong()) {
@@ -144,6 +162,10 @@ public class PerformanceAnalyser {
                 new Number(this.totalShortWinningTrades).divide(this.totalShortTrades).multiply(new BigDecimal(100));
     }
 
+    /*
+     * Calculate the trade return statistics of the trading strategy
+     * @param trades The trades executed by the strategy
+     */
     private void calculateTradeReturnStats(List<Trade> trades) {
         this.largestProfitableTrade = trades.stream()
                 .map(Trade::getProfit)
@@ -180,6 +202,10 @@ public class PerformanceAnalyser {
                 totalLosingTrades.divide(losingTradesCount);
     }
 
+    /*
+     * Calculate the consecutive statistics of the trading strategy
+     * @param trades The trades executed by the strategy
+     */
     private void calculateConsecutiveStats(List<Trade> trades) {
         int consecutiveWins = 0;
         int consecutiveLosses = 0;
@@ -241,6 +267,10 @@ public class PerformanceAnalyser {
                 new Number(totalConsecutiveLosses).divide(lossStreaks);
     }
 
+    /*
+     * Calculate the Sharpe ratio of the trading strategy
+     * @param trades The trades executed by the strategy
+     */
     private void calculateSharpeRatio(List<Trade> trades) {
         if (trades.isEmpty()) {
             this.sharpeRatio = Number.ZERO;
@@ -269,10 +299,18 @@ public class PerformanceAnalyser {
         }
     }
 
+    /*
+     * Get the equity history of the trading strategy
+     * @return The equity history
+     */
     public List<EquityPoint> getEquityHistory() {
         return new ArrayList<>(equityHistory);
     }
 
+    /*
+     * Update the max drawdown of the trading strategy
+     * @param equity The current equity
+     */
     private void updateMaxDrawdown(Number equity) {
         if (equity.isGreaterThan(peakEquity)) {
             peakEquity = equity;
