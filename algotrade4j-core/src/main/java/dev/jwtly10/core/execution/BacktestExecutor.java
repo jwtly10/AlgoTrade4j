@@ -55,6 +55,7 @@ public class BacktestExecutor implements DataListener {
                     dataManager.start();
                 } catch (Exception e) {
                     log.error("Data manager error", e);
+                    eventPublisher.publishErrorEvent(strategyId, e);
                     stop();
                 }
             });
@@ -75,7 +76,7 @@ public class BacktestExecutor implements DataListener {
         strategy.onTick(tick, currentBar);
         tradeManager.setCurrentTick(tick);
         tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
-        performanceAnalyser.update(accountManager.getEquity(), tick.getDateTime());
+        performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
     }
 
     @Override
@@ -108,7 +109,7 @@ public class BacktestExecutor implements DataListener {
         // Update trade states one last time
         tradeStateManager.updateTradeStates(accountManager, tradeManager, null);
         // Run final performance analysis
-        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades());
+        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
 
         // Spin down the strategy
         strategy.onDeInit();
