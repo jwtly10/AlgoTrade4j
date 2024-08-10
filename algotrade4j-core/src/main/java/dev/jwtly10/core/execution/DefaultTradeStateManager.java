@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultTradeStateManager implements TradeStateManager {
     private final EventPublisher eventPublisher;
     private final String strategyId;
+    private Tick lastTick = null;
 
     public DefaultTradeStateManager(String strategyId, EventPublisher eventPublisher) {
         this.strategyId = strategyId;
@@ -21,10 +22,20 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
     @Override
     public void updateTradeStates(AccountManager accountManager, TradeManager tradeManager, Tick tick) {
+        if (tick == null && lastTick == null) {
+            // TODO: This is a hack, we shouldn't do this
+            log.warn("Tick data is null. Skipping hack update.");
+            return;
+        } else if (tick == null) {
+            tick = lastTick;
+        }
+        this.lastTick = tick;
         log.debug("Current prices - Ask: {}, Bid: {}", tick.getAsk(), tick.getBid());
+
+        Tick finalTick = tick;
         tradeManager.getOpenTrades().values().forEach(trade -> {
-            updateTradeProfitLoss(trade, tick);
-            checkAndExecuteStopLossTakeProfit(trade, tradeManager, tick);
+            updateTradeProfitLoss(trade, finalTick);
+            checkAndExecuteStopLossTakeProfit(trade, tradeManager, finalTick);
         });
         updateAccountBalanceAndEquity(accountManager, tradeManager);
     }

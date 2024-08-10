@@ -46,7 +46,7 @@ public class SimplePrintStrategy extends BaseStrategy {
     }
 
     @Override
-    public void onDeInit() {
+    public void onEnd() {
         log.info("Strategy de-initialized.");
     }
 

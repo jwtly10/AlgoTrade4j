@@ -1,13 +1,14 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,8 @@ class BaseStrategyTest {
     private AccountManager mockAccountManager;
     @Mock
     private EventPublisher mockEventPublisher;
+    @Mock
+    private PerformanceAnalyser mockPerformanceAnalyser;
 
     private TestStrategy testStrategy;
 
@@ -46,12 +49,13 @@ class BaseStrategyTest {
 
     @Test
     void testOnInit() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser);
 
         assertEquals(mockBarSeries, testStrategy.getBarSeries());
         assertEquals(mockDataManager, testStrategy.getDataManager());
         assertEquals(mockTradeManager, testStrategy.getTradeManager());
         assertEquals(mockEventPublisher, testStrategy.getEventPublisher());
+        assertEquals(mockPerformanceAnalyser, testStrategy.getPerformanceAnalyser());
         // Assert that the indicator was created
         assertNotNull(testStrategy.getTestIndicator());
     }
@@ -64,7 +68,7 @@ class BaseStrategyTest {
 
     @Test
     void testCreateIndicator() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser);
 
         var indicator = testStrategy.getTestIndicator();
 

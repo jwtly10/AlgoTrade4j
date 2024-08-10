@@ -3,6 +3,7 @@ package dev.jwtly10.api.service;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
+import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class StrategyManager {
     private final EventPublisher eventPublisher;
-    private final ConcurrentHashMap<String, StrategyExecutor> runningStrategies = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public StrategyManager(EventPublisher eventPublisher) {
@@ -57,8 +58,9 @@ public class StrategyManager {
 
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
 
+        PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-        StrategyExecutor executor = new StrategyExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher);
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
 
         executorService.submit(() -> {
             try {
@@ -75,7 +77,7 @@ public class StrategyManager {
     }
 
     public boolean stopStrategy(String strategyId) {
-        StrategyExecutor executor = runningStrategies.get(strategyId);
+        BacktestExecutor executor = runningStrategies.get(strategyId);
         if (executor != null) {
             executor.stop();
             runningStrategies.remove(strategyId);

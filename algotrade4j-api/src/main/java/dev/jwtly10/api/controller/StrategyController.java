@@ -40,6 +40,8 @@ public class StrategyController {
                 listener.subscribe(IndicatorEvent.class);
                 listener.subscribe(StrategyStopEvent.class);
                 listener.subscribe(AccountEvent.class);
+                listener.subscribe(AnalysisEvent.class);
+                listener.subscribe(LogEvent.class);
             }
         } else {
             return ResponseEntity.badRequest().body("No active WebSocket session found for the strategy");
