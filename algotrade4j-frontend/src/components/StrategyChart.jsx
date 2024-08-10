@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ColorType, createChart} from 'lightweight-charts';
+import {ColorType, createChart, CrosshairMode} from 'lightweight-charts';
 import {client} from '../api/client';
 import 'chartjs-adapter-date-fns';
 import AnalysisReport from "./AnalysisReport.jsx";
@@ -62,6 +62,48 @@ const StrategyChart = () => {
                 background: {type: ColorType.Solid, color: '#ffffff'},
                 textColor: 'black',
             },
+            watermark: {
+                color: 'rgba(0, 0, 0, 0.1)',
+                visible: true,
+                text: chartData.length > 0 ? chartData[0].symbol : '',
+                fontSize: 80,
+                horzAlign: 'center',
+                vertAlign: 'center',
+            },
+        });
+
+        chart.applyOptions({
+            handleScroll: {
+                mouseWheel: true,
+                pressedMouseMove: true,
+            },
+            handleScale: {
+                mouseWheel: true,
+                pinch: true,
+            },
+            crosshair: {
+                mode: CrosshairMode.Normal,
+            },
+            tooltip: {
+                fontFamily: 'Arial',
+                fontSize: 10,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderColor: '#2962FF',
+            },
+            legend: {
+                visible: true,
+                fontSize: 12,
+                fontFamily: 'Arial',
+                color: '#333',
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(197, 203, 206, 0.8)',
+                borderVisible: true,
+                scaleMargins: {
+                    top: 0.1,
+                    bottom: 0.1,
+                },
+            },
         });
 
         window.addEventListener('resize', handleResize);
@@ -98,6 +140,8 @@ const StrategyChart = () => {
                 }
             }
         });
+
+        addTradePriceLines(chart, candlestickSeries, trades);
 
         const openMarkers = trades.map(trade => ({
             time: trade.openTime,
@@ -137,6 +181,21 @@ const StrategyChart = () => {
         const colors = ['#2196F3', '#FF9800', '#4CAF50', '#E91E63', '#9C27B0'];
         return colors[indicatorName.length % colors.length];
     };
+
+    function addTradePriceLines(chart, candlestickSeries, trades) {
+        trades.forEach(trade => {
+            const color = trade.position === 'long' ? '#26a69a' : '#ef5350';
+            const priceLine = {
+                price: trade.entry,
+                color: color,
+                lineWidth: 2,
+                lineStyle: 2, // Dashed line
+                axisLabelVisible: true,
+                title: `#${trade.tradeId}`,
+            };
+            candlestickSeries.createPriceLine(priceLine);
+        });
+    }
 
     const startStrategy = async () => {
         setIsRunning(true);
@@ -265,6 +324,7 @@ const StrategyChart = () => {
                         high: bar.high.value,
                         low: bar.low.value,
                         close: bar.close.value,
+                        symbol: bar.symbol,
                     }];
                 }
             });
