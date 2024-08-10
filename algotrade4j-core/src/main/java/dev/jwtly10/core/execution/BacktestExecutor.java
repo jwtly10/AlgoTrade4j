@@ -52,9 +52,11 @@ public class BacktestExecutor implements DataListener {
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             executor.submit(() -> {
                 try {
+                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Starting data manager"));
                     dataManager.start();
                 } catch (Exception e) {
                     log.error("Data manager error", e);
+                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error starting data manager", e));
                     eventPublisher.publishErrorEvent(strategyId, e);
                     stop();
                 }
@@ -97,6 +99,7 @@ public class BacktestExecutor implements DataListener {
         } catch (Exception e) {
             log.error("Error stopping data feed", e);
         }
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Stopping strategy"));
         log.debug("Strategy executor stopped");
         cleanup();
     }

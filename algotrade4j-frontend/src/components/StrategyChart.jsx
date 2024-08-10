@@ -7,6 +7,7 @@ import {EquityChart} from "./EquityChart.jsx";
 import TradesTable from "./TradesTable.jsx";
 import {Box, Button, Divider, Grid, Paper, Tab, TableContainer, Tabs, Typography} from "@mui/material";
 import {TabPanel} from "./TabPanel.jsx";
+import LogsTable from "./LogsTable.jsx";
 
 
 const StrategyChart = () => {
@@ -32,6 +33,9 @@ const StrategyChart = () => {
     const [analysisData, setAnalysisData] = useState(null);
     const [equityHistory, setEquityHistory] = useState([]);
 
+    // Log state
+    const [logs, setLogs] = useState([])
+
     // UI State
     const [tabValue, setTabValue] = useState(0);
 
@@ -56,7 +60,7 @@ const StrategyChart = () => {
         };
 
         const chart = createChart(chartContainerRef.current, {
-            width: 600,
+            width: chartContainerRef.current.clientWidth,
             height: 500,
             layout: {
                 background: {type: ColorType.Solid, color: '#ffffff'},
@@ -253,10 +257,31 @@ const StrategyChart = () => {
             setAnalysis(data)
         } else if (data.type === 'TRADE' && data.action === "UPDATE") {
             updateTrades(data);
+        } else if (data.type === 'LOG') {
+            updateLogs(data)
         } else {
             console.log("WHAT OTHER EVENT WAS SENT?" + data)
         }
     };
+
+    const updateLogs = (data) => {
+        setLogs(prevLogs => {
+            return [...prevLogs, {
+                timestamp: new Date(data.time * 1000).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    fractionalSecondDigits: 3,
+                    hour12: false
+                }),
+                type: data.level,
+                message: data.message,
+            }];
+        });
+    }
 
     const setAnalysis = (data) => {
         setAnalysisData(data)
@@ -439,7 +464,7 @@ const StrategyChart = () => {
             </Grid>
 
             <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
-                <div style={{width: '100%', height: '400px'}} ref={chartContainerRef}/>
+                <Box sx={{width: '100%', height: '400px', overflow: 'hidden'}} ref={chartContainerRef}/>
             </Box>
 
             <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>
@@ -447,6 +472,7 @@ const StrategyChart = () => {
                     <Tab label="Trades"/>
                     <Tab label="Analysis"/>
                     <Tab label="Equity History"/>
+                    <Tab label="Logs"/>
                 </Tabs>
             </Box>
 
@@ -470,6 +496,16 @@ const StrategyChart = () => {
                     <TableContainer component={Paper}>
                         <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
                             No equity history available yet.
+                        </Typography>
+                    </TableContainer>)}
+            </TabPanel>
+            <TabPanel value={tabValue} index={3}>
+                {logs.length > 0 ? (
+                    <LogsTable logs={logs}/>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                            No logs available yet.
                         </Typography>
                     </TableContainer>)}
             </TabPanel>
