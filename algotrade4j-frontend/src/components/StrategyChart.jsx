@@ -7,6 +7,7 @@ import {EquityChart} from "./EquityChart.jsx";
 import TradesTable from "./TradesTable.jsx";
 import {Box, Button, Divider, Grid, Paper, Tab, TableContainer, Tabs, Typography} from "@mui/material";
 import {TabPanel} from "./TabPanel.jsx";
+import LogsTable from "./LogsTable.jsx";
 
 
 const StrategyChart = () => {
@@ -31,6 +32,9 @@ const StrategyChart = () => {
     // Analysis state
     const [analysisData, setAnalysisData] = useState(null);
     const [equityHistory, setEquityHistory] = useState([]);
+
+    // Log state
+    const [logs, setLogs] = useState([])
 
     // UI State
     const [tabValue, setTabValue] = useState(0);
@@ -253,10 +257,22 @@ const StrategyChart = () => {
             setAnalysis(data)
         } else if (data.type === 'TRADE' && data.action === "UPDATE") {
             updateTrades(data);
+        } else if (data.type === 'LOG') {
+            updateLogs(data)
         } else {
             console.log("WHAT OTHER EVENT WAS SENT?" + data)
         }
     };
+
+    const updateLogs = (data) => {
+        setLogs(prevLogs => {
+            return [...prevLogs, {
+                timestamp: new Date(data.time * 1000).toLocaleString(),
+                type: data.level,
+                message: data.message,
+            }];
+        });
+    }
 
     const setAnalysis = (data) => {
         setAnalysisData(data)
@@ -447,6 +463,7 @@ const StrategyChart = () => {
                     <Tab label="Trades"/>
                     <Tab label="Analysis"/>
                     <Tab label="Equity History"/>
+                    <Tab label="Logs"/>
                 </Tabs>
             </Box>
 
@@ -470,6 +487,16 @@ const StrategyChart = () => {
                     <TableContainer component={Paper}>
                         <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
                             No equity history available yet.
+                        </Typography>
+                    </TableContainer>)}
+            </TabPanel>
+            <TabPanel value={tabValue} index={3}>
+                {logs.length > 0 ? (
+                    <LogsTable logs={logs}/>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                            No logs available yet.
                         </Typography>
                     </TableContainer>)}
             </TabPanel>
