@@ -1,8 +1,11 @@
-import React from 'react';
-import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
+import React, {useState} from 'react';
+import {Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow} from '@mui/material';
 import {Error, Info, Warning} from '@mui/icons-material';
 
-const LogsTable = ({logs}) => {
+const LogsTable = ({logs, rowsPerPage: defaultRowsPerPage = 10}) => {
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(defaultRowsPerPage);
+
     const getLogIcon = (type) => {
         switch (type) {
             case 'info':
@@ -16,30 +19,54 @@ const LogsTable = ({logs}) => {
         }
     };
 
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Time</TableCell>
-                        <TableCell>Message</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {logs.map((log, index) => (
-                        <TableRow key={index}>
-                            <TableCell>
-                                <div style={{display: 'flex', alignItems: 'center'}}>
-                                    {getLogIcon(log.type)}
-                                    <span style={{marginLeft: '8px'}}>{log.timestamp}</span>
-                                </div>
-                            </TableCell>
-                            <TableCell>{log.message}</TableCell>
+        <Paper>
+            <TableContainer>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Time</TableCell>
+                            <TableCell>Message</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                        {logs
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((log, index) => (
+                                <TableRow key={index}>
+                                    <TableCell style={{whiteSpace: 'nowrap'}}>
+                                        <div style={{display: 'flex', alignItems: 'center'}}>
+                                            {getLogIcon(log.type)}
+                                            <span style={{marginLeft: '8px'}}>{log.timestamp}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell style={{maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                        {log.message}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={logs.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+        </Paper>
     );
 };
 

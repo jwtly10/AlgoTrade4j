@@ -56,6 +56,7 @@ public class BacktestExecutor implements DataListener {
                     dataManager.start();
                 } catch (Exception e) {
                     log.error("Data manager error", e);
+                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error starting data manager", e));
                     eventPublisher.publishErrorEvent(strategyId, e);
                     stop();
                 }
@@ -98,6 +99,7 @@ public class BacktestExecutor implements DataListener {
         } catch (Exception e) {
             log.error("Error stopping data feed", e);
         }
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Stopping strategy"));
         log.debug("Strategy executor stopped");
         cleanup();
     }
