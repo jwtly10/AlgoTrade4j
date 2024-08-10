@@ -60,7 +60,7 @@ const StrategyChart = () => {
         };
 
         const chart = createChart(chartContainerRef.current, {
-            width: 600,
+            width: chartContainerRef.current.clientWidth,
             height: 500,
             layout: {
                 background: {type: ColorType.Solid, color: '#ffffff'},
@@ -267,7 +267,16 @@ const StrategyChart = () => {
     const updateLogs = (data) => {
         setLogs(prevLogs => {
             return [...prevLogs, {
-                timestamp: new Date(data.time * 1000).toLocaleString(),
+                timestamp: new Date(data.time * 1000).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    fractionalSecondDigits: 3,
+                    hour12: false
+                }),
                 type: data.level,
                 message: data.message,
             }];
@@ -455,7 +464,7 @@ const StrategyChart = () => {
             </Grid>
 
             <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
-                <div style={{width: '100%', height: '400px'}} ref={chartContainerRef}/>
+                <Box sx={{width: '100%', height: '400px', overflow: 'hidden'}} ref={chartContainerRef}/>
             </Box>
 
             <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>
