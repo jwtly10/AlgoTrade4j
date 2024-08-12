@@ -175,6 +175,13 @@ public abstract class BaseStrategy implements Strategy {
         this.eventPublisher = eventPublisher;
         this.SYMBOL = dataManager.getSymbol();
         this.performanceAnalyser = performanceAnalyser;
+        try {
+            ParameterHandler.initialize(this);
+        } catch (IllegalAccessException e) {
+            // TODO: Make this better - we should stop this and send event
+            log.error("Error initializing strategy parameters", e);
+            throw new RuntimeException("Error initializing strategy parameters", e);
+        }
         initIndicators();
     }
 
@@ -185,7 +192,6 @@ public abstract class BaseStrategy implements Strategy {
     public void onDeInit() {
 
     }
-
 
     /**
      * Custom initialization method that can be overridden by strategy implementations.
