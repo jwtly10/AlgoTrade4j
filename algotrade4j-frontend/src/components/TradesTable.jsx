@@ -43,7 +43,7 @@ function TradesTable({trades}) {
                             <TableCell>{trade.closePrice}</TableCell>
                             <TableCell>{trade.stopLoss}</TableCell>
                             <TableCell>{trade.takeProfit}</TableCell>
-                            <TableCell>{trade.profit}</TableCell>
+                            <TableCell>${trade.profit}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

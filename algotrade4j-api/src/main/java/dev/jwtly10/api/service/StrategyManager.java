@@ -5,6 +5,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.CSVDataProvider;
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
@@ -25,7 +26,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class StrategyManager {
     private final EventPublisher eventPublisher;
-    private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, DataManager> runningStrategies = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public StrategyManager(EventPublisher eventPublisher) {
@@ -72,14 +73,14 @@ public class StrategyManager {
             }
         });
 
-        runningStrategies.put(strategy.getStrategyId(), executor);
+        runningStrategies.put(strategy.getStrategyId(), dataManager);
         return strategy.getStrategyId();
     }
 
     public boolean stopStrategy(String strategyId) {
-        BacktestExecutor executor = runningStrategies.get(strategyId);
-        if (executor != null) {
-            executor.stop();
+        DataManager datamanager = runningStrategies.get(strategyId);
+        if (datamanager != null) {
+            datamanager.stop();
             runningStrategies.remove(strategyId);
             return true;
         }

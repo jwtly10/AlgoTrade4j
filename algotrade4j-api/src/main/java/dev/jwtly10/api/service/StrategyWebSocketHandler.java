@@ -16,11 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class StrategyWebSocketHandler extends TextWebSocketHandler {
     private final EventPublisher eventPublisher;
+    private final StrategyManager strategyManager;
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
 
-    public StrategyWebSocketHandler(EventPublisher eventPublisher) {
+    public StrategyWebSocketHandler(EventPublisher eventPublisher, StrategyManager strategyManager) {
         this.eventPublisher = eventPublisher;
+        this.strategyManager = strategyManager;
     }
 
     @Override
@@ -45,11 +47,26 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        WebSocketEventListener listener = listeners.remove(session);
+        log.info("Session closed: {} ", session);
+        // Stop the strategy on session closed
+        String strategyId = strategySessions.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(session))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElse(null);
+        if (strategyId != null) {
+            boolean stopped = strategyManager.stopStrategy(strategyId);
+            if (stopped) {
+                strategySessions.remove(strategyId);
+            }
+        }
+
+        WebSocketEventListener listener = listeners.get(session);
         if (listener != null) {
+            listener.deactivate();
+            listeners.remove(session);
             eventPublisher.removeListener(listener);
         }
-        strategySessions.values().remove(session);
     }
 
     public WebSocketSession getSessionForStrategy(String strategyId) {

@@ -9,12 +9,13 @@ import org.springframework.web.socket.WebSocketSession;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 public class WebSocketEventListener implements EventListener {
     private final WebSocketSession session;
     private final Set<Class<? extends BaseEvent>> subscribedEventTypes = new HashSet<>();
-
+    private final AtomicBoolean isActive = new AtomicBoolean(true);
     private final Object lock = new Object();
 
     public WebSocketEventListener(WebSocketSession session) {
@@ -23,18 +24,24 @@ public class WebSocketEventListener implements EventListener {
 
     @Override
     public void onEvent(BaseEvent event) {
-        if (subscribedEventTypes.contains(event.getClass())) {
-            synchronized (lock) {
-                try {
+        if (!isActive.get() || !subscribedEventTypes.contains(event.getClass())) {
+            return;
+        }
+
+        synchronized (lock) {
+            try {
+                if (session.isOpen()) {
                     session.sendMessage(new TextMessage(event.toJson()));
-                } catch (IOException e) {
-                    log.error("Failed to send message to WS session", e);
-                } catch (Exception e) {
-                    log.error("Unexpected error sending message to WS session", e);
                 }
+            } catch (IllegalStateException e) {
+                log.debug("Session already closed, unable to send event: {}", event);
+                deactivate();
+            } catch (IOException e) {
+                log.error("Failed to send message to WS session", e);
             }
         }
     }
+
 
     @Override
     public void onError(String strategyId, Exception e) {
@@ -53,5 +60,9 @@ public class WebSocketEventListener implements EventListener {
 
     public void unsubscribe(Class<? extends BaseEvent> eventType) {
         subscribedEventTypes.remove(eventType);
+    }
+
+    public void deactivate() {
+        isActive.set(false);
     }
 }
