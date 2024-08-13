@@ -39,6 +39,15 @@ export const client = {
         }
     },
 
+    getParams: async (strategyId) => {
+        try {
+            const response = await axiosInstance.get(`/strategies/${strategyId}/params`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
             const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
