@@ -20,6 +20,10 @@ public class SimpleSMAStrategy extends BaseStrategy {
         super("SimpleSMAStrategy");
     }
 
+    public SimpleSMAStrategy(String strategyId) {
+        super(strategyId);
+    }
+
     @Override
     protected void initIndicators() {
         sma20 = createIndicator(SMA.class, smaLength);

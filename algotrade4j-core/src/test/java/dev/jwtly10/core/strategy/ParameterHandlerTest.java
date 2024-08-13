@@ -74,6 +74,23 @@ class ParameterHandlerTest {
     }
 
     @Test
+    void testSetParameters() {
+        Map<String, String> parameters = Map.of(
+                "intParam", "20",
+                "doubleParam", "6.28",
+                "stringParam", "newValue",
+                "enumParam", "VALUE3",
+                "booleanParam", "false"
+        );
+        assertDoesNotThrow(() -> ParameterHandler.setParameters(testStrategy, parameters));
+        assertEquals(20, testStrategy.intParam);
+        assertEquals(6.28, testStrategy.doubleParam, 0.001);
+        assertEquals("newValue", testStrategy.stringParam);
+        assertEquals(TestEnum.VALUE3, testStrategy.enumParam);
+        assertFalse(testStrategy.booleanParam);
+    }
+
+    @Test
     void testSetParameterWithInvalidName() {
         assertThrows(NoSuchFieldException.class, () -> ParameterHandler.setParameter(testStrategy, "nonExistentParam", "value"));
     }

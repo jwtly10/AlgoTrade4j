@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography} from '@mui/material';
 
 const AnalysisReport = ({data}) => {
@@ -27,39 +27,39 @@ const AnalysisReport = ({data}) => {
                             <TableBody>
                                 <TableRow>
                                     <TableCell>Initial Deposit</TableCell>
-                                    <TableCell>{formatCurrency(data.initialDeposit.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.initialDeposit.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Total Net Profit</TableCell>
-                                    <TableCell>{formatCurrency(data.totalNetProfit.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.totalNetProfit.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Gross Profit</TableCell>
-                                    <TableCell>{formatCurrency(data.grossProfit.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.grossProfit.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Gross Loss</TableCell>
-                                    <TableCell>{formatCurrency(data.grossLoss.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.grossLoss.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Profit Factor</TableCell>
-                                    <TableCell>{data.profitFactor.value.toFixed(2)}</TableCell>
+                                    <TableCell>{data.stats.profitFactor.value.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Expected Payoff</TableCell>
-                                    <TableCell>{formatCurrency(data.expectedPayoff.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.expectedPayoff.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Max Drawdown</TableCell>
-                                    <TableCell>{formatPercentage(data.maxDrawdown.value)}</TableCell>
+                                    <TableCell>{formatPercentage(data.stats.maxDrawdown.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Sharpe Ratio</TableCell>
-                                    <TableCell>{data.sharpeRatio.value.toFixed(2)}</TableCell>
+                                    <TableCell>{data.stats.sharpeRatio.value.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Ticks Modelled</TableCell>
-                                    <TableCell>{data.ticksModelled}</TableCell>
+                                    <TableCell>{data.stats.ticksModelled}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -78,31 +78,31 @@ const AnalysisReport = ({data}) => {
                             <TableBody>
                                 <TableRow>
                                     <TableCell>Total Trades</TableCell>
-                                    <TableCell>{data.totalTrades}</TableCell>
+                                    <TableCell>{data.stats.totalTrades}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Long Trades (Win %)</TableCell>
-                                    <TableCell>{data.totalLongTrades} ({formatPercentage(data.longWinPercentage.value)})</TableCell>
+                                    <TableCell>{data.stats.totalLongTrades} ({formatPercentage(data.stats.longWinPercentage.value)})</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Short Trades (Win %)</TableCell>
-                                    <TableCell>{data.totalShortTrades} ({formatPercentage(data.shortWinPercentage.value)})</TableCell>
+                                    <TableCell>{data.stats.totalShortTrades} ({formatPercentage(data.stats.shortWinPercentage.value)})</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Largest Profitable Trade</TableCell>
-                                    <TableCell>{formatCurrency(data.largestProfitableTrade.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.largestProfitableTrade.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Largest Losing Trade</TableCell>
-                                    <TableCell>{formatCurrency(data.largestLosingTrade.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.largestLosingTrade.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Average Profitable Trade</TableCell>
-                                    <TableCell>{formatCurrency(data.averageProfitableTradeReturn.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.averageProfitableTradeReturn.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Average Losing Trade</TableCell>
-                                    <TableCell>{formatCurrency(data.averageLosingTradeReturn.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.averageLosingTradeReturn.value)}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -121,27 +121,27 @@ const AnalysisReport = ({data}) => {
                             <TableBody>
                                 <TableRow>
                                     <TableCell>Max Consecutive Wins</TableCell>
-                                    <TableCell>{data.maxConsecutiveWins}</TableCell>
+                                    <TableCell>{data.stats.maxConsecutiveWins}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Max Consecutive Losses</TableCell>
-                                    <TableCell>{data.maxConsecutiveLosses}</TableCell>
+                                    <TableCell>{data.stats.maxConsecutiveLosses}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Max Consecutive Profit</TableCell>
-                                    <TableCell>{formatCurrency(data.maxConsecutiveProfit.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.maxConsecutiveProfit.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Max Consecutive Loss</TableCell>
-                                    <TableCell>{formatCurrency(data.maxConsecutiveLoss.value)}</TableCell>
+                                    <TableCell>{formatCurrency(data.stats.maxConsecutiveLoss.value)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Average Consecutive Wins</TableCell>
-                                    <TableCell>{data.averageConsecutiveWins.value.toFixed(2)}</TableCell>
+                                    <TableCell>{data.stats.averageConsecutiveWins.value.toFixed(2)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell>Average Consecutive Losses</TableCell>
-                                    <TableCell>{data.averageConsecutiveLosses.value.toFixed(2)}</TableCell>
+                                    <TableCell>{data.stats.averageConsecutiveLosses.value.toFixed(2)}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>

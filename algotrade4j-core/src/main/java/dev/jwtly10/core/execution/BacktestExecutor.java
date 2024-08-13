@@ -24,6 +24,7 @@ public class BacktestExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
     private final PerformanceAnalyser performanceAnalyser;
+    @Getter
     private final String strategyId;
     @Getter
     @Setter

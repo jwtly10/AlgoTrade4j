@@ -32,7 +32,7 @@ public class ParameterHandler {
 
     /**
      * Initializes all parameters annotated with {@link Parameter} in the given strategy.
-     * This method validates the parameters and sets their values.
+     * This method validates the parameters and sets their values, ONLY if they are not already set.
      *
      * @param strategy The strategy to initialize parameters for.
      * @throws IllegalAccessException If unable to access a field.
@@ -40,14 +40,43 @@ public class ParameterHandler {
      */
     public static void initialize(Strategy strategy) throws IllegalAccessException {
         validateParameters(strategy);
-        Map<String, String> params = getParameters(strategy);
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            try {
-                setParameter(strategy, entry.getKey(), entry.getValue());
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException("Error initializing parameter: " + entry.getKey(), e);
+        Class<?> clazz = strategy.getClass();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Parameter.class)) {
+                field.setAccessible(true);
+                Object currentValue = field.get(strategy);
+
+                if (currentValue == null || isDefaultValue(currentValue, field.getType())) {
+                    Parameter param = field.getAnnotation(Parameter.class);
+                    try {
+                        setParameter(strategy, param.name(), param.value());
+                    } catch (NoSuchFieldException e) {
+                        throw new RuntimeException("Error initializing parameter: " + param.name(), e);
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * Checks if the given value is the default value for the specified type.
+     *
+     * @param value The value to check.
+     * @param type  The type of the value.
+     * @return True if the value is the default value for the type, false otherwise.
+     */
+    private static boolean isDefaultValue(Object value, Class<?> type) {
+        if (type == int.class || type == Integer.class) {
+            return ((Integer) value) == 0;
+        } else if (type == double.class || type == Double.class) {
+            return ((Double) value) == 0.0;
+        } else if (type == boolean.class || type == Boolean.class) {
+            return !((Boolean) value);
+        } else if (type == String.class) {
+            return value.equals("");
+        }
+        return false;
     }
 
     /**
@@ -68,6 +97,24 @@ public class ParameterHandler {
                 }
             }
         }
+    }
+
+    public static void setParameters(Strategy strategy, Map<String, String> parameters) throws IllegalAccessException {
+        Class<?> clazz = strategy.getClass();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Parameter.class)) {
+                Parameter param = field.getAnnotation(Parameter.class);
+                String value = parameters.getOrDefault(param.name(), param.value());
+                setParameterValue(strategy, field, value);
+            }
+        }
+    }
+
+    private static void setParameterValue(Strategy strategy, Field field, String value) throws IllegalAccessException {
+        field.setAccessible(true);
+        Object convertedValue = convertValue(value, field.getType());
+        field.set(strategy, convertedValue);
     }
 
     /**
