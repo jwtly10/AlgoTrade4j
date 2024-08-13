@@ -15,31 +15,79 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
+/**
+ * Executor for running the optimisation process.
+ * This class is responsible for generating parameter combinations, running strategies, and collecting results.
+ * The optimisation process is run in batches to avoid running too many strategies at once.
+ * The results are collected at the end and triggered to the event publisher
+ */
 @Slf4j
 public class OptimisationExecutor {
-    private final ExecutorService executorService;
     private final OptimisationResultListener resultListener;
     private final EventPublisher eventPublisher;
     private volatile boolean running = false;
 
     public OptimisationExecutor(EventPublisher eventPublisher) {
-        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
         this.resultListener = new OptimisationResultListener();
         this.eventPublisher = eventPublisher;
         this.eventPublisher.addListener(resultListener);
     }
 
+    /**
+     * Run the optimisation process with the given configuration.
+     *
+     * @param config The optimisation configuration to use.
+     * @throws Exception If an error occurs during the optimisation process.
+     */
     public void runOptimisation(OptimisationConfig config) throws Exception {
+        // TODO: Some of this setup should be handled by the config
+
         running = true;
-        // TODO: Generate from config
         List<Map<String, String>> parameterCombinations = generateParameterCombinations(config.getParameterRanges());
         log.info("Generated {} parameter combinations", parameterCombinations.size());
-        List<BacktestExecutor> runningStrategies = new ArrayList<>();
 
-        // Shared
+        if (parameterCombinations.isEmpty()) {
+            log.warn("No parameter combinations to optimise");
+            return;
+        }
+
+        // TODO: Limited to 1000 for now, just to avoid running too many strategies at once, before we optimise/stress test
+        if (parameterCombinations.size() > 1000) {
+            log.warn("This is supported, and should be pretty quick, but just waiting to see at what point this becomes a factor");
+            return;
+        }
+
+        List<BacktestExecutor> allExecutors = new ArrayList<>();
+        int batchSize = 30;
+
+        for (int i = 0; i < parameterCombinations.size(); i += batchSize) {
+            if (!running) break;
+
+            int endIndex = Math.min(i + batchSize, parameterCombinations.size());
+            List<Map<String, String>> batch = parameterCombinations.subList(i, endIndex);
+
+            List<BacktestExecutor> batchExecutors = processBatch(batch, config);
+            allExecutors.addAll(batchExecutors);
+        }
+
+        // Collect all results at the end
+        if (running) {
+            collectResults(allExecutors);
+        }
+    }
+
+    /**
+     * Process a batch of strategies with the given parameter combinations.
+     *
+     * @param batch  The batch of parameter combinations to process.
+     * @param config The optimisation configuration.
+     * @return A list of executors for the strategies in the batch.
+     */
+    private List<BacktestExecutor> processBatch(List<Map<String, String>> batch, OptimisationConfig config) throws Exception {
+        List<BacktestExecutor> batchExecutors = new ArrayList<>();
+
+        // Shared deps
         Duration period = Duration.ofDays(1);
         BarSeries barSeries = new DefaultBarSeries("Optimisation", 4000);
         Tick currentTick = new DefaultTick();
@@ -53,11 +101,10 @@ public class OptimisationExecutor {
         dataProvider.setDataSpeed(DataSpeed.INSTANT);
         DefaultDataManager dataManager = new DefaultDataManager(config.getSymbol(), dataProvider, period, barSeries);
 
-
-        for (Map<String, String> parameterCombination : parameterCombinations) {
-            if (!running) break;  // Check if we should stop before creating each strategy
+        for (Map<String, String> parameterCombination : batch) {
+            if (!running) break;
             log.debug("Creating strategy with parameters: {}", parameterCombination);
-            // Create a new test strategy id
+
             String id = "test-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "");
 
             TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, id, eventPublisher);
@@ -71,7 +118,7 @@ public class OptimisationExecutor {
             executor.initialise();
             dataManager.addDataListener(executor);
 
-            runningStrategies.add(executor);
+            batchExecutors.add(executor);
         }
 
         if (running) {
@@ -80,32 +127,67 @@ public class OptimisationExecutor {
             while (running && dataManager.isRunning()) {
                 Thread.sleep(100);
             }
-
-            // Collect results
-            for (BacktestExecutor strategy : runningStrategies) {
-                if (!running) break;
-                var results = resultListener.getResults();
-                log.info("Results for strategy {}: {}", strategy.getStrategyId(), results.get(strategy.getStrategyId()).pretty());
-            }
         }
 
+        // Clean up
+        dataManager.stop();
+        for (BacktestExecutor executor : batchExecutors) {
+            dataManager.removeDataListener(executor);
+        }
 
+        return batchExecutors;
     }
 
+    /**
+     * Collect the results for all strategies in the given list.
+     *
+     * @param allExecutors The list of executors to collect results for.
+     */
+    private void collectResults(List<BacktestExecutor> allExecutors) {
+        log.debug("Collecting results for {} strategies", allExecutors.size());
+        for (BacktestExecutor executor : allExecutors) {
+            if (!running) break;
+            var results = resultListener.getResults();
+            log.info("Results for strategy {}: {}", executor.getStrategyId(), results.get(executor.getStrategyId()).pretty());
+        }
+    }
+
+    /**
+     * Generate all possible combinations of the given parameter ranges.
+     *
+     * @param parameterRanges The parameter ranges to generate combinations for.
+     * @return A list of all possible parameter combinations, ready to be used in optimisation.
+     */
     public List<Map<String, String>> generateParameterCombinations(List<ParameterRange> parameterRanges) {
-        // TODO: Actually generate this data properly
-        List<Map<String, String>> parameterCombinations = new ArrayList<>();
-
-        Map<String, String> combination1 = new HashMap<>();
-        combination1.put("smaLength", "10");
-        parameterCombinations.add(combination1);
-
-        Map<String, String> combination2 = new HashMap<>();
-        combination2.put("smaLength", "20");
-        parameterCombinations.add(combination2);
-
-        return parameterCombinations;
+        List<Map<String, String>> combinations = new ArrayList<>();
+        generateCombinationsRecursive(parameterRanges, 0, new HashMap<>(), combinations);
+        return combinations;
     }
 
+    /**
+     * Recursively generate all possible combinations of the given parameter ranges.
+     *
+     * @param parameterRanges    The parameter ranges to generate combinations for.
+     * @param index              The current index in the parameter ranges list.
+     * @param currentCombination The current combination of parameters.
+     * @param combinations       The list to add the generated combinations to.
+     */
+    private void generateCombinationsRecursive(List<ParameterRange> parameterRanges, int index,
+                                               Map<String, String> currentCombination,
+                                               List<Map<String, String>> combinations) {
+        if (index == parameterRanges.size()) {
+            combinations.add(new HashMap<>(currentCombination));
+            return;
+        }
 
+        ParameterRange range = parameterRanges.get(index);
+        Number start = new Number(range.getStart());
+        Number end = new Number(range.getEnd());
+        Number step = new Number(range.getStep());
+
+        for (Number value = start; value.compareTo(end) <= 0; value = value.add(step)) {
+            currentCombination.put(range.getName(), value.toString());
+            generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+        }
+    }
 }
