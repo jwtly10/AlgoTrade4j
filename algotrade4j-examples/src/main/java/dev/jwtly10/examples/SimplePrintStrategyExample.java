@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.CSVDataProvider;
+import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
@@ -26,13 +27,15 @@ public class SimplePrintStrategyExample {
                 period,
                 "NAS100USD"
         );
+        csvDataProvider.setDataSpeed(DataSpeed.INSTANT);
 
         BarSeries barSeries = new DefaultBarSeries(4000);
+        Tick currentTick = new DefaultTick();
+
 
         Strategy strategy = new SimplePrintStrategy();
-        DefaultDataManager dataManager = new DefaultDataManager("NAS100USD", csvDataProvider, period, barSeries);
 
-        Tick currentTick = new DefaultTick();
+        DefaultDataManager dataManager = new DefaultDataManager("NAS100USD", csvDataProvider, period, barSeries);
 
         EventPublisher eventPublisher = new EventPublisher();
 
@@ -44,13 +47,13 @@ public class SimplePrintStrategyExample {
 
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-
         BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+        executor.initialise();
 
         dataManager.addDataListener(executor);
 
         try {
-            executor.run();
+            dataManager.start();
         } catch (Exception e) {
             log.error("Error running strategy", e);
         }

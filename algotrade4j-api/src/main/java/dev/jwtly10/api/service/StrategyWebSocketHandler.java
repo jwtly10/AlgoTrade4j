@@ -9,6 +9,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -49,17 +50,20 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         log.info("Session closed: {} ", session);
         // Stop the strategy on session closed
-        String strategyId = strategySessions.entrySet().stream()
+        Optional<String> strategyId = strategySessions.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(session))
                 .map(Map.Entry::getKey)
-                .findFirst()
-                .orElse(null);
-        if (strategyId != null) {
-            boolean stopped = strategyManager.stopStrategy(strategyId);
+                .findFirst();
+
+        strategyId.ifPresent(id -> {
+            boolean stopped = strategyManager.stopStrategy(id);
             if (stopped) {
-                strategySessions.remove(strategyId);
+                log.info("Stopped strategy: {}", id);
+                strategySessions.remove(id);
+            } else {
+                log.warn("Failed to stop strategy: {}", id);
             }
-        }
+        });
 
         WebSocketEventListener listener = listeners.get(session);
         if (listener != null) {

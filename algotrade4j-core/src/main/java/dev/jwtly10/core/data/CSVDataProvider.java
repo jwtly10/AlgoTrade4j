@@ -106,9 +106,12 @@ public class CSVDataProvider implements DataProvider {
         } catch (IOException e) {
             log.error("Error reading file", e);
             throw new DataProviderException("Error reading file. Stopping data feed.", e);
+        } catch (IllegalStateException e) {
+            log.error("The executor was not initialised. The strategy cannot be started.", e);
+            throw new DataProviderException("The executor was not initialised. The strategy cannot be started.", e);
         } catch (Exception e) {
-            log.error("Unexpected error", e);
-            throw new DataProviderException("Unexpected error. Stopping data feed.", e);
+            log.error("Error processing bar", e);
+            throw new DataProviderException("Unexpected error processing bar. Stopping data feed.", e);
         } finally {
             if (isRunning) {
                 log.debug("Data feed stopped");
@@ -119,6 +122,8 @@ public class CSVDataProvider implements DataProvider {
 
     @Override
     public void stop() {
+        if (!isRunning) return;
+
         log.debug("Stopping data provider");
         isRunning = false;
         try {

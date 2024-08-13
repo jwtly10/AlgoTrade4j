@@ -233,7 +233,8 @@ const StrategyChart = () => {
     const stopStrategy = async () => {
         try {
             if (strategyId) {
-                await client.stopStrategy(strategyId);
+                // await client.stopStrategy(strategyId);
+                // We can stop strategy by just closing ws connection
                 setIsRunning(false);
                 if (socketRef.current) {
                     socketRef.current.close();

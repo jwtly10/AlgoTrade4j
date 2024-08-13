@@ -14,12 +14,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 @Slf4j
 public class BacktestExecutor implements DataListener {
     private final Strategy strategy;
+    @Getter
     private final DataManager dataManager;
     private final AccountManager accountManager;
     private final EventPublisher eventPublisher;
@@ -29,7 +27,7 @@ public class BacktestExecutor implements DataListener {
     private final String strategyId;
     @Getter
     @Setter
-    private volatile boolean running = false;
+    private volatile boolean initialised = false;
 
     public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
         this.strategyId = strategy.getStrategyId();
@@ -43,37 +41,25 @@ public class BacktestExecutor implements DataListener {
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
 
-    public void run() {
-        running = true;
-        log.info("Running strategy: {}", strategyId);
-        strategy.onStart();
-        dataManager.addDataListener(this);
-
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            executor.submit(() -> {
-                try {
-                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Starting data manager"));
-                    dataManager.start();
-                } catch (Exception e) {
-                    log.error("Data manager error", e);
-                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error starting data manager", e));
-                    eventPublisher.publishErrorEvent(strategyId, e);
-                    stop();
-                }
-            });
-
-            while (running) {
-                Thread.sleep(100);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            stop();
+    public void initialise() {
+        if (initialised) {
+            log.warn("BacktestExecutor for strategy {} is already initialized", strategyId);
+            return;
         }
+
+        log.info("Initializing strategy: {}", strategyId);
+        strategy.onStart();
+        initialised = true;
+
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy initialized"));
     }
 
     @Override
     public void onTick(Tick tick, Bar currentBar) {
-        if (!running) return;
+        if (!initialised) {
+            log.error("Attempt to call onTick for uninitialized BacktestExecutor for strategy: {}", strategyId);
+            return;
+        }
         eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getSymbol(), currentBar));
         strategy.onTick(tick, currentBar);
         tradeManager.setCurrentTick(tick);
@@ -83,24 +69,22 @@ public class BacktestExecutor implements DataListener {
 
     @Override
     public void onBarClose(Bar closedBar) {
-        if (!running) return;
+        if (!initialised) {
+            log.error("Attempt to call onBarClose for uninitialized BacktestExecutor for strategy: {}", strategyId);
+            return;
+        }
         // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
         IndicatorUtils.updateIndicators(strategy, closedBar);
         strategy.onBarClose(closedBar);
         log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
     }
 
-    public void stop() {
-        running = false;
-        try {
-            if (dataManager.isRunning()) {
-                dataManager.stop();
-            }
-        } catch (Exception e) {
-            log.error("Error stopping data feed", e);
+    @Override
+    public void onStop() {
+        if (!initialised) {
+            log.error("Attempt to stop uninitialized BacktestExecutor for strategy: {}", strategyId);
+            return;
         }
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Stopping strategy"));
-        log.debug("Strategy executor stopped");
         cleanup();
     }
 
@@ -122,10 +106,7 @@ public class BacktestExecutor implements DataListener {
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         eventPublisher.publishEvent(new AnalysisEvent(strategyId, dataManager.getSymbol(), performanceAnalyser));
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
-    }
 
-    @Override
-    public void onStop() {
-        stop();
+        initialised = false;
     }
 }
