@@ -1,78 +1,31 @@
-import React, {useState, useEffect} from 'react';
-import {
-    Button,
-    Checkbox,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    TextField,
-    Typography,
-    Tabs,
-    Tab, Box,
-} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Typography,} from '@mui/material';
 
-const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, setStrategyConfig, strategyClass}) => {
+const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass}) => {
     const [activeTab, setActiveTab] = useState(0);
-    const [localParams, setLocalParams] = useState(params);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
 
     useEffect(() => {
         if (open) {
-            loadFromLocalStorage();
+            console.log("Config", strategyConfig);
+            setLocalConfig(strategyConfig);
         }
     }, [open, strategyClass]);
 
-    const loadFromLocalStorage = () => {
-        const storedConfig = JSON.parse(localStorage.getItem(`strategyConfig_${strategyClass}`)) || {};
-        const storedParams = JSON.parse(localStorage.getItem(`strategyParams_${strategyClass}`)) || [];
-
-        const updatedConfig = {
-            ...strategyConfig,
-            initialCash: storedConfig.initialCash || strategyConfig.initialCash,
-            symbol: storedConfig.symbol || strategyConfig.symbol,
-            timeframe: {
-                from: storedConfig.timeframe?.from || strategyConfig.timeframe.from,
-                to: storedConfig.timeframe?.to || strategyConfig.timeframe.to,
-            },
-        };
-
-        const updatedParams = params.map(param => {
-            const storedParam = storedParams.find(p => p.name === param.name) || {};
-            return {
-                ...param,
-                value: storedParam.value !== undefined ? storedParam.value : param.value,
-                start: storedParam.start || param.start,
-                end: storedParam.end || param.end,
-                step: storedParam.step || param.step,
-                selected: storedParam.selected || param.selected,
-            };
-        });
-
-        setLocalConfig(updatedConfig);
-        setLocalParams(updatedParams);
-    };
-
-    const saveToLocalStorage = (updatedConfig, updatedParams) => {
+    const saveToLocalStorage = () => {
         localStorage.setItem(`strategyConfig_${strategyClass}`, JSON.stringify(localConfig));
-        localStorage.setItem(`strategyParams_${strategyClass}`, JSON.stringify(localParams));
     };
-
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
 
     const handleInputChange = (index, field, value) => {
-        const updatedParams = [...localParams];
-        updatedParams[index][field] = value;
-        setLocalParams(updatedParams);
+        setLocalConfig(prev => {
+            const updatedRunParams = [...prev.runParams];
+            updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
+            return {...prev, runParams: updatedRunParams};
+        });
     };
 
     const handleConfigChange = (field, value) => {
@@ -82,16 +35,15 @@ const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, 
         }));
     };
 
+    const handleReset = () => {
+        setLocalConfig(strategyConfig);
+    };
+
     const handleClose = () => {
         saveToLocalStorage();
-        setParams(localParams);
         setStrategyConfig(localConfig);
         onClose();
     };
-
-    const handleReset = () => {
-        loadFromLocalStorage();
-    }
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}}>
@@ -111,50 +63,41 @@ const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, 
                                     <TableCell>Parameter</TableCell>
                                     <TableCell>Value</TableCell>
                                     <TableCell>Start</TableCell>
-                                    <TableCell>End</TableCell>
+                                    <TableCell>Stop</TableCell>
                                     <TableCell>Step</TableCell>
                                     <TableCell>Optimize</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {localParams.map((param, index) => (
+                                {localConfig.runParams.map((param, index) => (
                                     <TableRow key={param.name}>
                                         <TableCell>
                                             <Typography variant="body1">{param.name}</Typography>
-                                            <Typography variant="caption" color="textSecondary">
-                                                {param.description}
-                                            </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <TextField
                                                 size="small"
                                                 value={param.value}
-                                                onChange={(e) =>
-                                                    handleInputChange(index, 'value', e.target.value)
-                                                }
+                                                onChange={(e) => handleInputChange(index, 'value', e.target.value)}
                                                 autoComplete="off"
                                             />
                                             <Typography variant="caption" color="textSecondary">
-                                                (Default: {params[index].value})
+                                                (Default: {param.defaultValue})
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
                                             <TextField
                                                 size="small"
                                                 value={param.start || ''}
-                                                onChange={(e) =>
-                                                    handleInputChange(index, 'start', e.target.value)
-                                                }
+                                                onChange={(e) => handleInputChange(index, 'start', e.target.value)}
                                                 autoComplete="off"
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <TextField
                                                 size="small"
-                                                value={param.end || ''}
-                                                onChange={(e) =>
-                                                    handleInputChange(index, 'end', e.target.value)
-                                                }
+                                                value={param.stop || ''}
+                                                onChange={(e) => handleInputChange(index, 'end', e.target.value)}
                                                 autoComplete="off"
                                             />
                                         </TableCell>
@@ -162,22 +105,14 @@ const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, 
                                             <TextField
                                                 size="small"
                                                 value={param.step || ''}
-                                                onChange={(e) =>
-                                                    handleInputChange(index, 'step', e.target.value)
-                                                }
+                                                onChange={(e) => handleInputChange(index, 'step', e.target.value)}
                                                 autoComplete="off"
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <Checkbox
                                                 checked={param.selected || false}
-                                                onChange={(e) =>
-                                                    handleInputChange(
-                                                        index,
-                                                        'selected',
-                                                        e.target.checked
-                                                    )
-                                                }
+                                                onChange={(e) => handleInputChange(index, 'selected', e.target.checked)}
                                             />
                                         </TableCell>
                                     </TableRow>
@@ -195,20 +130,71 @@ const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, 
                             fullWidth
                             margin="normal"
                         />
-                        <TextField
-                            label="Symbol"
-                            value={localConfig.symbol}
-                            onChange={(e) => handleConfigChange('symbol', e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="speed-label">Speed</InputLabel>
+                            <Select
+                                labelId="speed-label"
+                                value={localConfig.speed}
+                                onChange={(e) => handleConfigChange('speed', e.target.value)}
+                                label="speed"
+                            >
+                                <MenuItem value="SLOW">Slow</MenuItem>
+                                <MenuItem value="NORMAL">Normal</MenuItem>
+                                <MenuItem value="FAST">Fast</MenuItem>
+                                <MenuItem value="VERY_FAST">Very fast</MenuItem>
+                                <MenuItem value="INSTANT">Instant</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="spread-label">Spread</InputLabel>
+                            <Select
+                                labelId="spread-label"
+                                value={localConfig.spread}
+                                onChange={(e) => handleConfigChange('spread', e.target.value)}
+                                label="Spread"
+                            >
+                                <MenuItem value="0.1">0.1</MenuItem>
+                                <MenuItem value="0.5">0.5</MenuItem>
+                                <MenuItem value="10">10</MenuItem>
+                                <MenuItem value="30">30</MenuItem>
+                                <MenuItem value="50">50</MenuItem>
+                                <MenuItem value="100">100</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="symbol-label">Symbol</InputLabel>
+                            <Select
+                                labelId="symbol-label"
+                                value={localConfig.symbol}
+                                onChange={(e) => handleConfigChange('symbol', e.target.value)}
+                                label="Symbol"
+                            >
+                                <MenuItem value="NAS100USD">NAS100USD</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth margin="normal">
+                            <InputLabel id="period-label">Period</InputLabel>
+                            <Select
+                                labelId="period-label"
+                                value={localConfig.period}
+                                onChange={(e) => handleConfigChange('period', e.target.value)}
+                                label="period"
+                            >
+                                <MenuItem value="1m">1m</MenuItem>
+                                <MenuItem value="5m">5m</MenuItem>
+                                <MenuItem value="30m">30m</MenuItem>
+                                <MenuItem value="1H">1H</MenuItem>
+                                <MenuItem value="4H">4H</MenuItem>
+                                <MenuItem value="1D">1D</MenuItem>
+                            </Select>
+                        </FormControl>
                         <TextField
                             label="From"
                             type="date"
-                            value={localConfig.timeframe.from.slice(0, 10)}  // Only take the date part
+                            value={localConfig.timeframe.from.slice(0, 10)}
                             onChange={(e) => handleConfigChange('timeframe', {
                                 ...localConfig.timeframe,
-                                from: e.target.value + 'T00:00:00Z'  // Append time as 00:00:00Z
+                                from: e.target.value + 'T00:00:00Z'
                             })}
                             fullWidth
                             margin="normal"
@@ -219,10 +205,10 @@ const ConfigModal = ({open, onClose, onSave, params, setParams, strategyConfig, 
                         <TextField
                             label="To"
                             type="date"
-                            value={localConfig.timeframe.to.slice(0, 10)}  // Only take the date part
+                            value={localConfig.timeframe.to.slice(0, 10)}
                             onChange={(e) => handleConfigChange('timeframe', {
                                 ...localConfig.timeframe,
-                                to: e.target.value + 'T00:00:00Z'  // Append time as 00:00:00Z
+                                to: e.target.value + 'T00:00:00Z'
                             })}
                             fullWidth
                             margin="normal"

@@ -24,6 +24,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,6 +81,16 @@ public class StrategyManager {
         Tick currentTick = new DefaultTick();
 
         Strategy strategy = getStrategyFromClassName(config.getStrategyClass(), strategyId);
+
+        Map<String, String> runParams = config.getRunParams().stream()
+                .collect(Collectors.toMap(StrategyConfig.RunParameter::getName, StrategyConfig.RunParameter::getValue));
+
+        try {
+            strategy.setParameters(runParams);
+        } catch (IllegalAccessException e) {
+            log.error("Error setting parameters for strategy: {}", strategy.getStrategyId(), e);
+            throw new StrategyManagerException("Error setting parameters for strategy: " + strategy.getStrategyId(), StrategyManagerException.ErrorType.INTERNAL_ERROR);
+        }
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
 

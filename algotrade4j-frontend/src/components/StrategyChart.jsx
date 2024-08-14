@@ -38,24 +38,27 @@ const StrategyChart = () => {
 
     // UI State
     const [tabValue, setTabValue] = useState(0);
-
-    // Params state
-    const [params, setParams] = useState([]);
-    const [runOptimisation, setRunOptimisation] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [runOptimisation, setRunOptimisation] = useState(false);
 
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
 
+    // const [rawParams, setRawParams] = useState([]);
+    // const [runParams, setRunParams] = useState([])
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
         symbol: 'NAS100USD',
+        spread: "50",
+        speed: "FAST",
+        period: "1D",
         timeframe: {
             from: '',
             to: '',
         },
-        params: {}
+        runParams: []
     })
 
     const [errorToast, setErrorToast] = useState({
@@ -92,6 +95,53 @@ const StrategyChart = () => {
             }
         };
     }, []);
+
+    // Here we check local storage and update the config with the values from local storage
+    // if there are any, else we use the defaults from the strategy
+    const loadConfigFromLocalStorage = (runParams, stratClass) => {
+        const storedConfig = JSON.parse(localStorage.getItem(`strategyConfig_${stratClass}`)) || {};
+
+        // Check storedConfig for runParams, if we have them, we need to update the values!!!!! in the run params
+        const updatedRunParams = runParams.map(param => {
+            const storedParam = storedConfig.runParams?.find(p => p.name === param.name);
+
+            // Only update if theres data to update
+            if (storedParam) {
+                return {
+                    ...param,
+                    value: storedParam.value !== undefined ? storedParam.value : param.value,
+                    start: storedParam.start !== undefined ? storedParam.start : param.start,
+                    stop: storedParam.stop !== undefined ? storedParam.stop : param.stop,
+                    step: storedParam.step !== undefined ? storedParam.step : param.step,
+                    selected: storedParam.selected !== undefined ? storedParam.selected : param.selected,
+                };
+            } else {
+                return param; // Keep the original parameter if no stored version is found
+            }
+        });
+
+        // Setting some defaults in case we don't have any values in local storage
+        const today = new Date().toISOString().split('T')[0] + 'T00:00:00Z';
+        const lastMonth = new Date(Date.now() - (86400000 * 30)).toISOString().split('T')[0] + 'T00:00:00Z';
+
+        const updatedConfig = {
+            ...strategyConfig,
+            initialCash: storedConfig.initialCash || strategyConfig.initialCash,
+            symbol: storedConfig.symbol || strategyConfig.symbol,
+            spread: storedConfig.spread || strategyConfig.spread,
+            period: storedConfig.period || strategyConfig.period,
+            speed: storedConfig.speed || strategyConfig.speed,
+            timeframe: {
+                from: storedConfig.timeframe?.from || lastMonth,
+                to: storedConfig.timeframe?.to || today,
+            },
+            runParams: updatedRunParams,
+            strategyClass: stratClass,
+        };
+
+        // Now we can update the state with the updated values
+        setStrategyConfig(updatedConfig);
+    };
 
     useEffect(() => {
         const handleResize = () => {
@@ -254,6 +304,13 @@ const StrategyChart = () => {
             });
             return;
         }
+        // We need to add the strategy class to strategy config
+        // TODO: If we need this in other places we need to refactor
+        const hackConfig = {
+            ...strategyConfig,
+            strategyClass: strategyClass,
+        }
+
         setIsRunning(true);
         // Clean previous data
         setChartData([]);
@@ -264,35 +321,29 @@ const StrategyChart = () => {
         tradeCounterRef.current = 1;
         setIndicators({});
         console.log('Starting strategy...');
-        try {
-            // const config = {
-            //     strategyClass: strategyClass,
-            //     subscriptions: ['BAR', 'TRADE', 'INDICATOR'],
-            //     initialCash: '10000',
-            //     barSeriesSize: 10000,
-            // };
-            setStrategyConfig({
-                strategyClass: strategyClass,
-                initialCash: '10000',
-                barSeriesSize: 10000,
-                symbol: 'AAPL',
-                timeframe: {
-                    from: '2021-01-01T00:00:00Z',
-                    to: '2021-12-31T23:59:59Z',
-                },
-                params: {},
-            })
 
+        if (runOptimisation) {
+            setErrorToast(
+                {
+                    open: true,
+                    message: 'Not implemented yet',
+                }
+            )
+            setIsRunning(false)
+            return
+        }
+
+        try {
             console.log('Starting strategy with config:', strategyConfig);
 
-            // const generatedIdForClass = await client.generateId(config)
-            //
-            // socketRef.current = await client.connectWebSocket(
-            //     generatedIdForClass,
-            //     handleWebSocketMessage
-            // );
-            // console.log('WebSocket connected');
-            // await client.startStrategy(config, generatedIdForClass);
+            const generatedIdForClass = await client.generateId(hackConfig)
+
+            socketRef.current = await client.connectWebSocket(
+                generatedIdForClass,
+                handleWebSocketMessage
+            );
+            console.log('WebSocket connected');
+            await client.startStrategy(hackConfig, generatedIdForClass);
         } catch (error) {
             console.error('Failed to start strategy:', error);
             setErrorToast({
@@ -335,6 +386,11 @@ const StrategyChart = () => {
             updateTrades(data);
         } else if (data.type === 'LOG') {
             updateLogs(data);
+        } else if (data.type === 'ERROR') {
+            setErrorToast({
+                open: true,
+                message: data.message,
+            });
         } else {
             console.log('WHAT OTHER EVENT WAS SENT?' + data);
         }
@@ -508,11 +564,13 @@ const StrategyChart = () => {
         [tradeIdMap]
     );
 
-    const getParams = async () => {
+    const handleOpenParams = () => {
+        setIsModalOpen(true);
+    }
+
+    const getParams = async (stratClass) => {
         try {
-            const params = await client.getParams(strategyClass);
-            setParams(params);
-            setIsModalOpen(true);
+            return await client.getParams(stratClass);
         } catch (error) {
             console.error('Failed to get strategy params:', error);
             setErrorToast({
@@ -526,6 +584,51 @@ const StrategyChart = () => {
         console.log('Saving params:', config);
         setIsModalOpen(false);
     };
+
+    const handleChangeStrategy = async (event) => {
+        // Get the class of the strategy
+        const stratClass = event.target.value;
+        setStrategyClass(stratClass);
+
+        // Update config with class
+        setStrategyConfig({
+            ...strategyConfig,
+            strategyClass: stratClass,
+        });
+
+        // Now, we know what params have come from the strategy defaults. So we should set these are the run params for now.
+        const params = await getParams(stratClass)
+        console.log("Params", params)
+
+        let runParams = [];
+        params.forEach(param => {
+            runParams.push({
+                name: param.name,
+                // Default from server
+                value: param.value,
+                // Defaults
+                defaultValue: param.value,
+                start: "1",
+                stop: "1",
+                step: "1",
+                selected: false,
+            })
+        })
+
+        console.log("Run Params", runParams)
+
+        setStrategyConfig({
+            ...strategyConfig,
+            runParams: runParams,
+        })
+
+        // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
+        loadConfigFromLocalStorage(runParams, stratClass);
+
+        // When we change the strategy, we should get the parameters local storage or use defaults
+        // we need start stop step for optimisation only. But this is something that need to be here!
+        // for run parameters we only need it for starting strategy
+    }
 
     return (
         <Paper elevation={3} className="chart-container" sx={{p: 3, mb: 3}}>
@@ -542,7 +645,8 @@ const StrategyChart = () => {
                     <Grid item xs={8}>
                         <Select
                             value={strategyClass}
-                            onChange={(e) => setStrategyClass(e.target.value)}
+                            onChange={handleChangeStrategy}
+                            // onChange={(e) => setStrategyClass(e.target.value)}
                             fullWidth
                             displayEmpty
                             renderValue={(selected) => {
@@ -579,7 +683,7 @@ const StrategyChart = () => {
                     </Grid>
                     <Grid item xs={4} container direction="column" spacing={1}>
                         <Grid item>
-                            <Button variant="contained" onClick={getParams} fullWidth disabled={strategyClass === ""}>
+                            <Button variant="contained" onClick={handleOpenParams} fullWidth disabled={strategyClass === ""}>
                                 Params
                             </Button>
                         </Grid>
@@ -691,8 +795,6 @@ const StrategyChart = () => {
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleConfigSave}
-                params={params}
-                setParams={setParams}
                 strategyConfig={strategyConfig}
                 setStrategyConfig={setStrategyConfig}
                 strategyClass={strategyClass}

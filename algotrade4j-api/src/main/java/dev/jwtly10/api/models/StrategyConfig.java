@@ -6,7 +6,7 @@ import dev.jwtly10.core.model.Number;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 
 @Data
 public class StrategyConfig {
@@ -17,7 +17,7 @@ public class StrategyConfig {
     private DataSpeed speed;
     private Number spread;
     private Timeframe timeframe;
-    private Map<String, String> runParams;
+    private List<RunParameter> runParams;
 
     @Data
     public static class Timeframe {
@@ -25,5 +25,16 @@ public class StrategyConfig {
         private LocalDateTime from;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssX")
         private LocalDateTime to;
+    }
+
+    @Data
+    public static class RunParameter {
+        private String name;
+        private String value;
+        private String defaultValue;
+        private String start;
+        private String stop;
+        private String step;
+        private Boolean selected;
     }
 }
