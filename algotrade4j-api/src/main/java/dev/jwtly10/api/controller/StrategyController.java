@@ -31,7 +31,7 @@ public class StrategyController {
 
     @PostMapping("/start")
     public ResponseEntity<String> startStrategy(@RequestBody StrategyConfig config, @RequestParam("strategyId") String strategyId) {
-        log.debug("Starting strategy: {}", strategyId);
+        log.debug("Starting strategy: {} with config : {}", strategyId, config);
 
         // We will retry this a few seconds
         WebSocketSession session = null;
@@ -85,6 +85,7 @@ public class StrategyController {
         listener.subscribe(AccountEvent.class);
         listener.subscribe(AnalysisEvent.class);
         listener.subscribe(LogEvent.class);
+        listener.subscribe(ErrorEvent.class);
     }
 
     @PostMapping("/{strategyId}/stop")

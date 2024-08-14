@@ -43,20 +43,39 @@ public class StrategyManager {
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
-        Duration period = Duration.ofDays(1);
+        // TODO: Validate config
+        Duration period = switch (config.getPeriod()) {
+            // TODO: Support other times
+//            case "1m" -> Duration.ofMinutes(1);
+//            case "5m" -> Duration.ofMinutes(5);
+//            case "15m" -> Duration.ofMinutes(15);
+//            case "1H" -> Duration.ofHours(1);
+//            case "4H" -> Duration.ofHours(4);
+            case "1D" -> Duration.ofDays(1);
+            default -> throw new StrategyManagerException("Invalid duration: " + config.getPeriod(), StrategyManagerException.ErrorType.BAD_REQUEST);
+        };
+
+        Number spread = config.getSpread();
+
+        String symbol = config.getSymbol();
+
+        // TODO: Use timeframe from config in the data service provider ticket
         CSVDataProvider csvDataProvider = new CSVDataProvider(
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
                 10,
-                new Number(0.1),
+                spread,
                 period,
-                "NAS100USD"
+                symbol
         );
-        csvDataProvider.setDataSpeed(DataSpeed.FAST);
+        DataSpeed dataSpeed = config.getSpeed();
+
+        csvDataProvider.setDataSpeed(dataSpeed);
 
         // TODO: How long does this actually equate too?
-        BarSeries barSeries = new DefaultBarSeries(4000);
+        int defaultSeriesSize = 4000;
+        BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager("NAS100USD", csvDataProvider, period, barSeries);
+        DefaultDataManager dataManager = new DefaultDataManager(symbol, csvDataProvider, period, barSeries);
 
         Tick currentTick = new DefaultTick();
 
@@ -64,7 +83,7 @@ public class StrategyManager {
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
 
-        AccountManager accountManager = new DefaultAccountManager(new Number(10000));
+        AccountManager accountManager = new DefaultAccountManager(config.getInitialCash());
 
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
 
