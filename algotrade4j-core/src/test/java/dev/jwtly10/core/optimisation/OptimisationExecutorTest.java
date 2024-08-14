@@ -60,7 +60,6 @@ class OptimisationExecutorTest {
         List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
 
         assertEquals(3, combinations.size());
-        System.out.println(combinations);
         assertEquals(new Number("0.10").toString(), combinations.getFirst().get("Threshold"));
         assertEquals(new Number("0.20").toString(), combinations.get(1).get("Threshold"));
         assertEquals(new Number("0.30").toString(), combinations.getLast().get("Threshold"));

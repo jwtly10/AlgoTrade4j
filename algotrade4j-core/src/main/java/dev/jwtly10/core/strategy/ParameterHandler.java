@@ -1,7 +1,10 @@
 package dev.jwtly10.core.strategy;
 
+import lombok.Data;
+
 import java.lang.reflect.Field;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,16 +17,23 @@ public class ParameterHandler {
      * Retrieves all parameters annotated with {@link Parameter} from the given object.
      *
      * @param strategy The strategy to retrieve parameters from.
-     * @return A Map containing parameter names as keys and their values as strings.
+     * @return A List of {@link ParameterInfo} objects containing parameter information.
      */
-    public static Map<String, String> getParameters(Strategy strategy) {
-        Map<String, String> parameters = new HashMap<>();
+    public static List<ParameterInfo> getParameters(Strategy strategy) {
+        List<ParameterInfo> parameters = new ArrayList<>();
         Class<?> clazz = strategy.getClass();
 
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Parameter.class)) {
                 Parameter param = field.getAnnotation(Parameter.class);
-                parameters.put(param.name(), param.value());
+                field.setAccessible(true);
+                String value;
+                try {
+                    value = field.get(strategy).toString();
+                } catch (IllegalAccessException e) {
+                    value = "N/A";
+                }
+                parameters.add(new ParameterInfo(param.name(), param.description(), value));
             }
         }
 
@@ -99,6 +109,13 @@ public class ParameterHandler {
         }
     }
 
+    /**
+     * Sets the parameters of the given strategy using the provided map of parameter values.
+     *
+     * @param strategy   The strategy to set parameters for.
+     * @param parameters A map of parameter names and values.
+     * @throws IllegalAccessException If unable to access a field.
+     */
     public static void setParameters(Strategy strategy, Map<String, String> parameters) throws IllegalAccessException {
         Class<?> clazz = strategy.getClass();
 
@@ -111,6 +128,14 @@ public class ParameterHandler {
         }
     }
 
+    /**
+     * Sets the value of a specific parameter in the given strategy.
+     *
+     * @param strategy The object containing the parameter to set.
+     * @param field    The field representing the parameter to set.
+     * @param value    The value to set the parameter to, as a string.
+     * @throws IllegalAccessException If unable to access the field.
+     */
     private static void setParameterValue(Strategy strategy, Field field, String value) throws IllegalAccessException {
         field.setAccessible(true);
         Object convertedValue = convertValue(value, field.getType());
@@ -170,5 +195,22 @@ public class ParameterHandler {
         }
         // TODO: Do we need to support other types
         return value; // Default to string
+    }
+
+    /**
+     * Information about a parameter.
+     * A DTO-style class to make it easier to pass parameter information around.
+     */
+    @Data
+    public static class ParameterInfo {
+        private String name;
+        private String description;
+        private String value;
+
+        public ParameterInfo(String name, String description, String value) {
+            this.name = name;
+            this.description = description;
+            this.value = value;
+        }
     }
 }

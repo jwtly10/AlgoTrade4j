@@ -1,30 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ColorType, createChart, CrosshairMode } from 'lightweight-charts';
-import { client } from '../api/client';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ColorType, createChart, CrosshairMode} from 'lightweight-charts';
+import {client} from '../api/client';
 import 'chartjs-adapter-date-fns';
 import AnalysisReport from './AnalysisReport.jsx';
-import { EquityChart } from './EquityChart.jsx';
+import {EquityChart} from './EquityChart.jsx';
 import TradesTable from './TradesTable.jsx';
-import {
-    Box,
-    Button,
-    Divider,
-    Grid,
-    Paper,
-    Tab,
-    TableContainer,
-    Tabs,
-    Typography,
-} from '@mui/material';
-import { TabPanel } from './TabPanel.jsx';
+import {Box, Button, Checkbox, Divider, FormControlLabel, Grid, MenuItem, Paper, Select, Tab, TableContainer, Tabs, Typography,} from '@mui/material';
+import {TabPanel} from './TabPanel.jsx';
 import LogsTable from './LogsTable.jsx';
-import ParamModal from './ParamModal.jsx';
+import ConfigModal from './ConfigModal.jsx';
+import {ErrorToast} from "./ErrorToast.jsx";
 
 const StrategyChart = () => {
     const socketRef = useRef(null);
 
     const [isRunning, setIsRunning] = useState(false);
-    const [strategyId, setStrategyId] = useState(null);
     const [account, setAccount] = useState({
         initialBalance: 0,
         balance: 0,
@@ -50,14 +40,52 @@ const StrategyChart = () => {
     const [tabValue, setTabValue] = useState(0);
 
     // Params state
-    const [params, setParams] = useState({});
+    const [params, setParams] = useState([]);
+    const [runOptimisation, setRunOptimisation] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [strategies, setStrategies] = useState([]);
+    const [strategyClass, setStrategyClass] = useState("");
+
+    const [strategyConfig, setStrategyConfig] = useState({
+        strategyClass: '',
+        initialCash: '10000',
+        symbol: 'NAS100USD',
+        timeframe: {
+            from: '',
+            to: '',
+        },
+        params: {}
+    })
+
+    const [errorToast, setErrorToast] = useState({
+        open: false,
+        message: '',
+    });
+
+    const handleCloseErrorToast = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setErrorToast({...errorToast, open: false});
+    };
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     };
 
     useEffect(() => {
+        const fetchStrategies = async () => {
+            try {
+                const res = await client.getStrategies()
+                setStrategies(res)
+            } catch (error) {
+                console.error('Failed to get strategies:', error);
+            }
+        }
+
+        fetchStrategies()
+
         return () => {
             if (socketRef.current) {
                 socketRef.current.close();
@@ -77,7 +105,7 @@ const StrategyChart = () => {
             width: chartContainerRef.current.clientWidth,
             height: 500,
             layout: {
-                background: { type: ColorType.Solid, color: '#ffffff' },
+                background: {type: ColorType.Solid, color: '#ffffff'},
                 textColor: 'black',
             },
             watermark: {
@@ -218,6 +246,14 @@ const StrategyChart = () => {
     }
 
     const startStrategy = async () => {
+        if (strategyClass === "") {
+            console.error('Strategy class is required');
+            setErrorToast({
+                open: true,
+                message: 'Please select a strategy',
+            });
+            return;
+        }
         setIsRunning(true);
         // Clean previous data
         setChartData([]);
@@ -229,30 +265,47 @@ const StrategyChart = () => {
         setIndicators({});
         console.log('Starting strategy...');
         try {
-            const config = {
-                strategyId: 'SimpleSMAStrategy',
-                subscriptions: ['BAR', 'TRADE', 'INDICATOR'],
+            // const config = {
+            //     strategyClass: strategyClass,
+            //     subscriptions: ['BAR', 'TRADE', 'INDICATOR'],
+            //     initialCash: '10000',
+            //     barSeriesSize: 10000,
+            // };
+            setStrategyConfig({
+                strategyClass: strategyClass,
                 initialCash: '10000',
                 barSeriesSize: 10000,
-            };
-            setStrategyId('SimpleSMAStrategy');
+                symbol: 'AAPL',
+                timeframe: {
+                    from: '2021-01-01T00:00:00Z',
+                    to: '2021-12-31T23:59:59Z',
+                },
+                params: {},
+            })
 
-            socketRef.current = await client.connectWebSocket(
-                'SimpleSMAStrategy',
-                handleWebSocketMessage
-            );
-            console.log('WebSocket connected');
-            await client.startStrategy(config);
+            console.log('Starting strategy with config:', strategyConfig);
+
+            // const generatedIdForClass = await client.generateId(config)
+            //
+            // socketRef.current = await client.connectWebSocket(
+            //     generatedIdForClass,
+            //     handleWebSocketMessage
+            // );
+            // console.log('WebSocket connected');
+            // await client.startStrategy(config, generatedIdForClass);
         } catch (error) {
             console.error('Failed to start strategy:', error);
+            setErrorToast({
+                open: true,
+                message: 'Failed to start strategy: ' + error.response.data.message,
+            })
             setIsRunning(false);
         }
     };
 
     const stopStrategy = async () => {
         try {
-            if (strategyId) {
-                // await client.stopStrategy(strategyId);
+            if (strategyClass !== "") {
                 // We can stop strategy by just closing ws connection
                 setIsRunning(false);
                 if (socketRef.current) {
@@ -340,7 +393,7 @@ const StrategyChart = () => {
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    { time: data.dateTime, value: data.value.value },
+                    {time: data.dateTime, value: data.value.value},
                 ],
             }));
         }
@@ -457,51 +510,94 @@ const StrategyChart = () => {
 
     const getParams = async () => {
         try {
-            const params = await client.getParams('test');
-            console.log('Strategy Params:', params);
+            const params = await client.getParams(strategyClass);
             setParams(params);
             setIsModalOpen(true);
         } catch (error) {
             console.error('Failed to get strategy params:', error);
+            setErrorToast({
+                open: true,
+                message: 'Failed to get strategy params: ' + error.response.data.message,
+            });
         }
     };
 
-    const handleParamSave = (params) => {
-        console.log('Saving params:', params);
+    const handleConfigSave = (config) => {
+        console.log('Saving params:', config);
         setIsModalOpen(false);
     };
 
     return (
-        <Paper elevation={3} className="chart-container" sx={{ p: 3, mb: 3 }}>
+        <Paper elevation={3} className="chart-container" sx={{p: 3, mb: 3}}>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
                     <Typography variant="h4" component="h1" gutterBottom>
                         AlgoTrade4J
                     </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <Button
-                        variant="contained"
-                        color={isRunning ? 'error' : 'success'}
-                        onClick={isRunning ? stopStrategy : startStrategy}
-                        fullWidth
-                    >
-                        {isRunning ? 'Stop Strategy' : 'Start Strategy'}
-                    </Button>
-                    <Button variant="contained" onClick={getParams} fullWidth>
-                        Get Strategy Params
-                    </Button>
+                <Grid item xs={12} container alignItems="center" spacing={2}>
+                    <Grid item xs={4}>
+                        <Typography variant="subtitle1">Strategy:</Typography>
+                    </Grid>
+                    <Grid item xs={8}>
+                        <Select
+                            value={strategyClass}
+                            onChange={(e) => setStrategyClass(e.target.value)}
+                            fullWidth
+                            displayEmpty
+                            renderValue={(selected) => {
+                                if (!selected) {
+                                    return "Select a strategy";
+                                }
+                                return selected;
+                            }}
+                        >
+                            {strategies.length > 0 ? (
+                                strategies.map((strategy, index) => (
+                                    <MenuItem key={index} value={strategy}>
+                                        {strategy}
+                                    </MenuItem>
+                                ))
+                            ) : (
+                                <MenuItem value="" disabled>
+                                    No strategies available
+                                </MenuItem>
+                            )}
+                        </Select>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <Typography variant="subtitle1">
-                        Strategy ID:{' '}
-                        <Box component="span" fontWeight="bold">
-                            {strategyId}
-                        </Box>
-                    </Typography>
+                <Grid item xs={12} container alignItems="center" spacing={2}>
+                    <Grid item xs={8}>
+                        <Button
+                            variant="contained"
+                            color={isRunning ? 'error' : 'success'}
+                            onClick={isRunning ? stopStrategy : startStrategy}
+                            fullWidth
+                        >
+                            {isRunning ? 'Stop' : 'Start'}
+                        </Button>
+                    </Grid>
+                    <Grid item xs={4} container direction="column" spacing={1}>
+                        <Grid item>
+                            <Button variant="contained" onClick={getParams} fullWidth disabled={strategyClass === ""}>
+                                Params
+                            </Button>
+                        </Grid>
+                    </Grid>
+                    <Grid item>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    onChange={(e) => setRunOptimisation(e.target.checked)}
+                                />
+                            }
+                            label="Run optimisation"
+                        />
+                    </Grid>
                 </Grid>
                 <Grid item xs={12}>
-                    <Divider sx={{ my: 2 }} />
+                    <Divider sx={{my: 2}}/>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <Typography variant="body2">
@@ -539,31 +635,31 @@ const StrategyChart = () => {
                 </Grid>
             </Grid>
 
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+            <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
                 <Box
-                    sx={{ width: '100%', height: '400px', overflow: 'hidden' }}
+                    sx={{width: '100%', height: '400px', overflow: 'hidden'}}
                     ref={chartContainerRef}
                 />
             </Box>
 
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 3 }}>
+            <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>
                 <Tabs value={tabValue} onChange={handleTabChange} aria-label="strategy tabs">
-                    <Tab label="Trades" />
-                    <Tab label="Analysis" />
-                    <Tab label="Equity History" />
-                    <Tab label="Logs" />
+                    <Tab label="Trades"/>
+                    <Tab label="Analysis"/>
+                    <Tab label="Equity History"/>
+                    <Tab label="Logs"/>
                 </Tabs>
             </Box>
 
             <TabPanel value={tabValue} index={0}>
-                <TradesTable trades={trades} />
+                <TradesTable trades={trades}/>
             </TabPanel>
             <TabPanel value={tabValue} index={1}>
                 {analysisData !== null ? (
-                    <AnalysisReport data={analysisData} />
+                    <AnalysisReport data={analysisData}/>
                 ) : (
                     <TableContainer component={Paper}>
-                        <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
                             No analysis data available yet.
                         </Typography>
                     </TableContainer>
@@ -571,10 +667,10 @@ const StrategyChart = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={2}>
                 {equityHistory.length > 0 ? (
-                    <EquityChart equityHistory={equityHistory} />
+                    <EquityChart equityHistory={equityHistory}/>
                 ) : (
                     <TableContainer component={Paper}>
-                        <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
                             No equity history available yet.
                         </Typography>
                     </TableContainer>
@@ -582,21 +678,30 @@ const StrategyChart = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
                 {logs.length > 0 ? (
-                    <LogsTable logs={logs} />
+                    <LogsTable logs={logs}/>
                 ) : (
                     <TableContainer component={Paper}>
-                        <Typography variant="body1" sx={{ p: 2, textAlign: 'center' }}>
+                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
                             No logs available yet.
                         </Typography>
                     </TableContainer>
                 )}
             </TabPanel>
-            <ParamModal
+            <ConfigModal
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                onSave={handleConfigSave}
                 params={params}
-                onSave={handleParamSave}
-            ></ParamModal>
+                setParams={setParams}
+                strategyConfig={strategyConfig}
+                setStrategyConfig={setStrategyConfig}
+                strategyClass={strategyClass}
+            />
+            <ErrorToast
+                open={errorToast.open}
+                message={errorToast.message}
+                onClose={handleCloseErrorToast}
+            />
         </Paper>
     );
 };

@@ -17,14 +17,16 @@ public class WebSocketEventListener implements EventListener {
     private final Set<Class<? extends BaseEvent>> subscribedEventTypes = new HashSet<>();
     private final AtomicBoolean isActive = new AtomicBoolean(true);
     private final Object lock = new Object();
+    private final String strategyId;
 
-    public WebSocketEventListener(WebSocketSession session) {
+    public WebSocketEventListener(WebSocketSession session, String strategyId) {
         this.session = session;
+        this.strategyId = strategyId;
     }
 
     @Override
     public void onEvent(BaseEvent event) {
-        if (!isActive.get() || !subscribedEventTypes.contains(event.getClass())) {
+        if (!isActive.get() || !subscribedEventTypes.contains(event.getClass()) || !event.getStrategyId().equals(this.strategyId)) {
             return;
         }
 
@@ -41,7 +43,6 @@ public class WebSocketEventListener implements EventListener {
             }
         }
     }
-
 
     @Override
     public void onError(String strategyId, Exception e) {

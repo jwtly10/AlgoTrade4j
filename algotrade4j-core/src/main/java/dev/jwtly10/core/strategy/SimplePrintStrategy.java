@@ -12,6 +12,10 @@ public class SimplePrintStrategy extends BaseStrategy {
         super("SimplePrintStrategy");
     }
 
+    public SimplePrintStrategy(String strategyId) {
+        super(strategyId);
+    }
+
     @Override
     public void onStart() {
         log.info("Strategy initialized.");

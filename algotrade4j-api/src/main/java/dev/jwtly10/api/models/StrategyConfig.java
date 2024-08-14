@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class StrategyConfig {
-    private String strategyId;
+    private String strategyClass;
     private List<String> subscriptions;
     private Number initialCash;
     private int barSeriesSize;

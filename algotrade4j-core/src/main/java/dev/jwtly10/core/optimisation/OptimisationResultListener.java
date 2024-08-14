@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/*
+ * This class listens for analysis events and stores the results in a map.
+ * Used for running the optimisation process.
+ */
 @Slf4j
 public class OptimisationResultListener implements EventListener {
     private final Map<String, AnalysisEvent> results = new ConcurrentHashMap<>();

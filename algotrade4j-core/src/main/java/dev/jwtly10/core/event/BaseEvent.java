@@ -64,6 +64,10 @@ public abstract class BaseEvent {
         this.strategyId = strategyId;
         this.type = type;
         this.symbol = symbol;
+
+        if (this.strategyId == null || this.strategyId.isBlank()) {
+            throw new IllegalArgumentException("Strategy ID cannot be null or empty");
+        }
     }
 
     /**

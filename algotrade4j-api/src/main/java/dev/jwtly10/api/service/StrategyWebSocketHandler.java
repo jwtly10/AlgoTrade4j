@@ -29,9 +29,6 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         log.info("New session established: {} ", session);
-        WebSocketEventListener listener = new WebSocketEventListener(session);
-        listeners.put(session, listener);
-        eventPublisher.addListener(listener);
     }
 
     @Override
@@ -40,9 +37,16 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         if (payload.startsWith("STRATEGY:")) {
             String strategyId = payload.substring(9);
-            log.info("Strategy ID: {} ", strategyId);
+            log.info("Strategy id: {} ", strategyId);
             strategySessions.put(strategyId, session);
             log.info("Updated strategySessions map. Size: {}", strategySessions.size());
+
+            // Setup the listener for this strategy
+            WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);
+            listeners.put(session, listener);
+            eventPublisher.addListener(listener);
+
+
         }
     }
 
