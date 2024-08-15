@@ -1,9 +1,9 @@
 package dev.jwtly10.core.indicators;
 
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,6 +26,7 @@ class SMATest {
         mockEventPublisher = mock(EventPublisher.class);
         smaIndicator = new SMA(3);
         smaIndicator.setEventPublisher(mockEventPublisher);
+        smaIndicator.setStrategyId("TESTING");
     }
 
     @Test

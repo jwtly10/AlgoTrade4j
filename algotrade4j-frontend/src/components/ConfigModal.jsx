@@ -20,11 +20,21 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         setActiveTab(newValue);
     };
 
+    // const handleInputChange = (index, field, value) => {
+    //     setLocalConfig(prev => {
+    //         const updatedRunParams = [...prev.runParams];
+    //         updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
+    //         return {...prev, runParams: updatedRunParams};
+    //     });
+    // };
+
     const handleInputChange = (index, field, value) => {
         setLocalConfig(prev => {
             const updatedRunParams = [...prev.runParams];
             updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
-            return {...prev, runParams: updatedRunParams};
+            const newConfig = {...prev, runParams: updatedRunParams};
+            console.log("Updated localConfig:", newConfig);
+            return newConfig;
         });
     };
 
@@ -97,7 +107,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                             <TextField
                                                 size="small"
                                                 value={param.stop || ''}
-                                                onChange={(e) => handleInputChange(index, 'end', e.target.value)}
+                                                onChange={(e) => handleInputChange(index, 'stop', e.target.value)}
                                                 autoComplete="off"
                                             />
                                         </TableCell>

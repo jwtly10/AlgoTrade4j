@@ -6,13 +6,16 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
+import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.strategy.SimpleSMAStrategy;
+import dev.jwtly10.core.strategy.Strategy;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.util.*;
 
@@ -26,6 +29,7 @@ import java.util.*;
 public class OptimisationExecutor {
     private final OptimisationResultListener resultListener;
     private final EventPublisher eventPublisher;
+    private final Map<String, Map<String, String>> strategyParameters = new HashMap<>();
     private volatile boolean running = false;
 
     public OptimisationExecutor(EventPublisher eventPublisher) {
@@ -40,22 +44,23 @@ public class OptimisationExecutor {
      * @param config The optimisation configuration to use.
      * @throws Exception If an error occurs during the optimisation process.
      */
-    public void runOptimisation(OptimisationConfig config) throws Exception {
-        // TODO: Some of this setup should be handled by the config
+    public List<OptimisationResult> runOptimisation(OptimisationConfig config) throws Exception {
+        List<OptimisationResult> results = new ArrayList<>();
 
         running = true;
         List<Map<String, String>> parameterCombinations = generateParameterCombinations(config.getParameterRanges());
         log.info("Generated {} parameter combinations", parameterCombinations.size());
 
+        // TODO: Add more validation
         if (parameterCombinations.isEmpty()) {
             log.warn("No parameter combinations to optimise");
-            return;
+            return List.of();
         }
 
         // TODO: Limited to 1000 for now, just to avoid running too many strategies at once, before we optimise/stress test
         if (parameterCombinations.size() > 1000) {
             log.warn("This is supported, and should be pretty quick, but just waiting to see at what point this becomes a factor");
-            return;
+            return List.of();
         }
 
         List<BacktestExecutor> allExecutors = new ArrayList<>();
@@ -73,8 +78,10 @@ public class OptimisationExecutor {
 
         // Collect all results at the end
         if (running) {
-            collectResults(allExecutors);
+            results = collectResults(allExecutors);
         }
+
+        return results;
     }
 
     /**
@@ -87,32 +94,40 @@ public class OptimisationExecutor {
     private List<BacktestExecutor> processBatch(List<Map<String, String>> batch, OptimisationConfig config) throws Exception {
         List<BacktestExecutor> batchExecutors = new ArrayList<>();
 
+        Duration period = config.getPeriod();
+        Number spread = config.getSpread();
+        String symbol = config.getSymbol();
+        DataSpeed speed = config.getSpeed();
+
         // Shared deps
-        Duration period = Duration.ofDays(1);
         BarSeries barSeries = new DefaultBarSeries("Optimisation", 4000);
         Tick currentTick = new DefaultTick();
         CSVDataProvider dataProvider = new CSVDataProvider(
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
                 4,
-                new Number(0.1),
+                spread,
                 period,
-                config.getSymbol()
+                symbol
         );
+        // TODO: Should this always be instant?
+//        dataProvider.setDataSpeed(speed);
         dataProvider.setDataSpeed(DataSpeed.INSTANT);
-        DefaultDataManager dataManager = new DefaultDataManager(config.getSymbol(), dataProvider, period, barSeries);
+
+        DefaultDataManager dataManager = new DefaultDataManager(symbol, dataProvider, period, barSeries);
 
         for (Map<String, String> parameterCombination : batch) {
             if (!running) break;
             log.debug("Creating strategy with parameters: {}", parameterCombination);
 
             String id = "test-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "");
+            strategyParameters.put(id, new HashMap<>(parameterCombination));
 
             TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, id, eventPublisher);
-            AccountManager accountManager = new DefaultAccountManager(new Number(10000));
+            AccountManager accountManager = new DefaultAccountManager(config.getInitialCash());
             TradeStateManager tradeStateManager = new DefaultTradeStateManager(id, eventPublisher);
             PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-            SimpleSMAStrategy strategy = new SimpleSMAStrategy(id);
+            Strategy strategy = getStrategyFromClassName(config.getStrategyClass(), id);
             strategy.setParameters(parameterCombination);
             BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
             executor.initialise();
@@ -143,13 +158,22 @@ public class OptimisationExecutor {
      *
      * @param allExecutors The list of executors to collect results for.
      */
-    private void collectResults(List<BacktestExecutor> allExecutors) {
+    private List<OptimisationResult> collectResults(List<BacktestExecutor> allExecutors) {
         log.debug("Collecting results for {} strategies", allExecutors.size());
+        List<OptimisationResult> optimisationResults = new ArrayList<>();
         for (BacktestExecutor executor : allExecutors) {
             if (!running) break;
-            var results = resultListener.getResults();
-            log.info("Results for strategy {}: {}", executor.getStrategyId(), results.get(executor.getStrategyId()).pretty());
+            String strategyId = executor.getStrategyId();
+            AnalysisEvent event = resultListener.getResults().get(strategyId);
+            if (event != null) {
+                Map<String, String> params = strategyParameters.get(strategyId);
+                OptimisationResult result = new OptimisationResult(strategyId, event.getStats(), params);
+                optimisationResults.add(result);
+                log.info("Results for strategy {}: {}", strategyId, result.getStats());
+            }
         }
+
+        return optimisationResults;
     }
 
     /**
@@ -188,6 +212,41 @@ public class OptimisationExecutor {
         for (Number value = start; value.compareTo(end) <= 0; value = value.add(step)) {
             currentCombination.put(range.getName(), value.toString());
             generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+        }
+    }
+
+    /**
+     * Get a strategy instance from a class name.
+     *
+     * @param className The class name of the strategy.
+     * @param customId  A custom ID to use for the strategy.
+     * @return A new instance of the strategy.
+     */
+    // TODO: We duplicate this... fix that
+    private Strategy getStrategyFromClassName(String className, String customId) {
+        try {
+            Class<?> clazz = Class.forName("dev.jwtly10.core.strategy." + className);
+            Strategy strategy;
+
+            if (customId != null) {
+                try {
+                    Constructor<?> constructor = clazz.getConstructor(String.class);
+                    strategy = (Strategy) constructor.newInstance(customId);
+                } catch (NoSuchMethodException e) {
+                    log.warn("No constructor with String parameter found for {}. Using no-arg constructor.", className);
+                    Constructor<?> constructor = clazz.getConstructor();
+                    strategy = (Strategy) constructor.newInstance();
+                }
+            } else {
+                // Use the no-arg constructor if customId is null
+                Constructor<?> constructor = clazz.getConstructor();
+                strategy = (Strategy) constructor.newInstance();
+            }
+
+            return strategy;
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            log.error("Error initializing strategy: {}", className, e);
+            throw new IllegalArgumentException("Error initializing strategy: " + className);
         }
     }
 }

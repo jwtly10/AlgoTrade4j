@@ -63,6 +63,11 @@ public class Number implements Comparable<Number> {
         this(BigDecimal.valueOf(value));
     }
 
+    @Override
+    public String toString() {
+        return value.toString();
+    }
+
     /**
      * Adds another Number to this Number.
      *
