@@ -90,4 +90,22 @@ export const client = {
             };
         });
     },
+
+    startOptimisation: async (config, id) => {
+        try {
+            const response = await axiosInstance.post('/optimisation/start?optimisationId=' + id, config);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error)
+        }
+    },
+
+    getOptimisationResults: async (id) => {
+        try {
+            const response = await axiosInstance.get(`/optimisation/${id}/results`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    }
 };

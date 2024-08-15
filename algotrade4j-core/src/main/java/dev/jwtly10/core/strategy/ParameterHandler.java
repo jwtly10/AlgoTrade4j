@@ -185,7 +185,19 @@ public class ParameterHandler {
             throw new IllegalArgumentException("Parameter value cannot be null");
         }
         if (type == int.class || type == Integer.class) {
-            return Integer.parseInt(value);
+            try {
+                // This handles the case of a value like 10.00 being passed in
+                // First, try parsing as an integer
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                // If that fails, try parsing as a double and then convert to int
+                try {
+                    double doubleValue = Double.parseDouble(value);
+                    return (int) Math.round(doubleValue);
+                } catch (NumberFormatException e2) {
+                    throw new IllegalArgumentException("Cannot convert '" + value + "' to int", e2);
+                }
+            }
         } else if (type == double.class || type == Double.class) {
             return Double.parseDouble(value);
         } else if (type == boolean.class || type == Boolean.class) {

@@ -9,7 +9,9 @@ import {Box, Button, Checkbox, Divider, FormControlLabel, Grid, MenuItem, Paper,
 import {TabPanel} from './TabPanel.jsx';
 import LogsTable from './LogsTable.jsx';
 import ConfigModal from './ConfigModal.jsx';
-import {ErrorToast} from "./ErrorToast.jsx";
+import {Toast} from "./Toast.jsx";
+import {OptimisationPanel} from "./OptimisationPanel.jsx";
+
 
 const StrategyChart = () => {
     const socketRef = useRef(null);
@@ -41,6 +43,7 @@ const StrategyChart = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [runOptimisation, setRunOptimisation] = useState(false);
+    const [optimisationId, setOptimisationId] = useState("");
 
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
@@ -61,16 +64,17 @@ const StrategyChart = () => {
         runParams: []
     })
 
-    const [errorToast, setErrorToast] = useState({
+    const [toast, setToast] = useState({
         open: false,
+        level: 'info',
         message: '',
     });
 
-    const handleCloseErrorToast = (event, reason) => {
+    const handleCloseToast = (event, reason) => {
         if (reason === 'clickaway') {
             return;
         }
-        setErrorToast({...errorToast, open: false});
+        setToast({...toast, level: "info", open: false});
     };
 
     const handleTabChange = (event, newValue) => {
@@ -298,8 +302,9 @@ const StrategyChart = () => {
     const startStrategy = async () => {
         if (strategyClass === "") {
             console.error('Strategy class is required');
-            setErrorToast({
+            setToast({
                 open: true,
+                level: 'warning',
                 message: 'Please select a strategy',
             });
             return;
@@ -323,13 +328,26 @@ const StrategyChart = () => {
         console.log('Starting strategy...');
 
         if (runOptimisation) {
-            setErrorToast(
-                {
+            const oId = crypto.randomUUID()
+            setOptimisationId(oId)
+            try {
+                await client.startOptimisation(hackConfig, oId)
+                console.log('Optimisation started');
+                setToast({
                     open: true,
-                    message: 'Not implemented yet',
-                }
-            )
-            setIsRunning(false)
+                    level: 'success',
+                    message: 'Optimisation started',
+                })
+                setIsRunning(false);
+            } catch (error) {
+                console.error('Failed to start optimisation:', error);
+                setToast({
+                    open: true,
+                    level: 'error',
+                    message: 'Failed to start optimisation: ' + error.response.data.message,
+                })
+                setIsRunning(false);
+            }
             return
         }
 
@@ -346,8 +364,9 @@ const StrategyChart = () => {
             await client.startStrategy(hackConfig, generatedIdForClass);
         } catch (error) {
             console.error('Failed to start strategy:', error);
-            setErrorToast({
+            setToast({
                 open: true,
+                level: 'error',
                 message: 'Failed to start strategy: ' + error.response.data.message,
             })
             setIsRunning(false);
@@ -387,8 +406,9 @@ const StrategyChart = () => {
         } else if (data.type === 'LOG') {
             updateLogs(data);
         } else if (data.type === 'ERROR') {
-            setErrorToast({
+            setToast({
                 open: true,
+                level: "error",
                 message: data.message,
             });
         } else {
@@ -573,7 +593,7 @@ const StrategyChart = () => {
             return await client.getParams(stratClass);
         } catch (error) {
             console.error('Failed to get strategy params:', error);
-            setErrorToast({
+            setToast({
                 open: true,
                 message: 'Failed to get strategy params: ' + error.response.data.message,
             });
@@ -752,6 +772,7 @@ const StrategyChart = () => {
                     <Tab label="Analysis"/>
                     <Tab label="Equity History"/>
                     <Tab label="Logs"/>
+                    <Tab label="Optimisation"/>
                 </Tabs>
             </Box>
 
@@ -791,6 +812,9 @@ const StrategyChart = () => {
                     </TableContainer>
                 )}
             </TabPanel>
+            <TabPanel value={tabValue} index={4}>
+                <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
+            </TabPanel>
             <ConfigModal
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -799,10 +823,11 @@ const StrategyChart = () => {
                 setStrategyConfig={setStrategyConfig}
                 strategyClass={strategyClass}
             />
-            <ErrorToast
-                open={errorToast.open}
-                message={errorToast.message}
-                onClose={handleCloseErrorToast}
+            <Toast
+                open={toast.open}
+                message={toast.message}
+                severity={toast.level}
+                onClose={handleCloseToast}
             />
         </Paper>
     );
