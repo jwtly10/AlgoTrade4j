@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ColorType, createChart, CrosshairMode} from 'lightweight-charts';
+import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
 import {client} from '../api/client';
 import 'chartjs-adapter-date-fns';
 import AnalysisReport from './AnalysisReport.jsx';
@@ -162,6 +162,42 @@ const StrategyChart = () => {
                 background: {type: ColorType.Solid, color: '#ffffff'},
                 textColor: 'black',
             },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: false,
+                tickMarkFormatter: (time, tickMarkType, locale) => {
+                    const localdate = new Date(time * 1000);
+                    const date = new Date(localdate.getUTCFullYear(), localdate.getUTCMonth(), localdate.getUTCDate(),
+                        localdate.getUTCHours(), localdate.getUTCMinutes(), localdate.getUTCSeconds());
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const hours = date.getHours();
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+                    if (tickMarkType === TickMarkType.Year) {
+                        return date.getFullYear().toString();
+                    } else if (tickMarkType === TickMarkType.Month) {
+                        return `${month}-${day}`;
+                    } else if (tickMarkType === TickMarkType.DayOfMonth) {
+                        return `${month}-${day}`;
+                    } else if (tickMarkType === TickMarkType.Time) {
+                        if (minutes === '00') {
+                            if (hours === 0) {
+                                return `${month}-${day}`;
+                            } else if (hours % 12 === 0) {
+                                return hours === 12 ? '12:00' : '00:00';
+                            } else {
+                                return `${hours}:00`;
+                            }
+                        } else {
+                            return `${hours}:${minutes}`;
+                        }
+                    }
+
+                    // Default case
+                    return `${month}-${day} ${hours}:${minutes}`;
+                },
+            },
             watermark: {
                 color: 'rgba(0, 0, 0, 0.1)',
                 visible: true,
@@ -170,6 +206,11 @@ const StrategyChart = () => {
                 horzAlign: 'center',
                 vertAlign: 'center',
             },
+        });
+
+        chart.timeScale().applyOptions({
+            rightOffset: 12,
+            barSpacing: 8,
         });
 
         chart.applyOptions({
