@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {Box, Button, TextField} from '@mui/material';
 import {authClient} from '../api/apiClient';
-import {Toast} from "./Toast.jsx";
+import {Toast} from "../components/Toast.jsx";
 
-function SignUp({setUser, onSuccess}) {
+function SignUpView({setUser, onSuccess}) {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -112,4 +112,4 @@ function SignUp({setUser, onSuccess}) {
     );
 }
 
-export default SignUp;
+export default SignUpView;

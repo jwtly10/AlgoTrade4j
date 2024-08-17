@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Box, Dialog, DialogContent, DialogTitle, Tab, Tabs} from '@mui/material';
-import Login from './Login';
-import SignUp from './SignUp';
+import LoginView from '../../views/LoginView';
+import SignUpView from '../../views/SignUpView';
 
 function AuthModal({open, onClose, setUser}) {
     const [tabValue, setTabValue] = useState(0);
@@ -21,9 +21,9 @@ function AuthModal({open, onClose, setUser}) {
             <DialogContent>
                 <Box sx={{p: 2}}>
                     {tabValue === 0 ? (
-                        <Login setUser={setUser} onSuccess={onClose}/>
+                        <LoginView setUser={setUser} onSuccess={onClose}/>
                     ) : (
-                        <SignUp setUser={setUser} onSuccess={onClose}/>
+                        <SignUpView setUser={setUser} onSuccess={onClose}/>
                     )}
                 </Box>
             </DialogContent>

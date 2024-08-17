@@ -49,6 +49,60 @@ export const authClient = {
     }
 };
 
+export const adminClient = {
+    createUser: async (userData) => {
+        try {
+            const response = await axiosInstance.post('/auth/signup', userData);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error)
+        }
+    },
+
+    getUsers: async () => {
+        try {
+            const response = await axiosInstance.get('/admin/users');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    updateUser: async (userId, userData) => {
+        try {
+            const response = await axiosInstance.put(`/admin/users/${userId}`, userData);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    changeUserPassword: async (userId, newPassword) => {
+        try {
+            const response = await axiosInstance.post(`/admin/users/${userId}/change-password`, {newPassword});
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    deleteUser: async (userId) => {
+        try {
+            const response = await axiosInstance.delete(`/admin/users/${userId}`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+    getRoles: async () => {
+        try {
+            const response = await axiosInstance.get('/admin/roles');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+};
 export const apiClient = {
     startStrategy: async (config, strategyId) => {
         try {

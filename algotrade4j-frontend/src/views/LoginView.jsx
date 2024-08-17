@@ -2,9 +2,9 @@ import React, {useState} from 'react';
 import {Box, Button, IconButton, InputAdornment, TextField} from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import {authClient} from '../api/apiClient';
-import {Toast} from './Toast'; // Adjust the import path as needed
+import {Toast} from '../components/Toast';
 
-function Login({setUser, onSuccess}) {
+function LoginView({setUser, onSuccess}) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,7 @@ function Login({setUser, onSuccess}) {
             console.error('Login failed:', error);
             setToast({
                 open: true,
-                message: error.response.data.message || 'Invalid username or password',
+                message: error.response.data.message || 'Invalid username or password' + error,
                 severity: 'error',
                 duration: 6000
             });
@@ -86,4 +86,4 @@ function Login({setUser, onSuccess}) {
     );
 }
 
-export default Login;
+export default LoginView;

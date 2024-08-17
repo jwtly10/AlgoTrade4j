@@ -44,18 +44,35 @@ function Navbar({user, setUser}) {
                 </Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', flexGrow: 1}}>
                     {user && (
-                        <Button
-                            color="inherit"
-                            component={Link}
-                            to="/"
-                            sx={{
-                                backgroundColor: isActive('/') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                textTransform: 'none'
-                            }}
-                        >
-                            Home
-                        </Button>
+                        <>
+                            <Button
+                                color="inherit"
+                                component={Link}
+                                to="/"
+                                sx={{
+                                    backgroundColor: isActive('/') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Backtest
+                            </Button>
+                            {user.role === 'ADMIN' && (
+                                <Button
+                                    color="inherit"
+                                    component={Link}
+                                    to="/users"
+                                    sx={{
+                                        backgroundColor: isActive('/users') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                        '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                        textTransform: 'none',
+                                        ml: 1
+                                    }}
+                                >
+                                    Users
+                                </Button>
+                            )}
+                        </>
                     )}
                 </Box>
                 <Box sx={{display: 'flex', alignItems: 'center'}}>
@@ -69,7 +86,7 @@ function Navbar({user, setUser}) {
                                 onClick={handleLogout}
                                 sx={{textTransform: 'none'}}
                             >
-                                (logout)
+                                (Logout)
                             </Button>
                         </>
                     ) : (
