@@ -5,8 +5,8 @@ import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
-import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DataManager;
+import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
@@ -16,13 +16,20 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.marketdata.common.ExternalDataClient;
+import dev.jwtly10.marketdata.common.ExternalDataProvider;
+import dev.jwtly10.marketdata.dataclients.OandaDataClient;
+import dev.jwtly10.marketdata.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +46,13 @@ public class StrategyManager {
     private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
+    @Value("${oanda.api.key}")
+    private String oandaApiKey;
+    @Value("${oanda.account.id}")
+    private String oandaAccountId;
+    @Value("${oanda.api.url}")
+    private String oandaApiUrl;
+
     public StrategyManager(EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
     }
@@ -46,37 +60,37 @@ public class StrategyManager {
     public void startStrategy(StrategyConfig config, String strategyId) {
         // TODO: Validate config
         Duration period = switch (config.getPeriod()) {
-            // TODO: Support other times
-//            case "1m" -> Duration.ofMinutes(1);
-//            case "5m" -> Duration.ofMinutes(5);
-//            case "15m" -> Duration.ofMinutes(15);
-//            case "1H" -> Duration.ofHours(1);
-//            case "4H" -> Duration.ofHours(4);
+            case "1m" -> Duration.ofMinutes(1);
+            case "5m" -> Duration.ofMinutes(5);
+            case "15m" -> Duration.ofMinutes(15);
+            case "1H" -> Duration.ofHours(1);
+            case "4H" -> Duration.ofHours(4);
             case "1D" -> Duration.ofDays(1);
             default -> throw new StrategyManagerException("Invalid duration: " + config.getPeriod(), StrategyManagerException.ErrorType.BAD_REQUEST);
         };
 
         Number spread = config.getSpread();
-
         String symbol = config.getSymbol();
 
-        // TODO: Use timeframe from config in the data service provider ticket
-        CSVDataProvider csvDataProvider = new CSVDataProvider(
-                "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
-                10,
-                spread,
-                period,
-                symbol
-        );
+        OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
+        ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
+
+        // TODO: Refactor times in the system
+        // For now we pass in a UTC time and convert to New York time
+        ZoneId newYorkZone = ZoneId.of("America/New_York");
+        ZonedDateTime from = config.getTimeframe().getFrom().atZone(newYorkZone);
+        ZonedDateTime to = config.getTimeframe().getTo().atZone(newYorkZone);
+        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, symbol, 10, spread, period, from, to);
+
         DataSpeed dataSpeed = config.getSpeed();
 
-        csvDataProvider.setDataSpeed(dataSpeed);
+        dataProvider.setDataSpeed(dataSpeed);
 
         // TODO: How long does this actually equate too?
         int defaultSeriesSize = 4000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager(symbol, csvDataProvider, period, barSeries);
+        DefaultDataManager dataManager = new DefaultDataManager(symbol, dataProvider, period, barSeries);
 
         Tick currentTick = new DefaultTick();
 
