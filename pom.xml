@@ -12,6 +12,7 @@
         <module>algotrade4j-core</module>
         <module>algotrade4j-examples</module>
         <module>algotrade4j-api</module>
+        <module>algotrade4j-market-data</module>
     </modules>
 
     <properties>

@@ -3,26 +3,21 @@ package dev.jwtly10.core.execution;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.event.BarEvent;
-import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.StrategyStopEvent;
+import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.Strategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class BacktestExecutorTest {
@@ -40,93 +35,77 @@ class BacktestExecutorTest {
     @Mock
     private BarSeries barSeries;
     @Mock
-    private PerformanceAnalyser performanceAnalyser;
-    @Mock
     private EventPublisher eventPublisher;
+    @Mock
+    private PerformanceAnalyser performanceAnalyser;
 
-    private BacktestExecutor strategyExecutor;
+    private BacktestExecutor backtestExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(strategy.getStrategyId()).thenReturn("testStrategy");
-        strategyExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+        backtestExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
     }
 
     @Test
-    void testRun() throws Exception {
-        doNothing().when(strategy).onStart();
-        doNothing().when(dataManager).addDataListener(any());
-
-        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-        executor.submit(() -> {
-            try {
-                strategyExecutor.run();
-            } catch (Exception e) {
-                fail("Exception should not be thrown");
-            }
-        });
-
-        TimeUnit.MILLISECONDS.sleep(500); // Give some time for the executor to start
+    void testInitialisation() {
+        assertFalse(backtestExecutor.isInitialised());
+        backtestExecutor.initialise();
+        assertTrue(backtestExecutor.isInitialised());
         verify(strategy).onStart();
-        verify(dataManager).addDataListener(strategyExecutor);
-        verify(dataManager).start();
+        verify(eventPublisher).publishEvent(any(LogEvent.class));
+    }
 
-        when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
-        strategyExecutor.stop();
-        executor.shutdownNow();
+    @Test
+    void testDoubleInitialisation() {
+        backtestExecutor.initialise();
+        backtestExecutor.initialise(); // Should not re-initialize
+        verify(strategy, times(1)).onStart();
     }
 
     @Test
     void testOnTick() {
-        Tick tick = new DefaultTick("AAPL", new Number("150.0"), new Number("150.5"), new Number("149.5"), new Number("150.0"), ZonedDateTime.now());
-        Bar currentBar = new DefaultBar("AAPL", Duration.ofDays(1), ZonedDateTime.now(), new Number("150.0"), new Number("152.0"), new Number("149.0"), new Number("151.5"), new Number("2000"));
-
-        strategyExecutor.setRunning(true);
-        strategyExecutor.onTick(tick, currentBar);
-
-        verify(eventPublisher).publishEvent(any(BarEvent.class));
+        Tick tick = mock(Tick.class);
+        Bar currentBar = mock(Bar.class);
+        backtestExecutor.initialise();
+        backtestExecutor.onTick(tick, currentBar);
         verify(strategy).onTick(tick, currentBar);
         verify(tradeManager).setCurrentTick(tick);
         verify(tradeStateManager).updateTradeStates(accountManager, tradeManager, tick);
-
-        // TODO: Fix this test
-//        when(accountManager)
-//        verify(performanceAnalyser).update(any(Number.class), any(ZonedDateTime.class));
+        when(accountManager.getEquity()).thenReturn(new Number(1000));
     }
 
     @Test
     void testOnBarClose() {
-        Bar closedBar = new DefaultBar("AAPL", Duration.ofDays(1), ZonedDateTime.now(), new Number("150.0"), new Number("152.0"), new Number("149.0"), new Number("151.5"), new Number("2000"));
-        when(accountManager.getBalance()).thenReturn(new Number("10000.0"));
-        when(accountManager.getEquity()).thenReturn(new Number("10000.0"));
-
-        strategyExecutor.setRunning(true);
-        strategyExecutor.onBarClose(closedBar);
-
+        Bar closedBar = mock(Bar.class);
+        backtestExecutor.initialise();
+        backtestExecutor.onBarClose(closedBar);
         verify(strategy).onBarClose(closedBar);
     }
 
     @Test
-    void testStop() throws Exception {
-        when(dataManager.isRunning()).thenReturn(true);
-
+    void testOnStop() {
+        backtestExecutor.initialise();
         when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
-        strategyExecutor.stop();
-
-        verify(dataManager).stop();
+        backtestExecutor.onStop();
         verify(strategy).onDeInit();
+        verify(strategy).onEnd();
         verify(eventPublisher).publishEvent(any(StrategyStopEvent.class));
-        assertFalse(strategyExecutor.isRunning());
+        verify(eventPublisher).publishEvent(any(AnalysisEvent.class));
+        verify(eventPublisher).publishEvent(any(AccountEvent.class));
+        assertFalse(backtestExecutor.isInitialised());
     }
 
     @Test
-    void testOnStop() {
-        when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
-        strategyExecutor.onStop();
-
-        assertFalse(strategyExecutor.isRunning());
-        verify(strategy).onDeInit();
-        verify(eventPublisher).publishEvent(any(StrategyStopEvent.class));
+    void testUninitialisedCalls() {
+        Tick tick = mock(Tick.class);
+        Bar bar = mock(Bar.class);
+        backtestExecutor.onTick(tick, bar);
+        backtestExecutor.onBarClose(bar);
+        backtestExecutor.onStop();
+        verify(strategy, never()).onTick(any(), any());
+        verify(strategy, never()).onBarClose(any());
+        verify(strategy, never()).onDeInit();
     }
 }

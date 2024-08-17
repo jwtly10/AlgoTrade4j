@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * The EventPublisher class is responsible for managing event listeners and publishing events to them.
@@ -14,12 +15,16 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class EventPublisher {
     private final List<EventListener> listeners = new ArrayList<>();
-    private final ExecutorService executorService;
+    private final ExecutorService tickExecutor;
 
 
     public EventPublisher() {
-        // Use virtual threads
-        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+        ThreadFactory threadFactory = r -> {
+            Thread thread = new Thread(r);
+            thread.setName("TickEventProcessor");
+            return thread;
+        };
+        this.tickExecutor = Executors.newSingleThreadExecutor(threadFactory);
     }
 
     /**
@@ -51,17 +56,17 @@ public class EventPublisher {
     public void publishEvent(BaseEvent event) {
         log.debug("Publishing event: {}", event);
         for (EventListener listener : listeners) {
-            executorService.submit(() -> listener.onEvent(event));
+            tickExecutor.submit(() -> listener.onEvent(event));
         }
     }
 
     public void publishErrorEvent(String strategyId, Exception e) {
         for (EventListener listener : listeners) {
-            executorService.submit(() -> listener.onError(strategyId, e));
+            tickExecutor.submit(() -> listener.onError(strategyId, e));
         }
     }
 
     public void shutdown() {
-        executorService.shutdown();
+        tickExecutor.shutdown();
     }
 }

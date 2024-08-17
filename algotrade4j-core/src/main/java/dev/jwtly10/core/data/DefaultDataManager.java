@@ -23,8 +23,9 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private volatile Number currentBid;
     private volatile Number currentAsk;
     private Bar currentBar;
-    private boolean running = false;
     private ZonedDateTime nextBarCloseTime;
+
+    private boolean running = false;
 
     public DefaultDataManager(String symbol, DataProvider dataProvider, Duration barDuration, BarSeries barSeries) {
         this.dataProvider = dataProvider;
@@ -48,11 +49,18 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
     @Override
     public void stop() {
+        if (!running) return;
+
         log.debug("Stopping data manager");
         running = false;
+
+        // Stop the provider if its running
         if (dataProvider.isRunning()) {
             dataProvider.stop();
         }
+
+        // Stop data listeners (AKA strategies)
+        notifyStop();
     }
 
     @Override
@@ -119,8 +127,6 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         currentBar.setCloseTime(nextBarCloseTime.minusSeconds(1));
 
         log.debug("New bar initialized: {}. Next bar close time: {}", currentBar);
-
-
     }
 
     private void updateBar(Tick tick) {
@@ -147,13 +153,23 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         }
     }
 
-    @Override
-    public void onStop() {
-        running = false;
-        // When this stops, we trigger the close of the latest bar
-        closeCurrentBar();
+    private void notifyStop() {
         for (DataListener listener : listeners) {
             listener.onStop();
+        }
+    }
+
+    /*
+     * Called when the provider feed is stopped
+     * This should stop the data manager, and notify all listeners
+     */
+    @Override
+    public void onStop() {
+        if (running) {
+            log.debug("Data provider stopped. Stopping data manager");
+            // When this stops, we trigger the close of the latest bar
+            closeCurrentBar();
+            stop();
         }
     }
 

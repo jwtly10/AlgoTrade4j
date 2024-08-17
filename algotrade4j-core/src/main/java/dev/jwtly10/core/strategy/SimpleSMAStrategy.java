@@ -10,15 +10,25 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SimpleSMAStrategy extends BaseStrategy {
+    @Parameter(name = "smaLength", description = "Length of SMA", value = "20")
+    private int smaLength;
+
+    @Parameter(name = "smaLength2", description = "Length of SMA", value = "20")
+    private int smaLength2;
+
     private SMA sma20;
 
     public SimpleSMAStrategy() {
         super("SimpleSMAStrategy");
     }
 
+    public SimpleSMAStrategy(String strategyId) {
+        super(strategyId);
+    }
+
     @Override
     protected void initIndicators() {
-        sma20 = createIndicator(SMA.class, 20);
+        sma20 = createIndicator(SMA.class, smaLength);
     }
 
     @Override

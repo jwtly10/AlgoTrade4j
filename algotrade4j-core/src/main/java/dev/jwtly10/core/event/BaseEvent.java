@@ -22,7 +22,7 @@ public abstract class BaseEvent {
     /**
      * ObjectMapper instance for JSON processing.
      */
-    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    protected static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     /**
      * Unique identifier for the event.

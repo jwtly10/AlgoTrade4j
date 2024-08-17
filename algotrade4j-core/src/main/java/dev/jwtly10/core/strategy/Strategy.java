@@ -9,6 +9,8 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 
+import java.util.Map;
+
 /**
  * Represents a trading strategy in the AlgoTrade4j framework.
  */
@@ -68,5 +70,7 @@ public interface Strategy {
      * Use this method to perform any cleanup tasks or final calculations.
      */
     void onEnd();
+
+    void setParameters(Map<String, String> parameters) throws IllegalAccessException;
 
 }

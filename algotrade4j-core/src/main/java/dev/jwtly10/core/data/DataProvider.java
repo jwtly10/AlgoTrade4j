@@ -41,4 +41,11 @@ public interface DataProvider {
      * @param listener the data provider listener to add
      */
     void addDataProviderListener(DataProviderListener listener);
+
+    /**
+     * Sets the data speed of the data provider.
+     *
+     * @param dataSpeed the data speed to set
+     */
+    void setDataSpeed(DataSpeed dataSpeed);
 }
