@@ -8,19 +8,48 @@ const axiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: true,
 });
 
-const handleResponse = (response) => {
-    console.log('Request Response: ', response.data);
-    return response.data;
+export const authClient = {
+    login: async (username, password) => {
+        try {
+            const response = await axiosInstance.post('/auth/signin', {username, password});
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    signup: async (signupData) => {
+        try {
+            const response = await axiosInstance.post('/auth/signup', signupData);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    verifyToken: async () => {
+        try {
+            const response = await axiosInstance.get('/auth/verify');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    logout: async () => {
+        try {
+            const response = await axiosInstance.post('/auth/logout');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    }
 };
 
-const handleError = (error) => {
-    console.error('API call failed:', error);
-    throw error;
-};
-
-export const client = {
+export const apiClient = {
     startStrategy: async (config, strategyId) => {
         try {
             const response = await axiosInstance.post('/strategies/start?strategyId=' + strategyId, config);
@@ -108,4 +137,15 @@ export const client = {
             return handleError(error);
         }
     }
+};
+
+
+const handleResponse = (response) => {
+    console.log('Request Response: ', response.data);
+    return response.data;
+};
+
+const handleError = (error) => {
+    console.error('API call failed:', error);
+    throw error;
 };

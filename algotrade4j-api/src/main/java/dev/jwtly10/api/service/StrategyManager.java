@@ -1,5 +1,6 @@
 package dev.jwtly10.api.service;
 
+import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.core.account.AccountManager;
@@ -66,7 +67,7 @@ public class StrategyManager {
             case "1H" -> Duration.ofHours(1);
             case "4H" -> Duration.ofHours(4);
             case "1D" -> Duration.ofDays(1);
-            default -> throw new StrategyManagerException("Invalid duration: " + config.getPeriod(), StrategyManagerException.ErrorType.BAD_REQUEST);
+            default -> throw new StrategyManagerException("Invalid duration: " + config.getPeriod(), ErrorType.BAD_REQUEST);
         };
 
         Number spread = config.getSpread();
@@ -103,7 +104,7 @@ public class StrategyManager {
             strategy.setParameters(runParams);
         } catch (IllegalAccessException e) {
             log.error("Error setting parameters for strategy: {}", strategy.getStrategyId(), e);
-            throw new StrategyManagerException("Error setting parameters for strategy: " + strategy.getStrategyId(), StrategyManagerException.ErrorType.INTERNAL_ERROR);
+            throw new StrategyManagerException("Error setting parameters for strategy: " + strategy.getStrategyId(), ErrorType.INTERNAL_ERROR);
         }
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
@@ -172,7 +173,7 @@ public class StrategyManager {
             ParameterHandler.initialize(strategy);
         } catch (IllegalAccessException e) {
             log.error("Error initializing parameters for strategy: {}", strategyClass, e);
-            throw new StrategyManagerException("Error initializing parameters for strategy: " + strategyClass, StrategyManagerException.ErrorType.INTERNAL_ERROR);
+            throw new StrategyManagerException("Error initializing parameters for strategy: " + strategyClass, ErrorType.INTERNAL_ERROR);
         }
         return ParameterHandler.getParameters(strategy);
     }
@@ -224,7 +225,7 @@ public class StrategyManager {
             return strategy;
         } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             log.error("Error initializing strategy: {}", className, e);
-            throw new StrategyManagerException("Error getting strategy from " + className + ": " + e.getClass() + " " + e.getMessage(), StrategyManagerException.ErrorType.INTERNAL_ERROR);
+            throw new StrategyManagerException("Error getting strategy from " + className + ": " + e.getClass() + " " + e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
     }
 

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
-import {client} from '../api/client';
+import {apiClient} from '../api/apiClient.js';
 import 'chartjs-adapter-date-fns';
 import AnalysisReport from './AnalysisReport.jsx';
 import {EquityChart} from './EquityChart.jsx';
@@ -84,7 +84,7 @@ const StrategyChart = () => {
     useEffect(() => {
         const fetchStrategies = async () => {
             try {
-                const res = await client.getStrategies()
+                const res = await apiClient.getStrategies()
                 setStrategies(res)
             } catch (error) {
                 console.error('Failed to get strategies:', error);
@@ -372,7 +372,7 @@ const StrategyChart = () => {
             const oId = crypto.randomUUID()
             setOptimisationId(oId)
             try {
-                await client.startOptimisation(hackConfig, oId)
+                await apiClient.startOptimisation(hackConfig, oId)
                 console.log('Optimisation started');
                 setToast({
                     open: true,
@@ -395,14 +395,14 @@ const StrategyChart = () => {
         try {
             console.log('Starting strategy with config:', strategyConfig);
 
-            const generatedIdForClass = await client.generateId(hackConfig)
+            const generatedIdForClass = await apiClient.generateId(hackConfig)
 
-            socketRef.current = await client.connectWebSocket(
+            socketRef.current = await apiClient.connectWebSocket(
                 generatedIdForClass,
                 handleWebSocketMessage
             );
             console.log('WebSocket connected');
-            await client.startStrategy(hackConfig, generatedIdForClass);
+            await apiClient.startStrategy(hackConfig, generatedIdForClass);
         } catch (error) {
             console.error('Failed to start strategy:', error);
             setToast({
@@ -631,7 +631,7 @@ const StrategyChart = () => {
 
     const getParams = async (stratClass) => {
         try {
-            return await client.getParams(stratClass);
+            return await apiClient.getParams(stratClass);
         } catch (error) {
             console.error('Failed to get strategy params:', error);
             setToast({
@@ -694,16 +694,11 @@ const StrategyChart = () => {
     return (
         <Paper elevation={3} className="chart-container" sx={{p: 3, mb: 3}}>
             <Grid container spacing={3}>
-                <Grid item xs={12}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        AlgoTrade4J
-                    </Typography>
-                </Grid>
                 <Grid item xs={12} container alignItems="center" spacing={2}>
-                    <Grid item xs={4}>
+                    <Grid item xs={4} lg={8}>
                         <Typography variant="subtitle1">Strategy:</Typography>
                     </Grid>
-                    <Grid item xs={8}>
+                    <Grid item xs={8} lg={4}>
                         <Select
                             value={strategyClass}
                             onChange={handleChangeStrategy}

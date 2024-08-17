@@ -1,5 +1,6 @@
 package dev.jwtly10.api.controller;
 
+import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.api.service.OptimisationManager;
@@ -34,7 +35,7 @@ public class OptimisationController {
         if (results != null) {
             return ResponseEntity.ok(results);
         } else {
-            throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, StrategyManagerException.ErrorType.NOT_FOUND);
+            throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, ErrorType.NOT_FOUND);
         }
     }
 }
