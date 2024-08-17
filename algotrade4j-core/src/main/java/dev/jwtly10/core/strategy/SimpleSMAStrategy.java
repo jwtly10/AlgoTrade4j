@@ -13,11 +13,17 @@ public class SimpleSMAStrategy extends BaseStrategy {
     @Parameter(name = "smaLength", description = "Length of SMA", value = "20")
     private int smaLength;
 
+    @Parameter(name = "smaLength2", description = "Length of SMA", value = "20")
+    private int smaLength2;
 
     private SMA sma20;
 
     public SimpleSMAStrategy() {
         super("SimpleSMAStrategy");
+    }
+
+    public SimpleSMAStrategy(String strategyId) {
+        super(strategyId);
     }
 
     @Override

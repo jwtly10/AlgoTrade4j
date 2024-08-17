@@ -21,9 +21,9 @@ const handleError = (error) => {
 };
 
 export const client = {
-    startStrategy: async (config) => {
+    startStrategy: async (config, strategyId) => {
         try {
-            const response = await axiosInstance.post('/strategies/start', config);
+            const response = await axiosInstance.post('/strategies/start?strategyId=' + strategyId, config);
             return handleResponse(response);
         } catch (error) {
             return handleError(error);
@@ -39,12 +39,38 @@ export const client = {
         }
     },
 
+    generateId: async (config) => {
+        try {
+            const response = await axiosInstance.post('/strategies/generate-id', config);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    getParams: async (strategyId) => {
+        try {
+            const response = await axiosInstance.get(`/strategies/${strategyId}/params`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
+    getStrategies: async () => {
+        try {
+            const response = await axiosInstance.get('/strategies');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
             const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
 
             socket.onopen = () => {
-                console.log('WebSocket connected');
                 socket.send(`STRATEGY:${strategyId}`);
                 resolve(socket);
             };
@@ -64,4 +90,22 @@ export const client = {
             };
         });
     },
+
+    startOptimisation: async (config, id) => {
+        try {
+            const response = await axiosInstance.post('/optimisation/start?optimisationId=' + id, config);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error)
+        }
+    },
+
+    getOptimisationResults: async (id) => {
+        try {
+            const response = await axiosInstance.get(`/optimisation/${id}/results`);
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    }
 };

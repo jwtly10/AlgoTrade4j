@@ -18,7 +18,6 @@ public class EventPublisher {
 
 
     public EventPublisher() {
-        // Use virtual threads
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 

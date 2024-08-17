@@ -1,6 +1,7 @@
 package dev.jwtly10.api.service;
 
 import dev.jwtly10.core.event.BaseEvent;
+import dev.jwtly10.core.event.ErrorEvent;
 import dev.jwtly10.core.event.EventListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.TextMessage;
@@ -17,14 +18,16 @@ public class WebSocketEventListener implements EventListener {
     private final Set<Class<? extends BaseEvent>> subscribedEventTypes = new HashSet<>();
     private final AtomicBoolean isActive = new AtomicBoolean(true);
     private final Object lock = new Object();
+    private final String strategyId;
 
-    public WebSocketEventListener(WebSocketSession session) {
+    public WebSocketEventListener(WebSocketSession session, String strategyId) {
         this.session = session;
+        this.strategyId = strategyId;
     }
 
     @Override
     public void onEvent(BaseEvent event) {
-        if (!isActive.get() || !subscribedEventTypes.contains(event.getClass())) {
+        if (!isActive.get() || !subscribedEventTypes.contains(event.getClass()) || !event.getStrategyId().equals(this.strategyId)) {
             return;
         }
 
@@ -42,11 +45,10 @@ public class WebSocketEventListener implements EventListener {
         }
     }
 
-
     @Override
     public void onError(String strategyId, Exception e) {
         try {
-            session.sendMessage(new TextMessage("{\"error\": \"" + e.getMessage() + "\"}"));
+            session.sendMessage(new TextMessage(new ErrorEvent(strategyId, e.getMessage()).toJson()));
         } catch (IOException ex) {
             log.error("Failed to send error message to WS session", ex);
         } catch (Exception ex) {

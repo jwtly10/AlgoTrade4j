@@ -14,6 +14,9 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Abstract base class for trading strategies.
@@ -154,6 +157,34 @@ public abstract class BaseStrategy implements Strategy {
      */
     public Number Bid() {
         return dataManager.getCurrentBid();
+    }
+
+    /**
+     * Sets the parameters of the strategy.
+     *
+     * @param parameters the parameters
+     * @throws IllegalAccessException if the parameters cannot be set
+     */
+    public void setParameters(Map<String, String> parameters) throws IllegalAccessException {
+        ParameterHandler.setParameters(this, parameters);
+    }
+
+    /**
+     * Returns the current parameters of the strategy.
+     *
+     * @return the current parameters
+     * @throws IllegalAccessException if the parameters cannot be accessed
+     */
+    public Map<String, String> getCurrentParameters() throws IllegalAccessException {
+        Map<String, String> currentParams = new HashMap<>();
+        for (Field field : getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(Parameter.class)) {
+                Parameter param = field.getAnnotation(Parameter.class);
+                field.setAccessible(true);
+                currentParams.put(param.name(), field.get(this).toString());
+            }
+        }
+        return currentParams;
     }
 
     /**

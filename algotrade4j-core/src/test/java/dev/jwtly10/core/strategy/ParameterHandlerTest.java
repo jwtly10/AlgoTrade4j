@@ -5,6 +5,7 @@ import dev.jwtly10.core.model.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,16 +20,26 @@ class ParameterHandlerTest {
     }
 
     @Test
-    void testGetParameters() {
-        Map<String, String> params = ParameterHandler.getParameters(testStrategy);
+    void testGetParameters() throws IllegalAccessException {
+        ParameterHandler.initialize(testStrategy);
+        List<ParameterHandler.ParameterInfo> params = ParameterHandler.getParameters(testStrategy);
 
-        assertEquals(5, params.size());
-        assertEquals("10", params.get("intParam"));
-        assertEquals("3.14", params.get("doubleParam"));
-        assertEquals("default", params.get("stringParam"));
-        assertEquals("VALUE2", params.get("enumParam"));
-        assertEquals("true", params.get("booleanParam"));
+        assertParameter(params, "intParam", "10");
+        assertParameter(params, "doubleParam", "3.14");
+        assertParameter(params, "stringParam", "default");
+        assertParameter(params, "enumParam", "VALUE2");
+        assertParameter(params, "booleanParam", "true");
     }
+
+    private void assertParameter(List<ParameterHandler.ParameterInfo> params, String name, String expectedValue) {
+        assertTrue(params.stream()
+                        .filter(p -> p.getName().equals(name))
+                        .findFirst()
+                        .map(p -> p.getValue().equals(expectedValue))
+                        .orElse(false),
+                "Parameter '" + name + "' should have value '" + expectedValue + "'");
+    }
+
 
     @Test
     void testValidateParameters() {
@@ -66,6 +77,23 @@ class ParameterHandlerTest {
         ParameterHandler.setParameter(testStrategy, "enumParam", "VALUE3");
         ParameterHandler.setParameter(testStrategy, "booleanParam", "false");
 
+        assertEquals(20, testStrategy.intParam);
+        assertEquals(6.28, testStrategy.doubleParam, 0.001);
+        assertEquals("newValue", testStrategy.stringParam);
+        assertEquals(TestEnum.VALUE3, testStrategy.enumParam);
+        assertFalse(testStrategy.booleanParam);
+    }
+
+    @Test
+    void testSetParameters() {
+        Map<String, String> parameters = Map.of(
+                "intParam", "20",
+                "doubleParam", "6.28",
+                "stringParam", "newValue",
+                "enumParam", "VALUE3",
+                "booleanParam", "false"
+        );
+        assertDoesNotThrow(() -> ParameterHandler.setParameters(testStrategy, parameters));
         assertEquals(20, testStrategy.intParam);
         assertEquals(6.28, testStrategy.doubleParam, 0.001);
         assertEquals("newValue", testStrategy.stringParam);

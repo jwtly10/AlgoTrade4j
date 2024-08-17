@@ -19,14 +19,15 @@ class DefaultTradeManagerTest {
     private final String SYMBOL = "BTCUSD";
     private DefaultTradeManager backtestTradeManager;
     private EventPublisher mockEventPublisher;
-    private Tick currentTick;
+    private Tick mockCurrentTick;
     private BarSeries mockBarSeries;
 
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
         mockBarSeries = mock(DefaultBarSeries.class);
-        backtestTradeManager = new DefaultTradeManager(currentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
+        mockCurrentTick = mock(DefaultTick.class);
+        backtestTradeManager = new DefaultTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
     }
 
     @Test
@@ -34,6 +35,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("50000"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -56,6 +59,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("50000"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -79,6 +84,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -103,6 +110,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -127,6 +136,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -154,6 +165,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -180,6 +193,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
@@ -206,6 +221,8 @@ class DefaultTradeManagerTest {
         TradeParameters params = new TradeParameters();
         params.setSymbol(SYMBOL);
         params.setEntryPrice(new Number("10"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
         params.setRiskPercentage(new Number("1"));
