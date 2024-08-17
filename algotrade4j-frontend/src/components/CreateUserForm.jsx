@@ -25,6 +25,26 @@ const CreateUserForm = ({onSubmit, roles}) => {
                 margin="normal"
                 required
                 fullWidth
+                name="firstName"
+                label="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                autoComplete="off"
+            />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="lastName"
+                label="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                autoComplete="off"
+            />
+            <TextField
+                margin="normal"
+                required
+                fullWidth
                 name="username"
                 label="Username"
                 value={formData.username}
@@ -50,26 +70,6 @@ const CreateUserForm = ({onSubmit, roles}) => {
                 label="Password"
                 type="password"
                 value={formData.password}
-                onChange={handleChange}
-                autoComplete="off"
-            />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="firstName"
-                label="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-                autoComplete="off"
-            />
-            <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="lastName"
-                label="Last Name"
-                value={formData.lastName}
                 onChange={handleChange}
                 autoComplete="off"
             />

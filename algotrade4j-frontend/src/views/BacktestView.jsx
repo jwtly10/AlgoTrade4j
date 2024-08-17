@@ -698,7 +698,14 @@ const BacktestView = () => {
                 <Select
                     value={strategyClass}
                     onChange={handleChangeStrategy}
-                    sx={{width: '25%'}}
+                    sx={{
+                        width: '25%',
+                        height: '36.5px', // Match Button height
+                        '.MuiSelect-select': {
+                            padding: '8px 14px', // Adjust padding
+                            lineHeight: '1.4', // Adjust line height
+                        }
+                    }}
                     displayEmpty
                     renderValue={(selected) => {
                         if (!selected) {

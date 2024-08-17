@@ -4,7 +4,7 @@ import {Toast} from "../components/Toast.jsx";
 import EditIcon from '@mui/icons-material/Edit';
 import LockIcon from '@mui/icons-material/Lock';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {Box, Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from "@mui/material";
+import {Box, Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from "@mui/material";
 import CreateUserForm from "../components/CreateUserForm.jsx";
 
 
@@ -183,10 +183,10 @@ const UserManagementView = ({loggedInUser}) => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Username</TableCell>
-                            <TableCell>Email</TableCell>
                             <TableCell>First Name</TableCell>
                             <TableCell>Last Name</TableCell>
+                            <TableCell sx={{fontWeight: 'bold'}}>Username</TableCell>
+                            <TableCell>Email</TableCell>
                             <TableCell>Role</TableCell>
                             <TableCell>Created</TableCell>
                             <TableCell>Last Updated</TableCell>
@@ -196,10 +196,10 @@ const UserManagementView = ({loggedInUser}) => {
                     <TableBody>
                         {users.map((user) => (
                             <TableRow key={user.id}>
-                                <TableCell>{user.username}</TableCell>
-                                <TableCell>{user.email}</TableCell>
                                 <TableCell>{user.firstName}</TableCell>
                                 <TableCell>{user.lastName}</TableCell>
+                                <TableCell sx={{fontWeight: 'bold'}}>{user.username}</TableCell>
+                                <TableCell>{user.email}</TableCell>
                                 <TableCell>{user.role}</TableCell>
                                 <TableCell>{formatDate(user.createdAt)}</TableCell>
                                 <TableCell>{formatDate(user.updatedAt)}</TableCell>
@@ -235,22 +235,6 @@ const UserManagementView = ({loggedInUser}) => {
                 <DialogTitle>Edit User</DialogTitle>
                 <DialogContent>
                     <TextField
-                        label="Username"
-                        value={selectedUser?.username || ''}
-                        onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
-                        fullWidth
-                        margin="normal"
-                        autoComplete="off"
-                    />
-                    <TextField
-                        label="Email"
-                        value={selectedUser?.email || ''}
-                        onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
-                        fullWidth
-                        margin="normal"
-                        autoComplete="off"
-                    />
-                    <TextField
                         label="First Name"
                         value={selectedUser?.firstName || ''}
                         onChange={(e) => setSelectedUser({...selectedUser, firstName: e.target.value})}
@@ -266,26 +250,50 @@ const UserManagementView = ({loggedInUser}) => {
                         margin="normal"
                         autoComplete="off"
                     />
-                    <Select
-                        value={selectedUser?.role || ''}
-                        onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}
+                    <TextField
+                        label="Username"
+                        value={selectedUser?.username || ''}
+                        onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
                         fullWidth
                         margin="normal"
-                    >
-                        {roles.map((role) => (
-                            <MenuItem key={role} value={role}>{role}</MenuItem>
-                        ))}
-                    </Select>
+                        autoComplete="off"
+                    />
+                    <TextField
+                        label="Email"
+                        value={selectedUser?.email || ''}
+                        onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
+                        fullWidth
+                        margin="normal"
+                        autoComplete="off"
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="role-select-label">Role</InputLabel>
+                        <Select
+                            labelId="role-select-label"
+                            value={selectedUser?.role || ''}
+                            onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}
+                            label="Role"
+                        >
+                            {roles.map((role) => (
+                                <MenuItem key={role} value={role}>{role}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </DialogContent>
                 <DialogActions sx={{p: 3}}>
-                    <Button onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => setIsEditDialogOpen(false)} variant="outlined">Cancel</Button>
                     <Button onClick={handleSaveUser} variant="contained">Save</Button>
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={isPasswordDialogOpen} onClose={() => setIsPasswordDialogOpen(false)} sx={{p: 3}}>
-                <DialogTitle>Change Password</DialogTitle>
-                <DialogContent>
+            <Dialog
+                open={isPasswordDialogOpen}
+                onClose={() => setIsPasswordDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{fontSize: '1.5rem', pt: 3, px: 4}}>Change Password</DialogTitle>
+                <DialogContent sx={{p: 4}}>
                     <TextField
                         label="New Password"
                         type="password"
@@ -293,11 +301,23 @@ const UserManagementView = ({loggedInUser}) => {
                         onChange={(e) => setNewPassword(e.target.value)}
                         fullWidth
                         margin="normal"
+                        variant="outlined"
                     />
                 </DialogContent>
-                <DialogActions sx={{p: 3}}>
-                    <Button onClick={() => setIsPasswordDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleChangePassword} variant="contained">Save</Button>
+                <DialogActions sx={{p: 4}}>
+                    <Button
+                        onClick={() => setIsPasswordDialogOpen(false)}
+                        variant="outlined"
+                        sx={{mr: 1}}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleChangePassword}
+                        variant="contained"
+                    >
+                        Save
+                    </Button>
                 </DialogActions>
             </Dialog>
             <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>

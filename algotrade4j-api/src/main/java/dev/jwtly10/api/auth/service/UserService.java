@@ -38,6 +38,18 @@ public class UserService {
     }
 
     public User updateUser(Long userId, User updatedUser) {
+        // Check username exists
+        User userWithUsername = userRepository.findByUsername(updatedUser.getUsername()).orElse(null);
+        if (userWithUsername != null && !userWithUsername.getId().equals(userId)) {
+            throw new RuntimeException("Username is already taken!");
+        }
+
+        // Check email exists
+        User userWithEmail = userRepository.findByEmail(updatedUser.getEmail()).orElse(null);
+        if (userWithEmail != null && !userWithEmail.getId().equals(userId)) {
+            throw new RuntimeException("Email is already taken!");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setUsername(updatedUser.getUsername());
