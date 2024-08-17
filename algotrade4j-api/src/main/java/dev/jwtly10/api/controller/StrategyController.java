@@ -1,5 +1,6 @@
 package dev.jwtly10.api.controller;
 
+import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.api.service.StrategyManager;
@@ -17,7 +18,6 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/strategies")
-@CrossOrigin(origins = "*")
 @Slf4j
 public class StrategyController {
 
@@ -53,18 +53,18 @@ public class StrategyController {
                 Thread.sleep(200); // Wait for 200ms before retrying
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new StrategyManagerException("Interrupted while waiting for session/listener", StrategyManagerException.ErrorType.INTERNAL_ERROR);
+                throw new StrategyManagerException("Interrupted while waiting for session/listener", ErrorType.INTERNAL_ERROR);
             }
         }
 
         if (session == null) {
             log.error("Failed to start strategy: no session for ID {} after {} attempts", strategyId, attempts);
-            throw new StrategyManagerException("Failed to start strategy: no session for ID " + strategyId, StrategyManagerException.ErrorType.BAD_REQUEST);
+            throw new StrategyManagerException("Failed to start strategy: no session for ID " + strategyId, ErrorType.BAD_REQUEST);
         }
 
         if (listener == null) {
             log.error("Failed to start strategy: no listener for session {} after {} attempts", session, attempts);
-            throw new StrategyManagerException("Failed to start strategy: no listener for session " + session, StrategyManagerException.ErrorType.BAD_REQUEST);
+            throw new StrategyManagerException("Failed to start strategy: no listener for session " + session, ErrorType.BAD_REQUEST);
         }
 
         subscribeToEvents(listener);
@@ -98,7 +98,7 @@ public class StrategyController {
             return ResponseEntity.ok("Stopped strategy: " + strategyId);
         } else {
             log.warn("Failed to stop strategy: {}", strategyId);
-            throw new StrategyManagerException("Failed to stop strategy: " + strategyId, StrategyManagerException.ErrorType.BAD_REQUEST);
+            throw new StrategyManagerException("Failed to stop strategy: " + strategyId, ErrorType.BAD_REQUEST);
         }
     }
 

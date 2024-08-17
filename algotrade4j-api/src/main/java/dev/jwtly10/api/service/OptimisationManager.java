@@ -1,5 +1,6 @@
 package dev.jwtly10.api.service;
 
+import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.api.utils.ConfigConverter;
@@ -34,7 +35,7 @@ public class OptimisationManager {
                 optimisationResults.put(optimisationId, results);
             } catch (Exception e) {
                 log.error("Failed to start optimisation", e);
-                throw new StrategyManagerException("Failed to start optimisation: " + e.getMessage(), StrategyManagerException.ErrorType.BAD_REQUEST);
+                throw new StrategyManagerException("Failed to start optimisation: " + e.getMessage(), ErrorType.BAD_REQUEST);
             }
         });
     }

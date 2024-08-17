@@ -1,5 +1,6 @@
 package dev.jwtly10.api.utils;
 
+import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
@@ -21,7 +22,7 @@ public class ConfigConverter {
 //            case "1H" -> Duration.ofHours(1);
 //            case "4H" -> Duration.ofHours(4);
             case "1D" -> Duration.ofDays(1);
-            default -> throw new StrategyManagerException("Invalid duration: " + strategyConfig.getPeriod(), StrategyManagerException.ErrorType.BAD_REQUEST);
+            default -> throw new StrategyManagerException("Invalid duration: " + strategyConfig.getPeriod(), ErrorType.BAD_REQUEST);
         };
         optimisationConfig.setPeriod(period);
         optimisationConfig.setStrategyClass(strategyConfig.getStrategyClass());

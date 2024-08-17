@@ -1,12 +1,16 @@
 package dev.jwtly10.api.models;
 
-import dev.jwtly10.api.exception.StrategyManagerException;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import dev.jwtly10.api.exception.ErrorType;
+import lombok.Getter;
 
-@Data
-@AllArgsConstructor
+@Getter
 public class ErrorResponse {
-    private String message;
-    private StrategyManagerException.ErrorType errorType;
+    private final String message;
+    private final ErrorType errorType;
+
+    public ErrorResponse(String message, ErrorType errorType) {
+        this.message = message;
+        this.errorType = errorType;
+    }
+
 }

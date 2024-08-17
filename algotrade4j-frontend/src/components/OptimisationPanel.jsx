@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {client} from '../api/client';
+import {apiClient} from '../api/apiClient.js';
 import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel} from "@mui/material";
 
 const STORAGE_KEY = 'latestOptimisationResults';
@@ -29,7 +29,7 @@ export const OptimisationPanel = ({setToast, optimisationId}) => {
     const handleRefresh = async () => {
         if (optimisationId !== "") {
             try {
-                const results = await client.getOptimisationResults(optimisationId);
+                const results = await apiClient.getOptimisationResults(optimisationId);
                 setOptimisationResults(results);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
                     id: optimisationId,
