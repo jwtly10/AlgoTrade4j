@@ -50,12 +50,12 @@ function Navbar({user, setUser}) {
                                 component={Link}
                                 to="/"
                                 sx={{
-                                    backgroundColor: isActive('/') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                    backgroundColor: isActive('/backtest') ? 'rgba(255,255,255,0.2)' : 'transparent',
                                     '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
                                     textTransform: 'none'
                                 }}
                             >
-                                Backtest
+                                Run Backtests
                             </Button>
                             {user.role === 'ADMIN' && (
                                 <Button
@@ -69,7 +69,7 @@ function Navbar({user, setUser}) {
                                         ml: 1
                                     }}
                                 >
-                                    Users
+                                    Manage Users
                                 </Button>
                             )}
                         </>
