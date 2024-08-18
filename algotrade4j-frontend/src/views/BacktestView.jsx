@@ -285,7 +285,7 @@ const BacktestView = () => {
             }
         });
 
-        addTradePriceLines(chart, candlestickSeries, trades);
+        // addTradePriceLines(chart, candlestickSeries, trades);
 
         const openMarkers = trades.map((trade) => ({
             time: trade.openTime,
