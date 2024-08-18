@@ -63,7 +63,6 @@ public class OandaClient {
             }
 
             String response = res.body().string();
-            log.debug("Response: {}", response);
 
             OandaCandleResponse candleResponse = objectMapper.readValue(response, OandaCandleResponse.class);
             return convertOandaCandles(candleResponse);
