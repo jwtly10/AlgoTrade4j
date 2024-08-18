@@ -153,17 +153,29 @@ class CSVDataProviderTest {
 
     @Test
     void testEdgeCases() throws IOException, DataProviderException {
-        // Test with minimum allowed ticks per bar (4)
-        testEdgeCase(4, Duration.ofMinutes(1), 3);
+        // Here we are checking OHLC prices and timestamps for any edge cases in the random tick generation logic
+        // Ensuring they are all being hit
 
-        // Test with a large number of ticks per bar
-        testEdgeCase(100, Duration.ofMinutes(1), 3);
+        // Since tick generation is random, we run this multiple times to ensure ample opportunity to meet edge cases.
+        // This will model 100k+ ticks, validating all OHCL vals are met
+        int i;
+        for (i = 0; i < 100; i++) {
+            testEdgeCase(5, Duration.ofMinutes(1), 3);
+            // Test with minimum allowed ticks per bar (4)
+            testEdgeCase(4, Duration.ofMinutes(1), 3);
 
-        // Test with a very short duration
-        testEdgeCase(5, Duration.ofSeconds(1), 3);
+            // Test with a large number of ticks per bar
+            testEdgeCase(100, Duration.ofMinutes(1), 3);
 
-        // Test with a very long duration
-        testEdgeCase(5, Duration.ofDays(7), 3);
+            // Test with an even larger number of ticks per bar
+            testEdgeCase(1000, Duration.ofMinutes(1), 3);
+
+            // Test with a very short duration
+            testEdgeCase(5, Duration.ofSeconds(1), 3);
+
+            // Test with a very long duration
+            testEdgeCase(5, Duration.ofDays(7), 3);
+        }
     }
 
     @Test
@@ -224,8 +236,8 @@ class CSVDataProviderTest {
             boolean hitLow = false;
             for (Tick tick : barTicks) {
                 double price = tick.getMid().getValue().doubleValue();
-                if (Math.abs(price - 105.0) < 0.0001) hitHigh = true;
-                if (Math.abs(price - 98.0) < 0.0001) hitLow = true;
+                if (price == 105.0) hitHigh = true;
+                if (price == 98.0) hitLow = true;
             }
             assertTrue(hitHigh, "Should hit high price in bar " + i);
             assertTrue(hitLow, "Should hit low price in bar " + i);
