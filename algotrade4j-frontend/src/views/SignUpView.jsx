@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box, Button, TextField} from '@mui/material';
+import {Box, Button, TextField, Typography} from '@mui/material';
 import {authClient} from '../api/apiClient';
 import {Toast} from "../components/Toast.jsx";
 
@@ -46,6 +46,22 @@ function SignUpView({setUser, onSuccess}) {
             });
         }
     };
+
+    const isSignUpEnabled = import.meta.env.VITE_ENABLE_SIGNUP === 'true';
+    if (!isSignUpEnabled) {
+        return (
+            <Box sx={{textAlign: 'center', pb: 3}}>
+                <Typography variant="h6" gutterBottom>
+                    Sign Up Unavailable
+                </Typography>
+                <Typography variant="body1">
+                    We're sorry, but sign up is currently not available.
+                    <br/>
+                    This is probably a privately hosted instance of AlgoTrade4J. Please contact the owner for more information.
+                </Typography>
+            </Box>
+        );
+    }
 
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{mt: 1}}>
