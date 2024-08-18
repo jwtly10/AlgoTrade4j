@@ -76,11 +76,10 @@ public class StrategyManager {
         OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
 
-        // TODO: Refactor times in the system
-        // For now we pass in a UTC time and convert to New York time
-        ZoneId newYorkZone = ZoneId.of("America/New_York");
-        ZonedDateTime from = config.getTimeframe().getFrom().atZone(newYorkZone);
-        ZonedDateTime to = config.getTimeframe().getTo().atZone(newYorkZone);
+        // Ensure utc
+        ZoneId utcZone = ZoneId.of("UTC");
+        ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
+        ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
         DataProvider dataProvider = new ExternalDataProvider(externalDataClient, symbol, 10, spread, period, from, to);
 
         DataSpeed dataSpeed = config.getSpeed();

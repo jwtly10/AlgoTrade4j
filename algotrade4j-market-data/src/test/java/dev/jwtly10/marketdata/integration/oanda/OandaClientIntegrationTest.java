@@ -37,6 +37,7 @@ class OandaClientIntegrationTest {
         oandaClient = new OandaClient(apiKey, accountId, baseUrl, httpClient, objectMapper);
     }
 
+    // TODO: This fails on weekends lol
     @Test
     void testFetchBarsIntegration() {
         ZoneId newYorkZone = ZoneId.of("America/New_York");
