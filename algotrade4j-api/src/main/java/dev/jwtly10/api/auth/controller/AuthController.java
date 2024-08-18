@@ -11,6 +11,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -37,6 +39,9 @@ public class AuthController {
     final JwtUtils jwtUtils;
 
     final UserDetailsServiceImpl userDetailsService;
+
+    @Value("${app.signup.enabled:false}")
+    private boolean signupEnabled;
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, PasswordEncoder encoder, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.authenticationManager = authenticationManager;
@@ -129,6 +134,12 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        if (!signupEnabled) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse("Error: Sign-up is currently disabled."));
+        }
+
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()

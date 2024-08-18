@@ -75,6 +75,19 @@ public class UserService {
         user.setRole(Role.BASIC_USER);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+
+        // Check username exists
+        User userWithUsername = userRepository.findByUsername(user.getUsername()).orElse(null);
+        if (userWithUsername != null) {
+            throw new RuntimeException("Username is already taken!");
+        }
+
+        // Check email exists
+        User userWithEmail = userRepository.findByEmail(user.getEmail()).orElse(null);
+        if (userWithEmail != null) {
+            throw new RuntimeException("Email is already taken!");
+        }
+
         return userRepository.save(user);
     }
 

@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-const WS_BASE_URL = 'ws://localhost:8080/ws/v1';
+const DEFAULT_API_URL = 'http://localhost:8080';
+
+const API_BASE_URL = `${import.meta.env.VITE_API_URL || DEFAULT_API_URL}/api/v1`;
+const WS_BASE_URL = `${(import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace('http', 'ws')}/ws/v1`;
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -52,7 +54,7 @@ export const authClient = {
 export const adminClient = {
     createUser: async (userData) => {
         try {
-            const response = await axiosInstance.post('/auth/signup', userData);
+            const response = await axiosInstance.post('/admin/users', userData);
             return handleResponse(response);
         } catch (error) {
             return handleError(error)
