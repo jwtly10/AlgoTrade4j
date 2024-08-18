@@ -1,4 +1,4 @@
-name: Deploy latest Docker image Algotrade4j
+name: Main Branch CI - Run Tests and Deploy
 
 on:
   push:
