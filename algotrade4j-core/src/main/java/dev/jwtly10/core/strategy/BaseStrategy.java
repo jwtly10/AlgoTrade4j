@@ -6,10 +6,8 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,9 +30,9 @@ public abstract class BaseStrategy implements Strategy {
     protected final String strategyId;
 
     /**
-     * The symbol associated with the strategy.
+     * The instrument associated with the strategy.
      */
-    public String SYMBOL;
+    public Instrument SYMBOL;
 
     /**
      * The series of bars used by the strategy.
@@ -204,7 +202,7 @@ public abstract class BaseStrategy implements Strategy {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.eventPublisher = eventPublisher;
-        this.SYMBOL = dataManager.getSymbol();
+        this.SYMBOL = dataManager.getInstrument();
         this.performanceAnalyser = performanceAnalyser;
         try {
             ParameterHandler.initialize(this);

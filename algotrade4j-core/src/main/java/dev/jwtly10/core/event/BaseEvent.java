@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.jwtly10.core.model.Instrument;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,9 +36,9 @@ public abstract class BaseEvent {
     private final String type;
 
     /**
-     * Symbol associated with the event.
+     * Instrument associated with the event.
      */
-    private final String symbol;
+    private final Instrument instrument;
 
     /**
      * Strategy identifier associated with the event.
@@ -51,19 +52,19 @@ public abstract class BaseEvent {
     private ZonedDateTime timestamp;
 
     /**
-     * Constructs a BaseEvent with the specified strategy ID, type, and symbol.
+     * Constructs a BaseEvent with the specified strategy ID, type, and instrument.
      * Generates a unique event ID and sets the current timestamp.
      *
      * @param strategyId the strategy identifier
      * @param type       the type of the event
-     * @param symbol     the symbol associated with the event
+     * @param instrument the instrument associated with the event
      */
-    protected BaseEvent(String strategyId, String type, String symbol) {
+    protected BaseEvent(String strategyId, String type, Instrument instrument) {
         this.eventId = UUID.randomUUID().toString();
         this.timestamp = ZonedDateTime.now();
         this.strategyId = strategyId;
         this.type = type;
-        this.symbol = symbol;
+        this.instrument = instrument;
     }
 
     /**

@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.jwtly10.core.model.Instrument.NAS100USD;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CSVDataProviderTest {
@@ -180,7 +181,7 @@ class CSVDataProviderTest {
 
     @Test
     void testDataProviderThrows() {
-        CSVDataProvider provider = new CSVDataProvider("INVALID_FILE_PATH", 5, new Number("0.01"), Duration.ofMinutes(1), "TEST");
+        CSVDataProvider provider = new CSVDataProvider("INVALID_FILE_PATH", 5, new Number("0.01"), Duration.ofMinutes(1), NAS100USD);
         assertThrows(DataProviderException.class, provider::start);
     }
 
@@ -190,7 +191,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         capturedTicks.clear();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, new Number("0.01"), period, "TEST");
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, new Number("0.01"), period, NAS100USD);
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {
@@ -199,6 +200,11 @@ class CSVDataProviderTest {
 
             @Override
             public void onStop() {
+                // Not needed for this test
+            }
+
+            @Override
+            public void onError(DataProviderException e) {
                 // Not needed for this test
             }
         });
@@ -250,7 +256,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         List<Tick> ticks = new ArrayList<>();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, Duration.ofMinutes(1), "TEST", seed);
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, Duration.ofMinutes(1), NAS100USD, seed);
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {
@@ -259,6 +265,11 @@ class CSVDataProviderTest {
 
             @Override
             public void onStop() {
+                // Not needed for this test
+            }
+
+            @Override
+            public void onError(DataProviderException e) {
                 // Not needed for this test
             }
         });
@@ -273,7 +284,7 @@ class CSVDataProviderTest {
         Files.writeString(csvFile, csvContent);
 
         capturedTicks.clear();
-        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, period, "TEST");
+        CSVDataProvider provider = new CSVDataProvider(csvFile.toString(), ticksPerBar, spread, period, NAS100USD);
         provider.addDataProviderListener(new DataProviderListener() {
             @Override
             public void onTick(Tick tick) {
@@ -282,6 +293,11 @@ class CSVDataProviderTest {
 
             @Override
             public void onStop() {
+                // Not needed for this test
+            }
+
+            @Override
+            public void onError(DataProviderException e) {
                 // Not needed for this test
             }
         });

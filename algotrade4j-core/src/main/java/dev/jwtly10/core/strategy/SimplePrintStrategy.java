@@ -30,7 +30,7 @@ public class SimplePrintStrategy extends BaseStrategy {
             if (Math.random() > 0.5) {
                 if (Bid().isGreaterThan(new Number(14300))) {
                     TradeParameters params = new TradeParameters();
-                    params.setSymbol(SYMBOL);
+                    params.setInstrument(SYMBOL);
                     params.setEntryPrice(new Number("10"));
                     params.setStopLoss(new Number("14000"));
                     params.setRiskRatio(new Number("2"));

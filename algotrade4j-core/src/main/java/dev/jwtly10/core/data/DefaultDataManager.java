@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
@@ -19,25 +20,28 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private final List<DataListener> listeners = new ArrayList<>();
     private final Duration period;
     private final BarSeries barSeries;
-    private final String symbol;
+    private final Instrument instrument;
+    private final EventPublisher eventPublisher;
+    private final String strategyId;
     private volatile Number currentBid;
     private volatile Number currentAsk;
     private Bar currentBar;
     private ZonedDateTime nextBarCloseTime;
-
     private boolean running = false;
 
-    public DefaultDataManager(String symbol, DataProvider dataProvider, Duration barDuration, BarSeries barSeries) {
+    public DefaultDataManager(String strategyId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
+        this.strategyId = strategyId;
         this.dataProvider = dataProvider;
         this.period = barDuration;
         this.barSeries = barSeries;
-        this.symbol = symbol;
+        this.instrument = instrument;
         this.dataProvider.addDataProviderListener(this);
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public void start() {
-        log.debug("Starting data manager with symbol: {}, period: {}", symbol, period);
+        log.debug("Starting data manager with instrument: {}, period: {}", instrument, period);
         running = true;
         try {
             dataProvider.start();
@@ -64,6 +68,12 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     }
 
     @Override
+    public void onError(DataProviderException e) {
+        // Here we just emit the event. The strategy will have stopped anyway so at least we can show errors if needed
+        eventPublisher.publishErrorEvent(strategyId, e);
+    }
+
+    @Override
     public void addDataListener(DataListener listener) {
         listeners.add(listener);
     }
@@ -81,21 +91,13 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         updateCurrentPrices(tick);
 
         if (currentBar == null) {
-            log.debug("Initializing new bar");
             initializeNewBar(tick);
-            log.debug("New bar initialized: {}", currentBar);
-            log.debug("Next bar close time: {}", nextBarCloseTime);
         } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
             log.debug("Closing current bar because: {} ({})",
                     tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
             closeCurrentBar();
-            log.debug("Initializing new bar");
             initializeNewBar(tick);
-            log.debug("New bar initialized: {}", currentBar);
-            log.debug("Next bar close time: {}", nextBarCloseTime);
         } else {
-            log.debug("Updating current bar");
-            log.debug("Next bar close time: {}", nextBarCloseTime);
             updateBar(tick);
         }
 
@@ -110,7 +112,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private void initializeNewBar(Tick tick) {
         ZonedDateTime barOpenTime = tick.getDateTime().truncatedTo(ChronoUnit.MINUTES);
         currentBar = new DefaultBar(
-                tick.getSymbol(),
+                tick.getInstrument(),
                 period,
                 barOpenTime,
                 tick.getMid(),
@@ -125,8 +127,6 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         // To be reviews
         // We did add minus 1 second but this will need to be reviewed
         currentBar.setCloseTime(nextBarCloseTime.minusSeconds(1));
-
-        log.debug("New bar initialized: {}. Next bar close time: {}", currentBar);
     }
 
     private void updateBar(Tick tick) {

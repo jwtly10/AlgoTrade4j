@@ -2,6 +2,7 @@ package dev.jwtly10.api.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.jwtly10.core.data.DataSpeed;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class StrategyConfig {
     private String strategyClass;
     private Number initialCash;
-    private String symbol;
+    private Instrument instrument;
     private String period;
     private DataSpeed speed;
     private Number spread;

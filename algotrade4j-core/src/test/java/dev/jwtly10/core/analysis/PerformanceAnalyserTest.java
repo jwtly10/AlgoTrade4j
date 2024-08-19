@@ -1,15 +1,17 @@
 package dev.jwtly10.core.analysis;
 
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PerformanceAnalyserTest {
 
@@ -92,7 +94,7 @@ public class PerformanceAnalyserTest {
     }
 
     private Trade createTrade(int id, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong, Number profit, Number closePrice, ZonedDateTime closeTime) {
-        Trade trade = new Trade(id, "EURUSD", quantity, openTime, entryPrice, stopLoss, takeProfit, isLong);
+        Trade trade = new Trade(id, Instrument.NAS100USD, quantity, openTime, entryPrice, stopLoss, takeProfit, isLong);
         trade.setProfit(profit);
         trade.setClosePrice(closePrice);
         trade.setCloseTime(closeTime);

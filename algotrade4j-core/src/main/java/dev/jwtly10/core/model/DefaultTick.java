@@ -14,9 +14,9 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class DefaultTick implements Tick {
     /**
-     * The symbol associated with the tick.
+     * The instrument associated with the tick.
      */
-    private String symbol;
+    private Instrument instrument;
 
     /**
      * The bid price of the tick.

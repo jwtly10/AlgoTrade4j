@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 
 /**
@@ -60,9 +61,9 @@ public interface DataManager {
     Number getCurrentMidPrice();
 
     /**
-     * Gets the symbol associated with the data manager.
+     * Gets the instrument associated with the data manager.
      *
-     * @return the symbol
+     * @return the instrument
      */
-    String getSymbol();
+    Instrument getInstrument();
 }

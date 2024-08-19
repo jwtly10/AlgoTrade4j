@@ -20,7 +20,6 @@ import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.dataclients.OandaDataClient;
-import dev.jwtly10.marketdata.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,16 +70,15 @@ public class StrategyManager {
         };
 
         Number spread = config.getSpread();
-        String symbol = config.getSymbol();
+        Instrument instrument = config.getInstrument();
 
-        OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
-        ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
+        ExternalDataClient externalDataClient = new OandaDataClient(oandaApiKey, oandaAccountId, oandaApiUrl);
 
         // Ensure utc
         ZoneId utcZone = ZoneId.of("UTC");
         ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
         ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, symbol, 10, spread, period, from, to);
+        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, 10, spread, period, from, to);
 
         DataSpeed dataSpeed = config.getSpeed();
 
@@ -90,7 +88,7 @@ public class StrategyManager {
         int defaultSeriesSize = 4000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager(symbol, dataProvider, period, barSeries);
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
 
         Tick currentTick = new DefaultTick();
 
@@ -102,8 +100,8 @@ public class StrategyManager {
         try {
             strategy.setParameters(runParams);
         } catch (IllegalAccessException e) {
-            log.error("Error setting parameters for strategy: {}", strategy.getStrategyId(), e);
-            throw new StrategyManagerException("Error setting parameters for strategy: " + strategy.getStrategyId(), ErrorType.INTERNAL_ERROR);
+            log.error("Error setting parameters for strategy: {}", strategyId, e);
+            throw new StrategyManagerException("Error setting parameters for strategy: " + strategyId, ErrorType.INTERNAL_ERROR);
         }
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);

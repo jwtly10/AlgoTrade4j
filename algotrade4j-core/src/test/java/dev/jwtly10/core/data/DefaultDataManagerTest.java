@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultTick;
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.stream.Stream;
 
+import static dev.jwtly10.core.model.Instrument.NAS100USD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -28,7 +30,12 @@ class DefaultDataManagerTest {
     @Mock
     private BarSeries mockBarSeries;
 
+    @Mock
+    private EventPublisher mockEventPublisher;
+
     private DefaultDataManager dataManager;
+
+    private String STRAT_ID = "TEST";
 
     private static Stream<Arguments> provideTimeFrames() {
         return Stream.of(
@@ -63,13 +70,13 @@ class DefaultDataManagerTest {
 
     @Test
     void testNormalBarCreation() {
-        dataManager = new DefaultDataManager("BTCUSD", mockDataProvider, Duration.ofMinutes(1), mockBarSeries);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
         dataManager.start();
 
         ZonedDateTime time = ZonedDateTime.parse("2023-01-01T00:00:00Z");
-        DefaultTick tick1 = new DefaultTick("BTCUSD", new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
-        DefaultTick tick2 = new DefaultTick("BTCUSD", new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), time.plusSeconds(30));
-        DefaultTick tick3 = new DefaultTick("BTCUSD", new Number("104"), new Number("104.5"), new Number("105"), new Number("20"), time.plusMinutes(1));
+        DefaultTick tick1 = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
+        DefaultTick tick2 = new DefaultTick(NAS100USD, new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), time.plusSeconds(30));
+        DefaultTick tick3 = new DefaultTick(NAS100USD, new Number("104"), new Number("104.5"), new Number("105"), new Number("20"), time.plusMinutes(1));
 
         dataManager.onTick(tick1);
         dataManager.onTick(tick2);
@@ -82,14 +89,14 @@ class DefaultDataManagerTest {
 
     @Test
     void testMissingDailyData() {
-        dataManager = new DefaultDataManager("BTCUSD", mockDataProvider, Duration.ofDays(1), mockBarSeries);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
         dataManager.start();
 
         ZonedDateTime time1 = ZonedDateTime.parse("2022-01-02T00:00:00Z");
         ZonedDateTime time2 = ZonedDateTime.parse("2022-01-04T00:00:00Z");
 
-        DefaultTick tick1 = new DefaultTick("BTCUSD", new Number("16419.7"), new Number("16472.85"), new Number("16526.0"), new Number("209249"), time1);
-        DefaultTick tick2 = new DefaultTick("BTCUSD", new Number("16278.4"), new Number("16280.9"), new Number("16283.4"), new Number("396027"), time2);
+        DefaultTick tick1 = new DefaultTick(NAS100USD, new Number("16419.7"), new Number("16472.85"), new Number("16526.0"), new Number("209249"), time1);
+        DefaultTick tick2 = new DefaultTick(NAS100USD, new Number("16278.4"), new Number("16280.9"), new Number("16283.4"), new Number("396027"), time2);
 
         dataManager.onTick(tick1);
         dataManager.onTick(tick2);
@@ -104,11 +111,11 @@ class DefaultDataManagerTest {
     @ParameterizedTest
     @MethodSource("provideTimeFrames")
     void testDifferentTimeFrames(Duration barDuration, ZonedDateTime[] tickTimes, int expectedBars) {
-        dataManager = new DefaultDataManager("BTCUSD", mockDataProvider, barDuration, mockBarSeries);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, barDuration, mockBarSeries, mockEventPublisher);
         dataManager.start();
 
         for (ZonedDateTime time : tickTimes) {
-            DefaultTick tick = new DefaultTick("BTCUSD", new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
+            DefaultTick tick = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
             dataManager.onTick(tick);
         }
 
@@ -117,14 +124,14 @@ class DefaultDataManagerTest {
 
     @Test
     void testLargeTimeGap() {
-        dataManager = new DefaultDataManager("BTCUSD", mockDataProvider, Duration.ofHours(1), mockBarSeries);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofHours(1), mockBarSeries, mockEventPublisher);
         dataManager.start();
 
         ZonedDateTime time1 = ZonedDateTime.parse("2023-01-01T00:00:00Z");
         ZonedDateTime time2 = ZonedDateTime.parse("2023-01-02T00:00:00Z");
 
-        DefaultTick tick1 = new DefaultTick("BTCUSD", new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time1);
-        DefaultTick tick2 = new DefaultTick("BTCUSD", new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), time2);
+        DefaultTick tick1 = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time1);
+        DefaultTick tick2 = new DefaultTick(NAS100USD, new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), time2);
 
         dataManager.onTick(tick1);
         dataManager.onTick(tick2);
@@ -136,14 +143,14 @@ class DefaultDataManagerTest {
 
     @Test
     void testWeekendGap() {
-        dataManager = new DefaultDataManager("BTCUSD", mockDataProvider, Duration.ofDays(1), mockBarSeries);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
         dataManager.start();
 
         ZonedDateTime fridayTime = ZonedDateTime.parse("2023-01-06T00:00:00Z");
         ZonedDateTime mondayTime = ZonedDateTime.parse("2023-01-09T00:00:00Z");
 
-        DefaultTick fridayTick = new DefaultTick("BTCUSD", new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), fridayTime);
-        DefaultTick mondayTick = new DefaultTick("BTCUSD", new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), mondayTime);
+        DefaultTick fridayTick = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), fridayTime);
+        DefaultTick mondayTick = new DefaultTick(NAS100USD, new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), mondayTime);
 
         dataManager.onTick(fridayTick);
         dataManager.onTick(mondayTick);

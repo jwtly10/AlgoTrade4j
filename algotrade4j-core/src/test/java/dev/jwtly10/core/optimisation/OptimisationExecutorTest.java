@@ -1,6 +1,7 @@
 package dev.jwtly10.core.optimisation;
 
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +76,7 @@ class OptimisationExecutorTest {
         OptimisationExecutor optimisationExecutor = new OptimisationExecutor(eventPublisher);
 
         OptimisationConfig config = new OptimisationConfig();
-        config.setSymbol("NAS100USD");
+        config.setInstrument(Instrument.NAS100USD);
 
         List<ParameterRange> parameterRanges = List.of(
                 new ParameterRange("SMA1", "10", "100", "5"),

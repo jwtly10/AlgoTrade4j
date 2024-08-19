@@ -110,7 +110,7 @@ public class TickGenerator {
 
         Number tickVolume = volume.multiply(BigDecimal.valueOf(random.nextDouble())).divide(BigDecimal.valueOf(ticksPerBar));
 
-        return new DefaultTick(bar.getSymbol(), bid, mid, ask, tickVolume, tickTime);
+        return new DefaultTick(bar.getInstrument(), bid, mid, ask, tickVolume, tickTime);
     }
 
     public interface TickGeneratorCallback {

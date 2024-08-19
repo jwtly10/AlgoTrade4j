@@ -20,7 +20,7 @@ public class AccountEvent extends BaseEvent {
      * @param account    the account associated with the event
      */
     public AccountEvent(String strategyId, Account account) {
-        super(strategyId, "ACCOUNT", "");
+        super(strategyId, "ACCOUNT", null);
         this.account = account;
     }
 }

@@ -82,7 +82,7 @@ public class SMACrossoverStrategy extends BaseStrategy {
 
     private TradeParameters createTradeParameters(Bar bar, boolean isLong) {
         TradeParameters params = new TradeParameters();
-        params.setSymbol(SYMBOL);
+        params.setInstrument(SYMBOL);
         params.setEntryPrice(isLong ? Ask() : Bid());
 
         Number candleSize = bar.getHigh().subtract(bar.getLow());

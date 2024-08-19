@@ -1,10 +1,8 @@
 package dev.jwtly10.core.indicators;
 
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +27,7 @@ class IndicatorUtilsTest {
     @Test
     void testUpdateIndicators() {
         Bar testBar = new DefaultBar(
-                "AAPL",
+                Instrument.NAS100USD,
                 Duration.ofMinutes(1),
                 ZonedDateTime.now(),
                 new Number(150.0),

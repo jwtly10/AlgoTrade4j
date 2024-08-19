@@ -47,7 +47,7 @@ public class SimpleSMAStrategy extends BaseStrategy {
             // If bearish candle below the sma sell
             if (bar.getClose().isLessThan(sma20.getValue()) && bar.isBearish() && bar.getClose().isGreaterThan(new Number(13200))) {
                 TradeParameters params = new TradeParameters();
-                params.setSymbol(SYMBOL);
+                params.setInstrument(SYMBOL);
                 params.setEntryPrice(Ask());
                 params.setStopLoss(new Number("15600"));
                 params.setRiskRatio(new Number("2"));
