@@ -53,7 +53,7 @@ const BacktestView = () => {
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
-        symbol: 'NAS100USD',
+        instrument: 'NAS100USD',
         spread: "50",
         speed: "FAST",
         period: "1D",
@@ -131,7 +131,7 @@ const BacktestView = () => {
         const updatedConfig = {
             ...strategyConfig,
             initialCash: storedConfig.initialCash || strategyConfig.initialCash,
-            symbol: storedConfig.symbol || strategyConfig.symbol,
+            instrument: storedConfig.instrument || strategyConfig.instrument,
             spread: storedConfig.spread || strategyConfig.spread,
             period: storedConfig.period || strategyConfig.period,
             speed: storedConfig.speed || strategyConfig.speed,
@@ -201,7 +201,7 @@ const BacktestView = () => {
             watermark: {
                 color: 'rgba(0, 0, 0, 0.1)',
                 visible: true,
-                text: chartData.length > 0 ? chartData[0].symbol : '',
+                text: chartData.length > 0 ? chartData[0].instrument : '',
                 fontSize: 80,
                 horzAlign: 'center',
                 vertAlign: 'center',
@@ -549,7 +549,7 @@ const BacktestView = () => {
                                 high: bar.high.value,
                                 low: bar.low.value,
                                 close: bar.close.value,
-                                symbol: bar.symbol,
+                                instrument: bar.instrument,
                             },
                         ];
                     }
@@ -566,7 +566,7 @@ const BacktestView = () => {
                             ...updatedTrades[existingTradeIndex],
                             openTime: trade.openTime,
                             closeTime: trade.closeTime,
-                            symbol: trade.symbol,
+                            instrument: trade.instrument,
                             entry: trade.entryPrice.value,
                             stopLoss: trade.stopLoss.value,
                             closePrice: trade.closePrice.value,
@@ -591,7 +591,7 @@ const BacktestView = () => {
                                 tradeId: trade.id,
                                 openTime: trade.openTime,
                                 closeTime: trade.closeTime,
-                                symbol: trade.symbol,
+                                instrument: trade.instrument,
                                 entry: trade.entryPrice.value,
                                 stopLoss: trade.stopLoss.value,
                                 closePrice: trade.closePrice.value,

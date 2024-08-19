@@ -1,25 +1,11 @@
 package dev.jwtly10.examples;
 
-import dev.jwtly10.core.account.AccountManager;
-import dev.jwtly10.core.account.DefaultAccountManager;
-import dev.jwtly10.core.analysis.PerformanceAnalyser;
-import dev.jwtly10.core.data.CSVDataProvider;
-import dev.jwtly10.core.data.DataSpeed;
-import dev.jwtly10.core.data.DefaultDataManager;
-import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.execution.*;
-import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.strategy.SimplePrintStrategy;
-import dev.jwtly10.core.strategy.Strategy;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.Duration;
 
 @Slf4j
 public class SimplePrintStrategyExample {
     public static void main(String[] args) {
-        Duration period = Duration.ofDays(1);
+/*        Duration period = Duration.ofDays(1);
         CSVDataProvider csvDataProvider = new CSVDataProvider(
                 "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
                 4,
@@ -56,6 +42,6 @@ public class SimplePrintStrategyExample {
             dataManager.start();
         } catch (Exception e) {
             log.error("Error running strategy", e);
-        }
+        }*/
     }
 }

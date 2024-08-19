@@ -20,6 +20,7 @@ import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.dataclients.OandaDataClient;
+import dev.jwtly10.marketdata.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,6 +64,7 @@ public class StrategyManager {
             case "1m" -> Duration.ofMinutes(1);
             case "5m" -> Duration.ofMinutes(5);
             case "15m" -> Duration.ofMinutes(15);
+            case "30m" -> Duration.ofMinutes(30);
             case "1H" -> Duration.ofHours(1);
             case "4H" -> Duration.ofHours(4);
             case "1D" -> Duration.ofDays(1);
@@ -72,7 +74,8 @@ public class StrategyManager {
         Number spread = config.getSpread();
         Instrument instrument = config.getInstrument();
 
-        ExternalDataClient externalDataClient = new OandaDataClient(oandaApiKey, oandaAccountId, oandaApiUrl);
+        OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
+        ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
 
         // Ensure utc
         ZoneId utcZone = ZoneId.of("UTC");

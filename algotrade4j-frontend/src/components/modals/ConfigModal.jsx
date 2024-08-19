@@ -172,12 +172,12 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                             </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">
-                            <InputLabel id="symbol-label">Symbol</InputLabel>
+                            <InputLabel id="instrument-label">Instrument</InputLabel>
                             <Select
-                                labelId="symbol-label"
-                                value={localConfig.symbol}
-                                onChange={(e) => handleConfigChange('symbol', e.target.value)}
-                                label="Symbol"
+                                labelId="instrument-label"
+                                value={localConfig.instrument}
+                                onChange={(e) => handleConfigChange('instrument', e.target.value)}
+                                label="Instrument"
                             >
                                 <MenuItem value="NAS100USD">NAS100USD</MenuItem>
                             </Select>
