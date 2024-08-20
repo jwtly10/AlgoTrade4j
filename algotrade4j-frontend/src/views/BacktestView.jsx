@@ -86,6 +86,16 @@ const BacktestView = () => {
             try {
                 const res = await apiClient.getStrategies()
                 setStrategies(res)
+
+                const lastStrat = localStorage.getItem("LAST_STRAT")
+
+                res.forEach(strat => {
+                    if (strat === lastStrat) {
+                        handleChangeStrategy(lastStrat)
+                    }
+                })
+
+
             } catch (error) {
                 console.error('Failed to get strategies:', error);
             }
@@ -646,9 +656,21 @@ const BacktestView = () => {
         setIsModalOpen(false);
     };
 
-    const handleChangeStrategy = async (event) => {
+    const handleChangeStrategy = async (valueOrEvent) => {
         // Get the class of the strategy
-        const stratClass = event.target.value;
+        let stratClass;
+        // Hack to use this function in other places
+        if (typeof valueOrEvent === 'string') {
+            // If a string is passed directly
+            stratClass = valueOrEvent;
+        } else if (valueOrEvent && valueOrEvent.target) {
+            // If an event object is passed (from onChange)
+            stratClass = valueOrEvent.target.value;
+        } else {
+            console.error('Invalid input to handleChangeStrategy');
+            return;
+        }
+        localStorage.setItem("LAST_STRAT", stratClass);
         setStrategyClass(stratClass);
 
         // Update config with class
