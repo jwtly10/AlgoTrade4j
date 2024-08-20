@@ -74,14 +74,14 @@ public class StrategyManager {
         Number spread = config.getSpread();
         Instrument instrument = config.getInstrument();
 
-        OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
+        OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
 
         // Ensure utc
         ZoneId utcZone = ZoneId.of("UTC");
         ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
         ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, 10, spread, period, from, to);
+        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, 30, spread, period, from, to);
 
         DataSpeed dataSpeed = config.getSpeed();
 

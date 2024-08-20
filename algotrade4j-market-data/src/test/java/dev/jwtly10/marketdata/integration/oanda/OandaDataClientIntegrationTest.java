@@ -36,7 +36,7 @@ class OandaDataClientIntegrationTest {
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
         assertNotNull(accountId, "OANDA_ACCOUNT_ID environment variable must be set");
 
-        client = new OandaClient(apiKey, accountId, baseUrl);
+        client = new OandaClient(baseUrl, apiKey, accountId);
         oandaClient = new OandaDataClient(client);
     }
 
