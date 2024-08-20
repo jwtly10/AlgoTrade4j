@@ -19,7 +19,6 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     @Getter
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
     private final Instrument instrument;
-    private final int ticksPerBar;
     private final List<DataProviderListener> listeners;
     private final TickGenerator tickGenerator;
     private final Duration period;
@@ -31,20 +30,19 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     @Getter
     private boolean isRunning;
 
-    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, int ticksPerBar, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
+    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
         this.dataClient = dataClient;
         this.instrument = instrument;
-        this.ticksPerBar = ticksPerBar;
         this.period = period;
         this.listeners = new ArrayList<>();
-        this.tickGenerator = new TickGenerator(ticksPerBar, spread, period, seed);
+        this.tickGenerator = new TickGenerator(spread, period, seed);
         this.from = from;
         this.to = to;
     }
 
     // Overload the constructor to allow creation without a seed for tick generation
-    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, int ticksPerBar, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
-        this(dataClient, instrument, ticksPerBar, spread, period, from, to, System.currentTimeMillis());
+    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
+        this(dataClient, instrument, spread, period, from, to, System.currentTimeMillis());
     }
 
     @Override
@@ -52,7 +50,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
         if (isRunning) return;
         isRunning = true;
 
-        log.debug("Starting {} Data provider with period: {}, ticksPerBar: {}", dataClient.getClass().getName(), period, ticksPerBar);
+        log.debug("Starting {} Data provider with period: {}", dataClient.getClass().getName(), period);
 
         try {
             dataClient.fetchCandles(instrument, from, to, period, new ClientCallback() {

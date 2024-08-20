@@ -24,6 +24,34 @@ public class TickGenerator {
         this.random = new Random(seed);
     }
 
+    public TickGenerator(Number spread, Duration period, long seed) {
+        this.ticksPerBar = mapTicksPerBarToPeriod(period);
+        log.info("For duration {}, generating {} ticks", period, ticksPerBar);
+        this.spread = spread;
+        this.period = period;
+        this.random = new Random(seed);
+    }
+
+    /**
+     * We should just let the system generate the ticks based on the timeframe
+     * this way we have a consistent way to test these strategies (paid with a single seeded random)
+     *
+     * @param period the period of the strategy run
+     * @return ticks to return per bar
+     */
+    private int mapTicksPerBarToPeriod(Duration period) {
+        return switch (period) {
+            case Duration d when d.equals(Duration.ofMinutes(1)) -> 20;
+            case Duration d when d.equals(Duration.ofMinutes(5)) -> 40;
+            case Duration d when d.equals(Duration.ofMinutes(15)) -> 60;
+            case Duration d when d.equals(Duration.ofMinutes(30)) -> 80;
+            case Duration d when d.equals(Duration.ofHours(1)) -> 100;
+            case Duration d when d.equals(Duration.ofHours(4)) -> 150;
+            case Duration d when d.equals(Duration.ofDays(1)) -> 200;
+            default -> throw new IllegalArgumentException("Unexpected period: " + period);
+        };
+    }
+
     public void generateTicks(Bar bar, DataSpeed speed, TickGeneratorCallback callback) {
         if (ticksPerBar < 4) {
             throw new IllegalArgumentException("Ticks per bar must be at least 4");

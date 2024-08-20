@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -29,6 +30,10 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private ZonedDateTime nextBarCloseTime;
     private boolean running = false;
 
+    // Meta data
+    private Instant startTime;
+    private int ticksModeled;
+
     public DefaultDataManager(String strategyId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
         this.strategyId = strategyId;
         this.dataProvider = dataProvider;
@@ -41,13 +46,15 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
     @Override
     public void start() {
-        log.debug("Starting data manager with instrument: {}, period: {}", instrument, period);
+        log.info("Starting data manager with instrument: {}, period: {}", instrument, period);
         running = true;
+        startTime = Instant.now();
         try {
             dataProvider.start();
         } catch (DataProviderException e) {
             log.error("Error starting data provider", e);
             running = false;
+            startTime = null;
         }
     }
 
@@ -55,13 +62,15 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     public void stop() {
         if (!running) return;
 
-        log.debug("Stopping data manager");
         running = false;
 
         // Stop the provider if its running
         if (dataProvider.isRunning()) {
             dataProvider.stop();
         }
+
+        Duration runningTime = Duration.between(startTime, Instant.now());
+        log.info("Data Manager stopped. Runtime: {}, ticks modelled: {}", formatDuration(runningTime), ticksModeled);
 
         // Stop data listeners (AKA strategies)
         notifyStop();
@@ -87,6 +96,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     public void onTick(Tick tick) {
         if (!running) return;
         log.debug("Received tick: {}", tick);
+        ticksModeled++;
 
         updateCurrentPrices(tick);
 
@@ -157,6 +167,20 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         for (DataListener listener : listeners) {
             listener.onStop();
         }
+    }
+
+    private String formatDuration(Duration duration) {
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
+
+        StringBuilder formattedDuration = new StringBuilder();
+        if (minutes > 0) {
+            formattedDuration.append(minutes).append(minutes == 1 ? " min " : " mins ");
+        }
+        if (seconds > 0 || minutes == 0) {
+            formattedDuration.append(seconds).append(seconds == 1 ? " second" : " seconds");
+        }
+        return formattedDuration.toString().trim();
     }
 
     /*

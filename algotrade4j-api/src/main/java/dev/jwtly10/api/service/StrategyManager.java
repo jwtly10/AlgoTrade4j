@@ -81,7 +81,9 @@ public class StrategyManager {
         ZoneId utcZone = ZoneId.of("UTC");
         ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
         ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, 30, spread, period, from, to);
+        // We seed the tick generation while backtesting so results can be consistent
+        // TODO: implement a way to allow randomized tick generation (some frontend flag)
+        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, spread, period, from, to, 12345L);
 
         DataSpeed dataSpeed = config.getSpeed();
 

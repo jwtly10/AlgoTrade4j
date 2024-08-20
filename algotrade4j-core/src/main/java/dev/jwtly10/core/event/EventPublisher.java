@@ -1,5 +1,6 @@
 package dev.jwtly10.core.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -54,7 +55,12 @@ public class EventPublisher {
      * @param event The BaseEvent to be published to all listeners.
      */
     public void publishEvent(BaseEvent event) {
-        log.debug("Publishing event: {}", event);
+        try {
+            // Some events can be a huge JSON. So we don't need to print the entire implementation
+            log.debug("Publishing event: {}", event instanceof AnalysisEvent ? event : event.toJson());
+        } catch (JsonProcessingException e) {
+            log.error("Error logging event: ", e);
+        }
         for (EventListener listener : listeners) {
             tickExecutor.submit(() -> listener.onEvent(event));
         }
