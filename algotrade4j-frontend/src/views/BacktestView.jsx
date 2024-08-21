@@ -11,6 +11,7 @@ import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
 import {Toast} from "../components/Toast.jsx";
 import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
+import LoadingChart from "../components/LoadingChart.jsx";
 
 
 const BacktestView = () => {
@@ -47,6 +48,8 @@ const BacktestView = () => {
 
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
+
+    const [isAsync, setAsync] = useState(false)
 
     // const [rawParams, setRawParams] = useState([]);
     // const [runParams, setRunParams] = useState([])
@@ -376,6 +379,7 @@ const BacktestView = () => {
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
         setIndicators({});
+        setAsync(false);
         console.log('Starting strategy...');
 
         if (runOptimisation) {
@@ -411,6 +415,11 @@ const BacktestView = () => {
                 generatedIdForClass,
                 handleWebSocketMessage
             );
+
+            if (hackConfig.speed === "INSTANT") {
+                setAsync(true);
+            }
+
             console.log('WebSocket connected');
             await apiClient.startStrategy(hackConfig, generatedIdForClass);
         } catch (error) {
@@ -446,10 +455,11 @@ const BacktestView = () => {
             updateTradingViewChart(data);
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
-        } else if (data.type === 'ACCOUNT') {
+        } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
             updateAccount(data);
         } else if (data.type === 'STRATEGY_STOP') {
             setIsRunning(false);
+            setAsync(false);
         } else if (data.type === 'ANALYSIS') {
             setAnalysis(data);
         } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
@@ -461,7 +471,6 @@ const BacktestView = () => {
         } else if (data.type === "ALL_TRADES") {
             updateTradingViewChart(data)
         } else if (data.type === "ALL_INDICATORS") {
-            console.log(data)
             setAllIndicators(data)
         } else if (data.type === 'ERROR') {
             setToast({
@@ -671,7 +680,6 @@ const BacktestView = () => {
                     return newChartData;
                 });
             } else if (data.type === "ALL_TRADES") {
-                console.log(data)
                 const tradesObj = data.trades;
 
                 setTrades(() => {
@@ -894,10 +902,14 @@ const BacktestView = () => {
                 </Grid>
 
                 <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
-                    <Box
-                        sx={{width: '100%', height: '400px', overflow: 'hidden'}}
-                        ref={chartContainerRef}
-                    />
+                    {isRunning && isAsync ? (
+                        <LoadingChart/>
+                    ) : (
+                        <Box
+                            sx={{width: '100%', height: '400px', overflow: 'hidden'}}
+                            ref={chartContainerRef}
+                        />
+                    )}
                 </Box>
 
                 <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>

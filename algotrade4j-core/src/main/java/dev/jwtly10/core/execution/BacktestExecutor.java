@@ -5,6 +5,7 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.async.AsyncAccountEvent;
 import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.event.async.AsyncTradesEvent;
@@ -118,6 +119,7 @@ public class BacktestExecutor implements DataListener {
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
 
         // Async specific events
+        eventPublisher.publishEvent(new AsyncAccountEvent(strategyId, accountManager.getAccount()));
         eventPublisher.publishEvent(new AsyncBarSeriesEvent(strategyId, dataManager.getInstrument(), dataManager.getBarSeries()));
         eventPublisher.publishEvent(new AsyncTradesEvent(strategyId, dataManager.getInstrument(), tradeManager.getAllTrades()));
         // Generate structure for all indicator data
