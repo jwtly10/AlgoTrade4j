@@ -15,19 +15,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Getter
 public class DefaultDataManager implements DataManager, DataProviderListener {
     private final DataProvider dataProvider;
     private final List<DataListener> listeners = new ArrayList<>();
     private final Duration period;
+    @Getter
     private final BarSeries barSeries;
+    @Getter
     private final Instrument instrument;
     private final EventPublisher eventPublisher;
     private final String strategyId;
+    @Getter
     private volatile Number currentBid;
+    @Getter
     private volatile Number currentAsk;
+    @Getter // For testing
     private Bar currentBar;
+    @Getter // For testing
     private ZonedDateTime nextBarCloseTime;
+    @Getter
     private boolean running = false;
 
     // Meta data

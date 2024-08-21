@@ -6,7 +6,11 @@ import dev.jwtly10.api.models.StrategyConfig;
 import dev.jwtly10.api.service.StrategyManager;
 import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import dev.jwtly10.api.service.WebSocketEventListener;
+import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
+import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
+import dev.jwtly10.core.event.async.AsyncTradesEvent;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +34,11 @@ public class StrategyController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<String> startStrategy(@RequestBody StrategyConfig config, @RequestParam("strategyId") String strategyId) {
+    public ResponseEntity<String> startStrategy(
+            @RequestBody StrategyConfig config,
+            @RequestParam("strategyId") String strategyId,
+            @RequestParam("async") boolean async
+    ) {
         log.debug("Starting strategy: {} with config : {}", strategyId, config);
 
         // We will retry this a few seconds
@@ -67,16 +75,47 @@ public class StrategyController {
             throw new StrategyManagerException("Failed to start strategy: no listener for session " + session, ErrorType.BAD_REQUEST);
         }
 
-        subscribeToEvents(listener);
+        if (async) {
+            subscribeToAsyncEvents(listener);
+            // Ensures that the async run is instant
+            config.setSpeed(DataSpeed.INSTANT);
+        } else {
+            subscribeToEvents(listener);
+        }
 
         log.debug("Starting strategy with config: {}", config);
         strategyManager.startStrategy(config, strategyId);
         log.info("Started strategy: {}", strategyId);
 
-
         return ResponseEntity.ok(strategyId);
     }
 
+    /**
+     * Adds support for 'async' strategy runs.
+     * Clients can trigger a strategy run in the same way, but instead of being notified of every single event,
+     * they will recieve all data once the run completes...
+     * This was implemented as the React frontend cant keep up with the speed of the strategy runs,
+     * Turning a 30 second backtest run on the server into a 10 minute visual chart.
+     *
+     * @param listener the websocket listener to subscribe to the async events
+     */
+    private void subscribeToAsyncEvents(WebSocketEventListener listener) {
+        // ASYNC EVENTS
+        listener.subscribe(AsyncBarSeriesEvent.class);
+        listener.subscribe(AsyncTradesEvent.class);
+        listener.subscribe(AsyncIndicatorsEvent.class);
+
+        listener.subscribe(AnalysisEvent.class);
+        listener.subscribe(AccountEvent.class);
+        listener.subscribe(LogEvent.class);
+        listener.subscribe(StrategyStopEvent.class);
+    }
+
+    /**
+     * Generic subscription. Will subscribe to all the real time events the system generates
+     *
+     * @param listener the websocket listener to subscribe to the async events
+     */
     private void subscribeToEvents(WebSocketEventListener listener) {
         listener.subscribe(BarEvent.class);
         listener.subscribe(TradeEvent.class);

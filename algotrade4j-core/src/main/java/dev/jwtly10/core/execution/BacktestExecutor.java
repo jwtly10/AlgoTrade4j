@@ -5,14 +5,23 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
+import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
+import dev.jwtly10.core.event.async.AsyncTradesEvent;
+import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class BacktestExecutor implements DataListener {
@@ -107,6 +116,16 @@ public class BacktestExecutor implements DataListener {
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         eventPublisher.publishEvent(new AnalysisEvent(strategyId, dataManager.getInstrument(), performanceAnalyser));
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
+
+        // Async specific events
+        eventPublisher.publishEvent(new AsyncBarSeriesEvent(strategyId, dataManager.getInstrument(), dataManager.getBarSeries()));
+        eventPublisher.publishEvent(new AsyncTradesEvent(strategyId, dataManager.getInstrument(), tradeManager.getAllTrades()));
+        // Generate structure for all indicator data
+        Map<String, List<IndicatorValue>> allIndicatorsValues = new HashMap<>();
+        for (Indicator i : strategy.getIndicators()) {
+            allIndicatorsValues.put(i.getName(), i.getValues());
+        }
+        eventPublisher.publishEvent(new AsyncIndicatorsEvent(strategyId, dataManager.getInstrument(), allIndicatorsValues));
 
         initialised = false;
     }

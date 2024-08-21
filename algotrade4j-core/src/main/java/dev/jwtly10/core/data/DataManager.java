@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 
@@ -66,4 +67,11 @@ public interface DataManager {
      * @return the instrument
      */
     Instrument getInstrument();
+
+    /**
+     * Gets the bar series of a data manager
+     *
+     * @return the bar series
+     */
+    BarSeries getBarSeries();
 }

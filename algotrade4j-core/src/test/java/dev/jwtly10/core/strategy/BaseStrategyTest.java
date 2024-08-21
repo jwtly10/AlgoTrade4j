@@ -6,15 +6,15 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -125,6 +125,11 @@ class BaseStrategyTest {
         public TestIndicator(int intParam, double doubleParam) {
             this.intParam = intParam;
             this.doubleParam = doubleParam;
+        }
+
+        @Override
+        public List<IndicatorValue> getValues() {
+            return List.of();
         }
 
         @Override

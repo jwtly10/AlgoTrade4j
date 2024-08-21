@@ -55,7 +55,7 @@ const BacktestView = () => {
         initialCash: '10000',
         instrument: 'NAS100USD',
         spread: "50",
-        speed: "FAST",
+        speed: "NORMAL",
         period: "1D",
         timeframe: {
             from: '',
@@ -456,6 +456,13 @@ const BacktestView = () => {
             updateTrades(data);
         } else if (data.type === 'LOG') {
             updateLogs(data);
+        } else if (data.type === "BAR_SERIES") {
+            updateTradingViewChart(data)
+        } else if (data.type === "ALL_TRADES") {
+            updateTradingViewChart(data)
+        } else if (data.type === "ALL_INDICATORS") {
+            console.log(data)
+            setAllIndicators(data)
         } else if (data.type === 'ERROR') {
             setToast({
                 open: true,
@@ -524,6 +531,21 @@ const BacktestView = () => {
                 ],
             }));
         }
+    };
+
+    const setAllIndicators = (data) => {
+        setIndicators(() => {
+            const newIndicators = {};
+            Object.entries(data.indicators).forEach(([indicatorName, values]) => {
+                newIndicators[indicatorName] = values
+                    .filter(indicator => indicator.value.value !== 0)
+                    .map(indicator => ({
+                        time: indicator.dateTime,
+                        value: indicator.value.value
+                    }));
+            });
+            return newIndicators;
+        });
     };
 
     const updateAccount = (data) => {
@@ -630,6 +652,56 @@ const BacktestView = () => {
                     }
                     return prevMap;
                 });
+            } else if (data.type === "BAR_SERIES") {
+                const barSeries = data.barSeries.bars;
+                setChartData(() => {
+                    // Convert the bar series to the format expected by the chart
+                    const newChartData = barSeries.map(bar => ({
+                        time: bar.openTime,
+                        open: bar.open.value,
+                        high: bar.high.value,
+                        low: bar.low.value,
+                        close: bar.close.value,
+                        instrument: bar.instrument,
+                    }));
+
+                    // Sort the data by time to ensure correct order
+                    newChartData.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+                    return newChartData;
+                });
+            } else if (data.type === "ALL_TRADES") {
+                console.log(data)
+                const tradesObj = data.trades;
+
+                setTrades(() => {
+                    const newTrades = Object.entries(tradesObj).map(([id, trade]) => ({
+                        id: parseInt(id), // Assuming the object key is a string, we parse it to an integer
+                        tradeId: trade.id,
+                        openTime: trade.openTime,
+                        closeTime: trade.closeTime,
+                        instrument: trade.instrument,
+                        entry: trade.entryPrice.value,
+                        stopLoss: trade.stopLoss.value,
+                        closePrice: trade.closePrice ? trade.closePrice.value : null,
+                        takeProfit: trade.takeProfit.value,
+                        quantity: trade.quantity.value,
+                        isLong: trade.long,
+                        position: trade.long ? 'long' : 'short',
+                        price: trade.closePrice ? trade.closePrice.value : trade.entryPrice.value,
+                        profit: trade.profit ? trade.profit.value : null,
+                        action: trade.closeTime ? 'CLOSE' : 'OPEN',
+                    }));
+
+                    // Sort trades by openTime
+                    newTrades.sort((a, b) => new Date(a.openTime) - new Date(b.openTime));
+
+                    return newTrades;
+                });
+
+                // Reset the tradeIdMap and tradeCounter
+                setTradeIdMap(new Map());
+                tradeCounterRef.current = 0;
             }
         },
         [tradeIdMap]

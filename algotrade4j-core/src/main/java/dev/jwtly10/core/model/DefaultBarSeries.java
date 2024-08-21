@@ -91,6 +91,11 @@ public class DefaultBarSeries implements BarSeries {
         return bars.getLast();
     }
 
+    @Override
+    public List<Bar> getBars() {
+        return bars;
+    }
+
     /**
      * Returns a new BarSeries containing the last n bars.
      *

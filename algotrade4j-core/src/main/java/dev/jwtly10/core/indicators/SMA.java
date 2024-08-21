@@ -3,7 +3,9 @@ package dev.jwtly10.core.indicators;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Number;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -18,8 +20,9 @@ import java.util.List;
 @Slf4j
 public class SMA implements Indicator {
     private final int period;
-    private final List<Number> values;
-    private final List<Number> smaValues;
+    private final List<Number> rawValues; // The raw running sum
+    @Getter
+    private final List<IndicatorValue> values; // The data the indicator produces
     private final String name;
     private String strategyId;
     private EventPublisher eventPublisher;
@@ -31,8 +34,8 @@ public class SMA implements Indicator {
      */
     public SMA(int period) {
         this.period = period;
+        this.rawValues = new ArrayList<>();
         this.values = new ArrayList<>();
-        this.smaValues = new ArrayList<>();
         this.name = "SMA " + period;
     }
 
@@ -43,24 +46,26 @@ public class SMA implements Indicator {
     @Override
     public void update(Bar bar) {
         log.debug("Updating SMA with new bar. Close price: {}", bar.getClose());
-        values.add(bar.getClose());
+        rawValues.add(bar.getClose());
 
         if (isReady()) {
-            BigDecimal sum = values.subList(values.size() - period, values.size()).stream()
+            BigDecimal sum = rawValues.subList(rawValues.size() - period, rawValues.size()).stream()
                     .map(Number::getValue)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal average = sum.divide(BigDecimal.valueOf(period), Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
             Number smaPrice = new Number(average);
-            smaValues.add(smaPrice);
+            IndicatorValue indicatorValue = new IndicatorValue(smaPrice, bar.getOpenTime());
+            values.add(indicatorValue);
             if (eventPublisher != null) {
                 log.debug("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
                         strategyId, bar.getInstrument(), getName(), smaPrice, bar.getOpenTime());
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), smaPrice, bar.getOpenTime()));
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
         } else {
-            smaValues.add(Number.ZERO);
+            IndicatorValue indicatorValue = new IndicatorValue(Number.ZERO, bar.getOpenTime());
+            values.add(indicatorValue);
             if (eventPublisher != null) {
-                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), Number.ZERO, bar.getOpenTime()));
+                eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
         }
     }
@@ -71,7 +76,7 @@ public class SMA implements Indicator {
      */
     @Override
     public Number getValue() {
-        return smaValues.isEmpty() ? Number.ZERO : smaValues.getLast();
+        return values.isEmpty() ? Number.ZERO : values.getLast().getValue();
     }
 
     /**
@@ -80,10 +85,10 @@ public class SMA implements Indicator {
      */
     @Override
     public Number getValue(int index) {
-        if (index < 0 || index >= smaValues.size()) {
-            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + smaValues.size());
+        if (index < 0 || index >= values.size()) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + values.size());
         }
-        return smaValues.get(smaValues.size() - index - 1);
+        return values.get(values.size() - index - 1).getValue();
     }
 
     /**
@@ -101,8 +106,8 @@ public class SMA implements Indicator {
      */
     @Override
     public boolean isReady() {
-        log.debug("Checking if SMA is ready. Values size: {}, Period: {}", values.size(), period);
-        return values.size() >= period;
+        log.debug("Checking if SMA is ready. Values size: {}, Period: {}", rawValues.size(), period);
+        return rawValues.size() >= period;
     }
 
     /**

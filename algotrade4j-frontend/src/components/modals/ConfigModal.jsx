@@ -148,11 +148,11 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 onChange={(e) => handleConfigChange('speed', e.target.value)}
                                 label="speed"
                             >
-                                <MenuItem value="SLOW">Slow</MenuItem>
-                                <MenuItem value="NORMAL">Normal</MenuItem>
-                                <MenuItem value="FAST">Fast</MenuItem>
-                                <MenuItem value="VERY_FAST">Very fast</MenuItem>
-                                <MenuItem value="INSTANT">Instant</MenuItem>
+                                <MenuItem value="SLOW">Slow (Visial)</MenuItem>
+                                <MenuItem value="NORMAL">Normal (Visual)</MenuItem>
+                                {/*<MenuItem value="FAST">Fast</MenuItem>*/}
+                                {/*<MenuItem value="VERY_FAST">Very fast</MenuItem>*/}
+                                <MenuItem value="INSTANT">Instant (Async)</MenuItem>
                             </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">

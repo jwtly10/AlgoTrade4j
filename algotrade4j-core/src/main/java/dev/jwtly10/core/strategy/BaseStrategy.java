@@ -13,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,32 +30,28 @@ public abstract class BaseStrategy implements Strategy {
      * The unique identifier of the strategy.
      */
     protected final String strategyId;
-
+    @Getter
+    private final List<Indicator> indicators = new ArrayList<>();
     /**
      * The instrument associated with the strategy.
      */
     public Instrument SYMBOL;
-
     /**
      * The series of bars used by the strategy.
      */
     protected BarSeries barSeries;
-
     /**
      * The event publisher used by the strategy.
      */
     protected EventPublisher eventPublisher;
-
     /**
      * The trade manager used by the strategy.
      */
     private TradeManager tradeManager;
-
     /**
      * The data manager used by the strategy.
      */
     private DataManager dataManager;
-
     /**
      * The account manager used by the strategy.
      */
@@ -290,6 +288,9 @@ public abstract class BaseStrategy implements Strategy {
             // Ensure dependencies are set
             indicator.setEventPublisher(eventPublisher);
             indicator.setStrategyId(strategyId);
+
+            indicators.add(indicator);
+
             return indicator;
         } catch (Exception e) {
             log.error("Failed to create indicator '{}' for params '{}'", indicatorClass.getSimpleName(), params, e);

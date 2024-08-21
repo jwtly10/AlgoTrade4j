@@ -97,6 +97,11 @@ class IndicatorUtilsTest {
         }
 
         @Override
+        public List<IndicatorValue> getValues() {
+            return List.of();
+        }
+
+        @Override
         public void update(Bar bar) {
             updated = true;
             currentValue = bar.getClose();
