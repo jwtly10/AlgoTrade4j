@@ -96,7 +96,7 @@ public class OptimisationExecutor {
 
         Duration period = config.getPeriod();
         Number spread = config.getSpread();
-        String symbol = config.getSymbol();
+        Instrument instrument = config.getInstrument();
         DataSpeed speed = config.getSpeed();
 
         // Shared deps
@@ -107,13 +107,13 @@ public class OptimisationExecutor {
                 4,
                 spread,
                 period,
-                symbol
+                instrument
         );
         // TODO: Should this always be instant?
 //        dataProvider.setDataSpeed(speed);
         dataProvider.setDataSpeed(DataSpeed.INSTANT);
 
-        DefaultDataManager dataManager = new DefaultDataManager(symbol, dataProvider, period, barSeries);
+        DefaultDataManager dataManager = new DefaultDataManager("TODO", instrument, dataProvider, period, barSeries, eventPublisher);
 
         for (Map<String, String> parameterCombination : batch) {
             if (!running) break;

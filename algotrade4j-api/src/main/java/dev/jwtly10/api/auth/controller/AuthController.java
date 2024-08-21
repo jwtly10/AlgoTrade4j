@@ -4,6 +4,7 @@ import dev.jwtly10.api.auth.config.JwtUtils;
 import dev.jwtly10.api.auth.model.*;
 import dev.jwtly10.api.auth.repository.UserRepository;
 import dev.jwtly10.api.auth.service.UserDetailsServiceImpl;
+import dev.jwtly10.api.auth.service.UserLoginLogService;
 import dev.jwtly10.api.auth.service.UserService;
 import dev.jwtly10.api.exception.ApiException;
 import dev.jwtly10.api.exception.ErrorType;
@@ -40,20 +41,25 @@ public class AuthController {
 
     final UserDetailsServiceImpl userDetailsService;
 
+    final UserLoginLogService userLoginLogService;
+
     @Value("${app.signup.enabled:false}")
     private boolean signupEnabled;
 
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, PasswordEncoder encoder, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, PasswordEncoder encoder, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService, UserLoginLogService userLoginLogService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
         this.encoder = encoder;
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.userLoginLogService = userLoginLogService;
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
+                                              HttpServletRequest request,
+                                              HttpServletResponse response) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
@@ -74,6 +80,10 @@ public class AuthController {
 
             // Add the cookie to the response
             response.addCookie(jwtCookie);
+
+            // Log the user login IP
+            String ipAddress = request.getRemoteAddr();
+            userLoginLogService.logUserLogin(userDetails.getId(), ipAddress);
 
             // Return user details without the JWT
             return ResponseEntity.ok(new LoginResponse(

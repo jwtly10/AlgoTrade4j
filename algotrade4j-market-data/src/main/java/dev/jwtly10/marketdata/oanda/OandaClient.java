@@ -2,8 +2,9 @@ package dev.jwtly10.marketdata.oanda;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.jwtly10.core.instruments.OandaInstrument;
+import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.DefaultBar;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -11,6 +12,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.time.Duration;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -24,31 +26,39 @@ import java.util.List;
 public class OandaClient {
     private final String apiKey;
     private final String accountId;
-    private final String baseUrl;
+    private final String apiUrl;
     private final OkHttpClient client;
-    private final ObjectMapper objectMapper;
 
-    public OandaClient(String apiKey, String accountId, String baseUrl, OkHttpClient client, ObjectMapper objectMapper) {
+    public OandaClient(String apiUrl, String apiKey, String accountId, OkHttpClient client) {
         this.apiKey = apiKey;
         this.accountId = accountId;
-        this.baseUrl = baseUrl;
+        this.apiUrl = apiUrl;
         this.client = client;
-        this.objectMapper = objectMapper;
     }
 
-    public OandaClient(String apiKey, String accountId, String baseUrl) {
-        this(apiKey, accountId, baseUrl, new OkHttpClient(), new ObjectMapper());
+    public OandaClient(String apiUrl, String apiKey, String accountId) {
+        this(apiUrl, apiKey, accountId, new OkHttpClient());
     }
 
-    public List<DefaultBar> fetchBars(OandaInstrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) {
-        log.debug("Fetching data for instrument: {}, from: {}, to: {}, period: {}", instrument, from, to, period);
-        String endpoint = String.format("/v3/instruments/%s/candles", instrument);
-        String url = baseUrl + endpoint;
+    public InstrumentCandlesRequest instrumentCandles(Instrument instrument) {
+        return new InstrumentCandlesRequest(this, instrument);
+    }
+
+    List<DefaultBar> executeRequest(InstrumentCandlesRequest request) throws Exception {
+        log.debug("Fetching candles for : {} ({}) time: {} -> {}",
+                request.getInstrument(),
+                request.getPeriod(),
+                request.getFrom().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                request.getTo().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        String endpoint = String.format("/v3/instruments/%s/candles", request.getInstrument().getOandaSymbol());
+        String url = apiUrl + endpoint;
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
-        String fromParam = from.format(formatter);
-        String toParam = to.format(formatter);
-        String granularity = convertPeriodToGranularity(period);
+        String fromParam = request.getFrom().format(formatter);
+        String toParam = request.getTo().format(formatter);
+        String granularity = convertPeriodToGranularity(request.getPeriod());
 
         Request req = new Request.Builder()
                 .url(url + String.format("?includeFirst=false&from=%s&to=%s&granularity=%s", fromParam, toParam, granularity))
@@ -57,19 +67,18 @@ public class OandaClient {
                 .build();
 
         try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
             if (!res.isSuccessful()) {
-                log.error("Failed to fetch data from Oanda API: {}", res.body().string());
-                return List.of();
+                log.error("Failed to fetch data from Oanda API: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            String response = res.body().string();
-            log.debug("Response: {}", response);
-
+            ObjectMapper objectMapper = new ObjectMapper();
             OandaCandleResponse candleResponse = objectMapper.readValue(response, OandaCandleResponse.class);
             return convertOandaCandles(candleResponse);
         } catch (Exception e) {
             log.error("Failed to fetch data from Oanda API", e);
-            return List.of();
+            throw e;
         }
     }
 
@@ -80,8 +89,9 @@ public class OandaClient {
      * @return a list of DefaultBar
      */
     private List<DefaultBar> convertOandaCandles(OandaCandleResponse res) {
+        var instrument = Instrument.fromOandaSymbol(res.instrument());
         return res.candles().stream()
-                .map(candle -> new DefaultBar(res.instrument(),
+                .map(candle -> new DefaultBar(instrument,
                         convertGranularityToDuration(res.granularity()),
                         ZonedDateTime.parse(candle.time()),
                         new Number(candle.mid().o()),
@@ -102,6 +112,7 @@ public class OandaClient {
         if (period.toMinutes() == 1) return "M1";
         if (period.toMinutes() == 5) return "M5";
         if (period.toMinutes() == 15) return "M15";
+        if (period.toMinutes() == 30) return "M30";
         if (period.toHours() == 1) return "H1";
         if (period.toHours() == 4) return "H4";
         if (period.toDays() == 1) return "D";
@@ -119,6 +130,7 @@ public class OandaClient {
             case "M1" -> Duration.ofMinutes(1);
             case "M5" -> Duration.ofMinutes(5);
             case "M15" -> Duration.ofMinutes(15);
+            case "M30" -> Duration.ofMinutes(30);
             case "H1" -> Duration.ofHours(1);
             case "H4" -> Duration.ofHours(4);
             case "D" -> Duration.ofDays(1);

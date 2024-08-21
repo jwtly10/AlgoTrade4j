@@ -11,6 +11,18 @@ import NotFoundView from "./views/NotFoundView.jsx";
 
 const defaultTheme = createTheme()
 
+const darkTheme = createTheme({
+    palette: {
+        mode: 'dark',
+        // primary: {
+        //   main: '#90caf9',
+        // },
+        // secondary: {
+        //   main: '#f48fb1',
+        // },
+    },
+});
+
 function App() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
@@ -44,7 +56,7 @@ function App() {
     }
 
     return (
-        <ThemeProvider theme={defaultTheme}>
+        <ThemeProvider theme={darkTheme}>
             <CssBaseline/>
             <Router>
                 <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>

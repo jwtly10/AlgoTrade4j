@@ -1,9 +1,8 @@
 package dev.jwtly10.core.event;
 
-import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.IndicatorValue;
+import dev.jwtly10.core.model.Instrument;
 import lombok.Getter;
-
-import java.time.ZonedDateTime;
 
 /**
  * Event representing an indicator action in the system.
@@ -18,26 +17,19 @@ public class IndicatorEvent extends BaseEvent {
     /**
      * The value of the indicator.
      */
-    private final Number value;
+    private final IndicatorValue value;
 
     /**
-     * The date and time of the indicator event.
-     */
-    private final ZonedDateTime dateTime;
-
-    /**
-     * Constructs an IndicatorEvent with the specified strategy ID, symbol, indicator name, value, and date/time.
+     * Constructs an IndicatorEvent with the specified strategy ID, instrument, indicator name, value, and date/time.
      *
      * @param strategyId    the identifier of the strategy
-     * @param symbol        the symbol associated with the indicator
+     * @param instrument    the instrument associated with the indicator
      * @param indicatorName the name of the indicator
-     * @param value         the value of the indicator
-     * @param dateTime      the date and time of the indicator value
+     * @param value         the value of the indicator (inlc dateTime)
      */
-    public IndicatorEvent(String strategyId, String symbol, String indicatorName, Number value, ZonedDateTime dateTime) {
-        super(strategyId, "INDICATOR", symbol);
+    public IndicatorEvent(String strategyId, Instrument instrument, String indicatorName, IndicatorValue value) {
+        super(strategyId, "INDICATOR", instrument);
         this.indicatorName = indicatorName;
         this.value = value;
-        this.dateTime = dateTime;
     }
 }

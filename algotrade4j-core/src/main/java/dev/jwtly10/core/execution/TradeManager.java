@@ -2,9 +2,7 @@ package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.model.Trade;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface TradeManager {
 
     /**
-     * Opens a long position for the specified symbol, uses the current ask price as the entry price.
+     * Opens a long position for the specified instrument, uses the current ask price as the entry price.
      * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
@@ -26,7 +24,7 @@ public interface TradeManager {
     Integer openLong(TradeParameters params) throws InvalidTradeException;
 
     /**
-     * Opens a short position for the specified symbol, uses the current bid price as the entry price.
+     * Opens a short position for the specified instrument, uses the current bid price as the entry price.
      * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
@@ -59,7 +57,7 @@ public interface TradeManager {
      *
      * @return The total value of open positions
      */
-    Number getOpenPositionValue(String symbol);
+    Number getOpenPositionValue(Instrument instrument);
 
     Map<Integer, Trade> getAllTrades();
 

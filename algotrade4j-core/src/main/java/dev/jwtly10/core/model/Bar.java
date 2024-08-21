@@ -12,9 +12,9 @@ import java.time.ZonedDateTime;
 public interface Bar {
 
     /**
-     * @return the symbol of the bar (e.g. NAS100_USD, EUR_USD, etc.)
+     * @return the instrument of the bar (e.g. NAS100_USD, EUR_USD, etc.)
      */
-    String getSymbol();
+    Instrument getInstrument();
 
     /**
      * Update the bar with a new tick

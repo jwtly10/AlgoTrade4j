@@ -1,10 +1,8 @@
 package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.exception.DataProviderException;
-import dev.jwtly10.core.model.DefaultBar;
-import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,26 +52,26 @@ public class CSVDataProvider implements DataProvider, TickGeneratorCallback {
     private final List<DataProviderListener> listeners;
     private final Number spread;
     private final Duration period;
-    private final String symbol;
+    private final Instrument instrument;
     @Setter
     private DataSpeed dataSpeed = DataSpeed.NORMAL;
     private BufferedReader reader;
     @Getter
     private boolean isRunning;
 
-    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, String symbol, long seed) {
+    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, Instrument instrument, long seed) {
         this.fileName = fileName;
         this.ticksPerBar = ticksPerBar;
         this.spread = spread;
         this.period = period;
         this.listeners = new ArrayList<>();
-        this.symbol = symbol;
+        this.instrument = instrument;
         this.tickGenerator = new TickGenerator(ticksPerBar, spread, period, seed);
     }
 
     // Overload the constructor to allow creation without a seed
-    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, String symbol) {
-        this(fileName, ticksPerBar, spread, period, symbol, System.currentTimeMillis());
+    public CSVDataProvider(String fileName, int ticksPerBar, Number spread, Duration period, Instrument instrument) {
+        this(fileName, ticksPerBar, spread, period, instrument, System.currentTimeMillis());
     }
 
     @Override
@@ -155,7 +153,7 @@ public class CSVDataProvider implements DataProvider, TickGeneratorCallback {
                 .close(close)
                 .volume(volume)
                 .openTime(dateTime)
-                .symbol(symbol)
+                .instrument(instrument)
                 .timePeriod(period)
                 .build();
 

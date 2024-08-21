@@ -1,101 +1,79 @@
 package dev.jwtly10.marketdata.dataclients;
 
-import dev.jwtly10.core.instruments.OandaInstrument;
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.DefaultBar;
+import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.NoSuchElementException;
+
 
 @Slf4j
 public class OandaDataClient implements ExternalDataClient {
-    private final OandaClient apiClient;
+    private static final int MAX_CANDLES_PER_REQUEST = 5000; // Oanda's limit on candles you can request at a time
+    private final OandaClient client;
 
-    public OandaDataClient(OandaClient apiClient) {
-        this.apiClient = apiClient;
+    public OandaDataClient(OandaClient oandaClient) {
+        this.client = oandaClient;
     }
 
-    @Override
-    public Iterator<Bar> fetchCandlesIterator(String instrument, ZonedDateTime from, ZonedDateTime to, Duration period) {
-        return new Iterator<Bar>() {
-            private ZonedDateTime currentFrom = from;
-            private List<Bar> currentBatch = new ArrayList<>();
-            private int currentIndex = 0;
-            private boolean isLastBatch = false;
+    public void fetchCandles(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period, ClientCallback callback) {
+        log.debug("Running fetch for Oanda Data client: {} ({}) time: {} -> {}",
+                instrument,
+                period,
+                from.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                to.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+        ZonedDateTime currentFrom = from;
 
-            @Override
-            public boolean hasNext() {
-                log.debug("hasNext() called. currentIndex: {}, currentBatch.size(): {}, isLastBatch: {}", currentIndex, currentBatch.size(), isLastBatch);
-                if (currentIndex < currentBatch.size()) {
-                    return true;
-                }
-                if (isLastBatch) {
-                    return false;
-                }
-                fetchNextBatch();
-                return !currentBatch.isEmpty();
+        try {
+            if (to.isAfter(ZonedDateTime.now())) {
+                throw new RuntimeException("Invalid to date - cannot be in the future");
             }
 
-            @Override
-            public Bar next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
+            while (currentFrom.isBefore(to)) {
+                ZonedDateTime batchTo = currentFrom.plus(period.multipliedBy(MAX_CANDLES_PER_REQUEST));
+                if (batchTo.isAfter(to)) {
+                    batchTo = to;
                 }
-                Bar bar = currentBatch.get(currentIndex);
-                currentIndex++;
-                log.debug("Returning bar: {}", bar);
-                return bar;
-            }
 
-            private void fetchNextBatch() {
-                log.debug("fetchNextBatch() called. currentFrom: {}, to: {}", currentFrom, to);
+                List<DefaultBar> batchBars = fetchBatch(instrument, currentFrom, batchTo, period);
+                log.debug("Found {} bars", batchBars.size());
 
-                try {
-                    currentBatch = (List<Bar>) (List<?>) apiClient.fetchBars(getInstrumentFromString(instrument), currentFrom, to, period);
-                    currentIndex = 0;
+                if (batchBars.isEmpty()) {
+                    break; // No more data available
+                }
 
-                    log.debug("Fetched batch size: {}", currentBatch.size());
-
-                    if (currentBatch.isEmpty()) {
-                        isLastBatch = true;
-                        log.debug("Empty batch received, setting isLastBatch to true");
-                    } else {
-                        Bar lastBar = currentBatch.getLast();
-                        currentFrom = lastBar.getOpenTime().plus(period);
-                        log.debug("Updated currentFrom to: {}", currentFrom);
-
-                        if (currentFrom.isAfter(to) || currentFrom.equals(to)) {
-                            isLastBatch = true;
-                            log.debug("currentFrom is after or equal to 'to', setting isLastBatch to true");
-                        }
+                for (Bar bar : batchBars) {
+                    boolean shouldContinue = callback.onCandle(bar);
+                    if (!shouldContinue) {
+                        return; // Client requested to stop
                     }
-                } catch (Exception e) {
-                    // TODO: Handle exceptions, or check if we can use this as a way to tell theres no data left
-                    log.error("Error fetching data", e);
-                    isLastBatch = true;
-                    currentBatch.clear();
                 }
+
+                currentFrom = batchBars.getLast().getOpenTime().plus(period);
             }
 
-            private OandaInstrument getInstrumentFromString(String ins) {
-                return switch (ins) {
-                    case "NAS100USD" -> OandaInstrument.NAS100_USD;
-                    case "SPX500_USD" -> OandaInstrument.SPX500_USD;
-                    case "US30_USD" -> OandaInstrument.US30_USD;
-                    case "EUR_USD" -> OandaInstrument.EUR_USD;
-                    case "GBP_USD" -> OandaInstrument.GBP_USD;
-                    case "USD_JPY" -> OandaInstrument.USD_JPY;
-                    case "XAU_USD" -> OandaInstrument.XAU_USD;
-                    case "BCO_USD" -> OandaInstrument.BCO_USD;
-                    default -> throw new IllegalArgumentException("No constant with text " + ins + " found");
-                };
-            }
-        };
+            callback.onComplete();
+        } catch (Exception e) {
+            log.error("Failed to fetch data from Oanda API", e);
+            callback.onError(e);
+        }
+    }
+
+    private List<DefaultBar> fetchBatch(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
+        return client.instrumentCandles(instrument)
+                .from(from)
+                .to(to)
+                .granularity(period)
+                .fetch();
+
     }
 }

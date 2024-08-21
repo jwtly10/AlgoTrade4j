@@ -5,12 +5,13 @@ import 'chartjs-adapter-date-fns';
 import AnalysisReport from '../components/AnalysisReport.jsx';
 import {EquityChart} from '../components/EquityChart.jsx';
 import TradesTable from '../components/TradesTable.jsx';
-import {Box, Button, Checkbox, Container, Divider, FormControlLabel, Grid, MenuItem, Paper, Select, Tab, TableContainer, Tabs, Typography,} from '@mui/material';
+import {Box, Button, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Paper, Select, Switch, Tab, Tabs, Typography,} from '@mui/material';
 import {TabPanel} from '../components/TabPanel.jsx';
 import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
 import {Toast} from "../components/Toast.jsx";
 import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
+import LoadingChart from "../components/LoadingChart.jsx";
 
 
 const BacktestView = () => {
@@ -48,14 +49,16 @@ const BacktestView = () => {
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
 
+    const [isAsync, setAsync] = useState(false)
+
     // const [rawParams, setRawParams] = useState([]);
     // const [runParams, setRunParams] = useState([])
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
-        symbol: 'NAS100USD',
+        instrument: 'NAS100USD',
         spread: "50",
-        speed: "FAST",
+        speed: "NORMAL",
         period: "1D",
         timeframe: {
             from: '',
@@ -86,6 +89,16 @@ const BacktestView = () => {
             try {
                 const res = await apiClient.getStrategies()
                 setStrategies(res)
+
+                const lastStrat = localStorage.getItem("LAST_STRAT")
+
+                res.forEach(strat => {
+                    if (strat === lastStrat) {
+                        handleChangeStrategy(lastStrat)
+                    }
+                })
+
+
             } catch (error) {
                 console.error('Failed to get strategies:', error);
             }
@@ -131,7 +144,7 @@ const BacktestView = () => {
         const updatedConfig = {
             ...strategyConfig,
             initialCash: storedConfig.initialCash || strategyConfig.initialCash,
-            symbol: storedConfig.symbol || strategyConfig.symbol,
+            instrument: storedConfig.instrument || strategyConfig.instrument,
             spread: storedConfig.spread || strategyConfig.spread,
             period: storedConfig.period || strategyConfig.period,
             speed: storedConfig.speed || strategyConfig.speed,
@@ -159,8 +172,8 @@ const BacktestView = () => {
             width: chartContainerRef.current.clientWidth,
             height: 500,
             layout: {
-                background: {type: ColorType.Solid, color: '#ffffff'},
-                textColor: 'black',
+                background: {type: ColorType.Solid, color: '#121212'},
+                textColor: '#D9D9D9',
             },
             timeScale: {
                 timeVisible: true,
@@ -199,18 +212,23 @@ const BacktestView = () => {
                 },
             },
             watermark: {
-                color: 'rgba(0, 0, 0, 0.1)',
+                color: 'rgba(255, 255, 255, 0.1)',
                 visible: true,
-                text: chartData.length > 0 ? chartData[0].symbol : '',
+                text: chartData.length > 0 ? chartData[0].instrument : '',
                 fontSize: 80,
                 horzAlign: 'center',
                 vertAlign: 'center',
+            },
+            grid: {
+                vertLines: {color: 'rgba(197, 203, 206, 0.1)'},
+                horzLines: {color: 'rgba(197, 203, 206, 0.1)'},
             },
         });
 
         chart.timeScale().applyOptions({
             rightOffset: 12,
             barSpacing: 8,
+            borderColor: 'rgba(197, 203, 206, 0.3)',
         });
 
         chart.applyOptions({
@@ -224,21 +242,24 @@ const BacktestView = () => {
             },
             crosshair: {
                 mode: CrosshairMode.Normal,
+                vertLine: {color: '#758696', width: 1, style: 3, labelBackgroundColor: '#1E222D'},
+                horzLine: {color: '#758696', width: 1, style: 3, labelBackgroundColor: '#1E222D'},
             },
             tooltip: {
                 fontFamily: 'Arial',
                 fontSize: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backgroundColor: 'rgba(30, 34, 45, 0.9)',
                 borderColor: '#2962FF',
+                textColor: '#D9D9D9',
             },
             legend: {
                 visible: true,
                 fontSize: 12,
                 fontFamily: 'Arial',
-                color: '#333',
+                color: '#D9D9D9',
             },
             rightPriceScale: {
-                borderColor: 'rgba(197, 203, 206, 0.8)',
+                borderColor: 'rgba(197, 203, 206, 0.3)',
                 borderVisible: true,
                 scaleMargins: {
                     top: 0.1,
@@ -285,7 +306,7 @@ const BacktestView = () => {
             }
         });
 
-        addTradePriceLines(chart, candlestickSeries, trades);
+        // addTradePriceLines(chart, candlestickSeries, trades);
 
         const openMarkers = trades.map((trade) => ({
             time: trade.openTime,
@@ -366,6 +387,8 @@ const BacktestView = () => {
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
         setIndicators({});
+        setAsync(false);
+        setLogs([])
         console.log('Starting strategy...');
 
         if (runOptimisation) {
@@ -401,6 +424,11 @@ const BacktestView = () => {
                 generatedIdForClass,
                 handleWebSocketMessage
             );
+
+            if (hackConfig.speed === "INSTANT") {
+                setAsync(true);
+            }
+
             console.log('WebSocket connected');
             await apiClient.startStrategy(hackConfig, generatedIdForClass);
         } catch (error) {
@@ -436,16 +464,23 @@ const BacktestView = () => {
             updateTradingViewChart(data);
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
-        } else if (data.type === 'ACCOUNT') {
+        } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
             updateAccount(data);
         } else if (data.type === 'STRATEGY_STOP') {
             setIsRunning(false);
+            setAsync(false);
         } else if (data.type === 'ANALYSIS') {
             setAnalysis(data);
         } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
             updateTrades(data);
         } else if (data.type === 'LOG') {
             updateLogs(data);
+        } else if (data.type === "BAR_SERIES") {
+            updateTradingViewChart(data)
+        } else if (data.type === "ALL_TRADES") {
+            updateTradingViewChart(data)
+        } else if (data.type === "ALL_INDICATORS") {
+            setAllIndicators(data)
         } else if (data.type === 'ERROR') {
             setToast({
                 open: true,
@@ -504,16 +539,31 @@ const BacktestView = () => {
     };
 
     const updateIndicator = (data) => {
-        if (data.value.value !== 0) {
+        if (data.value.value.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    {time: data.dateTime, value: data.value.value},
+                    {time: data.value.dateTime, value: data.value.value.value},
                 ],
             }));
         }
+    };
+
+    const setAllIndicators = (data) => {
+        setIndicators(() => {
+            const newIndicators = {};
+            Object.entries(data.indicators).forEach(([indicatorName, values]) => {
+                newIndicators[indicatorName] = values
+                    .filter(indicator => indicator.value.value !== 0)
+                    .map(indicator => ({
+                        time: indicator.dateTime,
+                        value: indicator.value.value
+                    }));
+            });
+            return newIndicators;
+        });
     };
 
     const updateAccount = (data) => {
@@ -549,7 +599,7 @@ const BacktestView = () => {
                                 high: bar.high.value,
                                 low: bar.low.value,
                                 close: bar.close.value,
-                                symbol: bar.symbol,
+                                instrument: bar.instrument,
                             },
                         ];
                     }
@@ -566,7 +616,7 @@ const BacktestView = () => {
                             ...updatedTrades[existingTradeIndex],
                             openTime: trade.openTime,
                             closeTime: trade.closeTime,
-                            symbol: trade.symbol,
+                            instrument: trade.instrument,
                             entry: trade.entryPrice.value,
                             stopLoss: trade.stopLoss.value,
                             closePrice: trade.closePrice.value,
@@ -591,7 +641,7 @@ const BacktestView = () => {
                                 tradeId: trade.id,
                                 openTime: trade.openTime,
                                 closeTime: trade.closeTime,
-                                symbol: trade.symbol,
+                                instrument: trade.instrument,
                                 entry: trade.entryPrice.value,
                                 stopLoss: trade.stopLoss.value,
                                 closePrice: trade.closePrice.value,
@@ -620,6 +670,55 @@ const BacktestView = () => {
                     }
                     return prevMap;
                 });
+            } else if (data.type === "BAR_SERIES") {
+                const barSeries = data.barSeries.bars;
+                setChartData(() => {
+                    // Convert the bar series to the format expected by the chart
+                    const newChartData = barSeries.map(bar => ({
+                        time: bar.openTime,
+                        open: bar.open.value,
+                        high: bar.high.value,
+                        low: bar.low.value,
+                        close: bar.close.value,
+                        instrument: bar.instrument,
+                    }));
+
+                    // Sort the data by time to ensure correct order
+                    newChartData.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+                    return newChartData;
+                });
+            } else if (data.type === "ALL_TRADES") {
+                const tradesObj = data.trades;
+
+                setTrades(() => {
+                    const newTrades = Object.entries(tradesObj).map(([id, trade]) => ({
+                        id: parseInt(id), // Assuming the object key is a string, we parse it to an integer
+                        tradeId: trade.id,
+                        openTime: trade.openTime,
+                        closeTime: trade.closeTime,
+                        instrument: trade.instrument,
+                        entry: trade.entryPrice.value,
+                        stopLoss: trade.stopLoss.value,
+                        closePrice: trade.closePrice ? trade.closePrice.value : null,
+                        takeProfit: trade.takeProfit.value,
+                        quantity: trade.quantity.value,
+                        isLong: trade.long,
+                        position: trade.long ? 'long' : 'short',
+                        price: trade.closePrice ? trade.closePrice.value : trade.entryPrice.value,
+                        profit: trade.profit ? trade.profit.value : null,
+                        action: trade.closeTime ? 'CLOSE' : 'OPEN',
+                    }));
+
+                    // Sort trades by openTime
+                    newTrades.sort((a, b) => new Date(a.openTime) - new Date(b.openTime));
+
+                    return newTrades;
+                });
+
+                // Reset the tradeIdMap and tradeCounter
+                setTradeIdMap(new Map());
+                tradeCounterRef.current = 0;
             }
         },
         [tradeIdMap]
@@ -646,9 +745,21 @@ const BacktestView = () => {
         setIsModalOpen(false);
     };
 
-    const handleChangeStrategy = async (event) => {
+    const handleChangeStrategy = async (valueOrEvent) => {
         // Get the class of the strategy
-        const stratClass = event.target.value;
+        let stratClass;
+        // Hack to use this function in other places
+        if (typeof valueOrEvent === 'string') {
+            // If a string is passed directly
+            stratClass = valueOrEvent;
+        } else if (valueOrEvent && valueOrEvent.target) {
+            // If an event object is passed (from onChange)
+            stratClass = valueOrEvent.target.value;
+        } else {
+            console.error('Invalid input to handleChangeStrategy');
+            return;
+        }
+        localStorage.setItem("LAST_STRAT", stratClass);
         setStrategyClass(stratClass);
 
         // Update config with class
@@ -692,185 +803,190 @@ const BacktestView = () => {
     }
 
     return (
-        <Container sx={{p: 3}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
-                <Typography variant="h4" sx={{flexGrow: 1}}>Backtest Runner</Typography>
-                <Select
-                    value={strategyClass}
-                    onChange={handleChangeStrategy}
-                    sx={{
-                        width: '25%',
-                        height: '36.5px', // Match Button height
-                        '.MuiSelect-select': {
-                            padding: '8px 14px', // Adjust padding
-                            lineHeight: '1.4', // Adjust line height
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 64px)', // Subtract navbar height (adjust 64px if needed)
+            width: '100vw',
+            overflow: 'hidden' // Prevent scrolling on the main container
+        }}>
+            {/* Header */}
+            <Box sx={{flexShrink: 0, p: 2, bgcolor: 'background.paper', overflow: 'auto'}}>
+                <Grid container justifyContent="flex-end" spacing={2}>
+                    {[
+                        {label: 'Initial Balance', value: account.initialBalance},
+                        {label: 'Current Balance', value: account.balance},
+                        {label: 'Equity', value: account.equity},
+                        {
+                            label: 'Open Position Value',
+                            value: Math.round((account.equity - account.balance + Number.EPSILON) * 100) / 100
                         }
-                    }}
-                    displayEmpty
-                    renderValue={(selected) => {
-                        if (!selected) {
-                            return "Select a strategy";
-                        }
-                        return selected;
-                    }}
-                >
-                    {strategies.length > 0 ? (
-                        strategies.map((strategy, index) => (
-                            <MenuItem key={index} value={strategy}>
-                                {strategy}
-                            </MenuItem>
-                        ))
-                    ) : (
-                        <MenuItem value="" disabled>
-                            No strategies available
-                        </MenuItem>
-                    )}
-                </Select>
-            </Box>
-            <Paper elevation={3} className="chart-container" sx={{p: 3, mb: 3}}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} container alignItems="center" spacing={2}>
-                        <Grid item xs={8}>
-                            <Button
-                                variant="contained"
-                                color={isRunning ? 'error' : 'success'}
-                                onClick={isRunning ? stopStrategy : startStrategy}
-                                fullWidth
-                                disabled={strategyClass === ""}
-                            >
-                                {isRunning ? 'Stop' : 'Start'}
-                            </Button>
+                    ].map((item, index) => (
+                        <Grid item key={index}>
+                            <Paper elevation={3} sx={{p: 1, minWidth: '200px'}}>
+                                <Typography variant="body2" color="text.secondary">
+                                    {item.label}
+                                </Typography>
+                                <Typography variant="h6" fontWeight="bold">
+                                    ${item.value.toLocaleString()}
+                                </Typography>
+                            </Paper>
                         </Grid>
-                        <Grid item xs={4} container direction="column" spacing={1}>
-                            <Grid item>
-                                <Button variant="contained" onClick={handleOpenParams} fullWidth disabled={strategyClass === ""}>
-                                    Params
-                                </Button>
-                            </Grid>
-                        </Grid>
-                        <Grid item>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        size="small"
-                                        onChange={(e) => setRunOptimisation(e.target.checked)}
-                                    />
-                                }
-                                label="Run optimisation"
-                            />
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Divider sx={{my: 2}}/>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Initial Balance:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.initialBalance}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Current Balance:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.balance}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Equity:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.equity}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Open Position Value:{' '}
-                            <Box component="span" fontWeight="bold">
-                                $
-                                {Math.round((account.equity - account.balance + Number.EPSILON) * 100) /
-                                    100}
-                            </Box>
-                        </Typography>
-                    </Grid>
+                    ))}
                 </Grid>
+            </Box>
 
-                <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
-                    <Box
-                        sx={{width: '100%', height: '400px', overflow: 'hidden'}}
-                        ref={chartContainerRef}
-                    />
+            {/* Main content area */}
+            <Box sx={{flexGrow: 1, display: 'flex', overflow: 'hidden'}}>
+                {/* Left section (3/4 width) */}
+                <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden'}}>
+                    <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
+                        {/* Chart Section */}
+                        <Box sx={{flexShrink: 0, height: '40%', minHeight: '300px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
+                            {isRunning && isAsync ? (
+                                <LoadingChart/>
+                            ) : (
+                                <Box sx={{width: '100%', height: '100%'}} ref={chartContainerRef}/>
+                            )}
+                        </Box>
+
+                        {/* Tabs and Content Section */}
+                        <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+                            <Tabs
+                                value={tabValue}
+                                onChange={handleTabChange}
+                                aria-label="strategy tabs"
+                                sx={{borderBottom: 1, borderColor: 'divider', mb: 2}}
+                            >
+                                <Tab label="Trades"/>
+                                <Tab label="Analysis"/>
+                                <Tab label="Equity History"/>
+                                <Tab label="Logs"/>
+                                <Tab label="Optimisation"/>
+                            </Tabs>
+
+                            <Box sx={{flexGrow: 1, overflow: 'auto'}}>
+                                <TabPanel value={tabValue} index={0}>
+                                    <TradesTable trades={trades}/>
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={1}>
+                                    {analysisData !== null ? (
+                                        <AnalysisReport data={analysisData}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No analysis data available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={2}>
+                                    {equityHistory.length > 0 ? (
+                                        <EquityChart equityHistory={equityHistory}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No equity history available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={3}>
+                                    {logs.length > 0 ? (
+                                        <LogsTable logs={logs}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No logs available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={4}>
+                                    <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
+                                </TabPanel>
+                            </Box>
+                        </Box>
+                    </Paper>
                 </Box>
 
-                <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>
-                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="strategy tabs">
-                        <Tab label="Trades"/>
-                        <Tab label="Analysis"/>
-                        <Tab label="Equity History"/>
-                        <Tab label="Logs"/>
-                        <Tab label="Optimisation"/>
-                    </Tabs>
-                </Box>
+                {/* Right section (1/4 width) */}
+                <Box sx={{width: '25%', minWidth: '300px', p: 3, bgcolor: 'background.paper', boxShadow: 1, overflow: 'auto'}}>
+                    <Box sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+                        <FormControl fullWidth variant="outlined" sx={{mb: 3}}>
+                            <InputLabel>Select a strategy</InputLabel>
+                            <Select
+                                value={strategyClass}
+                                onChange={handleChangeStrategy}
+                                label="Select a strategy"
+                                displayEmpty
+                            >
+                                {strategies.length > 0 ? (
+                                    strategies.map((strategy, index) => (
+                                        <MenuItem key={index} value={strategy}>
+                                            {strategy}
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem value="" disabled>
+                                        No strategies available
+                                    </MenuItem>
+                                )}
+                            </Select>
+                        </FormControl>
 
-                <TabPanel value={tabValue} index={0}>
-                    <TradesTable trades={trades}/>
-                </TabPanel>
-                <TabPanel value={tabValue} index={1}>
-                    {analysisData !== null ? (
-                        <AnalysisReport data={analysisData}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No analysis data available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={2}>
-                    {equityHistory.length > 0 ? (
-                        <EquityChart equityHistory={equityHistory}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No equity history available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={3}>
-                    {logs.length > 0 ? (
-                        <LogsTable logs={logs}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No logs available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={4}>
-                    <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
-                </TabPanel>
-                <ConfigModal
-                    open={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSave={handleConfigSave}
-                    strategyConfig={strategyConfig}
-                    setStrategyConfig={setStrategyConfig}
-                    strategyClass={strategyClass}
-                />
-                <Toast
-                    open={toast.open}
-                    message={toast.message}
-                    severity={toast.level}
-                    onClose={handleCloseToast}
-                />
-            </Paper>
-        </Container>
+                        <Button
+                            variant="contained"
+                            color={isRunning ? 'error' : 'success'}
+                            onClick={isRunning ? stopStrategy : startStrategy}
+                            disabled={strategyClass === ""}
+                            size="large"
+                            sx={{mb: 2}}
+                        >
+                            {isRunning ? 'Stop Strategy' : 'Start Strategy'}
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            onClick={handleOpenParams}
+                            disabled={strategyClass === ""}
+                            size="large"
+                            sx={{mb: 3}}
+                        >
+                            Configure Parameters
+                        </Button>
+
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={runOptimisation}
+                                    onChange={(e) => setRunOptimisation(e.target.checked)}
+                                    color="primary"
+                                />
+                            }
+                            label="Run optimisation"
+                            sx={{mb: 2}}
+                        />
+
+                        <Box sx={{flexGrow: 1}}/> {/* Spacer */}
+
+                        <Typography variant="body2" color="text.secondary" align="center">
+                            Select a strategy and configure parameters before starting.
+                        </Typography>
+                    </Box>
+                </Box>
+            </Box>
+
+            {/* Modals */}
+            <ConfigModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleConfigSave}
+                strategyConfig={strategyConfig}
+                setStrategyConfig={setStrategyConfig}
+                strategyClass={strategyClass}
+            />
+            <Toast
+                open={toast.open}
+                message={toast.message}
+                severity={toast.level}
+                onClose={handleCloseToast}
+            />
+        </Box>
     );
 };
 

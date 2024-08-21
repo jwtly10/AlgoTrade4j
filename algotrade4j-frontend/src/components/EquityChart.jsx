@@ -1,11 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import Chart from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
 
 
-export const EquityChart = ({ equityHistory }) => {
+export const EquityChart = ({equityHistory}) => {
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
+
+    const decimateData = (data, maxPoints = 1000) => {
+        if (data.length <= maxPoints) return data;
+
+        const skip = Math.ceil(data.length / maxPoints);
+        return data.filter((_, index) => index % skip === 0);
+    };
 
     useEffect(() => {
         if (chartInstance.current) {
@@ -14,10 +21,12 @@ export const EquityChart = ({ equityHistory }) => {
 
         const ctx = chartRef.current.getContext('2d');
 
-        const chartData = equityHistory.map(point => ({
+        let chartData = equityHistory.map(point => ({
             x: point.timestamp * 1000,
             y: point.equity.value
         }));
+
+        chartData = decimateData(chartData);
 
         chartInstance.current = new Chart(ctx, {
             type: 'line',
@@ -26,7 +35,10 @@ export const EquityChart = ({ equityHistory }) => {
                     label: 'Equity',
                     data: chartData,
                     borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
+                    tension: 0.4,  // Increase this value for a smoother line
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHitRadius: 10
                 }]
             },
             options: {
@@ -79,5 +91,5 @@ export const EquityChart = ({ equityHistory }) => {
         };
     }, [equityHistory]);
 
-    return <canvas ref={chartRef} />;
+    return <canvas ref={chartRef}/>;
 };

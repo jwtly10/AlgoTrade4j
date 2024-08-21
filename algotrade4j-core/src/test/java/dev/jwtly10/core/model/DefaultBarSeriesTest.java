@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
+import static dev.jwtly10.core.model.Instrument.NAS100USD;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DefaultBarSeriesTest {
@@ -34,7 +35,7 @@ class DefaultBarSeriesTest {
 
     @Test
     void testAddBar() {
-        Bar bar1 = createMockBar("EURUSD", 1);
+        Bar bar1 = createMockBar(NAS100USD, 1);
         series.addBar(bar1);
         assertEquals(1, series.getBarCount());
         assertEquals(bar1, series.getLastBar());
@@ -43,7 +44,7 @@ class DefaultBarSeriesTest {
     @Test
     void testAddBarBeyondMaximum() {
         for (int i = 0; i < MAX_BAR_COUNT + 2; i++) {
-            series.addBar(createMockBar("EURUSD", i));
+            series.addBar(createMockBar(NAS100USD, i));
         }
         assertEquals(MAX_BAR_COUNT, series.getBarCount());
         assertEquals(MAX_BAR_COUNT + 1, ((MockBar) series.getLastBar()).index);
@@ -51,8 +52,8 @@ class DefaultBarSeriesTest {
 
     @Test
     void testGetBar() {
-        Bar bar1 = createMockBar("EURUSD", 1);
-        Bar bar2 = createMockBar("EURUSD", 2);
+        Bar bar1 = createMockBar(NAS100USD, 1);
+        Bar bar2 = createMockBar(NAS100USD, 2);
         series.addBar(bar1);
         series.addBar(bar2);
         assertEquals(bar1, series.getBar(0));
@@ -62,7 +63,7 @@ class DefaultBarSeriesTest {
     @Test
     void testGetBarInvalidIndex() {
         assertThrows(IndexOutOfBoundsException.class, () -> series.getBar(0));
-        series.addBar(createMockBar("EURUSD", 1));
+        series.addBar(createMockBar(NAS100USD, 1));
         assertThrows(IndexOutOfBoundsException.class, () -> series.getBar(1));
         assertThrows(IndexOutOfBoundsException.class, () -> series.getBar(-1));
     }
@@ -70,10 +71,10 @@ class DefaultBarSeriesTest {
     @Test
     void testGetLastBar() {
         assertNull(series.getLastBar());
-        Bar bar1 = createMockBar("EURUSD", 1);
+        Bar bar1 = createMockBar(NAS100USD, 1);
         series.addBar(bar1);
         assertEquals(bar1, series.getLastBar());
-        Bar bar2 = createMockBar("EURUSD", 2);
+        Bar bar2 = createMockBar(NAS100USD, 2);
         series.addBar(bar2);
         assertEquals(bar2, series.getLastBar());
     }
@@ -81,7 +82,7 @@ class DefaultBarSeriesTest {
     @Test
     void testGetLastBars() {
         for (int i = 0; i < MAX_BAR_COUNT; i++) {
-            series.addBar(createMockBar("EURUSD", i));
+            series.addBar(createMockBar(NAS100USD, i));
         }
         BarSeries lastThree = series.getLastBars(3);
         assertEquals(3, lastThree.getBarCount());
@@ -97,28 +98,28 @@ class DefaultBarSeriesTest {
 
     @Test
     void testGetLastBarsMoreThanAvailable() {
-        series.addBar(createMockBar("EURUSD", 1));
-        series.addBar(createMockBar("EURUSD", 2));
+        series.addBar(createMockBar(NAS100USD, 1));
+        series.addBar(createMockBar(NAS100USD, 2));
         BarSeries lastBars = series.getLastBars(3);
         assertEquals(2, lastBars.getBarCount());
     }
 
-    private Bar createMockBar(String symbol, int index) {
-        return new MockBar(symbol, index);
+    private Bar createMockBar(Instrument instrument, int index) {
+        return new MockBar(instrument, index);
     }
 
     private static class MockBar implements Bar {
-        private final String symbol;
+        private final Instrument instrument;
         private final int index;
 
-        public MockBar(String symbol, int index) {
-            this.symbol = symbol;
+        public MockBar(Instrument instrument, int index) {
+            this.instrument = instrument;
             this.index = index;
         }
 
         @Override
-        public String getSymbol() {
-            return symbol;
+        public Instrument getInstrument() {
+            return instrument;
         }
 
         @Override
@@ -174,7 +175,7 @@ class DefaultBarSeriesTest {
         @Override
         public String toString() {
             return "MockBar{" +
-                    "symbol='" + symbol + '\'' +
+                    "instrument='" + instrument + '\'' +
                     ", index=" + index +
                     '}';
         }

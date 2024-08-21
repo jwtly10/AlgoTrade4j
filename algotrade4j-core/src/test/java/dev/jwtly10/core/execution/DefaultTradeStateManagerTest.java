@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static dev.jwtly10.core.model.Instrument.NAS100USD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -40,8 +41,8 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_updatesTradesAndAccount() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade longTrade = new Trade("EURUSD", new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
-        Trade shortTrade = new Trade("EURUSD", new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
+        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(1, longTrade);
         openTrades.put(2, shortTrade);
 
@@ -70,7 +71,7 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_executesStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade longTrade = new Trade("EURUSD", new Number("1"), new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
+        Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
         openTrades.put(1, longTrade);
 
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
@@ -88,7 +89,7 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_doesNotExecuteStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade shortTrade = new Trade("GBPUSD", new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(2, shortTrade);
 
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);

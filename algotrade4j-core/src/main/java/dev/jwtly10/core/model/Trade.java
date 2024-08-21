@@ -21,9 +21,9 @@ public class Trade {
     private final Integer id;
 
     /**
-     * The symbol associated with the trade.
+     * The instrument associated with the trade.
      */
-    private final String symbol;
+    private final Instrument instrument;
 
     /**
      * The quantity of the trade.
@@ -74,7 +74,7 @@ public class Trade {
      * Constructs a Trade with the specified parameters.
      * Generates a unique identifier for the trade.
      *
-     * @param symbol     the symbol associated with the trade
+     * @param instrument the instrument associated with the trade
      * @param quantity   the quantity of the trade
      * @param entryPrice the entry price of the trade
      * @param openTime   the open time of the trade
@@ -82,9 +82,9 @@ public class Trade {
      * @param takeProfit the take profit price of the trade
      * @param isLong     indicates whether the trade is a long position
      */
-    public Trade(String symbol, Number quantity, Number entryPrice, ZonedDateTime openTime, Number stopLoss, Number takeProfit, boolean isLong) {
+    public Trade(Instrument instrument, Number quantity, Number entryPrice, ZonedDateTime openTime, Number stopLoss, Number takeProfit, boolean isLong) {
         this.id = ++idCounter;
-        this.symbol = symbol;
+        this.instrument = instrument;
         this.quantity = quantity;
         this.entryPrice = entryPrice;
         this.openTime = openTime;
@@ -97,7 +97,7 @@ public class Trade {
      * Constructs a Trade with the specified parameters including an existing ID.
      *
      * @param id         the unique identifier of the trade
-     * @param symbol     the symbol associated with the trade
+     * @param instrument the instrument associated with the trade
      * @param quantity   the quantity of the trade
      * @param openTime   the open time of the trade
      * @param entryPrice the entry price of the trade
@@ -105,9 +105,9 @@ public class Trade {
      * @param takeProfit the take profit price of the trade
      * @param isLong     indicates whether the trade is a long position
      */
-    public Trade(int id, String symbol, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
+    public Trade(int id, Instrument instrument, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
         this.id = id;
-        this.symbol = symbol;
+        this.instrument = instrument;
         this.quantity = quantity;
         this.entryPrice = entryPrice;
         this.openTime = openTime;

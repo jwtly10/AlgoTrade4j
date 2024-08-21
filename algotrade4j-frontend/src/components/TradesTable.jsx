@@ -22,7 +22,7 @@ function TradesTable({trades}) {
                         <TableCell>Type</TableCell>
                         <TableCell>State</TableCell>
                         <TableCell>Size</TableCell>
-                        <TableCell>Symbol</TableCell>
+                        <TableCell>Instrument</TableCell>
                         <TableCell>Open Price</TableCell>
                         <TableCell>Close Price</TableCell>
                         <TableCell>S/L</TableCell>
@@ -38,7 +38,7 @@ function TradesTable({trades}) {
                             <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
                             <TableCell>{trade.closePrice === 0 ? "OPEN" : "CLOSED"}</TableCell>
                             <TableCell>{trade.quantity}</TableCell>
-                            <TableCell>{trade.symbol}</TableCell>
+                            <TableCell>{trade.instrument}</TableCell>
                             <TableCell>{trade.entry}</TableCell>
                             <TableCell>{trade.closePrice}</TableCell>
                             <TableCell>{trade.stopLoss}</TableCell>

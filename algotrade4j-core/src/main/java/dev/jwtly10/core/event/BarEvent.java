@@ -1,6 +1,7 @@
 package dev.jwtly10.core.event;
 
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Instrument;
 import lombok.Getter;
 
 /**
@@ -14,14 +15,14 @@ public class BarEvent extends BaseEvent {
     private final Bar bar;
 
     /**
-     * Constructs a BarEvent with the specified strategy ID, symbol, and bar.
+     * Constructs a BarEvent with the specified strategy ID, instrument, and bar.
      *
      * @param strategyId the identifier of the strategy
-     * @param symbol     the symbol associated with the bar
+     * @param instrument the instrument associated with the bar
      * @param bar        the bar associated with the event
      */
-    public BarEvent(String strategyId, String symbol, Bar bar) {
-        super(strategyId, "BAR", symbol);
+    public BarEvent(String strategyId, Instrument instrument, Bar bar) {
+        super(strategyId, "BAR", instrument);
         this.bar = bar;
     }
 }

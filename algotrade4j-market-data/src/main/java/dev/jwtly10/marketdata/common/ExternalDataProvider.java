@@ -2,10 +2,8 @@ package dev.jwtly10.marketdata.common;
 
 import dev.jwtly10.core.data.*;
 import dev.jwtly10.core.exception.DataProviderException;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +12,13 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
 public class ExternalDataProvider implements DataProvider, TickGeneratorCallback {
     @Getter
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
-    private final String instrument;
-    private final int ticksPerBar;
+    private final Instrument instrument;
     private final List<DataProviderListener> listeners;
     private final TickGenerator tickGenerator;
     private final Duration period;
@@ -34,20 +30,19 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     @Getter
     private boolean isRunning;
 
-    public ExternalDataProvider(ExternalDataClient dataClient, String instrument, int ticksPerBar, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
+    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
         this.dataClient = dataClient;
         this.instrument = instrument;
-        this.ticksPerBar = ticksPerBar;
         this.period = period;
         this.listeners = new ArrayList<>();
-        this.tickGenerator = new TickGenerator(ticksPerBar, spread, period, seed);
+        this.tickGenerator = new TickGenerator(spread, period, seed);
         this.from = from;
         this.to = to;
     }
 
-    // Overload the constructor to allow creation without a seed
-    public ExternalDataProvider(ExternalDataClient dataClient, String instrument, int ticksPerBar, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
-        this(dataClient, instrument, ticksPerBar, spread, period, from, to, System.currentTimeMillis());
+    // Overload the constructor to allow creation without a seed for tick generation
+    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, Number spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
+        this(dataClient, instrument, spread, period, from, to, System.currentTimeMillis());
     }
 
     @Override
@@ -55,15 +50,32 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
         if (isRunning) return;
         isRunning = true;
 
-        log.debug("Starting Oanda data provider with period: {}, ticksPerBar: {}", period, ticksPerBar);
-
-        Iterator<Bar> barIterator = dataClient.fetchCandlesIterator(instrument, from, to, period);
+        log.debug("Starting {} Data provider with period: {}", dataClient.getClass().getName(), period);
 
         try {
-            while (isRunning && barIterator.hasNext()) {
-                Bar bar = barIterator.next();
-                tickGenerator.generateTicks(bar, dataSpeed, this::notifyListeners);
-            }
+            dataClient.fetchCandles(instrument, from, to, period, new ClientCallback() {
+                @Override
+                public boolean onCandle(Bar bar) {
+                    if (!isRunning) return false;
+                    tickGenerator.generateTicks(bar, dataSpeed, ExternalDataProvider.this::notifyListeners);
+                    return true;
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    log.error("Error fetching data", e);
+                    ExternalDataProvider.this.stop();
+                    for (DataProviderListener listener : listeners) {
+                        listener.onError(new DataProviderException(e.getMessage(), e));
+                    }
+                }
+
+                @Override
+                public void onComplete() {
+                    log.debug("Data feed complete");
+                    ExternalDataProvider.this.stop();
+                }
+            });
         } catch (Exception e) {
             log.error("Error processing data", e);
             throw new DataProviderException("Unexpected error processing data. Stopping data feed.", e);

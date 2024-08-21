@@ -47,17 +47,17 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     private Integer openPosition(TradeParameters params, boolean isLong) {
-        log.debug("Opening {} position for symbol: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
-                isLong ? "long" : "short", params.getSymbol(), params.getStopLoss(), params.getRiskRatio(),
+        log.debug("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
+                isLong ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
 
         Number entryPrice = params.getEntryPrice();
         if (entryPrice != currentTick.getAsk() || entryPrice != currentTick.getBid()) {
-            log.warn("Entry price does not match current ask/bid price. Using current ask/bid price as entry price.");
             entryPrice = isLong ? currentTick.getAsk() : currentTick.getBid();
+            log.warn("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }
 
-        log.debug("Entry price for {}: {}", params.getSymbol(), entryPrice);
+        log.debug("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
         Number balance = params.getBalanceToRisk();
         log.debug("Selected balance: {}", balance);
@@ -85,14 +85,14 @@ public class DefaultTradeManager implements TradeManager {
         quantity = quantity.setScale(2, RoundingMode.DOWN);
         log.debug("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
-        log.debug("Opening {} position: symbol={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={}",
-                isLong ? "long" : "short", params.getSymbol(), entryPrice, params.getStopLoss(), takeProfit, quantity, riskAmount);
-
-        Trade trade = new Trade(params.getSymbol(), quantity, entryPrice, barSeries.getLastBar().getOpenTime(),
+        Trade trade = new Trade(params.getInstrument(), quantity, entryPrice, barSeries.getLastBar().getOpenTime(),
                 params.getStopLoss(), takeProfit, isLong);
 
-        eventPublisher.publishEvent(new TradeEvent(strategyId, params.getSymbol(), trade, TradeEvent.Action.OPEN));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position for " + params.getSymbol()));
+        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
+                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
+
+        eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position for " + params.getInstrument()));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
         return trade.getId();
@@ -106,13 +106,12 @@ public class DefaultTradeManager implements TradeManager {
         }
 
         if (currentTick.getAsk() == null || currentTick.getBid() == null) {
-            throw new IllegalStateException("Price not found for symbol: " + trade.getSymbol());
+            throw new IllegalStateException("Price not found for instrument: " + trade.getInstrument());
         }
 
-        // TODO: Noticed potential bug with this. REview
         log.debug("Closing position: {}", trade);
         log.debug("Trade details - Symbol: {}, Long: {}, Quantity: {}, Entry Price: {}",
-                trade.getSymbol(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());
+                trade.getInstrument(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());
 
         Number closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
         log.debug("Closing price: {}", closingPrice);
@@ -136,9 +135,11 @@ public class DefaultTradeManager implements TradeManager {
 
         trade.setProfit(profitLoss);
 
-        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getSymbol(), trade, TradeEvent.Action.CLOSE));
-        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getSymbol(), trade, TradeEvent.Action.UPDATE));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Closing position {} for {}", trade.getId(), trade.getSymbol()));
+        log.info("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
+
+        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.CLOSE));
+        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Closing position {} for {}", trade.getId(), trade.getInstrument()));
     }
 
     @Override
@@ -152,9 +153,9 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public Number getOpenPositionValue(String symbol) {
+    public Number getOpenPositionValue(Instrument instrument) {
         return openTrades.values().stream()
-                .filter(trade -> trade.getSymbol().equals(symbol))
+                .filter(trade -> trade.getInstrument().equals(instrument))
                 .map(Trade::getProfit)
                 .reduce(Number.ZERO, Number::add);
     }

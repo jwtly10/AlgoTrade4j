@@ -64,6 +64,7 @@ public class StrategyManager {
             case "1m" -> Duration.ofMinutes(1);
             case "5m" -> Duration.ofMinutes(5);
             case "15m" -> Duration.ofMinutes(15);
+            case "30m" -> Duration.ofMinutes(30);
             case "1H" -> Duration.ofHours(1);
             case "4H" -> Duration.ofHours(4);
             case "1D" -> Duration.ofDays(1);
@@ -71,17 +72,18 @@ public class StrategyManager {
         };
 
         Number spread = config.getSpread();
-        String symbol = config.getSymbol();
+        Instrument instrument = config.getInstrument();
 
-        OandaClient oandaClient = new OandaClient(oandaApiKey, oandaAccountId, oandaApiUrl);
+        OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
 
-        // TODO: Refactor times in the system
-        // For now we pass in a UTC time and convert to New York time
-        ZoneId newYorkZone = ZoneId.of("America/New_York");
-        ZonedDateTime from = config.getTimeframe().getFrom().atZone(newYorkZone);
-        ZonedDateTime to = config.getTimeframe().getTo().atZone(newYorkZone);
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, symbol, 10, spread, period, from, to);
+        // Ensure utc
+        ZoneId utcZone = ZoneId.of("UTC");
+        ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
+        ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
+        // We seed the tick generation while backtesting so results can be consistent
+        // TODO: implement a way to allow randomized tick generation (some frontend flag)
+        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, spread, period, from, to, 12345L);
 
         DataSpeed dataSpeed = config.getSpeed();
 
@@ -91,7 +93,7 @@ public class StrategyManager {
         int defaultSeriesSize = 4000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager(symbol, dataProvider, period, barSeries);
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
 
         Tick currentTick = new DefaultTick();
 
@@ -103,8 +105,8 @@ public class StrategyManager {
         try {
             strategy.setParameters(runParams);
         } catch (IllegalAccessException e) {
-            log.error("Error setting parameters for strategy: {}", strategy.getStrategyId(), e);
-            throw new StrategyManagerException("Error setting parameters for strategy: " + strategy.getStrategyId(), ErrorType.INTERNAL_ERROR);
+            log.error("Error setting parameters for strategy: {}", strategyId, e);
+            throw new StrategyManagerException("Error setting parameters for strategy: " + strategyId, ErrorType.INTERNAL_ERROR);
         }
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);

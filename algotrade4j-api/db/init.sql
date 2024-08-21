@@ -1,5 +1,5 @@
 CREATE
-DATABASE "algotrade4j-db";
+    DATABASE "algotrade4j-db";
 
 CREATE SCHEMA algotrade;
 
@@ -15,3 +15,18 @@ CREATE TABLE users_tb
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE user_login_log_tb
+(
+    id         BIGSERIAL PRIMARY KEY,
+    user_id    BIGINT                   NOT NULL,
+    ip_address VARCHAR(45)              NOT NULL,
+    login_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user
+        FOREIGN KEY (user_id)
+            REFERENCES users_tb (id)
+            ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_login_log_user_id ON user_login_log_tb (user_id);
+CREATE INDEX idx_user_login_log_login_time ON user_login_log_tb (login_time);

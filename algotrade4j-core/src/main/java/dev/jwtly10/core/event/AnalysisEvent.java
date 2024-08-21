@@ -3,6 +3,7 @@ package dev.jwtly10.core.event;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.jwtly10.core.analysis.AnalysisStats;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
+import dev.jwtly10.core.model.Instrument;
 import lombok.Getter;
 
 import java.util.List;
@@ -12,8 +13,8 @@ public class AnalysisEvent extends BaseEvent {
     private final List<PerformanceAnalyser.EquityPoint> equityHistory;
     private final AnalysisStats stats;
 
-    public AnalysisEvent(String strategyId, String symbol, PerformanceAnalyser performanceAnalyser) {
-        super(strategyId, "ANALYSIS", symbol);
+    public AnalysisEvent(String strategyId, Instrument instrument, PerformanceAnalyser performanceAnalyser) {
+        super(strategyId, "ANALYSIS", instrument);
         this.equityHistory = performanceAnalyser.getEquityHistory();
         this.stats = new AnalysisStats(
                 performanceAnalyser.getInitialDeposit(),

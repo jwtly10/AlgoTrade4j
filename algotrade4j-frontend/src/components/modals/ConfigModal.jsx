@@ -148,11 +148,11 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 onChange={(e) => handleConfigChange('speed', e.target.value)}
                                 label="speed"
                             >
-                                <MenuItem value="SLOW">Slow</MenuItem>
-                                <MenuItem value="NORMAL">Normal</MenuItem>
-                                <MenuItem value="FAST">Fast</MenuItem>
-                                <MenuItem value="VERY_FAST">Very fast</MenuItem>
-                                <MenuItem value="INSTANT">Instant</MenuItem>
+                                <MenuItem value="SLOW">Slow (Visual)</MenuItem>
+                                <MenuItem value="NORMAL">Normal (Visual)</MenuItem>
+                                {/*<MenuItem value="FAST">Fast</MenuItem>*/}
+                                {/*<MenuItem value="VERY_FAST">Very fast</MenuItem>*/}
+                                <MenuItem value="INSTANT">Instant (Async)</MenuItem>
                             </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">
@@ -172,12 +172,12 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                             </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">
-                            <InputLabel id="symbol-label">Symbol</InputLabel>
+                            <InputLabel id="instrument-label">Instrument</InputLabel>
                             <Select
-                                labelId="symbol-label"
-                                value={localConfig.symbol}
-                                onChange={(e) => handleConfigChange('symbol', e.target.value)}
-                                label="Symbol"
+                                labelId="instrument-label"
+                                value={localConfig.instrument}
+                                onChange={(e) => handleConfigChange('instrument', e.target.value)}
+                                label="Instrument"
                             >
                                 <MenuItem value="NAS100USD">NAS100USD</MenuItem>
                             </Select>

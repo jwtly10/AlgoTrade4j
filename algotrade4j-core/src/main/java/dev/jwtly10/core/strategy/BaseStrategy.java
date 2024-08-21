@@ -6,16 +6,16 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,32 +30,28 @@ public abstract class BaseStrategy implements Strategy {
      * The unique identifier of the strategy.
      */
     protected final String strategyId;
-
+    @Getter
+    private final List<Indicator> indicators = new ArrayList<>();
     /**
-     * The symbol associated with the strategy.
+     * The instrument associated with the strategy.
      */
-    public String SYMBOL;
-
+    public Instrument SYMBOL;
     /**
      * The series of bars used by the strategy.
      */
     protected BarSeries barSeries;
-
     /**
      * The event publisher used by the strategy.
      */
     protected EventPublisher eventPublisher;
-
     /**
      * The trade manager used by the strategy.
      */
     private TradeManager tradeManager;
-
     /**
      * The data manager used by the strategy.
      */
     private DataManager dataManager;
-
     /**
      * The account manager used by the strategy.
      */
@@ -204,7 +200,7 @@ public abstract class BaseStrategy implements Strategy {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.eventPublisher = eventPublisher;
-        this.SYMBOL = dataManager.getSymbol();
+        this.SYMBOL = dataManager.getInstrument();
         this.performanceAnalyser = performanceAnalyser;
         try {
             ParameterHandler.initialize(this);
@@ -292,6 +288,9 @@ public abstract class BaseStrategy implements Strategy {
             // Ensure dependencies are set
             indicator.setEventPublisher(eventPublisher);
             indicator.setStrategyId(strategyId);
+
+            indicators.add(indicator);
+
             return indicator;
         } catch (Exception e) {
             log.error("Failed to create indicator '{}' for params '{}'", indicatorClass.getSimpleName(), params, e);

@@ -1,5 +1,8 @@
 package dev.jwtly10.api.config;
 
+import dev.jwtly10.api.auth.config.JwtUtils;
+import dev.jwtly10.api.auth.config.WebSocketAuthHandshakeInterceptor;
+import dev.jwtly10.api.auth.service.UserDetailsServiceImpl;
 import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -12,13 +15,21 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final StrategyWebSocketHandler strategyWebSocketHandler;
 
-    public WebSocketConfig(StrategyWebSocketHandler strategyWebSocketHandler) {
+    private final JwtUtils jwtUtils;
+    private final UserDetailsServiceImpl userDetailsService;
+
+    public WebSocketConfig(StrategyWebSocketHandler strategyWebSocketHandler, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService) {
         this.strategyWebSocketHandler = strategyWebSocketHandler;
+        this.jwtUtils = jwtUtils;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(strategyWebSocketHandler, "/ws/v1/strategy-events")
-                .setAllowedOrigins("*");
+                .addInterceptors(new WebSocketAuthHandshakeInterceptor(jwtUtils, userDetailsService))
+                .setAllowedOrigins("http://localhost:5173",
+                        "https://algotrade4j.trade",
+                        "https://www.algotrade4j.trade");
     }
 }

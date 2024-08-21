@@ -8,11 +8,11 @@ import java.time.ZonedDateTime;
 public interface Tick {
 
     /**
-     * Gets the symbol of the financial instrument.
+     * Gets the instrument of the financial instrument.
      *
-     * @return the symbol of the financial instrument
+     * @return the instrument of the financial instrument
      */
-    String getSymbol();
+    Instrument getInstrument();
 
     Number getBid();
 

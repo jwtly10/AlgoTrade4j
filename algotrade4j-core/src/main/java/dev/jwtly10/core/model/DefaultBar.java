@@ -14,9 +14,9 @@ import java.time.ZonedDateTime;
 @ToString
 public class DefaultBar implements Bar {
     /**
-     * The symbol associated with the bar.
+     * The instrument associated with the bar.
      */
-    private String symbol;
+    private Instrument instrument;
 
     /**
      * The time period of the bar.
@@ -62,7 +62,7 @@ public class DefaultBar implements Bar {
     /**
      * Constructs a DefaultBar with the specified parameters.
      *
-     * @param symbol     the symbol associated with the bar
+     * @param instrument the instrument associated with the bar
      * @param timePeriod the time period of the bar
      * @param openTime   the opening time of the bar
      * @param open       the opening price of the bar
@@ -71,8 +71,8 @@ public class DefaultBar implements Bar {
      * @param close      the closing price of the bar
      * @param volume     the volume of the bar
      */
-    public DefaultBar(String symbol, Duration timePeriod, ZonedDateTime openTime, Number open, Number high, Number low, Number close, Number volume) {
-        this.symbol = symbol;
+    public DefaultBar(Instrument instrument, Duration timePeriod, ZonedDateTime openTime, Number open, Number high, Number low, Number close, Number volume) {
+        this.instrument = instrument;
         this.timePeriod = timePeriod;
         this.open = open;
         this.openTime = openTime;

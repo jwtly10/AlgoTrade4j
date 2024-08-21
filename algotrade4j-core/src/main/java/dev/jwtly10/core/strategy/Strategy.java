@@ -5,10 +5,12 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +66,13 @@ public interface Strategy {
      * @param currentBar The current bar of market data (may be incomplete)
      */
     void onTick(Tick tick, Bar currentBar);
+
+    /**
+     * Returns the list of indicators set in the strategy
+     *
+     * @return list of indicators set in the strategy
+     */
+    List<Indicator> getIndicators();
 
     /**
      * Called once after the strategy processing ends.

@@ -1,5 +1,7 @@
 package dev.jwtly10.core.model;
 
+import java.util.List;
+
 /**
  * A series of {@link Bar bars}.
  */
@@ -28,6 +30,11 @@ public interface BarSeries {
      * @return the last 'n' bars in the series
      */
     BarSeries getLastBars(int n);
+
+    /**
+     * @return all bars in series
+     */
+    List<Bar> getBars();
 
     /**
      * @return the maximum number of bars that the series can hold

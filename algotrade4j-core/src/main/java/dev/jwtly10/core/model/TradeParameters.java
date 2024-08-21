@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 public class TradeParameters {
     /**
-     * The symbol associated with the trade.
+     * The instrument associated with the trade.
      */
-    private String symbol;
+    private Instrument instrument;
 
     /**
      * The quantity of the trade.
