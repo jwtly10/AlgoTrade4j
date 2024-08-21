@@ -5,7 +5,7 @@ import 'chartjs-adapter-date-fns';
 import AnalysisReport from '../components/AnalysisReport.jsx';
 import {EquityChart} from '../components/EquityChart.jsx';
 import TradesTable from '../components/TradesTable.jsx';
-import {Box, Button, Checkbox, Container, Divider, FormControlLabel, Grid, MenuItem, Paper, Select, Tab, TableContainer, Tabs, Typography,} from '@mui/material';
+import {Box, Button, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Paper, Select, Switch, Tab, Tabs, Typography,} from '@mui/material';
 import {TabPanel} from '../components/TabPanel.jsx';
 import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
@@ -388,6 +388,7 @@ const BacktestView = () => {
         tradeCounterRef.current = 1;
         setIndicators({});
         setAsync(false);
+        setLogs([])
         console.log('Starting strategy...');
 
         if (runOptimisation) {
@@ -538,13 +539,13 @@ const BacktestView = () => {
     };
 
     const updateIndicator = (data) => {
-        if (data.value.value !== 0) {
+        if (data.value.value.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    {time: data.dateTime, value: data.value.value},
+                    {time: data.value.dateTime, value: data.value.value.value},
                 ],
             }));
         }
@@ -802,189 +803,190 @@ const BacktestView = () => {
     }
 
     return (
-        <Container sx={{p: 3}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
-                <Typography variant="h4" sx={{flexGrow: 1}}>Backtest Runner</Typography>
-                <Select
-                    value={strategyClass}
-                    onChange={handleChangeStrategy}
-                    sx={{
-                        width: '25%',
-                        height: '36.5px', // Match Button height
-                        '.MuiSelect-select': {
-                            padding: '8px 14px', // Adjust padding
-                            lineHeight: '1.4', // Adjust line height
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 64px)', // Subtract navbar height (adjust 64px if needed)
+            width: '100vw',
+            overflow: 'hidden' // Prevent scrolling on the main container
+        }}>
+            {/* Header */}
+            <Box sx={{flexShrink: 0, p: 2, bgcolor: 'background.paper', overflow: 'auto'}}>
+                <Grid container justifyContent="flex-end" spacing={2}>
+                    {[
+                        {label: 'Initial Balance', value: account.initialBalance},
+                        {label: 'Current Balance', value: account.balance},
+                        {label: 'Equity', value: account.equity},
+                        {
+                            label: 'Open Position Value',
+                            value: Math.round((account.equity - account.balance + Number.EPSILON) * 100) / 100
                         }
-                    }}
-                    displayEmpty
-                    renderValue={(selected) => {
-                        if (!selected) {
-                            return "Select a strategy";
-                        }
-                        return selected;
-                    }}
-                >
-                    {strategies.length > 0 ? (
-                        strategies.map((strategy, index) => (
-                            <MenuItem key={index} value={strategy}>
-                                {strategy}
-                            </MenuItem>
-                        ))
-                    ) : (
-                        <MenuItem value="" disabled>
-                            No strategies available
-                        </MenuItem>
-                    )}
-                </Select>
-            </Box>
-            <Paper elevation={3} className="chart-container" sx={{p: 3, mb: 3}}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} container alignItems="center" spacing={2}>
-                        <Grid item xs={8}>
-                            <Button
-                                variant="contained"
-                                color={isRunning ? 'error' : 'success'}
-                                onClick={isRunning ? stopStrategy : startStrategy}
-                                fullWidth
-                                disabled={strategyClass === ""}
-                            >
-                                {isRunning ? 'Stop' : 'Start'}
-                            </Button>
+                    ].map((item, index) => (
+                        <Grid item key={index}>
+                            <Paper elevation={3} sx={{p: 1, minWidth: '200px'}}>
+                                <Typography variant="body2" color="text.secondary">
+                                    {item.label}
+                                </Typography>
+                                <Typography variant="h6" fontWeight="bold">
+                                    ${item.value.toLocaleString()}
+                                </Typography>
+                            </Paper>
                         </Grid>
-                        <Grid item xs={4} container direction="column" spacing={1}>
-                            <Grid item>
-                                <Button variant="contained" onClick={handleOpenParams} fullWidth disabled={strategyClass === ""}>
-                                    Params
-                                </Button>
-                            </Grid>
-                        </Grid>
-                        <Grid item>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        size="small"
-                                        onChange={(e) => setRunOptimisation(e.target.checked)}
-                                    />
-                                }
-                                label="Run optimisation"
-                            />
-                        </Grid>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Divider sx={{my: 2}}/>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Initial Balance:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.initialBalance}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Current Balance:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.balance}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Equity:{' '}
-                            <Box component="span" fontWeight="bold">
-                                ${account.equity}
-                            </Box>
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                        <Typography variant="body2">
-                            Open Position Value:{' '}
-                            <Box component="span" fontWeight="bold">
-                                $
-                                {Math.round((account.equity - account.balance + Number.EPSILON) * 100) /
-                                    100}
-                            </Box>
-                        </Typography>
-                    </Grid>
+                    ))}
                 </Grid>
+            </Box>
 
-                <Box sx={{mt: 3, p: 0, bgcolor: 'background.paper', borderRadius: 1}}>
-                    {isRunning && isAsync ? (
-                        <LoadingChart/>
-                    ) : (
-                        <Box
-                            sx={{width: '100%', height: '400px', overflow: 'hidden'}}
-                            ref={chartContainerRef}
+            {/* Main content area */}
+            <Box sx={{flexGrow: 1, display: 'flex', overflow: 'hidden'}}>
+                {/* Left section (3/4 width) */}
+                <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden'}}>
+                    <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
+                        {/* Chart Section */}
+                        <Box sx={{flexShrink: 0, height: '40%', minHeight: '300px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
+                            {isRunning && isAsync ? (
+                                <LoadingChart/>
+                            ) : (
+                                <Box sx={{width: '100%', height: '100%'}} ref={chartContainerRef}/>
+                            )}
+                        </Box>
+
+                        {/* Tabs and Content Section */}
+                        <Box sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+                            <Tabs
+                                value={tabValue}
+                                onChange={handleTabChange}
+                                aria-label="strategy tabs"
+                                sx={{borderBottom: 1, borderColor: 'divider', mb: 2}}
+                            >
+                                <Tab label="Trades"/>
+                                <Tab label="Analysis"/>
+                                <Tab label="Equity History"/>
+                                <Tab label="Logs"/>
+                                <Tab label="Optimisation"/>
+                            </Tabs>
+
+                            <Box sx={{flexGrow: 1, overflow: 'auto'}}>
+                                <TabPanel value={tabValue} index={0}>
+                                    <TradesTable trades={trades}/>
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={1}>
+                                    {analysisData !== null ? (
+                                        <AnalysisReport data={analysisData}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No analysis data available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={2}>
+                                    {equityHistory.length > 0 ? (
+                                        <EquityChart equityHistory={equityHistory}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No equity history available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={3}>
+                                    {logs.length > 0 ? (
+                                        <LogsTable logs={logs}/>
+                                    ) : (
+                                        <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
+                                            No logs available yet.
+                                        </Typography>
+                                    )}
+                                </TabPanel>
+                                <TabPanel value={tabValue} index={4}>
+                                    <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
+                                </TabPanel>
+                            </Box>
+                        </Box>
+                    </Paper>
+                </Box>
+
+                {/* Right section (1/4 width) */}
+                <Box sx={{width: '25%', minWidth: '300px', p: 3, bgcolor: 'background.paper', boxShadow: 1, overflow: 'auto'}}>
+                    <Box sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+                        <FormControl fullWidth variant="outlined" sx={{mb: 3}}>
+                            <InputLabel>Select a strategy</InputLabel>
+                            <Select
+                                value={strategyClass}
+                                onChange={handleChangeStrategy}
+                                label="Select a strategy"
+                                displayEmpty
+                            >
+                                {strategies.length > 0 ? (
+                                    strategies.map((strategy, index) => (
+                                        <MenuItem key={index} value={strategy}>
+                                            {strategy}
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem value="" disabled>
+                                        No strategies available
+                                    </MenuItem>
+                                )}
+                            </Select>
+                        </FormControl>
+
+                        <Button
+                            variant="contained"
+                            color={isRunning ? 'error' : 'success'}
+                            onClick={isRunning ? stopStrategy : startStrategy}
+                            disabled={strategyClass === ""}
+                            size="large"
+                            sx={{mb: 2}}
+                        >
+                            {isRunning ? 'Stop Strategy' : 'Start Strategy'}
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            onClick={handleOpenParams}
+                            disabled={strategyClass === ""}
+                            size="large"
+                            sx={{mb: 3}}
+                        >
+                            Configure Parameters
+                        </Button>
+
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={runOptimisation}
+                                    onChange={(e) => setRunOptimisation(e.target.checked)}
+                                    color="primary"
+                                />
+                            }
+                            label="Run optimisation"
+                            sx={{mb: 2}}
                         />
-                    )}
-                </Box>
 
-                <Box sx={{borderBottom: 1, borderColor: 'divider', mt: 3}}>
-                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="strategy tabs">
-                        <Tab label="Trades"/>
-                        <Tab label="Analysis"/>
-                        <Tab label="Equity History"/>
-                        <Tab label="Logs"/>
-                        <Tab label="Optimisation"/>
-                    </Tabs>
-                </Box>
+                        <Box sx={{flexGrow: 1}}/> {/* Spacer */}
 
-                <TabPanel value={tabValue} index={0}>
-                    <TradesTable trades={trades}/>
-                </TabPanel>
-                <TabPanel value={tabValue} index={1}>
-                    {analysisData !== null ? (
-                        <AnalysisReport data={analysisData}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No analysis data available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={2}>
-                    {equityHistory.length > 0 ? (
-                        <EquityChart equityHistory={equityHistory}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No equity history available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={3}>
-                    {logs.length > 0 ? (
-                        <LogsTable logs={logs}/>
-                    ) : (
-                        <TableContainer component={Paper}>
-                            <Typography variant="body1" sx={{p: 2, textAlign: 'center'}}>
-                                No logs available yet.
-                            </Typography>
-                        </TableContainer>
-                    )}
-                </TabPanel>
-                <TabPanel value={tabValue} index={4}>
-                    <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
-                </TabPanel>
-                <ConfigModal
-                    open={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSave={handleConfigSave}
-                    strategyConfig={strategyConfig}
-                    setStrategyConfig={setStrategyConfig}
-                    strategyClass={strategyClass}
-                />
-                <Toast
-                    open={toast.open}
-                    message={toast.message}
-                    severity={toast.level}
-                    onClose={handleCloseToast}
-                />
-            </Paper>
-        </Container>
+                        <Typography variant="body2" color="text.secondary" align="center">
+                            Select a strategy and configure parameters before starting.
+                        </Typography>
+                    </Box>
+                </Box>
+            </Box>
+
+            {/* Modals */}
+            <ConfigModal
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleConfigSave}
+                strategyConfig={strategyConfig}
+                setStrategyConfig={setStrategyConfig}
+                strategyClass={strategyClass}
+            />
+            <Toast
+                open={toast.open}
+                message={toast.message}
+                severity={toast.level}
+                onClose={handleCloseToast}
+            />
+        </Box>
     );
 };
 
