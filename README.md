@@ -6,7 +6,9 @@ AlgoTrade4j is an algo trading framework for Java, it's designed to be simple to
 
 As such, it's built with my personal needs in mind, and may not be suitable for all use cases.
 
-You can use a demo of the system with some prebuilt strategies [here]().
+Here is a small demo of the system:
+
+https://github.com/user-attachments/assets/06c6b44b-4ba5-4d63-bfa8-edef67532138
 
 ## Architecture
 
@@ -25,7 +27,7 @@ The system utilizes an event-driven architecture with a global event publisher f
 - Well tested, with a focus on TDD.
 - Built in frontend for managing and executing strategies.
 - Built in optimization tools. Run thousands of backtests with different parameters in seconds.
-- Built in user management, you can share strategies with other users, and have members of the team run/test strategies.
+- Authentication & Authorisation. Only users signed up to the platform can access and perform certain actions.
 
 ## Getting started
 
