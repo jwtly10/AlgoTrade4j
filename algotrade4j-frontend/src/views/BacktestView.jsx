@@ -172,8 +172,8 @@ const BacktestView = () => {
             width: chartContainerRef.current.clientWidth,
             height: 500,
             layout: {
-                background: {type: ColorType.Solid, color: '#ffffff'},
-                textColor: 'black',
+                background: {type: ColorType.Solid, color: '#121212'},
+                textColor: '#D9D9D9',
             },
             timeScale: {
                 timeVisible: true,
@@ -212,18 +212,23 @@ const BacktestView = () => {
                 },
             },
             watermark: {
-                color: 'rgba(0, 0, 0, 0.1)',
+                color: 'rgba(255, 255, 255, 0.1)',
                 visible: true,
                 text: chartData.length > 0 ? chartData[0].instrument : '',
                 fontSize: 80,
                 horzAlign: 'center',
                 vertAlign: 'center',
             },
+            grid: {
+                vertLines: {color: 'rgba(197, 203, 206, 0.1)'},
+                horzLines: {color: 'rgba(197, 203, 206, 0.1)'},
+            },
         });
 
         chart.timeScale().applyOptions({
             rightOffset: 12,
             barSpacing: 8,
+            borderColor: 'rgba(197, 203, 206, 0.3)',
         });
 
         chart.applyOptions({
@@ -237,21 +242,24 @@ const BacktestView = () => {
             },
             crosshair: {
                 mode: CrosshairMode.Normal,
+                vertLine: {color: '#758696', width: 1, style: 3, labelBackgroundColor: '#1E222D'},
+                horzLine: {color: '#758696', width: 1, style: 3, labelBackgroundColor: '#1E222D'},
             },
             tooltip: {
                 fontFamily: 'Arial',
                 fontSize: 10,
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backgroundColor: 'rgba(30, 34, 45, 0.9)',
                 borderColor: '#2962FF',
+                textColor: '#D9D9D9',
             },
             legend: {
                 visible: true,
                 fontSize: 12,
                 fontFamily: 'Arial',
-                color: '#333',
+                color: '#D9D9D9',
             },
             rightPriceScale: {
-                borderColor: 'rgba(197, 203, 206, 0.8)',
+                borderColor: 'rgba(197, 203, 206, 0.3)',
                 borderVisible: true,
                 scaleMargins: {
                     top: 0.1,
@@ -901,7 +909,7 @@ const BacktestView = () => {
                     </Grid>
                 </Grid>
 
-                <Box sx={{mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1}}>
+                <Box sx={{mt: 3, p: 0, bgcolor: 'background.paper', borderRadius: 1}}>
                     {isRunning && isAsync ? (
                         <LoadingChart/>
                     ) : (
