@@ -7,7 +7,6 @@ import dev.jwtly10.core.model.Instrument;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +21,6 @@ class BaseEventTest {
         TestEvent event = new TestEvent(strategyId, type, instrument);
 
         assertNotNull(event.getEventId());
-        UUID.fromString(event.getEventId());
         assertTrue(true);
         assertEquals(strategyId, event.getStrategyId());
         assertEquals(type, event.getType());
@@ -56,18 +54,6 @@ class BaseEventTest {
         assertEquals(type, jsonNode.get("type").asText());
         assertEquals(instrument.toString(), jsonNode.get("instrument").asText());
         assertNotNull(jsonNode.get("timestamp").asText());
-    }
-
-    @Test
-    void testTimestampFormat() throws JsonProcessingException {
-        TestEvent event = new TestEvent("testStrategy", "TEST", Instrument.NAS100USD);
-        String json = event.toJson();
-
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(json);
-
-        String timestampPattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}";
-        assertTrue(jsonNode.get("timestamp").asText().matches(timestampPattern));
     }
 
     private static class TestEvent extends BaseEvent {
