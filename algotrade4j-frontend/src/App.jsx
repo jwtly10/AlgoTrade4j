@@ -2,24 +2,16 @@ import React, {useEffect, useState} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import {Box, CircularProgress, CssBaseline, ThemeProvider} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
-import Navbar from './components/Navbar';
+import Navbar from './components/layout/Navbar';
 import BacktestView from './views/BacktestView';
 import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/UserManagementView';
 import NotFoundView from "./views/NotFoundView.jsx";
 
-const defaultTheme = createTheme()
-
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
-        // primary: {
-        //   main: '#90caf9',
-        // },
-        // secondary: {
-        //   main: '#f48fb1',
-        // },
     },
     components: {
         MuiCssBaseline: {

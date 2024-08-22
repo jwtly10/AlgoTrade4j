@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {AppBar, Box, Button, Toolbar, Typography} from '@mui/material';
 import {Link, useLocation} from 'react-router-dom';
-import {authClient} from '../api/apiClient';
-import {Toast} from "./Toast.jsx";
+import {authClient} from '../../api/apiClient';
+import {Toast} from "../Toast.jsx";
 
 function Navbar({user, setUser}) {
     const location = useLocation();
