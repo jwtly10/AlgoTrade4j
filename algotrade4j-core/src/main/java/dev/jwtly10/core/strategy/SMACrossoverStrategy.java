@@ -1,6 +1,6 @@
 package dev.jwtly10.core.strategy;
 
-import dev.jwtly10.core.indicators.SMA;
+import dev.jwtly10.core.indicators.iSMA;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
@@ -15,8 +15,8 @@ public class SMACrossoverStrategy extends BaseStrategy {
     @Parameter(name = "longSMALength", description = "Length of long-term SMA", value = "50")
     private int longSMALength;
 
-    private SMA shortSMA;
-    private SMA longSMA;
+    private iSMA shortISMA;
+    private iSMA longISMA;
 
     public SMACrossoverStrategy() {
         super("SMACrossoverStrategy");
@@ -28,8 +28,8 @@ public class SMACrossoverStrategy extends BaseStrategy {
 
     @Override
     protected void initIndicators() {
-        shortSMA = createIndicator(SMA.class, shortSMALength);
-        longSMA = createIndicator(SMA.class, longSMALength);
+        shortISMA = createIndicator(iSMA.class, shortSMALength);
+        longISMA = createIndicator(iSMA.class, longSMALength);
     }
 
     @Override
@@ -45,11 +45,11 @@ public class SMACrossoverStrategy extends BaseStrategy {
 
     @Override
     public void onBarClose(Bar bar) {
-        if (shortSMA.isReady() && longSMA.isReady()) {
-            Number shortSMAValue = shortSMA.getValue();
-            Number longSMAValue = longSMA.getValue();
-            Number prevShortSMAValue = shortSMA.getValue(1);
-            Number prevLongSMAValue = longSMA.getValue(1);
+        if (shortISMA.isReady() && longISMA.isReady()) {
+            Number shortSMAValue = shortISMA.getValue();
+            Number longSMAValue = longISMA.getValue();
+            Number prevShortSMAValue = shortISMA.getValue(1);
+            Number prevLongSMAValue = longISMA.getValue(1);
 
             // Check for crossover
 //            if (shortSMAValue.isGreaterThan(longSMAValue) && (prevShortSMAValue.isLessThan(prevLongSMAValue) || prevLongSMAValue.isEquals(prevLongSMAValue))) {
