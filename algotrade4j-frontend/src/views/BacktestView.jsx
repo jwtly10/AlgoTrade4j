@@ -842,7 +842,7 @@ const BacktestView = () => {
                 <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden'}}>
                     <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
                         {/* Chart Section */}
-                        <Box sx={{flexShrink: 0, height: '40%', minHeight: '300px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
+                        <Box sx={{flexShrink: 0, height: '40%', minHeight: '500px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
                             {isRunning && isAsync ? (
                                 <LoadingChart/>
                             ) : (
@@ -862,7 +862,9 @@ const BacktestView = () => {
                                 <Tab label="Analysis"/>
                                 <Tab label="Equity History"/>
                                 <Tab label="Logs"/>
-                                <Tab label="Optimisation"/>
+                                {runOptimisation & (
+                                    <Tab label="Optimisation"/>
+                                )}
                             </Tabs>
 
                             <Box sx={{flexGrow: 1, overflow: 'auto'}}>
@@ -896,9 +898,11 @@ const BacktestView = () => {
                                         </Typography>
                                     )}
                                 </TabPanel>
-                                <TabPanel value={tabValue} index={4}>
-                                    <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
-                                </TabPanel>
+                                {runOptimisation && (
+                                    <TabPanel value={tabValue} index={4}>
+                                        <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
+                                    </TabPanel>
+                                )}
                             </Box>
                         </Box>
                     </Paper>

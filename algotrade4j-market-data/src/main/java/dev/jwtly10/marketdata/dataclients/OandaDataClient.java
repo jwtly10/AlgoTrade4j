@@ -63,7 +63,7 @@ public class OandaDataClient implements ExternalDataClient {
 
             callback.onComplete();
         } catch (Exception e) {
-            log.error("Failed to fetch data from Oanda API", e);
+            log.error("Failure while fetching candles and notifying systems. Stopping.", e);
             callback.onError(e);
         }
     }

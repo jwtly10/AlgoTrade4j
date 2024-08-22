@@ -21,6 +21,34 @@ const darkTheme = createTheme({
         //   main: '#f48fb1',
         // },
     },
+    components: {
+        MuiCssBaseline: {
+            styleOverrides: `
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #888 #1e1e1e;
+        }
+
+        *::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        *::-webkit-scrollbar-track {
+          background: #1e1e1e;
+        }
+
+        *::-webkit-scrollbar-thumb {
+          background-color: #888;
+          border-radius: 6px;
+          border: 3px solid #1e1e1e;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+          background-color: #555;
+        }
+      `,
+        },
+    },
 });
 
 function App() {
