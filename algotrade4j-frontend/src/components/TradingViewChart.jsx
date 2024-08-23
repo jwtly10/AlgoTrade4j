@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
-import {Box} from "@mui/material";
+import {Box} from '@mui/material';
 
 const TradingViewChart = ({chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
@@ -25,8 +25,14 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
                 secondsVisible: false,
                 tickMarkFormatter: (time, tickMarkType, locale) => {
                     const localdate = new Date(time * 1000);
-                    const date = new Date(localdate.getUTCFullYear(), localdate.getUTCMonth(), localdate.getUTCDate(),
-                        localdate.getUTCHours(), localdate.getUTCMinutes(), localdate.getUTCSeconds());
+                    const date = new Date(
+                        localdate.getUTCFullYear(),
+                        localdate.getUTCMonth(),
+                        localdate.getUTCDate(),
+                        localdate.getUTCHours(),
+                        localdate.getUTCMinutes(),
+                        localdate.getUTCSeconds()
+                    );
                     const month = (date.getMonth() + 1).toString().padStart(2, '0');
                     const day = date.getDate().toString().padStart(2, '0');
                     const hours = date.getHours();
@@ -136,17 +142,36 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
         Object.keys(indicators).forEach((indicatorName) => {
             const indicatorData = indicators[indicatorName];
             if (indicatorData && indicatorData.length > 0) {
-                // Filter out zero values and invalid entries
-                const validData = indicatorData
-                    .filter((item) => !isNaN(item.time) && !isNaN(item.value) && item.value !== 0)
-                    .sort((a, b) => a.time - b.time);
-
-                if (validData.length > 0) {
-                    indicatorSeries[indicatorName] = chart.addLineSeries({
-                        color: getIndicatorColor(indicatorName),
-                        lineWidth: 2,
+                if (indicatorName.startsWith('ATR_CANDLE')) {
+                    console.log('Indicator data');
+                    console.log(indicatorData);
+                    // For ATRCandle, change colors of bars
+                    const modifiedChartData = chartData.map((candle, index) => {
+                        const correspondingIndicator = indicatorData.find(
+                            (item) => item.time === candle.time
+                        );
+                        if (correspondingIndicator && correspondingIndicator.value === 1) {
+                            return {...candle, color: 'blue'};
+                        }
+                        return candle;
                     });
-                    indicatorSeries[indicatorName].setData(validData);
+                    candlestickSeries.setData(modifiedChartData);
+                } else {
+                    // For other indicators, draw line graph TODO: Make this cleaner
+                    const validData = indicatorData
+                        .filter(
+                            (item) => !isNaN(item.time) && !isNaN(item.value) && item.value !== 0
+                        )
+                        .sort((a, b) => a.time - b.time);
+
+                    if (validData.length > 0) {
+                        const seriesName = `SMA${indicatorName}`;
+                        indicatorSeries[seriesName] = chart.addLineSeries({
+                            color: getIndicatorColor(seriesName),
+                            lineWidth: 2,
+                        });
+                        indicatorSeries[seriesName].setData(validData);
+                    }
                 }
             }
         });
@@ -186,7 +211,6 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
         };
     }, [chartData, trades]);
 
-
     // Helper functions
     const getIndicatorColor = (indicatorName) => {
         const colors = ['#2196F3', '#FF9800', '#4CAF50', '#E91E63', '#9C27B0'];
@@ -207,7 +231,6 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
             candlestickSeries.createPriceLine(priceLine);
         });
     }
-
 
     return <Box ref={chartContainerRef} style={{width: '100%', height: '100%'}}/>;
 };

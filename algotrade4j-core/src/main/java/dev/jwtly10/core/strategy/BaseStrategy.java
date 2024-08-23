@@ -327,6 +327,7 @@ public abstract class BaseStrategy implements Strategy {
     private <T> Constructor<T> findMatchingConstructor(Class<T> cls, Class<?>[] paramTypes) {
         Constructor<?>[] constructors = cls.getConstructors();
         for (Constructor<?> constructor : constructors) {
+            log.debug("Constructor found with types: {}", constructor.getParameterTypes());
             Class<?>[] ctorParamTypes = constructor.getParameterTypes();
             if (isAssignable(ctorParamTypes, paramTypes)) {
                 return (Constructor<T>) constructor;
