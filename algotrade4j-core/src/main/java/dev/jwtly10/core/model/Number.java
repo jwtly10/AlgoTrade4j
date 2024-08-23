@@ -2,7 +2,6 @@ package dev.jwtly10.core.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,7 +13,6 @@ import java.math.RoundingMode;
  */
 @Getter
 @EqualsAndHashCode
-@ToString
 public class Number implements Comparable<Number> {
     /**
      * The number of decimal places to use for all Number instances.
@@ -30,6 +28,11 @@ public class Number implements Comparable<Number> {
      * A constant representing zero.
      */
     public static final Number ZERO = new Number(BigDecimal.ZERO);
+
+    /**
+     * A constant representing one.
+     */
+    public static final Number ONE = new Number(BigDecimal.ONE);
 
     /**
      * The underlying BigDecimal value.
