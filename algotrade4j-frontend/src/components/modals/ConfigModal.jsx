@@ -189,7 +189,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 onChange={(e) => handleConfigChange('spread', e.target.value)}
                                 label="Spread"
                             >
-                                <MenuItem value="0.1">0.1</MenuItem>
+                                <MenuItem value="0.0001">0.0001</MenuItem>
                                 <MenuItem value="0.5">0.5</MenuItem>
                                 <MenuItem value="10">10</MenuItem>
                                 <MenuItem value="30">30</MenuItem>
