@@ -103,7 +103,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                         <TableCell>
                                             <Stack direction="row" alignItems="center" spacing={1}>
                                                 <Typography variant="body1">{param.name}</Typography>
-                                                <Tooltip title={param.description || 'No description available'} arrow>
+                                                <Tooltip title={param.description || 'No description available'} arrow placement="top">
                                                     <IconButton size="small">
                                                         <InfoIcon fontSize="small" color="action"/>
                                                     </IconButton>

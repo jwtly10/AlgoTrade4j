@@ -191,6 +191,12 @@ const BacktestView = () => {
         console.log('Starting strategy...');
 
         if (runOptimisation) {
+            setToast({
+                open: true,
+                message: "Optimisation is not supported yet",
+                level: "warn"
+            })
+            return
             const oId = crypto.randomUUID()
             setOptimisationId(oId)
             try {
