@@ -3,6 +3,7 @@ package dev.jwtly10.core.execution;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
@@ -15,6 +16,7 @@ import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.jwtly10.core.model.Instrument.NAS100USD;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class DefaultTradeStateManagerTest {
@@ -49,6 +51,7 @@ class DefaultTradeStateManagerTest {
         when(tick.getBid()).thenReturn(new Number("1.2050"));
         when(tick.getAsk()).thenReturn(new Number("1.3950"));
         when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
+        when(accountManager.getEquity()).thenReturn(new Number("1000"));
 
         tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
 
@@ -78,6 +81,7 @@ class DefaultTradeStateManagerTest {
         when(tick.getAsk()).thenReturn(new Number("1.1945"));
 
         when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
+        when(accountManager.getEquity()).thenReturn(new Number("1000"));
 
         tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
 
@@ -97,9 +101,28 @@ class DefaultTradeStateManagerTest {
         when(tick.getAsk()).thenReturn(new Number("1.4055"));
 
         when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
+        when(accountManager.getEquity()).thenReturn(new Number("1000"));
 
         tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
 
 //        verify(tradeManager, never()).closePosition(anyString());
+    }
+
+    @Test
+    void updateTradeStates_throwWhenBelowMinimumRiskLevel() {
+        ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
+        var now = ZonedDateTime.now();
+        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        openTrades.put(2, shortTrade);
+
+        when(tradeManager.getOpenTrades()).thenReturn(openTrades);
+        // TODO: make this more accurate. Its issuing coz of rounding
+        when(tick.getBid()).thenReturn(new Number("1.4050"));
+        when(tick.getAsk()).thenReturn(new Number("1.4055"));
+
+        when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
+        when(accountManager.getEquity()).thenReturn(new Number("200"));
+
+        assertThrows(RiskException.class, () -> tradeStateManager.updateTradeStates(accountManager, tradeManager, tick));
     }
 }

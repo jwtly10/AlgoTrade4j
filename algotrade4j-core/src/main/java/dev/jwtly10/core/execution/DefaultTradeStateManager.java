@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.event.AccountEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
@@ -38,6 +39,13 @@ public class DefaultTradeStateManager implements TradeStateManager {
             checkAndExecuteStopLossTakeProfit(trade, tradeManager, finalTick);
         });
         updateAccountBalanceAndEquity(accountManager, tradeManager);
+
+        // Risk management TODO: Should we move this out the trade manager?
+
+        // We will stop running if we go below 30% of initial balance.
+        if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.3)))) {
+            throw new RiskException("Equity below 30%. Stopping strategy.");
+        }
     }
 
     private void updateTradeProfitLoss(Trade trade, Tick tick) {
