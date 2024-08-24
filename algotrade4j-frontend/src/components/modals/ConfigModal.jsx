@@ -1,5 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Typography,} from '@mui/material';
+import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Tooltip, Typography,} from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
+
 
 const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass}) => {
     const [activeTab, setActiveTab] = useState(0);
@@ -82,7 +84,14 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 {localConfig.runParams.map((param, index) => (
                                     <TableRow key={param.name}>
                                         <TableCell>
-                                            <Typography variant="body1">{param.name}</Typography>
+                                            <Stack direction="row" alignItems="center" spacing={1}>
+                                                <Typography variant="body1">{param.name}</Typography>
+                                                <Tooltip title={param.description || 'No description available'} arrow>
+                                                    <IconButton size="small">
+                                                        <InfoIcon fontSize="small" color="action"/>
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Stack>
                                         </TableCell>
                                         <TableCell>
                                             <TextField

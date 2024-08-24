@@ -579,6 +579,7 @@ const BacktestView = () => {
                 value: param.value,
                 // Defaults
                 defaultValue: param.value,
+                description: param.description,
                 start: "1",
                 stop: "1",
                 step: "1",
