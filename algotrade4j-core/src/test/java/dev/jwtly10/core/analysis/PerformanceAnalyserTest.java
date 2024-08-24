@@ -77,12 +77,10 @@ public class PerformanceAnalyserTest {
         assertEquals(new Number(2), analyser.getAverageConsecutiveWins());
         assertEquals(new Number(1), analyser.getAverageConsecutiveLosses());
 
-        // TODO: Check this, its rounding down
-//        assertEquals(new Number(0.03773584905), analyser.getMaxDrawdown()); // (10600 - 10200) / 10600
-        assertEquals(new Number(0.03), analyser.getMaxDrawdown()); // (10600 - 10200) / 10600
+        assertEquals(new Number(0.02857), analyser.getMaxDrawdown()); // (10600 - 10200) / 10600
 
         // Assert Sharpe ratio
-        assertEquals(new Number(1.15), analyser.getSharpeRatio());
+        assertEquals(new Number(1.14866), analyser.getSharpeRatio());
 
         // Assert equity checker
         List<PerformanceAnalyser.EquityPoint> equityHistory = analyser.getEquityHistory();

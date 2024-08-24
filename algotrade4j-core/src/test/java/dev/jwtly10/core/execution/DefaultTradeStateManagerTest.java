@@ -55,7 +55,7 @@ class DefaultTradeStateManagerTest {
 
         // TODO: Review rounding. Which may cause inaccuracies here.
         assertEquals(new Number("0.0050"), longTrade.getProfit());
-        assertEquals(new Number("0.00"), shortTrade.getProfit());
+        assertEquals(new Number("0.00500"), shortTrade.getProfit());
 //        assertEquals(new Number("0.0050"), shortTrade.getProfit());
 
         verify(accountManager).setBalance(new Number("1000.00"));

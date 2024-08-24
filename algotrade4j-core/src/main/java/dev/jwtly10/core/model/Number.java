@@ -17,7 +17,7 @@ public class Number implements Comparable<Number> {
     /**
      * The number of decimal places to use for all Number instances.
      */
-    public static final int DECIMAL_PLACES = 2;
+    public static final int DECIMAL_PLACES = 5;
 
     /**
      * The rounding mode to use for all Number operations.
