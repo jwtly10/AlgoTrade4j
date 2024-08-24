@@ -36,6 +36,7 @@ public class StrategyConfig {
         private String value;
         private String description;
         private String defaultValue;
+        private String group;
         private String start;
         private String stop;
         private String step;

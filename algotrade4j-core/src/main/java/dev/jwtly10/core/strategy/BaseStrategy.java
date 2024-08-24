@@ -269,6 +269,15 @@ public abstract class BaseStrategy implements Strategy {
      */
     protected <T extends Indicator> T createIndicator(Class<T> indicatorClass, Object... params) {
         log.info("Creating indicator: '{}' with params: '{}'", indicatorClass.getSimpleName(), params);
+
+        // TODO: We should do something better than this.
+        if (indicatorClass.getSimpleName().equals("iSMA") & params[0].equals(0)) {
+            // This means the user needs to be aware that indicators are null if they are set to the nullable value
+            // So access them will fail
+            log.warn("An iSMA has value 0. Will not create indicator");
+            return null;
+        }
+
         try {
             Class<?>[] paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {

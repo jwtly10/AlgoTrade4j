@@ -52,7 +52,7 @@ public class DefaultTradeManager implements TradeManager {
                 params.getRiskPercentage(), params.getBalanceToRisk());
 
         Number entryPrice = params.getEntryPrice();
-        if (entryPrice != currentTick.getAsk() || entryPrice != currentTick.getBid()) {
+        if (!entryPrice.isEquals(currentTick.getAsk()) || !entryPrice.isEquals(currentTick.getBid())) {
             entryPrice = isLong ? currentTick.getAsk() : currentTick.getBid();
             log.warn("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }

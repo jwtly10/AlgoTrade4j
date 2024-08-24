@@ -38,14 +38,6 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         setActiveTab(newValue);
     };
 
-    // const handleInputChange = (index, field, value) => {
-    //     setLocalConfig(prev => {
-    //         const updatedRunParams = [...prev.runParams];
-    //         updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
-    //         return {...prev, runParams: updatedRunParams};
-    //     });
-    // };
-
     const handleInputChange = (index, field, value) => {
         setLocalConfig(prev => {
             const updatedRunParams = [...prev.runParams];
@@ -98,60 +90,105 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {localConfig.runParams.map((param, index) => (
-                                    <TableRow key={param.name}>
-                                        <TableCell>
-                                            <Stack direction="row" alignItems="center" spacing={1}>
-                                                <Typography variant="body1">{param.name}</Typography>
-                                                <Tooltip title={param.description || 'No description available'} arrow placement="top">
-                                                    <IconButton size="small">
-                                                        <InfoIcon fontSize="small" color="action"/>
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Stack>
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField
-                                                size="small"
-                                                value={param.value}
-                                                onChange={(e) => handleInputChange(index, 'value', e.target.value)}
-                                                autoComplete="off"
-                                            />
-                                            <Typography variant="caption" color="textSecondary">
-                                                (Default: {param.defaultValue})
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField
-                                                size="small"
-                                                value={param.start || ''}
-                                                onChange={(e) => handleInputChange(index, 'start', e.target.value)}
-                                                autoComplete="off"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField
-                                                size="small"
-                                                value={param.stop || ''}
-                                                onChange={(e) => handleInputChange(index, 'stop', e.target.value)}
-                                                autoComplete="off"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <TextField
-                                                size="small"
-                                                value={param.step || ''}
-                                                onChange={(e) => handleInputChange(index, 'step', e.target.value)}
-                                                autoComplete="off"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Checkbox
-                                                checked={param.selected || false}
-                                                onChange={(e) => handleInputChange(index, 'selected', e.target.checked)}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
+                                {Object.entries(
+                                    localConfig.runParams.reduce((groups, param) => {
+                                        const group = param.group || 'Ungrouped';
+                                        if (!groups[group]) groups[group] = [];
+                                        groups[group].push(param);
+                                        return groups;
+                                    }, {})
+                                ).map(([groupName, params], groupIndex) => (
+                                    <React.Fragment key={groupName}>
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={6}
+                                                style={{
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                                    padding: '12px 16px',
+                                                }}
+                                            >
+                                                <Typography
+                                                    variant="subtitle1"
+                                                    style={{
+                                                        color: '#fff',
+                                                        fontWeight: 'bold',
+                                                        textTransform: 'uppercase'
+                                                    }}
+                                                >
+                                                    {groupName}
+                                                </Typography>
+                                            </TableCell>
+                                        </TableRow>
+                                        {params.map((param, index) => (
+                                            <TableRow key={param.name}>
+                                                <TableCell>
+                                                    <Stack direction="row" alignItems="center" spacing={1}>
+                                                        <Typography variant="body1">{param.name}</Typography>
+                                                        <Tooltip
+                                                            title={param.description || 'No description available'}
+                                                            arrow
+                                                            placement="top"
+                                                            componentsProps={{
+                                                                tooltip: {
+                                                                    sx: {
+                                                                        fontSize: '1rem',
+                                                                        padding: '8px 12px',
+                                                                        maxWidth: '300px',
+                                                                        lineHeight: 1.5,
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            <IconButton size="small">
+                                                                <InfoIcon fontSize="small" color="action"/>
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Stack>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        size="small"
+                                                        value={param.value}
+                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'value', e.target.value)}
+                                                        autoComplete="off"
+                                                    />
+                                                    <Typography variant="caption" color="textSecondary">
+                                                        (Default: {param.defaultValue})
+                                                    </Typography>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        size="small"
+                                                        value={param.start || ''}
+                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
+                                                        autoComplete="off"
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        size="small"
+                                                        value={param.stop || ''}
+                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
+                                                        autoComplete="off"
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        size="small"
+                                                        value={param.step || ''}
+                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
+                                                        autoComplete="off"
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Checkbox
+                                                        checked={param.selected || false}
+                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', e.target.checked)}
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </React.Fragment>
                                 ))}
                             </TableBody>
                         </Table>
