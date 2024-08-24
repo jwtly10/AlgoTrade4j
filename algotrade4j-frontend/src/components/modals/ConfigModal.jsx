@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Tooltip, Typography,} from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
+import {apiClient} from '../../api/apiClient.js'
 
 
 const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass}) => {
     const [activeTab, setActiveTab] = useState(0);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
+    const [instruments, setInstruments] = useState([]);
 
     useEffect(() => {
         if (open) {
@@ -13,6 +15,20 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
             setLocalConfig(strategyConfig);
         }
     }, [open, strategyClass]);
+
+    useEffect(() => {
+        // Get all supported instruments
+        const fetchInstruments = async () => {
+            try {
+                const inst = await apiClient.getInstruments()
+                setInstruments(inst)
+            } catch (e) {
+                console.error("Failed to fetch instruments")
+            }
+        }
+
+        fetchInstruments()
+    }, [])
 
     const saveToLocalStorage = () => {
         localStorage.setItem(`strategyConfig_${strategyClass}`, JSON.stringify(localConfig));
@@ -188,7 +204,15 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 onChange={(e) => handleConfigChange('instrument', e.target.value)}
                                 label="Instrument"
                             >
-                                <MenuItem value="NAS100USD">NAS100USD</MenuItem>
+                                {
+                                    instruments.length > 0 ? (
+                                        instruments.map((instrument, index) => (
+                                            <MenuItem key={index} value={instrument}>{instrument}</MenuItem>
+                                        ))
+                                    ) : (
+                                        <MenuItem value="" disabled>No Instruments available</MenuItem>
+                                    )
+                                }
                             </Select>
                         </FormControl>
                         <FormControl fullWidth margin="normal">

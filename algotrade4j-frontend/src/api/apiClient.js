@@ -196,6 +196,15 @@ export const apiClient = {
         } catch (error) {
             return handleError(error);
         }
+    },
+
+    getInstruments: async () => {
+        try {
+            const response = await axiosInstance.get(`/instruments`)
+            return handleResponse(response)
+        } catch (error) {
+            return handleError(error)
+        }
     }
 };
 
