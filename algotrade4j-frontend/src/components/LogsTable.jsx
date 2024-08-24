@@ -8,11 +8,11 @@ const LogsTable = ({logs, rowsPerPage: defaultRowsPerPage = 10}) => {
 
     const getLogIcon = (type) => {
         switch (type) {
-            case 'info':
+            case 'INFO':
                 return <Info color="info"/>;
-            case 'warning':
+            case 'WARNING':
                 return <Warning color="warning"/>;
-            case 'error':
+            case 'ERROR':
                 return <Error color="error"/>;
             default:
                 return <Info color="info"/>;

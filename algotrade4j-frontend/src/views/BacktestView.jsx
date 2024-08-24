@@ -294,7 +294,6 @@ const BacktestView = () => {
     const updateLogs = (data) => {
         setLogs((prevLogs) => {
             return [
-                ...prevLogs,
                 {
                     timestamp: new Date(data.time * 1000).toLocaleString('en-US', {
                         year: 'numeric',
@@ -306,9 +305,10 @@ const BacktestView = () => {
                         fractionalSecondDigits: 3,
                         hour12: false,
                     }),
-                    type: data.level,
+                    type: data.logType,
                     message: data.message,
                 },
+                ...prevLogs,
             ];
         });
     };

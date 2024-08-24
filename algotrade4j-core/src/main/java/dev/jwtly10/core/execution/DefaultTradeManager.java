@@ -85,16 +85,28 @@ public class DefaultTradeManager implements TradeManager {
         quantity = quantity.setScale(2, RoundingMode.DOWN);
         log.debug("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
+        if (params.getStopLoss().isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
+            String reason = params.getStopLoss().isLessThan(Number.ZERO) ? "STOP LOSS" : "TAKE PROFIT";
+            log.warn("{} cannot be below 0", reason);
+            throw new InvalidTradeException(String.format("%s cannot be below 0 for the new trade opened @ %s. Value was %s", reason, currentTick.getDateTime().toString(),
+                    reason.equals("STOP LOSS") ? params.getStopLoss() : params.getTakeProfit()));
+        }
+
+        if (quantity.isLessThan(Number.ZERO)) {
+            log.warn("Quantity cannot be below 0");
+            throw new InvalidTradeException(String.format("Quantity cannot be below 0 for the new trade opened @ %s. Value was %s", currentTick.getDateTime().toString(), quantity));
+        }
+
         Trade trade = new Trade(params.getInstrument(), quantity, entryPrice, barSeries.getLastBar().getOpenTime(),
                 params.getStopLoss(), takeProfit, isLong);
 
-        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
-                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
-
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position for " + params.getInstrument()));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position " + trade.getId() + " for " + params.getInstrument()));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
+
+        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
+                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
         return trade.getId();
     }
 

@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
@@ -217,6 +218,7 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onDeInit() {
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
 
     }
 
