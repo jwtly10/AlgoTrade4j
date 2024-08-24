@@ -17,9 +17,7 @@ public class SlippageModel {
                 return stopLoss.add(bid.subtract(stopLoss).multiply(new Number(slippageFactor)));
             } else if (bid.isGreaterThan(takeProfit)) {
                 // Take profit hit for long trade
-                log.info("Originial take profit: {}", takeProfit);
                 var d = takeProfit.add(bid.subtract(takeProfit).multiply(new Number(slippageFactor)));
-                log.info("New take profit: {}", takeProfit);
                 return d;
             }
         } else {

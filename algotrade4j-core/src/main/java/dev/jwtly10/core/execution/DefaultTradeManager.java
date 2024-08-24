@@ -130,7 +130,6 @@ public class DefaultTradeManager implements TradeManager {
 
         // If we couldnt generate a good close price, just use the original implementation of current bid/tick
         if (closingPrice == null) {
-            log.info("DO WE EVER SET THIS?");
             closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
         }
 

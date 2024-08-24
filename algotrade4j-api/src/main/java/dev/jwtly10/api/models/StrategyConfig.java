@@ -32,6 +32,7 @@ public class StrategyConfig {
     public static class RunParameter {
         private String name;
         private String value;
+        private String description;
         private String defaultValue;
         private String start;
         private String stop;
