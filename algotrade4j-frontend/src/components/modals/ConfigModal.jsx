@@ -192,6 +192,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                             >
                                 <MenuItem value="1m">1m</MenuItem>
                                 <MenuItem value="5m">5m</MenuItem>
+                                <MenuItem value="15m">15m</MenuItem>
                                 <MenuItem value="30m">30m</MenuItem>
                                 <MenuItem value="1H">1H</MenuItem>
                                 <MenuItem value="4H">4H</MenuItem>

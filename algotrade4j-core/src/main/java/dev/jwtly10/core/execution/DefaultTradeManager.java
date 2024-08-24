@@ -99,7 +99,7 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public void closePosition(Integer tradeId) throws InvalidTradeException {
+    public void closePosition(Integer tradeId, boolean manual) throws InvalidTradeException {
         Trade trade = openTrades.remove(tradeId);
         if (trade == null) {
             throw new IllegalArgumentException("Trade not found: " + tradeId);
@@ -113,7 +113,27 @@ public class DefaultTradeManager implements TradeManager {
         log.debug("Trade details - Symbol: {}, Long: {}, Quantity: {}, Entry Price: {}",
                 trade.getInstrument(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());
 
-        Number closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
+
+        var slippage = new SlippageModel();
+        // TODO: We can support different volatility levels now. We can implement this if needed
+
+        Number closingPrice = null;
+        if (!manual) { // If not manual, this means this was triggered internally, potentially by stoploss/tp
+            closingPrice = slippage.calculateExecutionPrice(
+                    trade.isLong(),
+                    trade.getStopLoss(),
+                    trade.getTakeProfit(),
+                    currentTick.getAsk(),
+                    currentTick.getBid(),
+                    false);
+        }
+
+        // If we couldnt generate a good close price, just use the original implementation of current bid/tick
+        if (closingPrice == null) {
+            log.info("DO WE EVER SET THIS?");
+            closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
+        }
+
         log.debug("Closing price: {}", closingPrice);
         trade.setClosePrice(closingPrice);
         trade.setCloseTime(currentTick.getDateTime());

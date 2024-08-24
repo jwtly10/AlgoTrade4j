@@ -149,7 +149,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("14"), new Number("12"), new Number("10"), new Number("100"), ZonedDateTime.now()));
 
-        backtestTradeManager.closePosition(tradeId);
+        backtestTradeManager.closePosition(tradeId, false);
 
         assertEquals(new Number(2), backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
@@ -178,7 +178,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("8"), new Number("7"), new Number("9"), new Number("100"), ZonedDateTime.now()));
 
-        backtestTradeManager.closePosition(tradeId);
+        backtestTradeManager.closePosition(tradeId, false);
 
         assertEquals(new Number(-1), backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
@@ -206,7 +206,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("6"), new Number("5"), new Number("7"), new Number("100"), ZonedDateTime.now()));
 
-        backtestTradeManager.closePosition(tradeId);
+        backtestTradeManager.closePosition(tradeId, false);
 
         assertEquals(new Number(1.5), backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
@@ -234,9 +234,9 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("12"), new Number("11"), new Number("13"), new Number("100"), ZonedDateTime.now()));
 
-        backtestTradeManager.closePosition(tradeId);
+        backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(new Number(-1.5), backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(new Number(-1.1), backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&

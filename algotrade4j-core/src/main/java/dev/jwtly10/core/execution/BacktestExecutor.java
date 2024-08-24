@@ -102,7 +102,7 @@ public class BacktestExecutor implements DataListener {
     private void cleanup() {
         log.debug("Cleaning up strategy");
         tradeManager.getOpenTrades().values().forEach(trade -> {
-            tradeManager.closePosition(trade.getId());
+            tradeManager.closePosition(trade.getId(), false);
         });
         // Update trade states one last time
         tradeStateManager.updateTradeStates(accountManager, tradeManager, null);

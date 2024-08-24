@@ -36,8 +36,9 @@ public interface TradeManager {
      * Closes an existing position identified by the trade ID.
      *
      * @param tradeId The unique identifier of the trade to close
+     * @param manual  Weather the close was manually triggered or a result of a stoploss/tp (this lets us manually handle slippage)
      */
-    void closePosition(Integer tradeId) throws InvalidTradeException;
+    void closePosition(Integer tradeId, boolean manual) throws InvalidTradeException;
 
     /**
      * Loads all trades from the trading account.

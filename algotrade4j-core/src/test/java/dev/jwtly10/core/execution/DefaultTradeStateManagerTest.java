@@ -82,7 +82,7 @@ class DefaultTradeStateManagerTest {
 
         tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
 
-        verify(tradeManager).closePosition(longTrade.getId());
+        verify(tradeManager).closePosition(longTrade.getId(), false);
     }
 
     @Test

@@ -109,6 +109,16 @@ public class Number implements Comparable<Number> {
     }
 
     /**
+     * Multiplies this Number by a Number multiplier.
+     *
+     * @param multiplier The Number to multiply by
+     * @return A new Number representing the product
+     */
+    public Number multiply(Number multiplier) {
+        return new Number(this.value.multiply(multiplier.getValue()));
+    }
+
+    /**
      * Divides this Number by a BigDecimal divisor.
      *
      * @param divisor The BigDecimal to divide by

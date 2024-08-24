@@ -206,7 +206,14 @@ public class StrategyManager {
      */
     private Strategy getStrategyFromClassName(String className, String customId) {
         try {
-            Class<?> clazz = Class.forName("dev.jwtly10.core.strategy." + className);
+            Class<?> clazz;
+            try {
+                clazz = Class.forName("dev.jwtly10.core.strategy." + className);
+            } catch (Exception e) {
+                log.warn("Could not find class name in package 'dev.jwtly10.core.strategy'. Trying .personal.");
+                clazz = Class.forName("dev.jwtly10.core.strategy.personal." + className);
+            }
+
             Strategy strategy;
 
             if (customId != null) {

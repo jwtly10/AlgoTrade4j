@@ -33,3 +33,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/personal/*
