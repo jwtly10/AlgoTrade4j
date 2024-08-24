@@ -1,8 +1,9 @@
 package dev.jwtly10.api.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.data.DataSpeed;
-import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.model.InstrumentData;
 import dev.jwtly10.core.model.Number;
 import lombok.Data;
 
@@ -10,10 +11,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StrategyConfig {
     private String strategyClass;
     private Number initialCash;
-    private Instrument instrument;
+    private InstrumentData instrumentData;
     private String period;
     private DataSpeed speed;
     private Number spread;

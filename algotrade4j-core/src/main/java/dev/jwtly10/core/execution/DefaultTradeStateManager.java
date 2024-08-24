@@ -47,7 +47,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 : trade.getEntryPrice().subtract(currentPrice);
 
         Number profit = priceDifference.multiply(trade.getQuantity().getValue());
-        trade.setProfit(profit);
+        trade.setProfit(profit.roundMoneyDown());
         eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
         log.debug("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }

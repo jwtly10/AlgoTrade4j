@@ -72,7 +72,7 @@ public class StrategyManager {
         };
 
         Number spread = config.getSpread();
-        Instrument instrument = config.getInstrument();
+        Instrument instrument = config.getInstrumentData().getInstrument();
 
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);

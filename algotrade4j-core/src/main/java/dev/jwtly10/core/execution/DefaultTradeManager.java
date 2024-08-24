@@ -152,7 +152,7 @@ public class DefaultTradeManager implements TradeManager {
         log.debug("Profit/Loss calculation: {} * {} = {}",
                 priceDifference, trade.getQuantity().getValue(), profitLoss);
 
-        trade.setProfit(profitLoss);
+        trade.setProfit(profitLoss.roundMoneyDown());
 
         log.info("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 

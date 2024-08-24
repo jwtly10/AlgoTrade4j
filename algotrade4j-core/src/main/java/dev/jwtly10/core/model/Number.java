@@ -190,7 +190,22 @@ public class Number implements Comparable<Number> {
         return this.value.compareTo(other.value);
     }
 
+    /**
+     * Compares 2 Numbers for equality
+     *
+     * @param other Number for comparison
+     * @return whether 2 Numbers are equal
+     */
     public boolean isEquals(Number other) {
         return this.value.compareTo(other.value) == 0;
+    }
+
+    /**
+     * Utility method for rounding to 'money' for example when we want to display numbers to 2dp
+     *
+     * @return Number is format of 'money'
+     */
+    public Number roundMoneyDown() {
+        return this.setScale(2, RoundingMode.FLOOR);
     }
 }

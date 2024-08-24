@@ -87,13 +87,11 @@ public class PerformanceAnalyserTest {
         assertEquals(6, equityHistory.size());
         assertEquals(new Number(10000), equityHistory.get(0).equity());
         assertEquals(new Number(11000), equityHistory.get(5).equity());
-
-
     }
 
     private Trade createTrade(int id, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong, Number profit, Number closePrice, ZonedDateTime closeTime) {
         Trade trade = new Trade(id, Instrument.NAS100USD, quantity, openTime, entryPrice, stopLoss, takeProfit, isLong);
-        trade.setProfit(profit);
+        trade.setProfit(profit.roundMoneyDown());
         trade.setClosePrice(closePrice);
         trade.setCloseTime(closeTime);
         return trade;

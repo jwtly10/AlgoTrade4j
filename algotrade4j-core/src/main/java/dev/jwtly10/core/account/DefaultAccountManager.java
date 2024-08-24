@@ -18,27 +18,27 @@ public class DefaultAccountManager implements AccountManager {
 
     @Override
     public Number getBalance() {
-        return account.getBalance();
+        return account.getBalance().roundMoneyDown();
     }
 
     @Override
     public void setBalance(Number balance) {
-        account.setBalance(balance);
+        account.setBalance(balance.roundMoneyDown());
     }
 
     @Override
     public Number getEquity() {
-        return account.getEquity();
+        return account.getEquity().roundMoneyDown();
     }
 
     @Override
     public void setEquity(Number equity) {
-        account.setEquity(equity);
+        account.setEquity(equity.roundMoneyDown());
     }
 
     @Override
     public Number getInitialBalance() {
-        return account.getInitialBalance();
+        return account.getInitialBalance().roundMoneyDown();
     }
 
     @Override
@@ -48,6 +48,6 @@ public class DefaultAccountManager implements AccountManager {
 
     @Override
     public Number getOpenPositionValue() {
-        return getEquity().subtract(getBalance());
+        return getEquity().subtract(getBalance()).roundMoneyDown();
     }
 }

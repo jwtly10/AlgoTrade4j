@@ -2,10 +2,16 @@ import React, {useEffect, useRef} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
 import {Box} from '@mui/material';
 
-const TradingViewChart = ({chartData, trades, indicators}) => {
+const TradingViewChart = ({strategyConfig, chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
 
     useEffect(() => {
+
+        const instrument = strategyConfig.instrumentData
+        const pricePrecision = instrument.decimalPlaces || 2;
+        const minMove = instrument.minimumMove || 0.01;
+
+
         const handleResize = () => {
             chart.applyOptions({
                 width: chartContainerRef.current.clientWidth,
@@ -74,6 +80,16 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
                 vertLines: {color: 'rgba(197, 203, 206, 0.1)'},
                 horzLines: {color: 'rgba(197, 203, 206, 0.1)'},
             },
+            rightPriceScale: {
+                borderColor: 'rgba(197, 203, 206, 0.3)',
+                borderVisible: true,
+                scaleMargins: {
+                    top: 0.1,
+                    bottom: 0.1,
+                },
+                minMove: minMove,
+                precision: pricePrecision,
+            },
         });
 
         chart.timeScale().applyOptions({
@@ -128,6 +144,11 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
             borderVisible: false,
             wickUpColor: '#26a69a',
             wickDownColor: '#ef5350',
+            priceFormat: {
+                type: 'price',
+                precision: pricePrecision,
+                minMove: minMove,
+            },
         });
 
         try {
@@ -143,8 +164,6 @@ const TradingViewChart = ({chartData, trades, indicators}) => {
             const indicatorData = indicators[indicatorName];
             if (indicatorData && indicatorData.length > 0) {
                 if (indicatorName.startsWith('ATR_CANDLE')) {
-                    console.log('Indicator data');
-                    console.log(indicatorData);
                     // For ATRCandle, change colors of bars
                     const modifiedChartData = chartData.map((candle, index) => {
                         const correspondingIndicator = indicatorData.find(

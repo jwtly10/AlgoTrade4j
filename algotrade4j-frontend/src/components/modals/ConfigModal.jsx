@@ -69,6 +69,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     const handleClose = () => {
         saveToLocalStorage();
+        console.log(localConfig)
         setStrategyConfig(localConfig);
         onClose();
     };
@@ -200,14 +201,18 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                             <InputLabel id="instrument-label">Instrument</InputLabel>
                             <Select
                                 labelId="instrument-label"
-                                value={localConfig.instrument}
-                                onChange={(e) => handleConfigChange('instrument', e.target.value)}
+                                value={localConfig.instrumentData.internalSymbol || ''}
+                                onChange={(e) => {
+                                    const selectedInstrument = instruments.find(i => i.internalSymbol === e.target.value)
+                                    handleConfigChange('instrumentData', selectedInstrument)
+                                }
+                                }
                                 label="Instrument"
                             >
                                 {
                                     instruments.length > 0 ? (
                                         instruments.map((instrument, index) => (
-                                            <MenuItem key={index} value={instrument}>{instrument}</MenuItem>
+                                            <MenuItem key={index} value={instrument.internalSymbol}>{instrument.internalSymbol}</MenuItem>
                                         ))
                                     ) : (
                                         <MenuItem value="" disabled>No Instruments available</MenuItem>

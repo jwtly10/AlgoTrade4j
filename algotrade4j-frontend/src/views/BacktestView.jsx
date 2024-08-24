@@ -56,7 +56,7 @@ const BacktestView = () => {
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
-        instrument: 'NAS100USD',
+        instrumentData: {},
         spread: "50",
         speed: "NORMAL",
         period: "1D",
@@ -144,7 +144,7 @@ const BacktestView = () => {
         const updatedConfig = {
             ...strategyConfig,
             initialCash: storedConfig.initialCash || strategyConfig.initialCash,
-            instrument: storedConfig.instrument || strategyConfig.instrument,
+            instrumentData: storedConfig.instrumentData || strategyConfig.instrumentData,
             spread: storedConfig.spread || strategyConfig.spread,
             period: storedConfig.period || strategyConfig.period,
             speed: storedConfig.speed || strategyConfig.speed,
@@ -646,7 +646,7 @@ const BacktestView = () => {
                             {isRunning && isAsync ? (
                                 <LoadingChart/>
                             ) : (
-                                <TradingViewChart chartData={chartData} trades={trades} indicators={indicators}/>
+                                <TradingViewChart strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             )}
                         </Box>
 
