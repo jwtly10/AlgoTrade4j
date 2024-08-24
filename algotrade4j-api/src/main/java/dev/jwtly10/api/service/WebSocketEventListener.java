@@ -48,7 +48,9 @@ public class WebSocketEventListener implements EventListener {
     @Override
     public void onError(String strategyId, Exception e) {
         try {
-            session.sendMessage(new TextMessage(new ErrorEvent(strategyId, e.getMessage()).toJson()));
+            String errorDetails = formatErrorWithStackTrace(strategyId, e);
+            ErrorEvent errorEvent = new ErrorEvent(strategyId, errorDetails);
+            session.sendMessage(new TextMessage(errorEvent.toJson()));
         } catch (IOException ex) {
             log.error("Failed to send error message to WS session", ex);
         } catch (Exception ex) {
@@ -66,5 +68,25 @@ public class WebSocketEventListener implements EventListener {
 
     public void deactivate() {
         isActive.set(false);
+    }
+
+    private String formatErrorWithStackTrace(String strategyId, Exception e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Strategy: %s | Error: %s - %s\n",
+                strategyId, e.getClass().getSimpleName(), e.getMessage()));
+
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        int linesToInclude = Math.min(5, stackTrace.length); // Include up to 5 lines of stack trace
+
+        sb.append("Stack trace:\n");
+        for (int i = 0; i < linesToInclude; i++) {
+            sb.append("  at ").append(stackTrace[i].toString()).append("\n");
+        }
+
+        if (stackTrace.length > linesToInclude) {
+            sb.append("  ... ").append(stackTrace.length - linesToInclude).append(" more\n");
+        }
+
+        return sb.toString();
     }
 }

@@ -121,7 +121,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             notifyTick(tick, currentBar);
         } catch (Exception e) {
             // During a strategy run, here is where we handle any errors that may happen
-            log.error("Error during processing: ", e);
+            log.error("Error during strategy run: ", e);
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
             eventPublisher.publishErrorEvent(strategyId, e);
             stop();
