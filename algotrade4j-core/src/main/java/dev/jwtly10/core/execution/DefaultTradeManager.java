@@ -1,7 +1,6 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
@@ -101,7 +100,6 @@ public class DefaultTradeManager implements TradeManager {
                 params.getStopLoss(), takeProfit, isLong);
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position " + trade.getId() + " for " + params.getInstrument()));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
@@ -170,7 +168,6 @@ public class DefaultTradeManager implements TradeManager {
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.CLOSE));
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Closing position {} for {}", trade.getId(), trade.getInstrument()));
     }
 
     @Override

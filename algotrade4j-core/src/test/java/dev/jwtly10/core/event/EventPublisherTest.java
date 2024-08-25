@@ -4,10 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -82,19 +80,5 @@ class EventPublisherTest {
         eventPublisher.publishErrorEvent(strategyId, testException);
 
         assertTrue(latch.await(2, TimeUnit.SECONDS), "Not all listeners were notified of error");
-    }
-
-    @Test
-    void testShutdown() {
-        // Create a publisher and subscribe. Then shutdown and assert that the listener was not notified
-        EventListener listener = mock(EventListener.class);
-        eventPublisher.addListener(listener);
-
-        eventPublisher.shutdown();
-
-        BaseEvent event = mock(BaseEvent.class);
-
-        assertThrows(RejectedExecutionException.class, () -> eventPublisher.publishEvent(event));
-
     }
 }

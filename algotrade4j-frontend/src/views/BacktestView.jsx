@@ -52,6 +52,8 @@ const BacktestView = () => {
     const [isAsync, setAsync] = useState(false)
     const [progressData, setProgressData] = useState(null);
     const [showChart, setShowChart] = useState(true)
+    const [startTime, setStartTime] = useState(null);
+
 
 
     // const [rawParams, setRawParams] = useState([]);
@@ -180,6 +182,11 @@ const BacktestView = () => {
             strategyClass: strategyClass,
         }
 
+        setAccount({
+            initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+            balance: 0,
+            equity: 0,
+        });
         setIsRunning(true);
         // Clean previous data
         setChartData([]);
@@ -243,6 +250,7 @@ const BacktestView = () => {
 
             console.log('WebSocket connected');
             await apiClient.startStrategy(hackConfig, generatedIdForClass, showChart);
+            setStartTime(Date.now());
         } catch (error) {
             console.error('Failed to start strategy:', error);
             setToast({
@@ -259,6 +267,11 @@ const BacktestView = () => {
             if (strategyClass !== "") {
                 // We can stop strategy by just closing ws connection
                 setIsRunning(false);
+                setAccount({
+                    initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+                    balance: 0,
+                    equity: 0,
+                });
                 if (socketRef.current) {
                     socketRef.current.close();
                 }
@@ -307,7 +320,6 @@ const BacktestView = () => {
     };
 
     const updateAsyncProgress = (data) => {
-        console.log(data)
         setProgressData(data);
     }
 
@@ -669,7 +681,7 @@ const BacktestView = () => {
                         {/* Chart Section */}
                         <Box sx={{flexShrink: 0, height: '40%', minHeight: '500px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
                             {isRunning && isAsync ? (
-                                <LoadingChart progressData={progressData} startTime={Date.now()}/>
+                                <LoadingChart progressData={progressData} startTime={startTime}/>
                             ) : chartData && chartData.length > 0 ? (
                                 <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             ) : (

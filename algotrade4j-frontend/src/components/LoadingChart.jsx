@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Grid, LinearProgress, Paper, Typography} from '@mui/material';
-import {formatDistanceToNow} from 'date-fns';
 
 const LoadingChart = ({progressData, startTime}) => {
     const {
@@ -15,12 +14,19 @@ const LoadingChart = ({progressData, startTime}) => {
         strategyId
     } = progressData || {};
 
-    const [timeElapsed, setTimeElapsed] = useState('');
+    const [timeElapsed, setTimeElapsed] = useState('00:00');
 
     useEffect(() => {
         const updateTimeElapsed = () => {
             if (startTime) {
-                setTimeElapsed(formatDistanceToNow(new Date(startTime), {addSuffix: true}));
+                const now = new Date();
+                const start = new Date(startTime);
+                const elapsedMilliseconds = now - start;
+                const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
+                const minutes = Math.floor(elapsedSeconds / 60);
+                const seconds = elapsedSeconds % 60;
+                const newTimeElapsed = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                setTimeElapsed(newTimeElapsed);
             }
         };
 
@@ -85,7 +91,7 @@ const LoadingChart = ({progressData, startTime}) => {
                             <Typography variant="body2">Time Elapsed:</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography variant="body2" align="right">{timeElapsed || 'Calculating...'}</Typography>
+                            <Typography variant="body2" align="right">{timeElapsed}</Typography>
                         </Grid>
                         <Grid item xs={6}>
                             <Typography variant="body2">Start Date:</Typography>

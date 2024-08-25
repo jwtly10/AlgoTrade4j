@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The EventPublisher class is responsible for managing event listeners and publishing events to them.
@@ -14,17 +16,16 @@ import java.util.concurrent.ThreadFactory;
  */
 @Slf4j
 public class EventPublisher {
+    private static final int BATCH_SIZE = 50;
+    private static final long MAX_BATCH_WAIT_MS = 100;
     private final List<EventListener> listeners = new ArrayList<>();
-    private final ExecutorService tickExecutor;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
+    // Using a queue to batch send events rather than creating a new runnable instant for each invocation
+    private final Queue<BaseEvent> eventQueue = new ConcurrentLinkedQueue<>();
 
     public EventPublisher() {
-        ThreadFactory threadFactory = r -> {
-            Thread thread = new Thread(r);
-            thread.setName("TickEventProcessor");
-            return thread;
-        };
-        this.tickExecutor = Executors.newSingleThreadExecutor(threadFactory);
+        scheduler.scheduleAtFixedRate(this::processEvents, 0, MAX_BATCH_WAIT_MS, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -54,24 +55,39 @@ public class EventPublisher {
      * @param event The BaseEvent to be published to all listeners.
      */
     public void publishEvent(BaseEvent event) {
-//        try {
-//            // Some events can be a huge JSON. So we don't need to print the entire implementation
-//            log.debug("Publishing event: {}", event instanceof AnalysisEvent ? event : event.toJson());
-//        } catch (JsonProcessingException e) {
-//            log.error("Error logging event: ", e);
-//        }
-        for (EventListener listener : listeners) {
-            tickExecutor.submit(() -> listener.onEvent(event));
+        eventQueue.offer(event);
+        if (eventQueue.size() >= BATCH_SIZE) {
+            processEvents();
+        }
+    }
+
+    private void processEvents() {
+        List<BaseEvent> batch = new ArrayList<>(BATCH_SIZE);
+        BaseEvent event;
+        while ((event = eventQueue.poll()) != null && batch.size() < BATCH_SIZE) {
+            batch.add(event);
+        }
+
+        if (!batch.isEmpty()) {
+            for (EventListener listener : listeners) {
+                for (BaseEvent e : batch) {
+                    listener.onEvent(e);
+                }
+            }
         }
     }
 
     public void publishErrorEvent(String strategyId, Exception e) {
         for (EventListener listener : listeners) {
-            tickExecutor.submit(() -> listener.onError(strategyId, e));
+            try {
+                listener.onError(strategyId, e);
+            } catch (Exception listenerException) {
+                log.error("Error in listener while processing error event", listenerException);
+            }
         }
     }
 
     public void shutdown() {
-        tickExecutor.shutdown();
+        scheduler.shutdown();
     }
 }
