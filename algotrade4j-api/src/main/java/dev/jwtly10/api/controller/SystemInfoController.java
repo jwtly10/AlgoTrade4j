@@ -25,7 +25,11 @@ public class SystemInfoController {
 
     @GetMapping("/version")
     public Map<String, String> getVersion() {
-        return versionInfo;
+        Map<String, String> info = new HashMap<>(versionInfo);
+        info.put(
+                "environment", getEnvironment()
+        );
+        return info;
     }
 
     @GetMapping("/monitor")

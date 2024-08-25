@@ -9,7 +9,6 @@ const MonitorView = () => {
         const fetchMonitorInfo = async () => {
             try {
                 const response = await systemClient.monitor();
-                console.log("Monitor info fetched:", response);
                 setMonitorInfo(response);
             } catch (error) {
                 console.error('Failed to fetch monitor info:', error);
