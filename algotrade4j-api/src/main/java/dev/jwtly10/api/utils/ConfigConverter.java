@@ -29,7 +29,7 @@ public class ConfigConverter {
         optimisationConfig.setSpread(strategyConfig.getSpread());
         optimisationConfig.setSpeed(strategyConfig.getSpeed());
         optimisationConfig.setInitialCash(strategyConfig.getInitialCash());
-        optimisationConfig.setInstrument(strategyConfig.getInstrument());
+        optimisationConfig.setInstrument(strategyConfig.getInstrumentData().getInstrument());
 
         // Convert RunParameters to ParameterRanges
         List<ParameterRange> parameterRanges = strategyConfig.getRunParams().stream()

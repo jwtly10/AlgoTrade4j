@@ -33,7 +33,7 @@ public class ParameterHandler {
                 } catch (IllegalAccessException e) {
                     value = "N/A";
                 }
-                parameters.add(new ParameterInfo(param.name(), param.description(), value));
+                parameters.add(new ParameterInfo(param.name(), param.description(), value, param.group()));
             }
         }
 
@@ -218,11 +218,13 @@ public class ParameterHandler {
         private String name;
         private String description;
         private String value;
+        private String group;
 
-        public ParameterInfo(String name, String description, String value) {
+        public ParameterInfo(String name, String description, String value, String group) {
             this.name = name;
             this.description = description;
             this.value = value;
+            this.group = group;
         }
     }
 }

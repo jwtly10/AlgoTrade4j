@@ -26,7 +26,7 @@ public class OptimisationResultListener implements EventListener {
 
     @Override
     public void onError(String strategyId, Exception e) {
-        log.error("Error in strategy: {}", strategyId, e);
+//        log.error("Error in strategy: {}", strategyId, e);
     }
 
     public Map<String, AnalysisEvent> getResults() {

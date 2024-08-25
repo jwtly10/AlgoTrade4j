@@ -52,7 +52,7 @@ public class DefaultTradeManager implements TradeManager {
                 params.getRiskPercentage(), params.getBalanceToRisk());
 
         Number entryPrice = params.getEntryPrice();
-        if (entryPrice != currentTick.getAsk() || entryPrice != currentTick.getBid()) {
+        if (!entryPrice.isEquals(currentTick.getAsk()) || !entryPrice.isEquals(currentTick.getBid())) {
             entryPrice = isLong ? currentTick.getAsk() : currentTick.getBid();
             log.warn("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }
@@ -85,21 +85,33 @@ public class DefaultTradeManager implements TradeManager {
         quantity = quantity.setScale(2, RoundingMode.DOWN);
         log.debug("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
+        if (params.getStopLoss().isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
+            String reason = params.getStopLoss().isLessThan(Number.ZERO) ? "STOP LOSS" : "TAKE PROFIT";
+            log.warn("{} cannot be below 0", reason);
+            throw new InvalidTradeException(String.format("%s cannot be below 0 for the new trade opened @ %s. Value was %s", reason, currentTick.getDateTime().toString(),
+                    reason.equals("STOP LOSS") ? params.getStopLoss() : params.getTakeProfit()));
+        }
+
+        if (quantity.isLessThan(Number.ZERO)) {
+            log.warn("Quantity cannot be below 0");
+            throw new InvalidTradeException(String.format("Quantity cannot be below 0 for the new trade opened @ %s. Value was %s", currentTick.getDateTime().toString(), quantity));
+        }
+
         Trade trade = new Trade(params.getInstrument(), quantity, entryPrice, barSeries.getLastBar().getOpenTime(),
                 params.getStopLoss(), takeProfit, isLong);
 
-        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
-                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
-
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position for " + params.getInstrument()));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opening " + (isLong ? "long" : "short") + " position " + trade.getId() + " for " + params.getInstrument()));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
+
+        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
+                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
         return trade.getId();
     }
 
     @Override
-    public void closePosition(Integer tradeId) throws InvalidTradeException {
+    public void closePosition(Integer tradeId, boolean manual) throws InvalidTradeException {
         Trade trade = openTrades.remove(tradeId);
         if (trade == null) {
             throw new IllegalArgumentException("Trade not found: " + tradeId);
@@ -113,7 +125,26 @@ public class DefaultTradeManager implements TradeManager {
         log.debug("Trade details - Symbol: {}, Long: {}, Quantity: {}, Entry Price: {}",
                 trade.getInstrument(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());
 
-        Number closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
+
+        var slippage = new SlippageModel();
+        // TODO: We can support different volatility levels now. We can implement this if needed
+
+        Number closingPrice = null;
+        if (!manual) { // If not manual, this means this was triggered internally, potentially by stoploss/tp
+            closingPrice = slippage.calculateExecutionPrice(
+                    trade.isLong(),
+                    trade.getStopLoss(),
+                    trade.getTakeProfit(),
+                    currentTick.getAsk(),
+                    currentTick.getBid(),
+                    false);
+        }
+
+        // If we couldnt generate a good close price, just use the original implementation of current bid/tick
+        if (closingPrice == null) {
+            closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
+        }
+
         log.debug("Closing price: {}", closingPrice);
         trade.setClosePrice(closingPrice);
         trade.setCloseTime(currentTick.getDateTime());
@@ -133,7 +164,7 @@ public class DefaultTradeManager implements TradeManager {
         log.debug("Profit/Loss calculation: {} * {} = {}",
                 priceDifference, trade.getQuantity().getValue(), profitLoss);
 
-        trade.setProfit(profitLoss);
+        trade.setProfit(profitLoss.roundMoneyDown());
 
         log.info("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 

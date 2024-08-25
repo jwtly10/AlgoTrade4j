@@ -317,7 +317,7 @@ public class PerformanceAnalyser {
         }
         Number drawdown = peakEquity.subtract(equity).divide(peakEquity.getValue());
         if (drawdown.isGreaterThan(maxDrawdown)) {
-            maxDrawdown = drawdown;
+            maxDrawdown = drawdown.roundMoneyDown();
         }
     }
 

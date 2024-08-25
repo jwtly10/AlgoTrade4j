@@ -34,6 +34,14 @@ public @interface Parameter {
     String value() default "";
 
     /**
+     * The group of the parameter
+     * used for UI customisations
+     *
+     * @return the group of the parameter
+     */
+    String group() default "";
+
+    /**
      * The enum class that the parameter can take values from, if applicable.
      *
      * @return the enum class array

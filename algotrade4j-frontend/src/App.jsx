@@ -2,24 +2,44 @@ import React, {useEffect, useState} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import {Box, CircularProgress, CssBaseline, ThemeProvider} from '@mui/material';
 import {createTheme} from '@mui/material/styles';
-import Navbar from './components/Navbar';
+import Navbar from './components/layout/Navbar';
 import BacktestView from './views/BacktestView';
 import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/UserManagementView';
 import NotFoundView from "./views/NotFoundView.jsx";
 
-const defaultTheme = createTheme()
-
 const darkTheme = createTheme({
     palette: {
         mode: 'dark',
-        // primary: {
-        //   main: '#90caf9',
-        // },
-        // secondary: {
-        //   main: '#f48fb1',
-        // },
+    },
+    components: {
+        MuiCssBaseline: {
+            styleOverrides: `
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #888 #1e1e1e;
+        }
+
+        *::-webkit-scrollbar {
+          width: 10px;
+        }
+
+        *::-webkit-scrollbar-track {
+          background: #1e1e1e;
+        }
+
+        *::-webkit-scrollbar-thumb {
+          background-color: #888;
+          border-radius: 6px;
+          border: 3px solid #1e1e1e;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+          background-color: #555;
+        }
+      `,
+        },
     },
 });
 

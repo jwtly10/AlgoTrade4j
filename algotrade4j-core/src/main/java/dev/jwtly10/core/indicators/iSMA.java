@@ -18,8 +18,10 @@ import java.util.List;
  * and then dividing by the number of periods.
  */
 @Slf4j
-public class SMA implements Indicator {
+public class iSMA implements Indicator {
+    // Params
     private final int period;
+
     private final List<Number> rawValues; // The raw running sum
     @Getter
     private final List<IndicatorValue> values; // The data the indicator produces
@@ -32,7 +34,7 @@ public class SMA implements Indicator {
      *
      * @param period the number of periods to use in the SMA calculation
      */
-    public SMA(int period) {
+    public iSMA(int period) {
         this.period = period;
         this.rawValues = new ArrayList<>();
         this.values = new ArrayList<>();

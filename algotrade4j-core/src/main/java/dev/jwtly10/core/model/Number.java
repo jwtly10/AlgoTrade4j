@@ -2,7 +2,6 @@ package dev.jwtly10.core.model;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,12 +13,11 @@ import java.math.RoundingMode;
  */
 @Getter
 @EqualsAndHashCode
-@ToString
 public class Number implements Comparable<Number> {
     /**
      * The number of decimal places to use for all Number instances.
      */
-    public static final int DECIMAL_PLACES = 2;
+    public static final int DECIMAL_PLACES = 5;
 
     /**
      * The rounding mode to use for all Number operations.
@@ -30,6 +28,11 @@ public class Number implements Comparable<Number> {
      * A constant representing zero.
      */
     public static final Number ZERO = new Number(BigDecimal.ZERO);
+
+    /**
+     * A constant representing one.
+     */
+    public static final Number ONE = new Number(BigDecimal.ONE);
 
     /**
      * The underlying BigDecimal value.
@@ -106,6 +109,16 @@ public class Number implements Comparable<Number> {
     }
 
     /**
+     * Multiplies this Number by a Number multiplier.
+     *
+     * @param multiplier The Number to multiply by
+     * @return A new Number representing the product
+     */
+    public Number multiply(Number multiplier) {
+        return new Number(this.value.multiply(multiplier.getValue()));
+    }
+
+    /**
      * Divides this Number by a BigDecimal divisor.
      *
      * @param divisor The BigDecimal to divide by
@@ -177,7 +190,22 @@ public class Number implements Comparable<Number> {
         return this.value.compareTo(other.value);
     }
 
+    /**
+     * Compares 2 Numbers for equality
+     *
+     * @param other Number for comparison
+     * @return whether 2 Numbers are equal
+     */
     public boolean isEquals(Number other) {
         return this.value.compareTo(other.value) == 0;
+    }
+
+    /**
+     * Utility method for rounding to 'money' for example when we want to display numbers to 2dp
+     *
+     * @return Number is format of 'money'
+     */
+    public Number roundMoneyDown() {
+        return this.setScale(2, RoundingMode.FLOOR);
     }
 }

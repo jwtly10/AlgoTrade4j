@@ -1,7 +1,7 @@
 package dev.jwtly10.core.strategy;
 
 
-import dev.jwtly10.core.indicators.SMA;
+import dev.jwtly10.core.indicators.iSMA;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
@@ -16,7 +16,7 @@ public class SimpleSMAStrategy extends BaseStrategy {
     @Parameter(name = "smaLength2", description = "Length of SMA", value = "20")
     private int smaLength2;
 
-    private SMA sma20;
+    private iSMA iSma20;
 
     public SimpleSMAStrategy() {
         super("SimpleSMAStrategy");
@@ -28,7 +28,7 @@ public class SimpleSMAStrategy extends BaseStrategy {
 
     @Override
     protected void initIndicators() {
-        sma20 = createIndicator(SMA.class, smaLength);
+        iSma20 = createIndicator(iSMA.class, smaLength);
     }
 
     @Override
@@ -43,9 +43,9 @@ public class SimpleSMAStrategy extends BaseStrategy {
 
     @Override
     public void onBarClose(Bar bar) {
-        if (sma20.isReady()) {
+        if (iSma20.isReady()) {
             // If bearish candle below the sma sell
-            if (bar.getClose().isLessThan(sma20.getValue()) && bar.isBearish() && bar.getClose().isGreaterThan(new Number(13200))) {
+            if (bar.getClose().isLessThan(iSma20.getValue()) && bar.isBearish() && bar.getClose().isGreaterThan(new Number(13200))) {
                 TradeParameters params = new TradeParameters();
                 params.setInstrument(SYMBOL);
                 params.setEntryPrice(Ask());

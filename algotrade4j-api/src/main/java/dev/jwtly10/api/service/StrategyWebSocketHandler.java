@@ -11,6 +11,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 
 @Component
@@ -60,12 +61,12 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
                 .findFirst();
 
         strategyId.ifPresent(id -> {
-            boolean stopped = strategyManager.stopStrategy(id);
+            boolean stopped = retryStopStrategy(id);
             if (stopped) {
                 log.info("Stopped strategy: {}", id);
                 strategySessions.remove(id);
             } else {
-                log.warn("Failed to stop strategy: {}", id);
+                log.warn("Failed to stop strategy after retries: {}", id);
             }
         });
 
@@ -75,6 +76,33 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
             listeners.remove(session);
             eventPublisher.removeListener(listener);
         }
+    }
+
+    /**
+     * Attempts to strop the strategy for 3 seconds.
+     * This handles cases where a stop request (or disconnect happens before the strategy has actually initialised
+     * Gracefully shutting it down without running in the background without a client attached
+     *
+     * @param id the id of the strategy t ostop
+     * @return true is the strategy was successfully stopped.
+     */
+    private boolean retryStopStrategy(String id) {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + 3000; // 3 seconds timeout
+
+        while (System.currentTimeMillis() < endTime) {
+            if (strategyManager.stopStrategy(id)) {
+                return true;
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(500); // Wait for 500 milliseconds before retrying
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Retry interrupted for strategy: {}", id);
+                return false;
+            }
+        }
+        return false;
     }
 
     public WebSocketSession getSessionForStrategy(String strategyId) {

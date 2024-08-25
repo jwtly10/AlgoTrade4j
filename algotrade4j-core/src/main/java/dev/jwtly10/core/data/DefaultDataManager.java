@@ -1,6 +1,7 @@
 package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
@@ -104,20 +105,27 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         log.debug("Received tick: {}", tick);
         ticksModeled++;
 
-        updateCurrentPrices(tick);
+        try {
+            updateCurrentPrices(tick);
+            if (currentBar == null) {
+                initializeNewBar(tick);
+            } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
+                log.debug("Closing current bar because: {} ({})",
+                        tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
+                closeCurrentBar();
+                initializeNewBar(tick);
+            } else {
+                updateBar(tick);
+            }
 
-        if (currentBar == null) {
-            initializeNewBar(tick);
-        } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
-            log.debug("Closing current bar because: {} ({})",
-                    tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
-            closeCurrentBar();
-            initializeNewBar(tick);
-        } else {
-            updateBar(tick);
+            notifyTick(tick, currentBar);
+        } catch (Exception e) {
+            // During a strategy run, here is where we handle any errors that may happen
+            log.error("Error during strategy run: ", e);
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
+            eventPublisher.publishErrorEvent(strategyId, e);
+            stop();
         }
-
-        notifyTick(tick, currentBar);
     }
 
     private void updateCurrentPrices(Tick tick) {

@@ -15,26 +15,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
-class SMATest {
+class iSMATest {
 
-    private SMA smaIndicator;
+    private iSMA iSmaIndicator;
     private EventPublisher mockEventPublisher;
 
 
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
-        smaIndicator = new SMA(3);
-        smaIndicator.setEventPublisher(mockEventPublisher);
-        smaIndicator.setStrategyId("TESTING");
+        iSmaIndicator = new iSMA(3);
+        iSmaIndicator.setEventPublisher(mockEventPublisher);
+        iSmaIndicator.setStrategyId("TESTING");
     }
 
     @Test
     void testInitialState() {
-        assertEquals("SMA 3", smaIndicator.getName());
-        assertEquals(3, smaIndicator.getRequiredPeriods());
-        assertFalse(smaIndicator.isReady());
-        assertEquals(Number.ZERO, smaIndicator.getValue());
+        assertEquals("SMA 3", iSmaIndicator.getName());
+        assertEquals(3, iSmaIndicator.getRequiredPeriods());
+        assertFalse(iSmaIndicator.isReady());
+        assertEquals(Number.ZERO, iSmaIndicator.getValue());
     }
 
     @Test
@@ -43,18 +43,18 @@ class SMATest {
         Bar bar2 = createMockBar(20);
         Bar bar3 = createMockBar(30);
 
-        smaIndicator.update(bar1);
+        iSmaIndicator.update(bar1);
 
-        assertFalse(smaIndicator.isReady());
-        assertEquals(Number.ZERO, smaIndicator.getValue());
+        assertFalse(iSmaIndicator.isReady());
+        assertEquals(Number.ZERO, iSmaIndicator.getValue());
 
-        smaIndicator.update(bar2);
-        assertFalse(smaIndicator.isReady());
-        assertEquals(Number.ZERO, smaIndicator.getValue());
+        iSmaIndicator.update(bar2);
+        assertFalse(iSmaIndicator.isReady());
+        assertEquals(Number.ZERO, iSmaIndicator.getValue());
 
-        smaIndicator.update(bar3);
-        assertTrue(smaIndicator.isReady());
-        assertEquals(new Number("20.00"), smaIndicator.getValue());
+        iSmaIndicator.update(bar3);
+        assertTrue(iSmaIndicator.isReady());
+        assertEquals(new Number("20.00"), iSmaIndicator.getValue());
 
         verify(mockEventPublisher, times(3)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
@@ -68,37 +68,37 @@ class SMATest {
         Bar bar3 = createMockBar(30);
         Bar bar4 = createMockBar(40);
 
-        smaIndicator.update(bar1);
-        smaIndicator.update(bar2);
-        smaIndicator.update(bar3);
-        smaIndicator.update(bar4);
+        iSmaIndicator.update(bar1);
+        iSmaIndicator.update(bar2);
+        iSmaIndicator.update(bar3);
+        iSmaIndicator.update(bar4);
 
         verify(mockEventPublisher, times(4)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
         ));
-        assertEquals(new Number("30.00"), smaIndicator.getValue());
-        assertEquals(new Number("20.00"), smaIndicator.getValue(1));
+        assertEquals(new Number("30.00"), iSmaIndicator.getValue());
+        assertEquals(new Number("20.00"), iSmaIndicator.getValue(1));
     }
 
     @Test
     void testGetValueOutOfBounds() {
-        assertThrows(IndexOutOfBoundsException.class, () -> smaIndicator.getValue(0));
-        assertThrows(IndexOutOfBoundsException.class, () -> smaIndicator.getValue(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> iSmaIndicator.getValue(0));
+        assertThrows(IndexOutOfBoundsException.class, () -> iSmaIndicator.getValue(-1));
     }
 
     @Test
     void testLongerPeriod() {
-        SMA sma5 = new SMA(5);
-        sma5.setEventPublisher(mockEventPublisher);
+        iSMA iSma5 = new iSMA(5);
+        iSma5.setEventPublisher(mockEventPublisher);
         for (int i = 1; i <= 5; i++) {
-            sma5.update(createMockBar(i * 10));
+            iSma5.update(createMockBar(i * 10));
         }
 
         verify(mockEventPublisher, times(5)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
         ));
-        assertTrue(sma5.isReady());
-        assertEquals(new Number("30.00"), sma5.getValue());
+        assertTrue(iSma5.isReady());
+        assertEquals(new Number("30.00"), iSma5.getValue());
     }
 
     private Bar createMockBar(double closePrice) {

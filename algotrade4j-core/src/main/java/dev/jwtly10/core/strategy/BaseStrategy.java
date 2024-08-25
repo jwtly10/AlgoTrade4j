@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
@@ -217,6 +218,7 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onDeInit() {
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
 
     }
 
@@ -267,6 +269,15 @@ public abstract class BaseStrategy implements Strategy {
      */
     protected <T extends Indicator> T createIndicator(Class<T> indicatorClass, Object... params) {
         log.info("Creating indicator: '{}' with params: '{}'", indicatorClass.getSimpleName(), params);
+
+        // TODO: We should do something better than this.
+        if (indicatorClass.getSimpleName().equals("iSMA") & params[0].equals(0)) {
+            // This means the user needs to be aware that indicators are null if they are set to the nullable value
+            // So access them will fail
+            log.warn("An iSMA has value 0. Will not create indicator");
+            return null;
+        }
+
         try {
             Class<?>[] paramTypes = new Class<?>[params.length];
             for (int i = 0; i < params.length; i++) {
@@ -327,6 +338,7 @@ public abstract class BaseStrategy implements Strategy {
     private <T> Constructor<T> findMatchingConstructor(Class<T> cls, Class<?>[] paramTypes) {
         Constructor<?>[] constructors = cls.getConstructors();
         for (Constructor<?> constructor : constructors) {
+            log.debug("Constructor found with types: {}", constructor.getParameterTypes());
             Class<?>[] ctorParamTypes = constructor.getParameterTypes();
             if (isAssignable(ctorParamTypes, paramTypes)) {
                 return (Constructor<T>) constructor;

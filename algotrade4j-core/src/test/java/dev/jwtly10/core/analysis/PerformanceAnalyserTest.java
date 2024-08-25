@@ -77,25 +77,21 @@ public class PerformanceAnalyserTest {
         assertEquals(new Number(2), analyser.getAverageConsecutiveWins());
         assertEquals(new Number(1), analyser.getAverageConsecutiveLosses());
 
-        // TODO: Check this, its rounding down
-//        assertEquals(new Number(0.03773584905), analyser.getMaxDrawdown()); // (10600 - 10200) / 10600
-        assertEquals(new Number(0.03), analyser.getMaxDrawdown()); // (10600 - 10200) / 10600
+        assertEquals(new Number(0.02000), analyser.getMaxDrawdown());
 
         // Assert Sharpe ratio
-        assertEquals(new Number(1.15), analyser.getSharpeRatio());
+        assertEquals(new Number(1.14866), analyser.getSharpeRatio());
 
         // Assert equity checker
         List<PerformanceAnalyser.EquityPoint> equityHistory = analyser.getEquityHistory();
         assertEquals(6, equityHistory.size());
         assertEquals(new Number(10000), equityHistory.get(0).equity());
         assertEquals(new Number(11000), equityHistory.get(5).equity());
-
-
     }
 
     private Trade createTrade(int id, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong, Number profit, Number closePrice, ZonedDateTime closeTime) {
         Trade trade = new Trade(id, Instrument.NAS100USD, quantity, openTime, entryPrice, stopLoss, takeProfit, isLong);
-        trade.setProfit(profit);
+        trade.setProfit(profit.roundMoneyDown());
         trade.setClosePrice(closePrice);
         trade.setCloseTime(closeTime);
         return trade;

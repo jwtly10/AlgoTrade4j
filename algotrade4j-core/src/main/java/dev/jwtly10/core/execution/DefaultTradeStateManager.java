@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.event.AccountEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
@@ -38,6 +39,13 @@ public class DefaultTradeStateManager implements TradeStateManager {
             checkAndExecuteStopLossTakeProfit(trade, tradeManager, finalTick);
         });
         updateAccountBalanceAndEquity(accountManager, tradeManager);
+
+        // Risk management TODO: Should we move this out the trade manager?
+
+        // We will stop running if we go below 30% of initial balance.
+        if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.3)))) {
+            throw new RiskException("Equity below 30%. Stopping strategy.");
+        }
     }
 
     private void updateTradeProfitLoss(Trade trade, Tick tick) {
@@ -47,7 +55,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 : trade.getEntryPrice().subtract(currentPrice);
 
         Number profit = priceDifference.multiply(trade.getQuantity().getValue());
-        trade.setProfit(profit);
+        trade.setProfit(profit.roundMoneyDown());
         eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
         log.debug("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }
@@ -55,10 +63,10 @@ public class DefaultTradeStateManager implements TradeStateManager {
     private void checkAndExecuteStopLossTakeProfit(Trade trade, TradeManager tradeManager, Tick tick) {
         if (hasHitStopLoss(trade, tick)) {
             log.info("Stop loss hit for trade id : {}. SL at: {}, current tick at: {}. Loss: {}", trade.getId(), trade.getStopLoss(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
-            tradeManager.closePosition(trade.getId());
+            tradeManager.closePosition(trade.getId(), false);
         } else if (hasHitTakeProfit(trade, tick)) {
             log.info("Take profit hit for trade id : {}. TP at: {}, current tick at: {}. Profit: {}", trade.getId(), trade.getTakeProfit(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
-            tradeManager.closePosition(trade.getId());
+            tradeManager.closePosition(trade.getId(), false);
         }
     }
 
