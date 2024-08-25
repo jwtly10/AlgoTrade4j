@@ -236,6 +236,9 @@ const BacktestView = () => {
 
             if (hackConfig.speed === "INSTANT") {
                 setAsync(true);
+            } else {
+                // We only hide chart for instant runs
+                setShowChart(true)
             }
 
             console.log('WebSocket connected');
