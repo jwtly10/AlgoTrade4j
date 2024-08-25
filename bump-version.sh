@@ -4,17 +4,40 @@
 VERSION_FILE="algotrade4j-api/src/main/resources/version.json"
 ROOT_POM_FILE="pom.xml"
 
-increment_minor_version() {
+increment_version() {
     local version=$1
-    local major=$(echo $version | cut -d. -f1)
-    local minor=$(echo $version | cut -d. -f2)
-    local patch=$(echo $version | cut -d. -f3)
+    local part=$2
+    IFS='.' read -ra VERSION_PARTS <<< "$version"
 
-    minor=$((minor + 1))
-    patch=0  # Reset patch to 0 when incrementing minor
+    case $part in
+        major)
+            VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
+            VERSION_PARTS[1]=0
+            VERSION_PARTS[2]=0
+            ;;
+        minor)
+            VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
+            VERSION_PARTS[2]=0
+            ;;
+        patch)
+            VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
+            ;;
+        *)
+            echo "Invalid version part specified. Use 'major', 'minor', or 'patch'."
+            exit 1
+            ;;
+    esac
 
-    echo "$major.$minor.$patch"
+    echo "${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
 }
+
+# Check if version part is provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <major|minor|patch>"
+    exit 1
+fi
+
+VERSION_PART=$1
 
 # Get the current commit hash before making any changes
 CURRENT_COMMIT=$(git rev-parse --short HEAD)
@@ -23,7 +46,7 @@ CURRENT_COMMIT=$(git rev-parse --short HEAD)
 current_version=$(grep -o '"version": "[^"]*"' $VERSION_FILE | cut -d'"' -f4)
 
 # Increment version
-new_version=$(increment_minor_version $current_version)
+new_version=$(increment_version $current_version $VERSION_PART)
 
 # Update version.json
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -41,9 +64,9 @@ sed -i.bak "s/<revision>.*<\/revision>/<revision>$new_version<\/revision>/" $ROO
 
 # Commit the version changes
 git add $VERSION_FILE $ROOT_POM_FILE
-git commit -m "[bump-version.sh] Bump version to $new_version"
+git commit -m "[bump-version.sh] Bump $VERSION_PART version to $new_version"
 
-echo "Updated version to $new_version and set commit to $CURRENT_COMMIT"
+echo "Updated $VERSION_PART version to $new_version and set commit to $CURRENT_COMMIT"
 
 # Verify the last few commits
 echo "Recent commits:"
