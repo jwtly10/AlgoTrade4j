@@ -34,4 +34,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/personal/*
+# Ignore any files in the submodule in case we commit to main
+algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/private_strats/

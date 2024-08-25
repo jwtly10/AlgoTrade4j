@@ -1,0 +1,3 @@
+[submodule "algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/private_strats"]
+	path = algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/private_strats
+	url = git@github.com:jwtly10/algotrade4j-private-strategies.git
