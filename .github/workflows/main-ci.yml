@@ -82,6 +82,3 @@ jobs:
         with:
           app_name: algotrade4j-api
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          registry_name: ${{ secrets.DOCKERHUB_USERNAME }}
-          registry_type: DOCKER_HUB
-          registry_token: ${{ secrets.DOCKERHUB_TOKEN }}
