@@ -137,6 +137,18 @@ public class CSVDataProvider implements DataProvider, TickGeneratorCallback {
         listeners.add(listener);
     }
 
+    @Override
+    public ZonedDateTime getFrom() {
+        // TODO: This class can probably be deprecated now
+        return ZonedDateTime.now();
+    }
+
+    @Override
+    public ZonedDateTime getTo() {
+        // TODO: This class can probably be deprecated now
+        return ZonedDateTime.now();
+    }
+
     private void processBar(String barData) {
         String[] data = barData.split(",");
         ZonedDateTime dateTime = ZonedDateTime.parse(data[0], dateTimeFormatter);

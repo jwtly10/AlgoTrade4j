@@ -22,7 +22,9 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     private final List<DataProviderListener> listeners;
     private final TickGenerator tickGenerator;
     private final Duration period;
+    @Getter
     private final ZonedDateTime from;
+    @Getter
     private final ZonedDateTime to;
     private final ExternalDataClient dataClient;
     @Setter

@@ -12,6 +12,7 @@ import {Toast} from "../components/Toast.jsx";
 import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
 import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
+import EmptyChart from "../components/EmptyChart.jsx";
 
 
 const BacktestView = () => {
@@ -50,6 +51,8 @@ const BacktestView = () => {
     const [strategyClass, setStrategyClass] = useState("");
 
     const [isAsync, setAsync] = useState(false)
+    const [progressData, setProgressData] = useState(null);
+
 
     // const [rawParams, setRawParams] = useState([]);
     // const [runParams, setRunParams] = useState([])
@@ -286,6 +289,8 @@ const BacktestView = () => {
             updateTradingViewChart(data)
         } else if (data.type === "ALL_INDICATORS") {
             setAllIndicators(data)
+        } else if (data.type === "PROGRESS") {
+            updateAsyncProgress(data)
         } else if (data.type === 'ERROR') {
             setToast({
                 open: true,
@@ -296,6 +301,11 @@ const BacktestView = () => {
             console.log('WHAT OTHER EVENT WAS SENT?' + data);
         }
     };
+
+    const updateAsyncProgress = (data) => {
+        console.log(data)
+        setProgressData(data);
+    }
 
     const updateLogs = (data) => {
         setLogs((prevLogs) => {
@@ -651,9 +661,11 @@ const BacktestView = () => {
                         {/* Chart Section */}
                         <Box sx={{flexShrink: 0, height: '40%', minHeight: '500px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
                             {isRunning && isAsync ? (
-                                <LoadingChart/>
-                            ) : (
+                                <LoadingChart progressData={progressData} startTime={Date.now()}/>
+                            ) : chartData && chartData.length > 0 ? (
                                 <TradingViewChart strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
+                            ) : (
+                                <EmptyChart/>
                             )}
                         </Box>
 

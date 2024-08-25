@@ -8,10 +8,7 @@ import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import dev.jwtly10.api.service.WebSocketEventListener;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.event.*;
-import dev.jwtly10.core.event.async.AsyncAccountEvent;
-import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
-import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
-import dev.jwtly10.core.event.async.AsyncTradesEvent;
+import dev.jwtly10.core.event.async.*;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -106,6 +103,7 @@ public class StrategyController {
         listener.subscribe(AsyncTradesEvent.class);
         listener.subscribe(AsyncIndicatorsEvent.class);
         listener.subscribe(AsyncAccountEvent.class);
+        listener.subscribe(AsyncProgressEvent.class);
 
         // Standard Events
         listener.subscribe(AnalysisEvent.class);

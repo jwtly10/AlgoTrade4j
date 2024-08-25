@@ -5,10 +5,7 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
-import dev.jwtly10.core.event.async.AsyncAccountEvent;
-import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
-import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
-import dev.jwtly10.core.event.async.AsyncTradesEvent;
+import dev.jwtly10.core.event.async.*;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.Bar;
@@ -20,6 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +89,17 @@ public class BacktestExecutor implements DataListener {
     }
 
     @Override
+    public void onNewDay(ZonedDateTime newDay) {
+        if (!initialised) {
+            log.error("Attempt to call onNewDay for uninitialized BacktestExecutor for strategy: {}", strategyId);
+            return;
+        }
+        strategy.onNewDay(newDay);
+        // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
+        eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
+    }
+
+    @Override
     public void onStop() {
         if (!initialised) {
             log.error("Attempt to stop uninitialized BacktestExecutor for strategy: {}", strategyId);
@@ -131,4 +140,5 @@ public class BacktestExecutor implements DataListener {
 
         initialised = false;
     }
+
 }

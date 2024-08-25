@@ -2,6 +2,7 @@ package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.exception.DataProviderException;
 
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -48,4 +49,18 @@ public interface DataProvider {
      * @param dataSpeed the data speed to set
      */
     void setDataSpeed(DataSpeed dataSpeed);
+
+    /**
+     * Exposes where the strategy data will start from
+     *
+     * @return datetime where the data will start
+     */
+    ZonedDateTime getFrom();
+
+    /**
+     * Exposes where the strategy data will run until
+     *
+     * @return datetime where the data will end
+     */
+    ZonedDateTime getTo();
 }

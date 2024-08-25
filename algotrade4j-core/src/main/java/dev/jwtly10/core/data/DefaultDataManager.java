@@ -36,9 +36,11 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private ZonedDateTime nextBarCloseTime;
     @Getter
     private boolean running = false;
+    private ZonedDateTime currentDay;
 
     // Meta data
     private Instant startTime;
+    @Getter
     private int ticksModeled;
 
     public DefaultDataManager(String strategyId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
@@ -107,6 +109,8 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
         try {
             updateCurrentPrices(tick);
+            checkNewDay(tick.getDateTime());
+
             if (currentBar == null) {
                 initializeNewBar(tick);
             } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
@@ -125,6 +129,14 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
             eventPublisher.publishErrorEvent(strategyId, e);
             stop();
+        }
+    }
+
+    private void checkNewDay(ZonedDateTime tickDateTime) {
+        ZonedDateTime tickDay = tickDateTime.truncatedTo(ChronoUnit.DAYS);
+        if (currentDay == null || !tickDay.isEqual(currentDay)) {
+            currentDay = tickDay;
+            notifyNewDay(currentDay);
         }
     }
 
@@ -183,6 +195,12 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         }
     }
 
+    private void notifyNewDay(ZonedDateTime newDay) {
+        for (DataListener listener : listeners) {
+            listener.onNewDay(newDay);
+        }
+    }
+
     private String formatDuration(Duration duration) {
         long minutes = duration.toMinutes();
         long seconds = duration.minusMinutes(minutes).getSeconds();
@@ -217,5 +235,15 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             return null;
         }
         return currentBid.add(currentAsk).divide(2);
+    }
+
+    @Override
+    public ZonedDateTime getFrom() {
+        return dataProvider.getFrom();
+    }
+
+    @Override
+    public ZonedDateTime getTo() {
+        return dataProvider.getTo();
     }
 }
