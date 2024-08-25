@@ -3,6 +3,8 @@ package dev.jwtly10.core.data;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Tick;
 
+import java.time.ZonedDateTime;
+
 /**
  * Interface for listening to data events such as ticks and bar closures.
  */
@@ -24,7 +26,13 @@ public interface DataListener {
     void onBarClose(Bar bar);
 
     /**
+     * Called when the there is a new day
+     */
+    void onNewDay(ZonedDateTime newDay);
+
+    /**
      * Called when the data listener is stopped.
      */
     void onStop();
+
 }

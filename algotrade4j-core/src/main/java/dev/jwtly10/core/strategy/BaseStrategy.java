@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -239,6 +240,12 @@ public abstract class BaseStrategy implements Strategy {
     public void onEnd() {
         // Default implementation is empty
         // Strategy developers can override this method to add custom cleanup logic
+    }
+
+    @Override
+    public void onNewDay(ZonedDateTime newDay) {
+        // Default implementation is empty
+        // Strategy developers can override this method to add custom logic on new day event
     }
 
     /**

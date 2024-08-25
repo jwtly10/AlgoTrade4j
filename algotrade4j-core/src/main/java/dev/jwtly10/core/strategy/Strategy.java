@@ -10,6 +10,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,14 @@ public interface Strategy {
      * @param currentBar The current bar of market data (may be incomplete)
      */
     void onTick(Tick tick, Bar currentBar);
+
+    /**
+     * Called on each new day of market data.
+     * This method can be used to perform additional processing on each day or trigger some logic.
+     *
+     * @param newDay The datetime of the first tick data that triggered a new day
+     */
+    void onNewDay(ZonedDateTime newDay);
 
     /**
      * Returns the list of indicators set in the strategy

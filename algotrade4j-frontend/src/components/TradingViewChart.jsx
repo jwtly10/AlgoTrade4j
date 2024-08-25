@@ -2,10 +2,14 @@ import React, {useEffect, useRef} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
 import {Box} from '@mui/material';
 
-const TradingViewChart = ({strategyConfig, chartData, trades, indicators}) => {
+const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
 
     useEffect(() => {
+        if (!showChart) {
+            // If we are not displaying the chart right now. Do not load it.
+            return;
+        }
 
         const instrument = strategyConfig.instrumentData
         const pricePrecision = instrument.decimalPlaces || 2;

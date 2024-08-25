@@ -4,6 +4,8 @@ import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 
+import java.time.ZonedDateTime;
+
 /**
  * Interface for managing data operations and listeners.
  */
@@ -74,4 +76,26 @@ public interface DataManager {
      * @return the bar series
      */
     BarSeries getBarSeries();
+
+
+    /**
+     * Exposes where the strategy data will start from
+     *
+     * @return datetime where the data will start
+     */
+    ZonedDateTime getFrom();
+
+    /**
+     * Exposes where the strategy data will run until
+     *
+     * @return datetime where the data will end
+     */
+    ZonedDateTime getTo();
+
+    /**
+     * Exposes the number of ticks modelled in the strategy run
+     *
+     * @return the number of ticks modelled
+     */
+    int getTicksModeled();
 }

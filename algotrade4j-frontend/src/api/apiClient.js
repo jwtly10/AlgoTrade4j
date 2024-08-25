@@ -125,13 +125,13 @@ export const adminClient = {
     },
 };
 export const apiClient = {
-    startStrategy: async (config, strategyId) => {
+    startStrategy: async (config, strategyId, showChart) => {
         let runAsync = false;
         if (config.speed === "INSTANT") {
             runAsync = true;
         }
         try {
-            const response = await axiosInstance.post(`/strategies/start?strategyId=${strategyId}&async=${runAsync}`, config);
+            const response = await axiosInstance.post(`/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`, config);
             return handleResponse(response);
         } catch (error) {
             return handleError(error);
