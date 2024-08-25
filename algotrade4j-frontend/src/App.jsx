@@ -8,6 +8,8 @@ import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/UserManagementView';
 import NotFoundView from "./views/NotFoundView.jsx";
+import MonitorView from "./views/MonitorView.jsx";
+import VersionBanner from "./components/VersionBanner.jsx";
 
 const darkTheme = createTheme({
     palette: {
@@ -79,6 +81,7 @@ function App() {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline/>
             <Router>
+                <VersionBanner/>
                 <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
                 <Routes>
                     <Route
@@ -88,6 +91,10 @@ function App() {
                     <Route
                         path="/backtest"
                         element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
+                    />
+                    <Route
+                        path="/monitor"
+                        element={user ? <MonitorView/> : <Navigate to="/login" replace/>}
                     />
                     <Route
                         path="/login"

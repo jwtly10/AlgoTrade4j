@@ -6,7 +6,7 @@
 
     <groupId>dev.jwtly10</groupId>
     <artifactId>algotrade4j</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <modules>
         <module>algotrade4j-core</module>
@@ -19,6 +19,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <revision>1.0-SNAPSHOT</revision>
     </properties>
 
     <dependencies>

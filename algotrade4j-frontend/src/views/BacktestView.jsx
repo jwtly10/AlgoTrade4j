@@ -613,7 +613,7 @@ const BacktestView = () => {
         <Box sx={{
             display: 'flex',
             flexDirection: 'column',
-            height: 'calc(100vh - 64px)', // Subtract navbar height (adjust 64px if needed)
+            height: 'calc(100vh - 64px - 30px)', // Subtract navbar height and version banner
             width: '100vw',
             overflow: 'hidden' // Prevent scrolling on the main container
         }}>

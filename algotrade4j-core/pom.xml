@@ -6,7 +6,7 @@
     <parent>
         <groupId>dev.jwtly10</groupId>
         <artifactId>algotrade4j</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>algotrade4j-core</artifactId>

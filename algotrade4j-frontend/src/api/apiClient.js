@@ -13,6 +13,25 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
+export const systemClient = {
+    monitor: async () => {
+        try {
+            const response = await axiosInstance.get('/system/monitor');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+    version: async () => {
+        try {
+            const response = await axiosInstance.get('/system/version');
+            return handleResponse(response);
+        } catch (error) {
+            return handleError(error);
+        }
+    },
+};
+
 export const authClient = {
     login: async (username, password) => {
         try {
