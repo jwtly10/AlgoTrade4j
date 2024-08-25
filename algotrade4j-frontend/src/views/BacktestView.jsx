@@ -14,7 +14,6 @@ import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
 import EmptyChart from "../components/EmptyChart.jsx";
 
-
 const BacktestView = () => {
     const socketRef = useRef(null);
 
@@ -52,6 +51,7 @@ const BacktestView = () => {
 
     const [isAsync, setAsync] = useState(false)
     const [progressData, setProgressData] = useState(null);
+    const [showChart, setShowChart] = useState(true)
 
 
     // const [rawParams, setRawParams] = useState([]);
@@ -200,6 +200,7 @@ const BacktestView = () => {
                 level: "warn"
             })
             return
+
             const oId = crypto.randomUUID()
             setOptimisationId(oId)
             try {
@@ -238,7 +239,7 @@ const BacktestView = () => {
             }
 
             console.log('WebSocket connected');
-            await apiClient.startStrategy(hackConfig, generatedIdForClass);
+            await apiClient.startStrategy(hackConfig, generatedIdForClass, showChart);
         } catch (error) {
             console.error('Failed to start strategy:', error);
             setToast({
@@ -486,6 +487,10 @@ const BacktestView = () => {
                     return prevMap;
                 });
             } else if (data.type === "BAR_SERIES") {
+                if (!showChart) {
+                    // If no chart. Dont load the chart
+                    return;
+                }
                 const barSeries = data.barSeries.bars;
                 setChartData(() => {
                     // Convert the bar series to the format expected by the chart
@@ -663,9 +668,9 @@ const BacktestView = () => {
                             {isRunning && isAsync ? (
                                 <LoadingChart progressData={progressData} startTime={Date.now()}/>
                             ) : chartData && chartData.length > 0 ? (
-                                <TradingViewChart strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
+                                <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             ) : (
-                                <EmptyChart/>
+                                <EmptyChart trades={trades} showChart={showChart}/>
                             )}
                         </Box>
 
@@ -781,7 +786,18 @@ const BacktestView = () => {
                                     color="primary"
                                 />
                             }
-                            label="Run optimisation"
+                            label="Run optimisation?"
+                            sx={{mb: 2}}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={showChart}
+                                    onChange={(e) => setShowChart(e.target.checked)}
+                                    color="primary"
+                                />
+                            }
+                            label="Visual Mode?"
                             sx={{mb: 2}}
                         />
 

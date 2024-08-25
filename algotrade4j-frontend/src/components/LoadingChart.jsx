@@ -36,6 +36,9 @@ const LoadingChart = ({progressData, startTime}) => {
     };
 
     function formatNumber(number) {
+        if (!number) {
+            return number
+        }
         const decimalPlaces = 0;
         // Convert the number to a string and split it into integer and decimal parts
         let [integerPart, decimalPart] = number.toFixed(decimalPlaces).split('.');

@@ -35,9 +35,10 @@ public class StrategyController {
     public ResponseEntity<String> startStrategy(
             @RequestBody StrategyConfig config,
             @RequestParam("strategyId") String strategyId,
-            @RequestParam("async") boolean async
+            @RequestParam("async") boolean async,
+            @RequestParam("showChart") boolean showChart
     ) {
-        log.debug("Starting strategy: {} with config : {}", strategyId, config);
+        log.debug("Starting strategy: {} with config : {} and params: Async: {}, showChart: {}", strategyId, config, async, showChart);
 
         // We will retry this a few seconds
         WebSocketSession session = null;
@@ -74,9 +75,17 @@ public class StrategyController {
         }
 
         if (async) {
-            subscribeToAsyncEvents(listener);
             // Ensures that the async run is instant
             config.setSpeed(DataSpeed.INSTANT);
+
+            // Subscribe to async events
+            subscribeToAsyncEvents(listener);
+            // If no chart (For now only async runs will support no chart)
+            // Then we don't need to send all bars, or indicator data
+            if (!showChart) {
+                listener.unsubscribe(AsyncBarSeriesEvent.class);
+                listener.unsubscribe(AsyncIndicatorsEvent.class);
+            }
         } else {
             subscribeToEvents(listener);
         }
@@ -99,11 +108,11 @@ public class StrategyController {
      */
     private void subscribeToAsyncEvents(WebSocketEventListener listener) {
         // ASYNC EVENTS
-        listener.subscribe(AsyncBarSeriesEvent.class);
-        listener.subscribe(AsyncTradesEvent.class);
-        listener.subscribe(AsyncIndicatorsEvent.class);
-        listener.subscribe(AsyncAccountEvent.class);
-        listener.subscribe(AsyncProgressEvent.class);
+        listener.subscribe(AsyncBarSeriesEvent.class); // Sends bar data to fill chart
+        listener.subscribe(AsyncTradesEvent.class); // Send list of all trade data to fill tables
+        listener.subscribe(AsyncIndicatorsEvent.class); // Send list of all indicator data to fill chart
+        listener.subscribe(AsyncAccountEvent.class); // Send account result at end of strategy
+        listener.subscribe(AsyncProgressEvent.class); // Send progress while strategy runs
 
         // Standard Events
         listener.subscribe(AnalysisEvent.class);

@@ -123,7 +123,6 @@ public class BacktestExecutor implements DataListener {
         strategy.onEnd();
 
         // Publish final events
-        eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         eventPublisher.publishEvent(new AnalysisEvent(strategyId, dataManager.getInstrument(), performanceAnalyser));
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
 
@@ -138,6 +137,8 @@ public class BacktestExecutor implements DataListener {
         }
         eventPublisher.publishEvent(new AsyncIndicatorsEvent(strategyId, dataManager.getInstrument(), allIndicatorsValues));
 
+        // This should always happen last, as there may be some logic a client needs to handle once all events are complete
+        eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         initialised = false;
     }
 
