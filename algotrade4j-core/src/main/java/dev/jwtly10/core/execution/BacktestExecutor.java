@@ -71,8 +71,8 @@ public class BacktestExecutor implements DataListener {
         }
         eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
         strategy.onTick(tick, currentBar);
+        tradeStateManager.updateTradeStates(tradeManager, tick);
         tradeManager.setCurrentTick(tick);
-        tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
         performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
     }
 
@@ -82,6 +82,7 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onBarClose for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
+        tradeStateManager.updateAccountState(accountManager, tradeManager);
         // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
         IndicatorUtils.updateIndicators(strategy, closedBar);
         strategy.onBarClose(closedBar);
@@ -113,8 +114,10 @@ public class BacktestExecutor implements DataListener {
         tradeManager.getOpenTrades().values().forEach(trade -> {
             tradeManager.closePosition(trade.getId(), false);
         });
-        // Update trade states one last time
-        tradeStateManager.updateTradeStates(accountManager, tradeManager, null);
+        // Update trade states and account state
+        tradeStateManager.updateTradeStates(tradeManager, null);
+        tradeStateManager.updateAccountState(accountManager, tradeManager);
+
         // Run final performance analysis
         performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
 

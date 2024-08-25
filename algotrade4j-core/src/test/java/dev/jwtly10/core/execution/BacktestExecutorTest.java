@@ -72,7 +72,7 @@ class BacktestExecutorTest {
         backtestExecutor.onTick(tick, currentBar);
         verify(strategy).onTick(tick, currentBar);
         verify(tradeManager).setCurrentTick(tick);
-        verify(tradeStateManager).updateTradeStates(accountManager, tradeManager, tick);
+        verify(tradeStateManager).updateTradeStates(tradeManager, tick);
         when(accountManager.getEquity()).thenReturn(new Number(1000));
     }
 

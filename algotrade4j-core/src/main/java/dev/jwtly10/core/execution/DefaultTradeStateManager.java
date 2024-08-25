@@ -22,7 +22,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     @Override
-    public void updateTradeStates(AccountManager accountManager, TradeManager tradeManager, Tick tick) {
+    public void updateTradeStates(TradeManager tradeManager, Tick tick) {
         if (tick == null && lastTick == null) {
             // TODO: This is a hack, we shouldn't do this
             log.warn("Tick data is null. Skipping hack update.");
@@ -38,10 +38,13 @@ public class DefaultTradeStateManager implements TradeStateManager {
             updateTradeProfitLoss(trade, finalTick);
             checkAndExecuteStopLossTakeProfit(trade, tradeManager, finalTick);
         });
+    }
+
+    @Override
+    public void updateAccountState(AccountManager accountManager, TradeManager tradeManager) {
         updateAccountBalanceAndEquity(accountManager, tradeManager);
 
         // Risk management TODO: Should we move this out the trade manager?
-
         // We will stop running if we go below 30% of initial balance.
         if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.3)))) {
             throw new RiskException("Equity below 30%. Stopping strategy.");
