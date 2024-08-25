@@ -210,8 +210,8 @@ public class StrategyManager {
             try {
                 clazz = Class.forName("dev.jwtly10.core.strategy." + className);
             } catch (Exception e) {
-                log.warn("Could not find class name in package 'dev.jwtly10.core.strategy'. Trying .personal.");
-                clazz = Class.forName("dev.jwtly10.core.strategy.personal." + className);
+                log.warn("Could not find class name in package 'dev.jwtly10.core.strategy'. Trying .private_strats.");
+                clazz = Class.forName("dev.jwtly10.core.strategy.private_strats." + className);
             }
 
             Strategy strategy;
