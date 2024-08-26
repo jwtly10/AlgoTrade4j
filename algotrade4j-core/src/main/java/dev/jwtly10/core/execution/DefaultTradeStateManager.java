@@ -45,9 +45,9 @@ public class DefaultTradeStateManager implements TradeStateManager {
         updateAccountBalanceAndEquity(accountManager, tradeManager);
 
         // Risk management TODO: Should we move this out the trade manager?
-        // We will stop running if we go below 30% of initial balance.
-        if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.3)))) {
-            throw new RiskException("Equity below 30%. Stopping strategy.");
+        // We will stop running if we go below 10% of initial balance.
+        if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.1)))) {
+            throw new RiskException("Equity below 10%. Stopping strategy.");
         }
     }
 

@@ -2,6 +2,7 @@ package dev.jwtly10.marketdata.common;
 
 import dev.jwtly10.core.data.*;
 import dev.jwtly10.core.exception.DataProviderException;
+import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
@@ -37,7 +38,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
         this.instrument = instrument;
         this.period = period;
         this.listeners = new ArrayList<>();
-        this.tickGenerator = new TickGenerator(spread, period, seed);
+        this.tickGenerator = new TickGenerator(spread, instrument, period, seed);
         this.from = from;
         this.to = to;
     }
@@ -59,7 +60,15 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
                 @Override
                 public boolean onCandle(Bar bar) {
                     if (!isRunning) return false;
-                    tickGenerator.generateTicks(bar, dataSpeed, ExternalDataProvider.this::notifyListeners);
+                    try {
+                        tickGenerator.generateTicks(bar, dataSpeed, ExternalDataProvider.this::notifyListeners);
+                    } catch (RiskException e) {
+                        log.warn("Stopped data provider due to Risk Exception");
+                        return false;
+                    } catch (Exception e) {
+                        log.warn("Stopping data provider due to Unhandled error: ", e);
+                        return false;
+                    }
                     return true;
                 }
 

@@ -2,10 +2,12 @@ package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.DefaultTick;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Random;
@@ -16,20 +18,23 @@ public class TickGenerator {
     private final Number spread;
     private final Random random;
     private final Duration period;
+    private final Instrument instrument;
 
-    public TickGenerator(int ticksPerBar, Number spread, Duration period, long seed) {
+    public TickGenerator(int ticksPerBar, Instrument instrument, Number spread, Duration period, long seed) {
         this.ticksPerBar = ticksPerBar;
         this.spread = spread;
         this.period = period;
         this.random = new Random(seed);
+        this.instrument = instrument;
     }
 
-    public TickGenerator(Number spread, Duration period, long seed) {
+    public TickGenerator(Number spread, Instrument instrument, Duration period, long seed) {
         this.ticksPerBar = mapTicksPerBarToPeriod(period);
         log.info("For duration {}, generating {} ticks", period, ticksPerBar);
         this.spread = spread;
         this.period = period;
         this.random = new Random(seed);
+        this.instrument = instrument;
     }
 
     /**
@@ -133,12 +138,20 @@ public class TickGenerator {
             }
         }
 
-        Number bid = mid.subtract(spread.divide(2));
-        Number ask = mid.add(spread.divide(2));
+        Number calculatedSpread = new Number(this.spread.doubleValue() * Math.pow(10, -instrument.getDecimalPlaces()));
+
+        Number bid = mid.subtract(calculatedSpread.divide(2));
+        Number ask = mid.add(calculatedSpread.divide(2));
 
         Number tickVolume = volume.multiply(BigDecimal.valueOf(random.nextDouble())).divide(BigDecimal.valueOf(ticksPerBar));
 
-        return new DefaultTick(bar.getInstrument(), bid, mid, ask, tickVolume, tickTime);
+        return new DefaultTick(
+                bar.getInstrument(),
+                bid.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
+                mid.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
+                ask.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
+                tickVolume.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
+                tickTime);
     }
 
     public interface TickGeneratorCallback {

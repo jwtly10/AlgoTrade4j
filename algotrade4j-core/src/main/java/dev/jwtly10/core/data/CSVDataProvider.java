@@ -66,7 +66,7 @@ public class CSVDataProvider implements DataProvider, TickGeneratorCallback {
         this.period = period;
         this.listeners = new ArrayList<>();
         this.instrument = instrument;
-        this.tickGenerator = new TickGenerator(ticksPerBar, spread, period, seed);
+        this.tickGenerator = new TickGenerator(ticksPerBar, Instrument.NAS100USD, spread, period, seed);
     }
 
     // Overload the constructor to allow creation without a seed
