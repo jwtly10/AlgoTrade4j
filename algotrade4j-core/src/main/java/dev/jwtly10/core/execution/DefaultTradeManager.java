@@ -144,7 +144,7 @@ public class DefaultTradeManager implements TradeManager {
         }
 
         log.debug("Closing price: {}", closingPrice);
-        trade.setClosePrice(closingPrice);
+        trade.setClosePrice(closingPrice.setScale(2, RoundingMode.DOWN));
         trade.setCloseTime(currentTick.getDateTime());
 
         Number priceDifference;
