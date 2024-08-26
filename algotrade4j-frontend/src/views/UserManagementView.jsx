@@ -298,9 +298,16 @@ const UserManagementView = ({loggedInUser}) => {
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     handleChangePassword();
+
                 }}>
                     <DialogTitle sx={{fontSize: '1.5rem', pt: 3, px: 4}}>Change Password</DialogTitle>
                     <DialogContent sx={{p: 4}}>
+                        <input
+                            type="text"
+                            autoComplete="username"
+                            style={{display: 'none'}}
+                            aria-hidden="true"
+                        />
                         <TextField
                             label="New Password"
                             type="password"
@@ -309,6 +316,7 @@ const UserManagementView = ({loggedInUser}) => {
                             fullWidth
                             margin="normal"
                             variant="outlined"
+                            autoComplete="new-password"
                         />
                     </DialogContent>
                     <DialogActions sx={{p: 4}}>
