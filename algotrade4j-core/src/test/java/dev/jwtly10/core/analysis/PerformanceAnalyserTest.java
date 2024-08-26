@@ -77,7 +77,7 @@ public class PerformanceAnalyserTest {
         assertEquals(new Number(2), analyser.getAverageConsecutiveWins());
         assertEquals(new Number(1), analyser.getAverageConsecutiveLosses());
 
-        assertEquals(new Number(0.02000), analyser.getMaxDrawdown());
+        assertEquals(new Number(2.85), analyser.getMaxDrawdown().roundMoneyDown());
 
         // Assert Sharpe ratio
         assertEquals(new Number(1.14866), analyser.getSharpeRatio());

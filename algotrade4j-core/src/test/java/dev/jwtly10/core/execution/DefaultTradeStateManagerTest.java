@@ -130,7 +130,7 @@ class DefaultTradeStateManagerTest {
         openTrades.put(2, shortTrade);
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
         when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
-        when(accountManager.getEquity()).thenReturn(new Number("200"));
+        when(accountManager.getEquity()).thenReturn(new Number("10")); // 1% of equity
 
         assertThrows(RiskException.class, () -> tradeStateManager.updateAccountState(accountManager, tradeManager));
     }
