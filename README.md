@@ -6,9 +6,9 @@ AlgoTrade4j is a complete, high-performance algorithmic trading platform for Jav
 
 ⚠️This is currently bespoke implementation so may not be suitable for all use cases.
 
-Here is a small demo of the system:
+Here is a small video demo of the system. You can interest directly with this [demo site]() (TODO).
 
-https://github.com/user-attachments/assets/06c6b44b-4ba5-4d63-bfa8-edef67532138
+https://github.com/user-attachments/assets/f66e89bf-f1e0-4f8f-8806-8808cb54b263
 
 ## Key Features:
 
