@@ -90,6 +90,17 @@ const UserManagementView = ({loggedInUser}) => {
     };
 
     const handleSaveUser = async () => {
+        if (selectedUser.username === loggedInUser.username) {
+            if (selectedUser.role !== loggedInUser.role) { // They've changed their own role
+                setToast({
+                    open: true,
+                    message: "You can't change your own role. Please ask another admin.",
+                    severity: 'error'
+                })
+            }
+            return;
+        }
+
         try {
             await adminClient.updateUser(selectedUser.id, selectedUser);
             setIsEditDialogOpen(false);

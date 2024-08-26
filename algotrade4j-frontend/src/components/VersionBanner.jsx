@@ -30,22 +30,20 @@ const VersionBanner = () => {
 
     if (!versionInfo) return null;
 
-    const isLocal = versionInfo.environment === 'local';
-
     const getBannerColor = () => {
         switch (versionInfo.environment.toLowerCase()) {
             case 'production':
                 return '#1976d2';  // Blue for production
-            case 'local':
-                return '#4caf50';       // Green for local
+            case 'dev':
+                return '#9c27b0';  // Purple for local
             default:
-                return '#9c27b0';            // Purple for other environments
+                return '#4caf50';  // Green for other environments
         }
     };
 
     const getBannerContent = () => {
         const capitalizedEnvironment = versionInfo.environment.toUpperCase();
-            return `Environment: ${capitalizedEnvironment} | Version: ${versionInfo.version} | Commit: ${versionInfo.commit}`;
+        return `Environment: ${capitalizedEnvironment} | Version: ${versionInfo.version} | Commit: ${versionInfo.commit}`;
     };
 
     return (

@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
 import {Box} from '@mui/material';
+import log from '../logger.js'
 
 const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
@@ -158,8 +159,8 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
         try {
             candlestickSeries.setData(chartData);
         } catch (e) {
-            console.error('Failed to set data:', e);
-            console.log(chartData);
+            log.error('Failed to set data:', e);
+            log.debug(chartData);
         }
 
         // Add indicator series
@@ -224,8 +225,8 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
         try {
             candlestickSeries.setMarkers(allMarkers);
         } catch (e) {
-            console.error('Failed to set trade markers:', e);
-            console.log(allMarkers);
+            log.error('Failed to set trade markers:', e);
+            log.debug(allMarkers);
         }
 
         return () => {

@@ -103,7 +103,7 @@ function App() {
                     />
                     <Route path="/signup" element={<Navigate to="/login" replace/>}/>
                     {user && user.role === 'ADMIN' && (
-                        <Route path="/users" element={<UserManagementView user={user}/>}/>
+                        <Route path="/users" element={<UserManagementView loggedInUser={user}/>}/>
                     )}
                     <Route
                         path="*"

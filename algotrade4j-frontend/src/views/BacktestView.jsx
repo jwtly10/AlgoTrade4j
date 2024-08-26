@@ -13,6 +13,7 @@ import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
 import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
 import EmptyChart from "../components/EmptyChart.jsx";
+import log from '../logger.js'
 
 const BacktestView = () => {
     const socketRef = useRef(null);
@@ -105,7 +106,7 @@ const BacktestView = () => {
 
 
             } catch (error) {
-                console.error('Failed to get strategies:', error);
+                log.error('Failed to get strategies:', error);
             }
         }
 
@@ -167,7 +168,7 @@ const BacktestView = () => {
 
     const startStrategy = async () => {
         if (strategyClass === "") {
-            console.error('Strategy class is required');
+            log.error('Strategy class is required');
             setToast({
                 open: true,
                 level: 'warning',
@@ -198,7 +199,7 @@ const BacktestView = () => {
         setIndicators({});
         setAsync(false);
         setLogs([])
-        console.log('Starting strategy...');
+        log.debug('Starting strategy...');
 
         if (runOptimisation) {
             setToast({
@@ -212,7 +213,7 @@ const BacktestView = () => {
             setOptimisationId(oId)
             try {
                 await apiClient.startOptimisation(hackConfig, oId)
-                console.log('Optimisation started');
+                log.debug('Optimisation started');
                 setToast({
                     open: true,
                     level: 'success',
@@ -220,7 +221,7 @@ const BacktestView = () => {
                 })
                 setIsRunning(false);
             } catch (error) {
-                console.error('Failed to start optimisation:', error);
+                log.error('Failed to start optimisation:', error);
                 setToast({
                     open: true,
                     level: 'error',
@@ -232,7 +233,7 @@ const BacktestView = () => {
         }
 
         try {
-            console.log('Starting strategy with config:', strategyConfig);
+            log.debug('Starting strategy with config:', strategyConfig);
 
             const generatedIdForClass = await apiClient.generateId(hackConfig)
 
@@ -248,11 +249,11 @@ const BacktestView = () => {
                 setShowChart(true)
             }
 
-            console.log('WebSocket connected');
+            log.debug('WebSocket connected');
             await apiClient.startStrategy(hackConfig, generatedIdForClass, showChart);
             setStartTime(Date.now());
         } catch (error) {
-            console.error('Failed to start strategy:', error);
+            log.error('Failed to start strategy:', error);
             setToast({
                 open: true,
                 level: 'error',
@@ -277,7 +278,7 @@ const BacktestView = () => {
                 }
             }
         } catch (error) {
-            console.error('Failed to stop strategy:', error);
+            log.error('Failed to stop strategy:', error);
         }
     };
 
@@ -315,7 +316,7 @@ const BacktestView = () => {
                 message: data.message,
             });
         } else {
-            console.log('WHAT OTHER EVENT WAS SENT?' + data);
+            log.debug('WHAT OTHER EVENT WAS SENT?' + data);
         }
     };
 
@@ -567,7 +568,7 @@ const BacktestView = () => {
         try {
             return await apiClient.getParams(stratClass);
         } catch (error) {
-            console.error('Failed to get strategy params:', error);
+            log.error('Failed to get strategy params:', error);
             setToast({
                 open: true,
                 message: 'Failed to get strategy params: ' + error.response.data.message,
@@ -576,7 +577,7 @@ const BacktestView = () => {
     };
 
     const handleConfigSave = (config) => {
-        console.log('Saving params:', config);
+        log.debug('Saving params:', config);
         setIsModalOpen(false);
     };
 
@@ -591,7 +592,7 @@ const BacktestView = () => {
             // If an event object is passed (from onChange)
             stratClass = valueOrEvent.target.value;
         } else {
-            console.error('Invalid input to handleChangeStrategy');
+            log.error('Invalid input to handleChangeStrategy');
             return;
         }
         localStorage.setItem("LAST_STRAT", stratClass);
@@ -605,7 +606,7 @@ const BacktestView = () => {
 
         // Now, we know what params have come from the strategy defaults. So we should set these are the run params for now.
         const params = await getParams(stratClass)
-        console.log("Params", params)
+        log.debug("Params", params)
 
         let runParams = [];
         params.forEach(param => {
@@ -624,7 +625,7 @@ const BacktestView = () => {
             })
         })
 
-        console.log("Run Params", runParams)
+        log.debug("Run Params", runParams)
 
         setStrategyConfig({
             ...strategyConfig,

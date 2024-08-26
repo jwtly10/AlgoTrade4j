@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Tooltip, Typography,} from '@mui/material';
 import InfoIcon from '@mui/icons-material/Info';
 import {apiClient} from '../../api/apiClient.js'
+import log from '../../logger.js'
 
 
 const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass}) => {
@@ -11,7 +12,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     useEffect(() => {
         if (open) {
-            console.log("Config", strategyConfig);
+            log.debug("Config", strategyConfig);
             setLocalConfig(strategyConfig);
         }
     }, [open, strategyClass]);
@@ -23,7 +24,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                 const inst = await apiClient.getInstruments()
                 setInstruments(inst)
             } catch (e) {
-                console.error("Failed to fetch instruments")
+                log.error("Failed to fetch instruments")
             }
         }
 
@@ -43,7 +44,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
             const updatedRunParams = [...prev.runParams];
             updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
             const newConfig = {...prev, runParams: updatedRunParams};
-            console.log("Updated localConfig:", newConfig);
+            log.debug("Updated localConfig:", newConfig);
             return newConfig;
         });
     };
@@ -61,7 +62,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     const handleClose = () => {
         saveToLocalStorage();
-        console.log(localConfig)
+        log.debug(localConfig)
         setStrategyConfig(localConfig);
         onClose();
     };
