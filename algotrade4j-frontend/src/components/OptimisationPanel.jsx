@@ -162,7 +162,7 @@ export const OptimisationPanel = ({setToast, optimisationId}) => {
                     <p>No optimization results available yet. Please start a new run or wait</p>
                 </Box>
             )}
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth sx={{p: 3}}>
+            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth sx={{p: 3}} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
                 <DialogTitle sx={{p: 3}}>Detailed Results</DialogTitle>
                 <DialogContent sx={{p: 3}}>
                     {selectedRun && (

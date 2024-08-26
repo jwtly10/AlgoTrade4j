@@ -67,7 +67,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}}>
+        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
             <DialogTitle sx={{padding: 3}}>Strategy Configuration</DialogTitle>
             <Box sx={{px: 3}}>
                 <Tabs value={activeTab} onChange={handleTabChange}>

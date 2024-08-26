@@ -231,7 +231,7 @@ const UserManagementView = ({loggedInUser}) => {
                 </Table>
             </TableContainer>
 
-            <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
+            <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
                 <DialogTitle>Edit User</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -291,36 +291,45 @@ const UserManagementView = ({loggedInUser}) => {
                 onClose={() => setIsPasswordDialogOpen(false)}
                 maxWidth="sm"
                 fullWidth
+                disableEnforceFocus
+                disableRestoreFocus
+                aria-hidden={false}
             >
-                <DialogTitle sx={{fontSize: '1.5rem', pt: 3, px: 4}}>Change Password</DialogTitle>
-                <DialogContent sx={{p: 4}}>
-                    <TextField
-                        label="New Password"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        fullWidth
-                        margin="normal"
-                        variant="outlined"
-                    />
-                </DialogContent>
-                <DialogActions sx={{p: 4}}>
-                    <Button
-                        onClick={() => setIsPasswordDialogOpen(false)}
-                        variant="outlined"
-                        sx={{mr: 1}}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleChangePassword}
-                        variant="contained"
-                    >
-                        Save
-                    </Button>
-                </DialogActions>
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    handleChangePassword();
+                }}>
+                    <DialogTitle sx={{fontSize: '1.5rem', pt: 3, px: 4}}>Change Password</DialogTitle>
+                    <DialogContent sx={{p: 4}}>
+                        <TextField
+                            label="New Password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                            variant="outlined"
+                        />
+                    </DialogContent>
+                    <DialogActions sx={{p: 4}}>
+                        <Button
+                            onClick={() => setIsPasswordDialogOpen(false)}
+                            variant="outlined"
+                            sx={{mr: 1}}
+                            type="button"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                        >
+                            Save
+                        </Button>
+                    </DialogActions>
+                </form>
             </Dialog>
-            <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
+            <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
                 <DialogTitle>Create New User</DialogTitle>
                 <DialogContent>
                     <CreateUserForm onSubmit={handleCreateUser} roles={roles}/>
