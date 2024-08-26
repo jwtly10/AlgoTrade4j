@@ -69,10 +69,10 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onTick for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
+        tradeManager.setCurrentTick(tick);
         eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
         strategy.onTick(tick, currentBar);
         tradeStateManager.updateTradeStates(tradeManager, tick);
-        tradeManager.setCurrentTick(tick);
         performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
     }
 
