@@ -6,7 +6,7 @@ AlgoTrade4j is a complete, high-performance algorithmic trading platform for Jav
 
 ⚠️This is currently bespoke implementation so may not be suitable for all use cases.
 
-Here is a small video demo of the system. You can interest directly with this [demo site]() (TODO).
+Here is a small video demo of the system. You can interact directly with this [demo site]() (TODO).
 
 https://github.com/user-attachments/assets/f66e89bf-f1e0-4f8f-8806-8808cb54b263
 
@@ -43,7 +43,7 @@ AlgoTrade4j-Core is the main logic module of the platform. It can be extended to
 
 #### Strategies
 
-To create new strategies you must extend the `BaseStrategy`[class](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/BaseStrategy.java).
+To create new strategies you must extend the `BaseStrategy` [class](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/BaseStrategy.java).
 
 And implement the 'OnTick', 'OnBarClose' methods at minimum. And example of a strategy is [here](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/SMACrossoverStrategy.java).
 
@@ -68,7 +68,7 @@ You can modify strategy behavior on-the-fly, significantly reducing the developm
 
 #### Indicators
 
-To create new Indicators you must implement the `Indicator` [interface](https://github.com/jwtly10/AlgoTrade4j/blob/568adcebd76611c1aaff954e20a3362eab5206ee/algotrade4j-core/src/main/java/dev/jwtly10/core/indicators/Indicator.java).
+To create new Indicators you must implement the `Indicator` [interface](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/indicators/Indicator.java).
 
 Note indicators in this framework are very opinionated. This works for the indicators that I use, but may not work for all of them. Some indicators have already been implemented in `dev.jwtly10.core.indicators`.
 [Example SMA](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/indicators/iSMA.java)
