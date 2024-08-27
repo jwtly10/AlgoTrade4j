@@ -3,9 +3,7 @@ package dev.jwtly10.core.optimisation;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
-import dev.jwtly10.core.data.CSVDataProvider;
 import dev.jwtly10.core.data.DataSpeed;
-import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
@@ -102,18 +100,18 @@ public class OptimisationExecutor {
         // Shared deps
         BarSeries barSeries = new DefaultBarSeries("Optimisation", 4000);
         Tick currentTick = new DefaultTick();
-        CSVDataProvider dataProvider = new CSVDataProvider(
-                "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
-                4,
-                spread,
-                period,
-                instrument
-        );
+//        CSVDataProvider dataProvider = new CSVDataProvider(
+//                "/Users/personal/Projects/AlgoTrade4j/algotrade4j-core/src/main/resources/nas100USD_1D_testdata.csv",
+//                4,
+//                spread,
+//                period,
+//                instrument
+//        );
         // TODO: Should this always be instant?
 //        dataProvider.setDataSpeed(speed);
-        dataProvider.setDataSpeed(DataSpeed.INSTANT);
-
-        DefaultDataManager dataManager = new DefaultDataManager("TODO", instrument, dataProvider, period, barSeries, eventPublisher);
+//        dataProvider.setDataSpeed(DataSpeed.INSTANT);
+//
+//        DefaultDataManager dataManager = new DefaultDataManager("TODO", instrument, dataProvider, period, barSeries, eventPublisher);
 
         for (Map<String, String> parameterCombination : batch) {
             if (!running) break;
@@ -129,27 +127,27 @@ public class OptimisationExecutor {
 
             Strategy strategy = getStrategyFromClassName(config.getStrategyClass(), id);
             strategy.setParameters(parameterCombination);
-            BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
-            executor.initialise();
-            dataManager.addDataListener(executor);
-
-            batchExecutors.add(executor);
+//            BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+//            executor.initialise();
+////            dataManager.addDataListener(executor);
+//
+//            batchExecutors.add(executor);
         }
 
         if (running) {
-            dataManager.start();
-
-            while (running && dataManager.isRunning()) {
-                Thread.sleep(100);
-            }
+//            dataManager.start();
+//
+//            while (running && dataManager.isRunning()) {
+//                Thread.sleep(100);
+//            }
         }
 
         // Clean up
-        dataManager.stop();
-        for (BacktestExecutor executor : batchExecutors) {
-            dataManager.removeDataListener(executor);
-        }
-
+//        dataManager.stop();
+//        for (BacktestExecutor executor : batchExecutors) {
+//            dataManager.removeDataListener(executor);
+//        }
+//
         return batchExecutors;
     }
 
