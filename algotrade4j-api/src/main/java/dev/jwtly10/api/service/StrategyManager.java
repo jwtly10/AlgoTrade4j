@@ -17,6 +17,7 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.dataclients.OandaDataClient;
@@ -26,8 +27,6 @@ import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -60,6 +59,7 @@ public class StrategyManager {
 
     public void startStrategy(StrategyConfig config, String strategyId) {
         // TODO: Validate config
+        config.validate();
         Duration period = switch (config.getPeriod()) {
             case "1m" -> Duration.ofMinutes(1);
             case "5m" -> Duration.ofMinutes(5);
@@ -96,8 +96,12 @@ public class StrategyManager {
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
 
         Tick currentTick = new DefaultTick();
-
-        Strategy strategy = getStrategyFromClassName(config.getStrategyClass(), strategyId);
+        Strategy strategy = null;
+        try {
+            strategy = StrategyReflectionUtils.getStrategyFromClassName(config.getStrategyClass(), strategyId);
+        } catch (Exception e) {
+            throw new StrategyManagerException("Error getting strategy from " + config.getStrategyClass() + ": " + e.getClass() + " " + e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
 
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(StrategyConfig.RunParameter::getName, StrategyConfig.RunParameter::getValue));
@@ -110,25 +114,23 @@ public class StrategyManager {
         }
 
         TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
-
-        AccountManager accountManager = new DefaultAccountManager(config.getInitialCash());
-
+        AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
-
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
         BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
         executor.initialise();
         dataManager.addDataListener(executor);
 
+        Strategy finalStrategy = strategy;
         executorService.submit(() -> {
-            Thread.currentThread().setName("StrategyExecutor-" + strategy.getStrategyId());
+            Thread.currentThread().setName("StrategyExecutor-" + finalStrategy.getStrategyId());
             try {
                 dataManager.start();
             } catch (Exception e) {
                 log.error("Error running strategy", e);
-                runningStrategies.remove(strategy.getStrategyId());
-                eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
+                runningStrategies.remove(finalStrategy.getStrategyId());
+                eventPublisher.publishErrorEvent(finalStrategy.getStrategyId(), e);
             }
         });
 
@@ -170,7 +172,13 @@ public class StrategyManager {
      * @return A list of parameter information.
      */
     public List<ParameterHandler.ParameterInfo> getParameters(String strategyClass) {
-        Strategy strategy = getStrategyFromClassName(strategyClass, null);
+        Strategy strategy = null;
+        try {
+            strategy = StrategyReflectionUtils.getStrategyFromClassName(strategyClass, null);
+        } catch (Exception e) {
+            throw new StrategyManagerException("Error getting strategy from " + strategyClass + ": " + e.getClass() + " " + e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
+
         try {
             ParameterHandler.initialize(strategy);
         } catch (IllegalAccessException e) {
@@ -195,47 +203,6 @@ public class StrategyManager {
         return strategies.stream()
                 .map(Class::getSimpleName)
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Get a strategy instance from a class name.
-     *
-     * @param className The class name of the strategy.
-     * @param customId  A custom ID to use for the strategy.
-     * @return A new instance of the strategy.
-     */
-    private Strategy getStrategyFromClassName(String className, String customId) {
-        try {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName("dev.jwtly10.core.strategy." + className);
-            } catch (Exception e) {
-                log.warn("Could not find class name in package 'dev.jwtly10.core.strategy'. Trying .private_strats.");
-                clazz = Class.forName("dev.jwtly10.core.strategy.private_strats." + className);
-            }
-
-            Strategy strategy;
-
-            if (customId != null) {
-                try {
-                    Constructor<?> constructor = clazz.getConstructor(String.class);
-                    strategy = (Strategy) constructor.newInstance(customId);
-                } catch (NoSuchMethodException e) {
-                    log.warn("No constructor with String parameter found for {}. Using no-arg constructor.", className);
-                    Constructor<?> constructor = clazz.getConstructor();
-                    strategy = (Strategy) constructor.newInstance();
-                }
-            } else {
-                // Use the no-arg constructor if customId is null
-                Constructor<?> constructor = clazz.getConstructor();
-                strategy = (Strategy) constructor.newInstance();
-            }
-
-            return strategy;
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            log.error("Error initializing strategy: {}", className, e);
-            throw new StrategyManagerException("Error getting strategy from " + className + ": " + e.getClass() + " " + e.getMessage(), ErrorType.INTERNAL_ERROR);
-        }
     }
 
     /**

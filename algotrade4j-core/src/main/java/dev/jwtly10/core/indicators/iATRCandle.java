@@ -20,14 +20,12 @@ public class iATRCandle implements Indicator {
     private final double relativeSize;
 
     private final iATR atr;
-
-    private Bar prevBar;
-
     @Getter
     private final List<IndicatorValue> values;
     @Getter
     private final List<ZonedDateTime> violationTimestamps;
     private final String name;
+    private Bar prevBar;
     private String strategyId;
     private EventPublisher eventPublisher;
 
@@ -71,7 +69,7 @@ public class iATRCandle implements Indicator {
 
         boolean atrViolation = absDif.compareTo(atrThreshold) > 0;
 
-        if (prevBar == null){
+        if (prevBar == null) {
             // Can't validate candle size in this case
             return atrViolation;
         }
@@ -79,9 +77,9 @@ public class iATRCandle implements Indicator {
         Number prevAbsDif = (prevBar.getOpen().subtract(prevBar.getClose())).abs();
 
         Number relativeThreshold = prevAbsDif.multiply(new Number(relativeSize).getValue());
-        
+
         boolean isEngulfing = absDif.compareTo(relativeThreshold) > 0;
-        
+
         return atrViolation && isEngulfing;
     }
 

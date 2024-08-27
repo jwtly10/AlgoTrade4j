@@ -5,7 +5,7 @@ import {apiClient} from '../../api/apiClient.js'
 import log from '../../logger.js'
 
 
-const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass}) => {
+const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass, backtestMode = true}) => {
     const [activeTab, setActiveTab] = useState(0);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
     const [instruments, setInstruments] = useState([]);
@@ -69,11 +69,31 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
-            <DialogTitle sx={{padding: 3}}>Strategy Configuration</DialogTitle>
+            <DialogTitle sx={{padding: 3, display: 'flex', alignItems: 'center'}}>
+                {backtestMode ? "Strategy Configuration" : "Optimisation Configuration"}
+                {!backtestMode && (
+                    <Tooltip
+                        title="Here you can set a range of values you would like to optimise for. Along with parameters used for the test"
+                        placement="right"
+                        componentsProps={{
+                            tooltip: {
+                                sx: {
+                                    fontSize: '1rem',
+                                    padding: '8px 12px'
+                                }
+                            }
+                        }}
+                    >
+                        <IconButton sx={{marginLeft: 1, padding: 0}}>
+                            <InfoIcon fontSize="small"/>
+                        </IconButton>
+                    </Tooltip>
+                )}
+            </DialogTitle>
             <Box sx={{px: 3}}>
                 <Tabs value={activeTab} onChange={handleTabChange}>
                     <Tab label="Parameters"/>
-                    <Tab label="Configuration"/>
+                    <Tab label="Run Configuration"/>
                 </Tabs>
             </Box>
             <DialogContent>

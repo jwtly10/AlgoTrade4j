@@ -1,4 +1,4 @@
-package dev.jwtly10.marketdata.integration.oanda;
+package integration.dev.jwtly10.marketdata.integration.oanda;
 
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Instrument;

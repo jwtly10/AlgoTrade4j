@@ -9,7 +9,6 @@ import {TabPanel} from '../components/TabPanel.jsx';
 import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
 import {Toast} from "../components/Toast.jsx";
-import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
 import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
 import EmptyChart from "../components/EmptyChart.jsx";
@@ -44,9 +43,6 @@ const BacktestView = () => {
     const [tabValue, setTabValue] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [runOptimisation, setRunOptimisation] = useState(false);
-    const [optimisationId, setOptimisationId] = useState("");
-
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
 
@@ -55,10 +51,6 @@ const BacktestView = () => {
     const [showChart, setShowChart] = useState(true)
     const [startTime, setStartTime] = useState(null);
 
-
-
-    // const [rawParams, setRawParams] = useState([]);
-    // const [runParams, setRunParams] = useState([])
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
@@ -200,37 +192,6 @@ const BacktestView = () => {
         setAsync(false);
         setLogs([])
         log.debug('Starting strategy...');
-
-        if (runOptimisation) {
-            setToast({
-                open: true,
-                message: "Optimisation is not supported yet",
-                level: "warn"
-            })
-            return
-
-            const oId = crypto.randomUUID()
-            setOptimisationId(oId)
-            try {
-                await apiClient.startOptimisation(hackConfig, oId)
-                log.debug('Optimisation started');
-                setToast({
-                    open: true,
-                    level: 'success',
-                    message: 'Optimisation started',
-                })
-                setIsRunning(false);
-            } catch (error) {
-                log.error('Failed to start optimisation:', error);
-                setToast({
-                    open: true,
-                    level: 'error',
-                    message: 'Failed to start optimisation: ' + error.response.data.message,
-                })
-                setIsRunning(false);
-            }
-            return
-        }
 
         try {
             log.debug('Starting strategy with config:', strategyConfig);
@@ -634,10 +595,6 @@ const BacktestView = () => {
 
         // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
         loadConfigFromLocalStorage(runParams, stratClass);
-
-        // When we change the strategy, we should get the parameters local storage or use defaults
-        // we need start stop step for optimisation only. But this is something that need to be here!
-        // for run parameters we only need it for starting strategy
     }
 
     return (
@@ -646,7 +603,7 @@ const BacktestView = () => {
             flexDirection: 'column',
             height: 'calc(100vh - 64px - 30px)', // Subtract navbar height and version banner
             width: '100vw',
-            overflow: 'hidden' // Prevent scrolling on the main container
+            overflow: 'hidden'
         }}>
             {/* Header */}
             <Box sx={{flexShrink: 0, p: 2, bgcolor: 'background.paper', overflow: 'auto'}}>
@@ -702,9 +659,6 @@ const BacktestView = () => {
                                 <Tab label="Analysis"/>
                                 <Tab label="Equity History"/>
                                 <Tab label="Logs"/>
-                                {runOptimisation & (
-                                    <Tab label="Optimisation"/>
-                                )}
                             </Tabs>
 
                             <Box sx={{flexGrow: 1, overflow: 'auto'}}>
@@ -738,11 +692,6 @@ const BacktestView = () => {
                                         </Typography>
                                     )}
                                 </TabPanel>
-                                {runOptimisation && (
-                                    <TabPanel value={tabValue} index={4}>
-                                        <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
-                                    </TabPanel>
-                                )}
                             </Box>
                         </Box>
                     </Paper>
@@ -794,17 +743,6 @@ const BacktestView = () => {
                             Configure Parameters
                         </Button>
 
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={runOptimisation}
-                                    onChange={(e) => setRunOptimisation(e.target.checked)}
-                                    color="primary"
-                                />
-                            }
-                            label="Run optimisation?"
-                            sx={{mb: 2}}
-                        />
                         <FormControlLabel
                             control={
                                 <Switch

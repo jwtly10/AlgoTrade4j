@@ -6,6 +6,7 @@ import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.*;
+import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.Bar;
@@ -69,11 +70,15 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onTick for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        tradeManager.setCurrentTick(tick);
-        eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-        strategy.onTick(tick, currentBar);
-        tradeStateManager.updateTradeStates(tradeManager, tick);
-        performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
+        try {
+            tradeManager.setCurrentTick(tick);
+            eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
+            strategy.onTick(tick, currentBar);
+            tradeStateManager.updateTradeStates(tradeManager, tick);
+            performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override
@@ -82,11 +87,15 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onBarClose for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        tradeStateManager.updateAccountState(accountManager, tradeManager);
-        // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
-        IndicatorUtils.updateIndicators(strategy, closedBar);
-        strategy.onBarClose(closedBar);
-        log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
+        try {
+            tradeStateManager.updateAccountState(accountManager, tradeManager);
+            // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
+            IndicatorUtils.updateIndicators(strategy, closedBar);
+            strategy.onBarClose(closedBar);
+            log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override
@@ -95,9 +104,13 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onNewDay for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        strategy.onNewDay(newDay);
-        // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
-        eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
+        try {
+            strategy.onNewDay(newDay);
+            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
+            eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override

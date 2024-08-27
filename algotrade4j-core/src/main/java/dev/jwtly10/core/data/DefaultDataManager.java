@@ -2,6 +2,7 @@ package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.LogEvent;
+import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
@@ -12,20 +13,20 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 public class DefaultDataManager implements DataManager, DataProviderListener {
     private final DataProvider dataProvider;
-    private final List<DataListener> listeners = new ArrayList<>();
+    private final List<DataListener> listeners = new CopyOnWriteArrayList<>();
     private final Duration period;
     @Getter
     private final BarSeries barSeries;
     @Getter
     private final Instrument instrument;
     private final EventPublisher eventPublisher;
-    private final String strategyId;
+    private final String runId;
     @Getter
     private volatile Number currentBid;
     @Getter
@@ -42,9 +43,10 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private Instant startTime;
     @Getter
     private int ticksModeled;
+    private boolean isOptimising = false;
 
-    public DefaultDataManager(String strategyId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
-        this.strategyId = strategyId;
+    public DefaultDataManager(String runId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
+        this.runId = runId;
         this.dataProvider = dataProvider;
         this.period = barDuration;
         this.barSeries = barSeries;
@@ -64,6 +66,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             log.error("Error starting data provider", e);
             running = false;
             startTime = null;
+            eventPublisher.publishErrorEvent(runId, e);
         }
     }
 
@@ -88,12 +91,13 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     @Override
     public void onError(DataProviderException e) {
         // Here we just emit the event. The strategy will have stopped anyway so at least we can show errors if needed
-        eventPublisher.publishErrorEvent(strategyId, e);
+        eventPublisher.publishErrorEvent(runId, e);
     }
 
     @Override
     public void addDataListener(DataListener listener) {
         listeners.add(listener);
+        log.info("CHECK: {}", listeners);
     }
 
     @Override
@@ -104,6 +108,12 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     @Override
     public void onTick(Tick tick) {
         if (!running) return;
+        if (listeners.isEmpty()) {
+            // There are no more listeners here
+            log.warn("No more listeners. Stopping data manager.");
+            stop();
+        }
+
         log.debug("Received tick: {}", tick);
         ticksModeled++;
 
@@ -123,12 +133,17 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             }
 
             notifyTick(tick, currentBar);
-        } catch (Exception e) {
+        } catch (BacktestExecutorException e) {
             // During a strategy run, here is where we handle any errors that may happen
-            log.error("Error during strategy run: ", e);
-            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
-            eventPublisher.publishErrorEvent(strategyId, e);
-            stop();
+            log.error("Error during strategy run for strategy {}: ", e.getStrategyId(), e);
+            eventPublisher.publishEvent(new LogEvent(e.getStrategyId(), LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
+            eventPublisher.publishErrorEvent(e.getStrategyId(), e);
+            // If we are optimising. Gracefully remove the listener, rather than stopping the data manager
+            if (isOptimising) {
+                notifyStopForStrategyId(e.getStrategyId());
+            } else {
+                stop();
+            }
         }
     }
 
@@ -195,6 +210,14 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         }
     }
 
+    private void notifyStopForStrategyId(String strategyId) {
+        for (DataListener listener : listeners) {
+            if (listener.getStrategyId().equals(strategyId)) {
+                removeDataListener(listener);
+            }
+        }
+    }
+
     private void notifyNewDay(ZonedDateTime newDay) {
         for (DataListener listener : listeners) {
             listener.onNewDay(newDay);
@@ -246,4 +269,10 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     public ZonedDateTime getTo() {
         return dataProvider.getTo();
     }
+
+    @Override
+    public void setIsOptimising(boolean value) {
+        this.isOptimising = true;
+    }
+
 }

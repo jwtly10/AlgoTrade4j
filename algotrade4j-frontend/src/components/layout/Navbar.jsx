@@ -40,7 +40,14 @@ function Navbar({user, setUser}) {
         <AppBar position="static">
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{mr: 2}}>
-                    AlgoTrade4J
+                    <Link to={"/"}
+                          sx={{
+                              textDecoration: 'none',
+                              color: '#ffffff'
+                          }}
+                    >
+                        AlgoTrade4J
+                    </Link>
                 </Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', flexGrow: 1}}>
                     {user && (
@@ -48,14 +55,27 @@ function Navbar({user, setUser}) {
                             <Button
                                 color="inherit"
                                 component={Link}
-                                to="/"
+                                to="/backtest"
                                 sx={{
                                     backgroundColor: isActive('/backtest') ? 'rgba(255,255,255,0.2)' : 'transparent',
                                     '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
                                     textTransform: 'none'
                                 }}
                             >
-                                Run Backtests
+                                Backtest
+                            </Button>
+                            <Button
+                                color="inherit"
+                                component={Link}
+                                to="/optimisation"
+                                sx={{
+                                    backgroundColor: isActive('/optimisation') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                    textTransform: 'none',
+                                    ml: 1
+                                }}
+                            >
+                                Optimise
                             </Button>
                             {user.role === 'ADMIN' && (
                                 <Button

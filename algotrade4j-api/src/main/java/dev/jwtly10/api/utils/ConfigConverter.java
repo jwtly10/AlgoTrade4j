@@ -30,6 +30,7 @@ public class ConfigConverter {
         optimisationConfig.setSpeed(strategyConfig.getSpeed());
         optimisationConfig.setInitialCash(strategyConfig.getInitialCash());
         optimisationConfig.setInstrument(strategyConfig.getInstrumentData().getInstrument());
+        optimisationConfig.setTimeframe(strategyConfig.getTimeframe());
 
         // Convert RunParameters to ParameterRanges
         List<ParameterRange> parameterRanges = strategyConfig.getRunParams().stream()
@@ -44,10 +45,12 @@ public class ConfigConverter {
 
     private static ParameterRange convertToParameterRange(StrategyConfig.RunParameter runParam) {
         return new ParameterRange(
+                runParam.getValue(),
                 runParam.getName(),
                 runParam.getStart(),
                 runParam.getStop(),
-                runParam.getStep()
+                runParam.getStep(),
+                runParam.getSelected()
         );
     }
 }

@@ -91,7 +91,12 @@ public class StrategyController {
         }
 
         log.debug("Starting strategy with config: {}", config);
-        strategyManager.startStrategy(config, strategyId);
+        try {
+            strategyManager.startStrategy(config, strategyId);
+        } catch (Exception e) {
+            log.error("Error starting strategy: ", e);
+            throw new StrategyManagerException("Error starting strategy: " + e, ErrorType.INTERNAL_ERROR);
+        }
         log.info("Started strategy: {}", strategyId);
 
         return ResponseEntity.ok(strategyId);
