@@ -11,7 +11,7 @@ function AuthModal({open, onClose, setUser}) {
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth disableEnforceFocus disableRestoreFocus aria-hidden={false}>
             <DialogTitle>
                 <Tabs value={tabValue} onChange={handleTabChange} centered>
                     <Tab label="Login"/>

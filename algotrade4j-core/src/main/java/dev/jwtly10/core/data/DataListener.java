@@ -35,4 +35,11 @@ public interface DataListener {
      */
     void onStop();
 
+    /**
+     * The id of the data listener
+     *
+     * @return the strategy id of the data listener
+     */
+    String getStrategyId();
+
 }

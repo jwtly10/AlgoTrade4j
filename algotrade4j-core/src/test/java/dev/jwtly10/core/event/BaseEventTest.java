@@ -20,7 +20,6 @@ class BaseEventTest {
 
         TestEvent event = new TestEvent(strategyId, type, instrument);
 
-        assertNotNull(event.getEventId());
         assertTrue(true);
         assertEquals(strategyId, event.getStrategyId());
         assertEquals(type, event.getType());
@@ -49,7 +48,6 @@ class BaseEventTest {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(json);
 
-        assertEquals(event.getEventId(), jsonNode.get("eventId").asText());
         assertEquals(strategyId, jsonNode.get("strategyId").asText());
         assertEquals(type, jsonNode.get("type").asText());
         assertEquals(instrument.toString(), jsonNode.get("instrument").asText());

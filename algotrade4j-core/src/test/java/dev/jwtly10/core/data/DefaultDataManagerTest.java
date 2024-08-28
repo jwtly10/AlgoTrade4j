@@ -1,6 +1,7 @@
 package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultTick;
@@ -15,11 +16,11 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 import static dev.jwtly10.core.model.Instrument.NAS100USD;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class DefaultDataManagerTest {
@@ -32,6 +33,9 @@ class DefaultDataManagerTest {
 
     @Mock
     private EventPublisher mockEventPublisher;
+
+    @Mock
+    private DataListener mockDataListener;
 
     private DefaultDataManager dataManager;
 
@@ -71,6 +75,7 @@ class DefaultDataManagerTest {
     @Test
     void testNormalBarCreation() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
         ZonedDateTime time = ZonedDateTime.parse("2023-01-01T00:00:00Z");
@@ -90,6 +95,7 @@ class DefaultDataManagerTest {
     @Test
     void testMissingDailyData() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
         ZonedDateTime time1 = ZonedDateTime.parse("2022-01-02T00:00:00Z");
@@ -112,6 +118,7 @@ class DefaultDataManagerTest {
     @MethodSource("provideTimeFrames")
     void testDifferentTimeFrames(Duration barDuration, ZonedDateTime[] tickTimes, int expectedBars) {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, barDuration, mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
         for (ZonedDateTime time : tickTimes) {
@@ -125,6 +132,7 @@ class DefaultDataManagerTest {
     @Test
     void testLargeTimeGap() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofHours(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
         ZonedDateTime time1 = ZonedDateTime.parse("2023-01-01T00:00:00Z");
@@ -144,6 +152,7 @@ class DefaultDataManagerTest {
     @Test
     void testWeekendGap() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
         ZonedDateTime fridayTime = ZonedDateTime.parse("2023-01-06T00:00:00Z");
@@ -162,5 +171,87 @@ class DefaultDataManagerTest {
         assertEquals(mondayTime.plus(Duration.ofDays(1)).minusSeconds(1), currentBar.getCloseTime(), "Current bar should close 1 day after the last tick");
         assertEquals(mondayTime.toLocalDate(), currentBar.getOpenTime().toLocalDate(), "Current bar should open on Monday");
         assertEquals(mondayTime, currentBar.getOpenTime(), "Bar open time should match Monday's tick time");
+    }
+
+    @Test
+    void testDataProviderExceptionDuringStart() throws DataProviderException {
+        doThrow(new DataProviderException("Test exception")).when(mockDataProvider).start();
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.start();
+        assertFalse(dataManager.isRunning());
+        verify(mockEventPublisher).publishErrorEvent(eq(STRAT_ID), any(DataProviderException.class));
+    }
+
+    @Test
+    void testStopWhenNotRunning() {
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.stop();
+        verify(mockDataProvider, never()).stop();
+    }
+
+    @Test
+    void testTickExactlyAtBarCloseTime() {
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
+        dataManager.start();
+
+        ZonedDateTime time = ZonedDateTime.parse("2023-01-01T00:00:00Z");
+        DefaultTick tick1 = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
+        DefaultTick tick2 = new DefaultTick(NAS100USD, new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), time.plusMinutes(1));
+
+        dataManager.onTick(tick1);
+        dataManager.onTick(tick2);
+
+        verify(mockBarSeries, times(1)).addBar(any(Bar.class));
+        assertEquals(new Number("15"), dataManager.getCurrentBar().getVolume());
+    }
+
+    @Test
+    void testListenerNotifications() {
+        DataListener mockListener = mock(DataListener.class);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockListener);
+        dataManager.start();
+
+        ZonedDateTime time = ZonedDateTime.parse("2023-01-01T00:00:00Z");
+        DefaultTick tick = new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), time);
+
+        dataManager.onTick(tick);
+
+        verify(mockListener).onTick(eq(tick), any(Bar.class));
+        verify(mockListener).onNewDay(eq(tick.getDateTime()));
+
+        dataManager.removeDataListener(mockListener);
+        dataManager.onTick(tick);
+
+        verifyNoMoreInteractions(mockListener);
+    }
+
+    @Test
+    void testGetCurrentMidPrice() {
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.start();
+        dataManager.onTick(new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), ZonedDateTime.now()));
+        assertEquals(new Number("100.5"), dataManager.getCurrentMidPrice());
+
+        // Reset to null
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        assertNull(dataManager.getCurrentMidPrice());
+    }
+
+    @Test
+    void testMultipleDayScenario() {
+        DataListener mockListener = mock(DataListener.class);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockListener);
+        dataManager.start();
+
+        ZonedDateTime day1 = ZonedDateTime.parse("2023-01-01T00:00:00Z");
+        ZonedDateTime day2 = ZonedDateTime.parse("2023-01-02T00:00:00Z");
+
+        dataManager.onTick(new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), day1));
+        dataManager.onTick(new DefaultTick(NAS100USD, new Number("102"), new Number("102.5"), new Number("103"), new Number("15"), day2));
+
+        verify(mockListener).onNewDay(day2.truncatedTo(ChronoUnit.DAYS));
     }
 }

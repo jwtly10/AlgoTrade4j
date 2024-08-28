@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1/optimisation")
 @Slf4j
@@ -24,14 +22,20 @@ public class OptimisationController {
     @PostMapping("/start")
     public ResponseEntity<String> startOptimisation(@RequestBody StrategyConfig config, @RequestParam("optimisationId") String optimisationId) {
         log.debug("Starting optimisation: {} with config : {}", optimisationId, config);
-        optimisationManager.startOptimisation(config, optimisationId);
-        return ResponseEntity.ok("Optimisation started");
+
+        try {
+            optimisationManager.validateOptimisationConfig(config);
+            optimisationManager.startOptimisation(config, optimisationId);
+            return ResponseEntity.accepted().body("Optimisation validated and started");
+        } catch (IllegalArgumentException e) {
+            throw new StrategyManagerException(e.getMessage(), ErrorType.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/{optimisationId}/results")
-    public ResponseEntity<List<OptimisationResult>> getOptimisationResults(@PathVariable("optimisationId") String optimisationId) {
+    public ResponseEntity<OptimisationResult> getOptimisationResults(@PathVariable("optimisationId") String optimisationId) {
         log.debug("Getting results for optimisationId: {}", optimisationId);
-        List<OptimisationResult> results = optimisationManager.getResults(optimisationId);
+        OptimisationResult results = optimisationManager.getResults(optimisationId);
         if (results != null) {
             return ResponseEntity.ok(results);
         } else {

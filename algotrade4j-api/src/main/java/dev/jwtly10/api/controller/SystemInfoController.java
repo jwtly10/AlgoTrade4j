@@ -61,7 +61,7 @@ public class SystemInfoController {
     }
 
     private String getEnvironment() {
-        return Arrays.asList(environment.getActiveProfiles()).contains("dev") ? "local" : "production";
+        return Arrays.asList(environment.getActiveProfiles()).contains("dev") ? "dev" : "production";
     }
 
     private String formatBytes(long bytes) {

@@ -16,6 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class OptimisationResultListener implements EventListener {
     private final Map<String, AnalysisEvent> results = new ConcurrentHashMap<>();
+    private final OptimisationExecutor optimisationExecutor;
+
+    public OptimisationResultListener(OptimisationExecutor optimisationExecutor) {
+        this.optimisationExecutor = optimisationExecutor;
+    }
 
     @Override
     public void onEvent(BaseEvent event) {
@@ -26,7 +31,7 @@ public class OptimisationResultListener implements EventListener {
 
     @Override
     public void onError(String strategyId, Exception e) {
-//        log.error("Error in strategy: {}", strategyId, e);
+        optimisationExecutor.onStrategyFailure(strategyId, e);
     }
 
     public Map<String, AnalysisEvent> getResults() {

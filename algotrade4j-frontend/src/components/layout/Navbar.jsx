@@ -48,14 +48,27 @@ function Navbar({user, setUser}) {
                             <Button
                                 color="inherit"
                                 component={Link}
-                                to="/"
+                                to="/backtest"
                                 sx={{
                                     backgroundColor: isActive('/backtest') ? 'rgba(255,255,255,0.2)' : 'transparent',
                                     '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
                                     textTransform: 'none'
                                 }}
                             >
-                                Run Backtests
+                                Backtest
+                            </Button>
+                            <Button
+                                color="inherit"
+                                component={Link}
+                                to="/optimisation"
+                                sx={{
+                                    backgroundColor: isActive('/optimisation') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                    textTransform: 'none',
+                                    ml: 1
+                                }}
+                            >
+                                Optimise
                             </Button>
                             {user.role === 'ADMIN' && (
                                 <Button

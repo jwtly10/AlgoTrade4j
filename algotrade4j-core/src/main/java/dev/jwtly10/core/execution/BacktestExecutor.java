@@ -6,12 +6,14 @@ import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.*;
+import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,7 +58,8 @@ public class BacktestExecutor implements DataListener {
             return;
         }
 
-        log.info("Initializing strategy: {}", strategyId);
+        log.info("Initializing strategy: {} with parameters: {}", strategyId, ParameterHandler.getParameters(strategy));
+
         strategy.onStart();
         initialised = true;
 
@@ -69,11 +72,15 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onTick for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-        strategy.onTick(tick, currentBar);
-        tradeManager.setCurrentTick(tick);
-        tradeStateManager.updateTradeStates(accountManager, tradeManager, tick);
-        performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
+        try {
+            tradeManager.setCurrentTick(tick);
+            eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
+            strategy.onTick(tick, currentBar);
+            tradeStateManager.updateTradeStates(tradeManager, tick);
+            performanceAnalyser.updateOnTick(accountManager.getEquity(), tick.getDateTime());
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override
@@ -82,10 +89,15 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onBarClose for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
-        IndicatorUtils.updateIndicators(strategy, closedBar);
-        strategy.onBarClose(closedBar);
-        log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
+        try {
+            tradeStateManager.updateAccountState(accountManager, tradeManager);
+            // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
+            IndicatorUtils.updateIndicators(strategy, closedBar);
+            strategy.onBarClose(closedBar);
+            log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override
@@ -94,9 +106,13 @@ public class BacktestExecutor implements DataListener {
             log.error("Attempt to call onNewDay for uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        strategy.onNewDay(newDay);
-        // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
-        eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
+        try {
+            strategy.onNewDay(newDay);
+            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
+            eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
+        } catch (Exception e) {
+            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+        }
     }
 
     @Override
@@ -113,8 +129,10 @@ public class BacktestExecutor implements DataListener {
         tradeManager.getOpenTrades().values().forEach(trade -> {
             tradeManager.closePosition(trade.getId(), false);
         });
-        // Update trade states one last time
-        tradeStateManager.updateTradeStates(accountManager, tradeManager, null);
+        // Update trade states and account state
+        tradeStateManager.updateTradeStates(tradeManager, null);
+        tradeStateManager.updateAccountState(accountManager, tradeManager);
+
         // Run final performance analysis
         performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
 

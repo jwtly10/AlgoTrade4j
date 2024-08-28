@@ -5,6 +5,7 @@ import dev.jwtly10.core.model.Trade;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,10 +157,10 @@ public class PerformanceAnalyser {
         }
 
         this.longWinPercentage = this.totalLongTrades == 0 ? Number.ZERO :
-                new Number(this.totalLongWinningTrades).divide(this.totalLongTrades).multiply(new BigDecimal(100));
+                new Number(this.totalLongWinningTrades).divide(this.totalLongTrades).multiply(new BigDecimal(100)).setScale(2, RoundingMode.DOWN);
 
         this.shortWinPercentage = this.totalShortTrades == 0 ? Number.ZERO :
-                new Number(this.totalShortWinningTrades).divide(this.totalShortTrades).multiply(new BigDecimal(100));
+                new Number(this.totalShortWinningTrades).divide(this.totalShortTrades).multiply(new BigDecimal(100)).setScale(2, RoundingMode.DOWN);
     }
 
     /*
@@ -315,7 +316,7 @@ public class PerformanceAnalyser {
         if (equity.isGreaterThan(peakEquity)) {
             peakEquity = equity;
         }
-        Number drawdown = peakEquity.subtract(equity).divide(peakEquity.getValue());
+        Number drawdown = peakEquity.subtract(equity).divide(peakEquity.getValue()).multiply(new Number(100));
         if (drawdown.isGreaterThan(maxDrawdown)) {
             maxDrawdown = drawdown.roundMoneyDown();
         }

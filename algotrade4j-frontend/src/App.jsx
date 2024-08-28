@@ -10,6 +10,8 @@ import UserManagementView from './views/UserManagementView';
 import NotFoundView from "./views/NotFoundView.jsx";
 import MonitorView from "./views/MonitorView.jsx";
 import VersionBanner from "./components/VersionBanner.jsx";
+import HomeView from "./views/HomeView.jsx";
+import OptimisationView from "./views/OptimisationView.jsx";
 
 const darkTheme = createTheme({
     palette: {
@@ -86,11 +88,15 @@ function App() {
                 <Routes>
                     <Route
                         path="/"
-                        element={user ? <Navigate to="/backtest" replace/> : <Navigate to="/login" replace/>}
+                        element={user ? <HomeView/> : <Navigate to="/login" replace/>}
                     />
                     <Route
                         path="/backtest"
                         element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
+                    />
+                    <Route
+                        path="/optimisation"
+                        element={user ? <OptimisationView/> : <Navigate to="/login" replace/>}
                     />
                     <Route
                         path="/monitor"
@@ -103,7 +109,7 @@ function App() {
                     />
                     <Route path="/signup" element={<Navigate to="/login" replace/>}/>
                     {user && user.role === 'ADMIN' && (
-                        <Route path="/users" element={<UserManagementView user={user}/>}/>
+                        <Route path="/users" element={<UserManagementView loggedInUser={user}/>}/>
                     )}
                     <Route
                         path="*"

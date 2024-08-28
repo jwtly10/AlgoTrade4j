@@ -98,4 +98,10 @@ public interface DataManager {
      * @return the number of ticks modelled
      */
     int getTicksModeled();
+
+    /**
+     * During optimisation, alternate rules are needed regarding error handling.
+     * This allows us to prevent stopping an entire data provider, just because one instance of a strategy failed.
+     */
+    void setIsOptimising(boolean value);
 }

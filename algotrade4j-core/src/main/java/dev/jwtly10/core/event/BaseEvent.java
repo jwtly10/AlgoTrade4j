@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 /**
  * Abstract base class for events in the system.
@@ -24,11 +23,6 @@ public abstract class BaseEvent {
      * ObjectMapper instance for JSON processing.
      */
     protected static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    /**
-     * Unique identifier for the event.
-     */
-    private final String eventId;
 
     /**
      * Type of the event.
@@ -60,7 +54,6 @@ public abstract class BaseEvent {
      * @param instrument the instrument associated with the event
      */
     protected BaseEvent(String strategyId, String type, Instrument instrument) {
-        this.eventId = UUID.randomUUID().toString();
         this.timestamp = ZonedDateTime.now();
         this.strategyId = strategyId;
         this.type = type;

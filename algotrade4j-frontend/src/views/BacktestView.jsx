@@ -9,10 +9,12 @@ import {TabPanel} from '../components/TabPanel.jsx';
 import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
 import {Toast} from "../components/Toast.jsx";
-import {OptimisationPanel} from "../components/OptimisationPanel.jsx";
 import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
 import EmptyChart from "../components/EmptyChart.jsx";
+import log from '../logger.js'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const BacktestView = () => {
     const socketRef = useRef(null);
@@ -43,19 +45,14 @@ const BacktestView = () => {
     const [tabValue, setTabValue] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [runOptimisation, setRunOptimisation] = useState(false);
-    const [optimisationId, setOptimisationId] = useState("");
-
     const [strategies, setStrategies] = useState([]);
     const [strategyClass, setStrategyClass] = useState("");
 
     const [isAsync, setAsync] = useState(false)
     const [progressData, setProgressData] = useState(null);
     const [showChart, setShowChart] = useState(true)
+    const [startTime, setStartTime] = useState(null);
 
-
-    // const [rawParams, setRawParams] = useState([]);
-    // const [runParams, setRunParams] = useState([])
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
@@ -103,7 +100,7 @@ const BacktestView = () => {
 
 
             } catch (error) {
-                console.error('Failed to get strategies:', error);
+                log.error('Failed to get strategies:', error);
             }
         }
 
@@ -165,7 +162,7 @@ const BacktestView = () => {
 
     const startStrategy = async () => {
         if (strategyClass === "") {
-            console.error('Strategy class is required');
+            log.error('Strategy class is required');
             setToast({
                 open: true,
                 level: 'warning',
@@ -180,6 +177,11 @@ const BacktestView = () => {
             strategyClass: strategyClass,
         }
 
+        setAccount({
+            initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+            balance: 0,
+            equity: 0,
+        });
         setIsRunning(true);
         // Clean previous data
         setChartData([]);
@@ -191,41 +193,10 @@ const BacktestView = () => {
         setIndicators({});
         setAsync(false);
         setLogs([])
-        console.log('Starting strategy...');
-
-        if (runOptimisation) {
-            setToast({
-                open: true,
-                message: "Optimisation is not supported yet",
-                level: "warn"
-            })
-            return
-
-            const oId = crypto.randomUUID()
-            setOptimisationId(oId)
-            try {
-                await apiClient.startOptimisation(hackConfig, oId)
-                console.log('Optimisation started');
-                setToast({
-                    open: true,
-                    level: 'success',
-                    message: 'Optimisation started',
-                })
-                setIsRunning(false);
-            } catch (error) {
-                console.error('Failed to start optimisation:', error);
-                setToast({
-                    open: true,
-                    level: 'error',
-                    message: 'Failed to start optimisation: ' + error.response.data.message,
-                })
-                setIsRunning(false);
-            }
-            return
-        }
+        log.debug('Starting strategy...');
 
         try {
-            console.log('Starting strategy with config:', strategyConfig);
+            log.debug('Starting strategy with config:', strategyConfig);
 
             const generatedIdForClass = await apiClient.generateId(hackConfig)
 
@@ -241,10 +212,11 @@ const BacktestView = () => {
                 setShowChart(true)
             }
 
-            console.log('WebSocket connected');
+            log.debug('WebSocket connected');
             await apiClient.startStrategy(hackConfig, generatedIdForClass, showChart);
+            setStartTime(Date.now());
         } catch (error) {
-            console.error('Failed to start strategy:', error);
+            log.error('Failed to start strategy:', error);
             setToast({
                 open: true,
                 level: 'error',
@@ -259,12 +231,17 @@ const BacktestView = () => {
             if (strategyClass !== "") {
                 // We can stop strategy by just closing ws connection
                 setIsRunning(false);
+                setAccount({
+                    initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+                    balance: 0,
+                    equity: 0,
+                });
                 if (socketRef.current) {
                     socketRef.current.close();
                 }
             }
         } catch (error) {
-            console.error('Failed to stop strategy:', error);
+            log.error('Failed to stop strategy:', error);
         }
     };
 
@@ -302,12 +279,11 @@ const BacktestView = () => {
                 message: data.message,
             });
         } else {
-            console.log('WHAT OTHER EVENT WAS SENT?' + data);
+            log.debug('WHAT OTHER EVENT WAS SENT?' + data);
         }
     };
 
     const updateAsyncProgress = (data) => {
-        console.log(data)
         setProgressData(data);
     }
 
@@ -555,7 +531,7 @@ const BacktestView = () => {
         try {
             return await apiClient.getParams(stratClass);
         } catch (error) {
-            console.error('Failed to get strategy params:', error);
+            log.error('Failed to get strategy params:', error);
             setToast({
                 open: true,
                 message: 'Failed to get strategy params: ' + error.response.data.message,
@@ -564,7 +540,7 @@ const BacktestView = () => {
     };
 
     const handleConfigSave = (config) => {
-        console.log('Saving params:', config);
+        log.debug('Saving params:', config);
         setIsModalOpen(false);
     };
 
@@ -579,7 +555,7 @@ const BacktestView = () => {
             // If an event object is passed (from onChange)
             stratClass = valueOrEvent.target.value;
         } else {
-            console.error('Invalid input to handleChangeStrategy');
+            log.error('Invalid input to handleChangeStrategy');
             return;
         }
         localStorage.setItem("LAST_STRAT", stratClass);
@@ -593,7 +569,7 @@ const BacktestView = () => {
 
         // Now, we know what params have come from the strategy defaults. So we should set these are the run params for now.
         const params = await getParams(stratClass)
-        console.log("Params", params)
+        log.debug("Params", params)
 
         let runParams = [];
         params.forEach(param => {
@@ -612,7 +588,7 @@ const BacktestView = () => {
             })
         })
 
-        console.log("Run Params", runParams)
+        log.debug("Run Params", runParams)
 
         setStrategyConfig({
             ...strategyConfig,
@@ -621,10 +597,6 @@ const BacktestView = () => {
 
         // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
         loadConfigFromLocalStorage(runParams, stratClass);
-
-        // When we change the strategy, we should get the parameters local storage or use defaults
-        // we need start stop step for optimisation only. But this is something that need to be here!
-        // for run parameters we only need it for starting strategy
     }
 
     return (
@@ -633,7 +605,7 @@ const BacktestView = () => {
             flexDirection: 'column',
             height: 'calc(100vh - 64px - 30px)', // Subtract navbar height and version banner
             width: '100vw',
-            overflow: 'hidden' // Prevent scrolling on the main container
+            overflow: 'hidden'
         }}>
             {/* Header */}
             <Box sx={{flexShrink: 0, p: 2, bgcolor: 'background.paper', overflow: 'auto'}}>
@@ -669,7 +641,7 @@ const BacktestView = () => {
                         {/* Chart Section */}
                         <Box sx={{flexShrink: 0, height: '40%', minHeight: '500px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
                             {isRunning && isAsync ? (
-                                <LoadingChart progressData={progressData} startTime={Date.now()}/>
+                                <LoadingChart progressData={progressData} startTime={startTime}/>
                             ) : chartData && chartData.length > 0 ? (
                                 <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             ) : (
@@ -689,9 +661,6 @@ const BacktestView = () => {
                                 <Tab label="Analysis"/>
                                 <Tab label="Equity History"/>
                                 <Tab label="Logs"/>
-                                {runOptimisation & (
-                                    <Tab label="Optimisation"/>
-                                )}
                             </Tabs>
 
                             <Box sx={{flexGrow: 1, overflow: 'auto'}}>
@@ -725,11 +694,6 @@ const BacktestView = () => {
                                         </Typography>
                                     )}
                                 </TabPanel>
-                                {runOptimisation && (
-                                    <TabPanel value={tabValue} index={4}>
-                                        <OptimisationPanel setToast={setToast} optimisationId={optimisationId}/>
-                                    </TabPanel>
-                                )}
                             </Box>
                         </Box>
                     </Paper>
@@ -767,6 +731,7 @@ const BacktestView = () => {
                             disabled={strategyClass === ""}
                             size="large"
                             sx={{mb: 2}}
+                            startIcon={<PlayArrowIcon/>}
                         >
                             {isRunning ? 'Stop Strategy' : 'Start Strategy'}
                         </Button>
@@ -777,21 +742,11 @@ const BacktestView = () => {
                             disabled={strategyClass === ""}
                             size="large"
                             sx={{mb: 3}}
+                            startIcon={<SettingsIcon/>}
                         >
                             Configure Parameters
                         </Button>
 
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={runOptimisation}
-                                    onChange={(e) => setRunOptimisation(e.target.checked)}
-                                    color="primary"
-                                />
-                            }
-                            label="Run optimisation?"
-                            sx={{mb: 2}}
-                        />
                         <FormControlLabel
                             control={
                                 <Switch
