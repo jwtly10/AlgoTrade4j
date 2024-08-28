@@ -58,19 +58,9 @@ public class StrategyManager {
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
-        // TODO: Validate config
         config.validate();
-        Duration period = switch (config.getPeriod()) {
-            case "1m" -> Duration.ofMinutes(1);
-            case "5m" -> Duration.ofMinutes(5);
-            case "15m" -> Duration.ofMinutes(15);
-            case "30m" -> Duration.ofMinutes(30);
-            case "1H" -> Duration.ofHours(1);
-            case "4H" -> Duration.ofHours(4);
-            case "1D" -> Duration.ofDays(1);
-            default -> throw new StrategyManagerException("Invalid duration: " + config.getPeriod(), ErrorType.BAD_REQUEST);
-        };
 
+        Duration period = config.getPeriod().getDuration();
         Number spread = config.getSpread();
         Instrument instrument = config.getInstrumentData().getInstrument();
 

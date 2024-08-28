@@ -7,7 +7,7 @@ const OptimisationResultsContainer = ({optimisationResults, isPolling}) => {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                 <CircularProgress/>
-                <Typography variant="h6" sx={{ml: 2}}>Fetching optimisation results...</Typography>
+                <Typography variant="h6" sx={{ml: 2}}>Pending optimisation results, please check back later...</Typography>
             </Box>
         );
     }

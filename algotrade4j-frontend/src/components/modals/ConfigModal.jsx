@@ -3,12 +3,64 @@ import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle
 import InfoIcon from '@mui/icons-material/Info';
 import {apiClient} from '../../api/apiClient.js'
 import log from '../../logger.js'
+import {Toast} from "../Toast.jsx";
+
+const JsonImportDialog = ({open, onClose, onImport}) => {
+    const [jsonInput, setJsonInput] = useState('');
+
+    const handleImport = () => {
+        try {
+            const importedConfig = JSON.parse(jsonInput);
+            onImport(importedConfig);
+            onClose();
+        } catch (error) {
+            log.error("Failed to parse imported JSON", error);
+            // You might want to show an error message to the user here
+        }
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+            <DialogTitle>Import JSON Configuration</DialogTitle>
+            <DialogContent>
+                <TextField
+                    multiline
+                    rows={10}
+                    fullWidth
+                    variant="outlined"
+                    value={jsonInput}
+                    onChange={(e) => setJsonInput(e.target.value)}
+                    placeholder="Paste your JSON configuration here"
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button onClick={handleImport} variant="contained" color="primary">
+                    Import
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
 
 
-const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass, backtestMode = true}) => {
+const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass, showOptimiseParams = false}) => {
     const [activeTab, setActiveTab] = useState(0);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
     const [instruments, setInstruments] = useState([]);
+    const [isJsonImportOpen, setIsJsonImportOpen] = useState(false);
+
+    const [toast, setToast] = useState({
+        open: false,
+        level: 'info',
+        message: '',
+    });
+    const handleCloseToast = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setToast({...toast, level: "info", open: false});
+    };
 
     useEffect(() => {
         if (open) {
@@ -30,6 +82,51 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
         fetchInstruments()
     }, [])
+
+    const handleJsonImport = (importedConfig) => {
+        setLocalConfig(prevConfig => {
+            let updatedConfig = {...prevConfig};
+
+            console.log("imported config: ", importedConfig);
+            console.log("params config: ", updatedConfig.runParams);
+
+            if (importedConfig) {
+                updatedConfig.runParams = updatedConfig.runParams.map(param => {
+                    if (importedConfig.hasOwnProperty(param.name)) {
+                        console.log(`Updating ${param.name} from ${param.value} to ${importedConfig[param.name]}`);
+                        return {...param, value: importedConfig[param.name]};
+                    }
+                    return param;
+                });
+            }
+
+            // Update other fields that are not in runParams
+            Object.keys(importedConfig).forEach(key => {
+                if (!updatedConfig.runParams.some(param => param.name === key) && updatedConfig.hasOwnProperty(key)) {
+                    console.log(`Updating ${key} from ${updatedConfig[key]} to ${importedConfig[key]}`);
+                    updatedConfig[key] = importedConfig[key];
+                }
+            });
+
+            console.log("Previous config:", prevConfig);
+            console.log("Imported configuration:", importedConfig);
+            console.log("Updated configuration:", updatedConfig);
+
+            // Force a re-render by creating a new object
+            return {...updatedConfig};
+        });
+
+        // Set a timeout to log the updated localConfig after the state has been updated
+        setTimeout(() => {
+            console.log("LocalConfig after update:", localConfig);
+        }, 0);
+
+        setToast({
+            open: true,
+            message: "Configuration imported",
+            severity: "success",
+        });
+    };
 
     const saveToLocalStorage = () => {
         localStorage.setItem(`strategyConfig_${strategyClass}`, JSON.stringify(localConfig));
@@ -70,8 +167,8 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
     return (
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
             <DialogTitle sx={{padding: 3, display: 'flex', alignItems: 'center'}}>
-                {backtestMode ? "Strategy Configuration" : "Optimisation Configuration"}
-                {!backtestMode && (
+                {showOptimiseParams ? "Optimisation Configuration" : "Strategy Configuration"}
+                {showOptimiseParams && (
                     <Tooltip
                         title="Here you can set a range of values you would like to optimise for. Along with parameters used for the test"
                         placement="right"
@@ -104,10 +201,14 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 <TableRow>
                                     <TableCell>Parameter</TableCell>
                                     <TableCell>Value</TableCell>
-                                    <TableCell>Start</TableCell>
-                                    <TableCell>Stop</TableCell>
-                                    <TableCell>Step</TableCell>
-                                    <TableCell>Optimize</TableCell>
+                                    {showOptimiseParams && (
+                                        <>
+                                            <TableCell>Start</TableCell>
+                                            <TableCell>Stop</TableCell>
+                                            <TableCell>Step</TableCell>
+                                            <TableCell>Optimize</TableCell>
+                                        </>
+                                    )}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -167,46 +268,53 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                     </Stack>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <TextField
-                                                        size="small"
-                                                        value={param.value}
-                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'value', e.target.value)}
-                                                        autoComplete="off"
-                                                    />
-                                                    <Typography variant="caption" color="textSecondary">
-                                                        (Default: {param.defaultValue})
-                                                    </Typography>
+                                                    <Stack spacing={1}>
+                                                        <TextField
+                                                            size="small"
+                                                            value={param.value}
+                                                            onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'value', e.target.value)}
+                                                            autoComplete="off"
+                                                        />
+                                                        <Typography variant="caption" color="textSecondary">
+                                                            (Default: {param.defaultValue})
+                                                        </Typography>
+                                                    </Stack>
                                                 </TableCell>
-                                                <TableCell>
-                                                    <TextField
-                                                        size="small"
-                                                        value={param.start || ''}
-                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
-                                                        autoComplete="off"
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <TextField
-                                                        size="small"
-                                                        value={param.stop || ''}
-                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
-                                                        autoComplete="off"
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <TextField
-                                                        size="small"
-                                                        value={param.step || ''}
-                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
-                                                        autoComplete="off"
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={param.selected || false}
-                                                        onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', e.target.checked)}
-                                                    />
-                                                </TableCell>
+                                                {showOptimiseParams && (
+                                                    <>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                value={param.start || ''}
+                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
+                                                                autoComplete="off"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                value={param.stop || ''}
+                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
+                                                                autoComplete="off"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <TextField
+                                                                size="small"
+                                                                value={param.step || ''}
+                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
+                                                                autoComplete="off"
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Checkbox
+                                                                checked={param.selected || false}
+                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', e.target.checked)}
+                                                            />
+                                                        </TableCell>
+
+                                                    </>
+                                                )}
                                             </TableRow>
                                         ))}
                                     </React.Fragment>
@@ -224,21 +332,23 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                             fullWidth
                             margin="normal"
                         />
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="speed-label">Speed</InputLabel>
-                            <Select
-                                labelId="speed-label"
-                                value={localConfig.speed}
-                                onChange={(e) => handleConfigChange('speed', e.target.value)}
-                                label="speed"
-                            >
-                                <MenuItem value="SLOW">Slow (Visual)</MenuItem>
-                                <MenuItem value="NORMAL">Normal (Visual)</MenuItem>
-                                {/*<MenuItem value="FAST">Fast</MenuItem>*/}
-                                {/*<MenuItem value="VERY_FAST">Very fast</MenuItem>*/}
-                                <MenuItem value="INSTANT">Instant (Async)</MenuItem>
-                            </Select>
-                        </FormControl>
+                        {!showOptimiseParams && (
+                            <FormControl fullWidth margin="normal">
+                                <InputLabel id="speed-label">Speed</InputLabel>
+                                <Select
+                                    labelId="speed-label"
+                                    value={localConfig.speed}
+                                    onChange={(e) => handleConfigChange('speed', e.target.value)}
+                                    label="speed"
+                                >
+                                    <MenuItem value="SLOW">Slow (Visual)</MenuItem>
+                                    <MenuItem value="NORMAL">Normal (Visual)</MenuItem>
+                                    {/*<MenuItem value="FAST">Fast</MenuItem>*/}
+                                    {/*<MenuItem value="VERY_FAST">Very fast</MenuItem>*/}
+                                    <MenuItem value="INSTANT">Instant (Async)</MenuItem>
+                                </Select>
+                            </FormControl>
+                        )}
                         <FormControl fullWidth margin="normal">
                             <InputLabel id="spread-label">Spread</InputLabel>
                             <Select
@@ -285,13 +395,13 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                 onChange={(e) => handleConfigChange('period', e.target.value)}
                                 label="period"
                             >
-                                <MenuItem value="1m">1m</MenuItem>
-                                <MenuItem value="5m">5m</MenuItem>
-                                <MenuItem value="15m">15m</MenuItem>
-                                <MenuItem value="30m">30m</MenuItem>
-                                <MenuItem value="1H">1H</MenuItem>
-                                <MenuItem value="4H">4H</MenuItem>
-                                <MenuItem value="1D">1D</MenuItem>
+                                <MenuItem value="M1">1m</MenuItem>
+                                <MenuItem value="M5">5m</MenuItem>
+                                <MenuItem value="M15">15m</MenuItem>
+                                <MenuItem value="M30">30m</MenuItem>
+                                <MenuItem value="H1">1H</MenuItem>
+                                <MenuItem value="H4">4H</MenuItem>
+                                <MenuItem value="D">1D</MenuItem>
                             </Select>
                         </FormControl>
                         <TextField
@@ -326,11 +436,25 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                 )}
             </DialogContent>
             <DialogActions sx={{padding: 3}}>
+                {!showOptimiseParams && (
+                    <Button onClick={() => setIsJsonImportOpen(true)}>Import JSON</Button>
+                )}
                 <Button onClick={handleReset}>Reset</Button>
                 <Button onClick={handleClose} variant="contained" color="primary">
                     Close
                 </Button>
             </DialogActions>
+            <JsonImportDialog
+                open={isJsonImportOpen}
+                onClose={() => setIsJsonImportOpen(false)}
+                onImport={handleJsonImport}
+            />
+            <Toast
+                open={toast.open}
+                message={toast.message}
+                severity={toast.level}
+                onClose={handleCloseToast}
+            />
         </Dialog>
     );
 };

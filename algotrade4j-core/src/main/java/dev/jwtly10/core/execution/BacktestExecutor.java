@@ -13,6 +13,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,7 +58,8 @@ public class BacktestExecutor implements DataListener {
             return;
         }
 
-        log.info("Initializing strategy: {}", strategyId);
+        log.info("Initializing strategy: {} with parameters: {}", strategyId, ParameterHandler.getParameters(strategy));
+
         strategy.onStart();
         initialised = true;
 

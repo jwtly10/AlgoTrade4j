@@ -13,6 +13,8 @@ import LoadingChart from "../components/LoadingChart.jsx";
 import TradingViewChart from "../components/TradingViewChart.jsx";
 import EmptyChart from "../components/EmptyChart.jsx";
 import log from '../logger.js'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const BacktestView = () => {
     const socketRef = useRef(null);
@@ -729,6 +731,7 @@ const BacktestView = () => {
                             disabled={strategyClass === ""}
                             size="large"
                             sx={{mb: 2}}
+                            startIcon={<PlayArrowIcon/>}
                         >
                             {isRunning ? 'Stop Strategy' : 'Start Strategy'}
                         </Button>
@@ -739,6 +742,7 @@ const BacktestView = () => {
                             disabled={strategyClass === ""}
                             size="large"
                             sx={{mb: 3}}
+                            startIcon={<SettingsIcon/>}
                         >
                             Configure Parameters
                         </Button>

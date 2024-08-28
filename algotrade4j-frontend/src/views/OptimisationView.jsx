@@ -25,9 +25,9 @@ const OptimisationView = () => {
         strategyClass: '',
         initialCash: '10000',
         instrumentData: {},
-        spread: "50",
-        speed: "NORMAL",
-        period: "1D",
+        spread: "30",
+        speed: "INSTANT",
+        period: "M30",
         timeframe: {
             from: '',
             to: '',
@@ -253,7 +253,7 @@ const OptimisationView = () => {
                 <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden'}}>
                     <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
                         {/* Result Section */}
-                        <Box sx={{flexShrink: 0, height: '100%', minHeight: '500px', mb: 3, bgcolor: 'background.paper', borderRadius: 1, overflow: 'hidden'}}>
+                        <Box sx={{flexGrow: 1, overflow: 'hidden'}}>
                             <OptimisationResultsContainer
                                 optimisationResults={optimisationResults}
                                 isPolling={isPolling}
@@ -302,15 +302,12 @@ const OptimisationView = () => {
                         </Button>
 
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             onClick={handleOpenParams}
                             disabled={strategyClass === ""}
                             size="large"
                             sx={{
                                 mb: 2,
-                                backgroundColor: '#9c27b0',
-                                '&:hover': {backgroundColor: '#7b1fa2'},
-                                '&:disabled': {backgroundColor: 'rgba(156, 39, 176, 0.12)'},
                             }}
                             startIcon={<SettingsIcon/>}
                         >
@@ -319,17 +316,20 @@ const OptimisationView = () => {
 
                         <Button
                             variant="contained"
+                            color="error"
                             onClick={stopOptimisation}
                             size="large"
                             sx={{
                                 mb: 2,
-                                backgroundColor: '#d32f2f',
-                                '&:hover': {backgroundColor: '#c62828'},
                             }}
                             startIcon={<ClearIcon/>}
                         >
                             Clear Cache
                         </Button>
+
+                        <Typography variant="body2" color="text.secondary" align="center">
+                            Results are only held in memory for a short amount of time. You can clear the cache if you have not started a run in a while, but the system is still polling for results.
+                        </Typography>
 
                         <Box sx={{flexGrow: 1}}/> {/* Spacer */}
 
@@ -348,7 +348,7 @@ const OptimisationView = () => {
                 strategyConfig={strategyConfig}
                 setStrategyConfig={setStrategyConfig}
                 strategyClass={strategyClass}
-                backtestMode={false}
+                showOptimiseParams={true}
             />
             <Toast
                 open={toast.open}

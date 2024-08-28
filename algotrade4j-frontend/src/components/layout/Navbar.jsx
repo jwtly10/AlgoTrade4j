@@ -40,14 +40,7 @@ function Navbar({user, setUser}) {
         <AppBar position="static">
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{mr: 2}}>
-                    <Link to={"/"}
-                          sx={{
-                              textDecoration: 'none',
-                              color: '#ffffff'
-                          }}
-                    >
-                        AlgoTrade4J
-                    </Link>
+                    AlgoTrade4J
                 </Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', flexGrow: 1}}>
                     {user && (

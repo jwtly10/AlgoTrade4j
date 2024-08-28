@@ -29,15 +29,13 @@ public class StrategyReflectionUtils {
             Strategy strategy;
 
             if (customId != null) {
-//                try {
-                Constructor<?> constructor = clazz.getConstructor(String.class);
-                strategy = (Strategy) constructor.newInstance(customId);
-//                } catch (NoSuchMethodException e) {
-                // We shouldnt allow this
-//                    log.error("No constructor with String parameter found for {}. Using no-arg constructor.", className);
-//                    Constructor<?> constructor = clazz.getConstructor();
-//                    strategy = (Strategy) constructor.newInstance();
-//                }
+                try {
+                    Constructor<?> constructor = clazz.getConstructor(String.class);
+                    strategy = (Strategy) constructor.newInstance(customId);
+                } catch (NoSuchMethodException e) {
+                    log.error("No constructor with String parameter found for {}. All Strategy implementation must support a strategy ID constructor ", className);
+                    throw e;
+                }
             } else {
                 // Use the no-arg constructor if customId is null
                 Constructor<?> constructor = clazz.getConstructor();

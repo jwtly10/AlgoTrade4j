@@ -97,7 +97,6 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     @Override
     public void addDataListener(DataListener listener) {
         listeners.add(listener);
-        log.info("CHECK: {}", listeners);
     }
 
     @Override

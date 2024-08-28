@@ -51,9 +51,11 @@ public class OptimisationExecutor {
      * @throws Exception If an error occurs during the optimisation process.
      */
     public OptimisationResult runOptimisation(OptimisationConfig config) throws Exception {
-        OptimisationResult optimisationResult = new OptimisationResult();
+        log.info("Optimisation Config: {}", config);
 
+        OptimisationResult optimisationResult = new OptimisationResult();
         running = true;
+
         List<Map<String, String>> parameterCombinations = generateParameterCombinations(config.getParameterRanges());
         log.info("Generated {} parameter combinations", parameterCombinations.size());
 
@@ -93,12 +95,12 @@ public class OptimisationExecutor {
             optimisationResult = collectResults(allExecutors);
         }
 
-        log.info("{}", optimisationResult);
-
         if (!failedStrategies.isEmpty()) {
             log.warn("The following strategies encountered errors during optimization: {}", failedStrategies);
             optimisationResult.setFailures(failedStrategies);
         }
+
+        log.info("Success: {}, Failures: {}", optimisationResult.getSuccessfulStrategies().size(), optimisationResult.getFailedStrategies().size());
 
         return optimisationResult;
     }
@@ -122,7 +124,6 @@ public class OptimisationExecutor {
 
         // Ensure instant
         dataProvider.setDataSpeed(DataSpeed.INSTANT);
-        // TODO: Do we need a generic id for the optimisation strategy id????. Yes
         DefaultDataManager dataManager = new DefaultDataManager("optimisation-run", instrument, dataProvider, period, barSeries, eventPublisher);
         dataManager.setIsOptimising(true);
 
