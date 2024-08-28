@@ -2,10 +2,13 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
+# Download the Datadog Java agent
+RUN wget -O dd-java-agent.jar 'https://dtdg.co/latest-java-tracer'
+
 COPY algotrade4j-api/target/algotrade4j-api-*.jar /app/algotrade4j-api.jar
 
-ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseStringDeduplication"
+ENV SPRING_PROFILES_ACTIVE=prod
 
-EXPOSE 8080
+EXPOSE 8080 9010
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/algotrade4j-api.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar /app/algotrade4j-api.jar"]

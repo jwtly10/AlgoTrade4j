@@ -1,0 +1,58 @@
+version: '3'
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+      - "9010:9010"  # JMX port
+    environment:
+      - JAVA_OPTS=-XX:+UseG1GC -XX:+UseStringDeduplication
+      - SPRING_PROFILES_ACTIVE=prod
+      - DD_AGENT_HOST=datadog-agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_LOGS_INJECTION=true
+      - DD_PROFILING_ENABLED=true
+      - DD_SERVICE=algotrade4j-api-prod
+      - DD_ENV=prod
+      - DD_TAGS=env:prod
+      - OANDA_API_URL=${OANDA_API_URL}
+      - OANDA_API_KEY=${OANDA_API_KEY}
+      - OANDA_ACCOUNT_ID=${OANDA_ACCOUNT_ID}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
+    entrypoint: >
+      sh -c "java
+      -javaagent:/app/dd-java-agent.jar 
+      -XX:+UseG1GC 
+      -XX:+UseStringDeduplication
+      -Ddd.service=algotrade4j-api-prod
+      -Ddd.env=prod 
+      -Ddd.tags=env:prod 
+      -Ddd.profiling-enabled=true
+      -Ddd.logs.injection=true
+      -Dcom.sun.management.jmxremote.debug=true 
+      -Djava.rmi.server.hostname=0.0.0.0
+      -Dcom.sun.management.jmxremote 
+      -Dcom.sun.management.jmxremote.port=9010 
+      -Dcom.sun.management.jmxremote.authenticate=false 
+      -Dcom.sun.management.jmxremote.ssl=false 
+      -jar /app/algotrade4j-api.jar"
+
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_APM_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_ENV=prod
+      - DD_SITE=datadoghq.eu
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    ports:
+      - "8126:8126"
