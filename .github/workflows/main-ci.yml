@@ -96,7 +96,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           #          passphrase: ${{ secrets.PASSWORD }}
           script: |
-            cd /opt/loggar &&
+            cd /opt/algotrade4j &&
             OANDA_API_URL=${{vars.OANDA_API_URL}} \
             OANDA_API_KEY=${{secrets.OANDA_API_KEY}} \
             OANDA_ACCOUNT_ID=${{secrets.OANDA_ACCOUNT_ID}} \
