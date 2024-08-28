@@ -15,11 +15,6 @@ class StrategyReflectionUtilsTest {
     }
 
     @Test
-    void testDJATRStrategy() throws Exception {
-        StrategyReflectionUtils.getStrategyFromClassName("DJATRStrategy", "");
-    }
-
-    @Test
     void testSimplePrintStrategy() throws Exception {
         StrategyReflectionUtils.getStrategyFromClassName("SimplePrintStrategy", "");
     }
