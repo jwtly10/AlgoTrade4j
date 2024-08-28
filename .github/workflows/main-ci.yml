@@ -106,4 +106,4 @@ jobs:
             SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
             ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}} \
             DD_API_KEY=${{secrets.DD_API_KEY}} \
-            docker-compose up -d --build
+            docker compose up -d --build
