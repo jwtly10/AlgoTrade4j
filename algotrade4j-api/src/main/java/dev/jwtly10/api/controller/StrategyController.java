@@ -38,7 +38,8 @@ public class StrategyController {
             @RequestParam("async") boolean async,
             @RequestParam("showChart") boolean showChart
     ) {
-        log.debug("Starting strategy: {} with config : {} and params: Async: {}, showChart: {}", strategyId, config, async, showChart);
+        log.info("Starting strategy: {} with config : {}", strategyId, config);
+        log.info("Request params: Async: {}, showChart: {}", async, showChart);
 
         // We will retry this a few seconds
         WebSocketSession session = null;
@@ -90,14 +91,13 @@ public class StrategyController {
             subscribeToEvents(listener);
         }
 
-        log.debug("Starting strategy with config: {}", config);
         try {
             strategyManager.startStrategy(config, strategyId);
         } catch (Exception e) {
             log.error("Error starting strategy: ", e);
             throw new StrategyManagerException("Error starting strategy: " + e, ErrorType.INTERNAL_ERROR);
         }
-        log.info("Started strategy: {}", strategyId);
+        log.info("Strategy: {} initialised and starting", strategyId);
 
         return ResponseEntity.ok(strategyId);
     }

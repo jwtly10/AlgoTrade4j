@@ -37,7 +37,7 @@ public class iATR implements Indicator {
 
     @Override
     public void update(Bar bar) {
-        log.debug("Updating ATR with new bar. High: {}, Low: {}, Close: {}", bar.getHigh(), bar.getLow(), bar.getClose());
+        log.trace("Updating ATR with new bar. High: {}, Low: {}, Close: {}", bar.getHigh(), bar.getLow(), bar.getClose());
 
         Number trueRange;
         if (previousClose == null) {
@@ -75,7 +75,7 @@ public class iATR implements Indicator {
             values.add(indicatorValue);
 
             if (eventPublisher != null) {
-                log.debug("Publishing ATR event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
+                log.trace("Publishing ATR event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
                         strategyId, bar.getInstrument(), getName(), atr, bar.getOpenTime());
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
@@ -113,7 +113,7 @@ public class iATR implements Indicator {
 
     @Override
     public boolean isReady() {
-        log.debug("Checking if ATR is ready. Values size: {}, Period: {}", trueRanges.size(), period);
+        log.trace("Checking if ATR is ready. Values size: {}, Period: {}", trueRanges.size(), period);
         return trueRanges.size() >= period;
     }
 

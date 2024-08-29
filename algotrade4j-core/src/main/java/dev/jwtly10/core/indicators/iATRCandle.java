@@ -51,7 +51,7 @@ public class iATRCandle implements Indicator {
             if (violation) {
                 violationTimestamps.add(bar.getOpenTime());
                 if (eventPublisher != null) {
-                    log.debug("Publishing ATR Violation event. Strategy ID: {}, Symbol: {}, Indicator: {}, Timestamp: {}",
+                    log.trace("Publishing ATR Violation event. Strategy ID: {}, Symbol: {}, Indicator: {}, Timestamp: {}",
                             strategyId, bar.getInstrument(), getName(), bar.getOpenTime());
                     eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
                 }

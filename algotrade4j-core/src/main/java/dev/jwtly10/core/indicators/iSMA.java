@@ -47,7 +47,7 @@ public class iSMA implements Indicator {
      */
     @Override
     public void update(Bar bar) {
-        log.debug("Updating SMA with new bar. Close price: {}", bar.getClose());
+        log.trace("Updating SMA with new bar. Close price: {}", bar.getClose());
         rawValues.add(bar.getClose());
 
         if (isReady()) {
@@ -59,7 +59,7 @@ public class iSMA implements Indicator {
             IndicatorValue indicatorValue = new IndicatorValue(smaPrice, bar.getOpenTime());
             values.add(indicatorValue);
             if (eventPublisher != null) {
-                log.debug("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
+                log.trace("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
                         strategyId, bar.getInstrument(), getName(), smaPrice, bar.getOpenTime());
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
@@ -108,7 +108,7 @@ public class iSMA implements Indicator {
      */
     @Override
     public boolean isReady() {
-        log.debug("Checking if SMA is ready. Values size: {}, Period: {}", rawValues.size(), period);
+        log.trace("Checking if SMA is ready. Values size: {}, Period: {}", rawValues.size(), period);
         return rawValues.size() >= period;
     }
 

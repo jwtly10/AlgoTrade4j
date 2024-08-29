@@ -24,14 +24,14 @@ public class DefaultTradeStateManager implements TradeStateManager {
     @Override
     public void updateTradeStates(TradeManager tradeManager, Tick tick) {
         if (tick == null && lastTick == null) {
-            // TODO: This is a hack, we shouldn't do this
-            log.warn("Tick data is null. Skipping hack update.");
+            // This will handles cases when the strategy first starts and there are no ticks to process
+            log.trace("Tick data is null. Skipping hack update.");
             return;
         } else if (tick == null) {
             tick = lastTick;
         }
         this.lastTick = tick;
-        log.debug("Current prices - Ask: {}, Bid: {}", tick.getAsk(), tick.getBid());
+        log.trace("Current prices - Ask: {}, Bid: {}", tick.getAsk(), tick.getBid());
 
         Tick finalTick = tick;
         tradeManager.getOpenTrades().values().forEach(trade -> {
@@ -60,15 +60,15 @@ public class DefaultTradeStateManager implements TradeStateManager {
         Number profit = priceDifference.multiply(trade.getQuantity().getValue());
         trade.setProfit(profit.roundMoneyDown());
         eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
-        log.debug("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
+        log.trace("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }
 
     private void checkAndExecuteStopLossTakeProfit(Trade trade, TradeManager tradeManager, Tick tick) {
         if (hasHitStopLoss(trade, tick)) {
-            log.info("Stop loss hit for trade id : {}. SL at: {}, current tick at: {}. Loss: {}", trade.getId(), trade.getStopLoss(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
+            log.trace("Stop loss hit for trade id : {}. SL at: {}, current tick at: {}. Loss: {}", trade.getId(), trade.getStopLoss(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
             tradeManager.closePosition(trade.getId(), false);
         } else if (hasHitTakeProfit(trade, tick)) {
-            log.info("Take profit hit for trade id : {}. TP at: {}, current tick at: {}. Profit: {}", trade.getId(), trade.getTakeProfit(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
+            log.trace("Take profit hit for trade id : {}. TP at: {}, current tick at: {}. Profit: {}", trade.getId(), trade.getTakeProfit(), trade.isLong() ? tick.getBid() : tick.getAsk(), trade.getProfit());
             tradeManager.closePosition(trade.getId(), false);
         }
     }
@@ -106,7 +106,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
         Number initialBalance = accountManager.getInitialBalance();
         Number currentBalance = initialBalance.add(totalProfit);
 
-        log.debug("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
+        log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
         // Set the current balance
         accountManager.setBalance(currentBalance);
 
@@ -117,7 +117,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 .reduce(Number.ZERO, Number::add);
         Number equity = currentBalance.add(unrealizedProfitLoss);
         accountManager.setEquity(equity);
-        log.debug("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
+        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
     }
 }

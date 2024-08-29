@@ -21,9 +21,13 @@ public class StrategyReflectionUtils {
             Class<?> clazz;
             try {
                 clazz = Class.forName("dev.jwtly10.core.strategy." + className);
-            } catch (Exception e) {
-                log.warn("Could not find class name in package 'dev.jwtly10.core.strategy'. Trying .private_strats.");
-                clazz = Class.forName("dev.jwtly10.core.strategy.private_strats." + className);
+            } catch (ClassNotFoundException e) {
+                try {
+                    clazz = Class.forName("dev.jwtly10.core.strategy.private_strats." + className);
+                } catch (ClassNotFoundException err) {
+                    log.error("Could not find strategy class name: {}", className, err);
+                    throw err;
+                }
             }
 
             Strategy strategy;

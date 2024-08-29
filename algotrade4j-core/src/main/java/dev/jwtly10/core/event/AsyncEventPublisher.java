@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class AsyncEventPublisher implements EventPublisher {
-    private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 200;
     private static final long MAX_BATCH_WAIT_MS = 100;
     private final List<EventListener> listeners = new ArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

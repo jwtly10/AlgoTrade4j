@@ -1,6 +1,5 @@
 package dev.jwtly10.core.event;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.jwtly10.core.analysis.AnalysisStats;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.model.Instrument;
@@ -44,15 +43,5 @@ public class AnalysisEvent extends BaseEvent {
                 performanceAnalyser.getSharpeRatio(),
                 performanceAnalyser.getTicksModelled()
         );
-    }
-
-    // TODO: Remove (only for debug purposes)
-    public String pretty() {
-        try {
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            return objectMapper.writeValueAsString(this.stats);
-        } catch (Exception e) {
-            return "Error generating JSON: " + e.getMessage();
-        }
     }
 }

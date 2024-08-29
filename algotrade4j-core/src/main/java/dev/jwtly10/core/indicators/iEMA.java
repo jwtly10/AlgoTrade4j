@@ -46,7 +46,7 @@ public class iEMA implements Indicator {
      */
     @Override
     public void update(Bar bar) {
-        log.debug("Updating EMA with new bar. Close price: {}", bar.getClose());
+        log.trace("Updating EMA with new bar. Close price: {}", bar.getClose());
 
         if (values.isEmpty()) {
             // First value is treated as SMA
@@ -62,7 +62,7 @@ public class iEMA implements Indicator {
         }
 
         if (eventPublisher != null) {
-            log.debug("Publishing EMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
+            log.trace("Publishing EMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
                     strategyId, bar.getInstrument(), getName(), getValue(), bar.getOpenTime());
             eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), values.get(values.size() - 1)));
         }

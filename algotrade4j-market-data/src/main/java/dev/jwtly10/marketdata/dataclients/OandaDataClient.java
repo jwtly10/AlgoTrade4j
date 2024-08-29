@@ -45,7 +45,7 @@ public class OandaDataClient implements ExternalDataClient {
                 }
 
                 List<DefaultBar> batchBars = fetchBatch(instrument, currentFrom, batchTo, period);
-                log.debug("Found {} bars", batchBars.size());
+                log.debug("Found {} bars in latest fetch. Processing them now.", batchBars.size());
 
                 if (batchBars.isEmpty()) {
                     break; // No more data available

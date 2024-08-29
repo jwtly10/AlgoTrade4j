@@ -113,7 +113,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             stop();
         }
 
-        log.debug("Received tick: {}", tick);
+        log.trace("Received tick: {}", tick);
         ticksModeled++;
 
         try {
@@ -123,7 +123,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             if (currentBar == null) {
                 initializeNewBar(tick);
             } else if (tick.getDateTime().isAfter(nextBarCloseTime) || tick.getDateTime().isEqual(nextBarCloseTime)) { // TODO: For now we treat bars closing as -1 second before the next period
-                log.debug("Closing current bar because: {} ({})",
+                log.trace("Closing current bar because: {} ({})",
                         tick.getDateTime().isAfter(nextBarCloseTime) ? "Tick time is after next bar close time" : "Tick time is equal to next bar close time %s", nextBarCloseTime);
                 closeCurrentBar();
                 initializeNewBar(tick);
@@ -184,7 +184,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     }
 
     private void closeCurrentBar() {
-        log.debug("Bar being closed: {}", currentBar);
+        log.trace("Bar being closed: {}", currentBar);
         if (currentBar != null) {
             barSeries.addBar(currentBar);
             notifyBarClose(currentBar);

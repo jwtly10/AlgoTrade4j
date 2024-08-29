@@ -94,7 +94,7 @@ public class BacktestExecutor implements DataListener {
             // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
             IndicatorUtils.updateIndicators(strategy, closedBar);
             strategy.onBarClose(closedBar);
-            log.debug("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
+            log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }

@@ -219,8 +219,8 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onDeInit() {
+        log.info("Strategy {} de init-ed", strategyId);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
-
     }
 
     /**
@@ -275,13 +275,13 @@ public abstract class BaseStrategy implements Strategy {
      * @return the created indicator
      */
     protected <T extends Indicator> T createIndicator(Class<T> indicatorClass, Object... params) {
-        log.info("Creating indicator: '{}' with params: '{}'", indicatorClass.getSimpleName(), params);
+        log.trace("Creating indicator: '{}' with params: '{}'", indicatorClass.getSimpleName(), params);
 
         // TODO: We should do something better than this.
         if ((indicatorClass.getSimpleName().equals("iSMA") || indicatorClass.getSimpleName().equals("iEMA")) & params[0].equals(0)) {
             // This means the user needs to be aware that indicators are null if they are set to the nullable value
             // So access them will fail
-            log.warn("An iSMA has value 0. Will not create indicator");
+            log.trace("An iSMA has value 0. Will not create indicator");
             return null;
         }
 
@@ -345,7 +345,7 @@ public abstract class BaseStrategy implements Strategy {
     private <T> Constructor<T> findMatchingConstructor(Class<T> cls, Class<?>[] paramTypes) {
         Constructor<?>[] constructors = cls.getConstructors();
         for (Constructor<?> constructor : constructors) {
-            log.debug("Constructor found with types: {}", constructor.getParameterTypes());
+            log.trace("Constructor found with types: {}", constructor.getParameterTypes());
             Class<?>[] ctorParamTypes = constructor.getParameterTypes();
             if (isAssignable(ctorParamTypes, paramTypes)) {
                 return (Constructor<T>) constructor;
