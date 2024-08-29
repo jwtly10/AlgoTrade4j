@@ -23,12 +23,14 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
 public class OptimisationManager {
+    Executor virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private Map<String, OptimisationResult> optimisationResults = new ConcurrentHashMap<>();
-
     @Value("${oanda.api.key}")
     private String oandaApiKey;
     @Value("${oanda.account.id}")
@@ -64,6 +66,7 @@ public class OptimisationManager {
         OptimisationExecutor optimisationExecutor = new OptimisationExecutor(internalEventPublisher, dataProvider);
 
         CompletableFuture.runAsync(() -> {
+            Thread.currentThread().setName("OptimisationExecutor-" + optimisationId);
             try {
                 OptimisationResult result = optimisationExecutor.runOptimisation(config);
                 optimisationResults.put(optimisationId, result);
@@ -71,11 +74,11 @@ public class OptimisationManager {
                 log.error("Failed to run optimisation", e);
                 throw new StrategyManagerException("Failed to start optimisation: " + e.getMessage(), ErrorType.BAD_REQUEST);
             }
-        });
+        }, virtualThreadExecutor);
     }
 
     public OptimisationResult getResults(String optimisationId) {
-        log.debug("All optimisation results: {}", optimisationResults);
+        log.trace("All optimisation results: {}", optimisationResults);
         return optimisationResults.get(optimisationId);
     }
 }
