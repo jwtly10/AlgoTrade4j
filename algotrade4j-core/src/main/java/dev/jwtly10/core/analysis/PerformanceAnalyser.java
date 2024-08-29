@@ -45,7 +45,7 @@ import java.util.Map;
 public class PerformanceAnalyser {
     // Equity History
     private final List<EquityPoint> equityHistory = new ArrayList<>();
-    private Number peakEquity = Number.ZERO;
+    private double peakEquity = 0;
 
     // Stats
     private int ticksModelled = 0;
@@ -56,7 +56,7 @@ public class PerformanceAnalyser {
     private Number initialDeposit = Number.ZERO;
     private Number totalNetProfit = Number.ZERO;
     private Number profitFactor = Number.ZERO;
-    private Number maxDrawdown = Number.ZERO;
+    private double maxDrawdown = 0;
     private Number grossProfit = Number.ZERO;
     private Number grossLoss = Number.ZERO;
     private Number expectedPayoff = Number.ZERO;
@@ -88,10 +88,13 @@ public class PerformanceAnalyser {
      * @param equity The current equity
      * @param timestamp The timestamp of the tick
      */
-    public void updateOnTick(Number equity, ZonedDateTime timestamp) {
+    public void updateOnTick(double equity) {
         ticksModelled++;
-        equityHistory.add(new EquityPoint(equity, timestamp));
         updateMaxDrawdown(equity);
+    }
+
+    public void updateOnBar(double equity, ZonedDateTime timestamp) {
+        equityHistory.add(new EquityPoint(equity, timestamp));
     }
 
     /*
@@ -312,16 +315,17 @@ public class PerformanceAnalyser {
      * Update the max drawdown of the trading strategy
      * @param equity The current equity
      */
-    private void updateMaxDrawdown(Number equity) {
-        if (equity.isGreaterThan(peakEquity)) {
+    private void updateMaxDrawdown(double equity) {
+        if (equity > peakEquity) {
             peakEquity = equity;
         }
-        Number drawdown = peakEquity.subtract(equity).divide(peakEquity.getValue()).multiply(new Number(100));
-        if (drawdown.isGreaterThan(maxDrawdown)) {
-            maxDrawdown = drawdown.roundMoneyDown();
+        double drawdown = ((peakEquity - equity) / peakEquity) * 100;
+
+        if (drawdown > maxDrawdown) {
+            maxDrawdown = drawdown;
         }
     }
 
-    public record EquityPoint(Number equity, ZonedDateTime timestamp) {
+    public record EquityPoint(double equity, ZonedDateTime timestamp) {
     }
 }

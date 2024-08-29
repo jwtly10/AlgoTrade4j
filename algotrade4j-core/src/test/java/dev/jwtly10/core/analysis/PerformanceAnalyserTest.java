@@ -34,12 +34,12 @@ public class PerformanceAnalyserTest {
         trades.put(4, createTrade(4, new Number(1), now.plusHours(6), new Number(10300), new Number(10200), new Number(10400), false, new Number(-200), new Number(10320), now.plusHours(7)));
         trades.put(5, createTrade(5, new Number(1), now.plusHours(8), new Number(10400), new Number(10300), new Number(10500), true, new Number(600), new Number(10460), now.plusHours(9)));
 
-        analyser.updateOnTick(new Number(10000), now);
-        analyser.updateOnTick(new Number(10500), now.plusHours(1));
-        analyser.updateOnTick(new Number(10200), now.plusHours(3));
-        analyser.updateOnTick(new Number(10600), now.plusHours(5));
-        analyser.updateOnTick(new Number(10400), now.plusHours(7));
-        analyser.updateOnTick(new Number(11000), now.plusHours(9));
+        analyser.updateOnTick(10000);
+        analyser.updateOnTick((10500));
+        analyser.updateOnTick((10200));
+        analyser.updateOnTick((10600));
+        analyser.updateOnTick((10400));
+        analyser.updateOnTick((11000));
 
         assertEquals(6, analyser.getTicksModelled());
 
@@ -76,7 +76,7 @@ public class PerformanceAnalyserTest {
         assertEquals(new Number(2), analyser.getAverageConsecutiveWins());
         assertEquals(new Number(1), analyser.getAverageConsecutiveLosses());
 
-        assertEquals(new Number(2.85), analyser.getMaxDrawdown().roundMoneyDown());
+        assertEquals((2.85), analyser.getMaxDrawdown());
 
         // Assert Sharpe ratio
         assertTrue(analyser.getSharpeRatio().isGreaterThan(Number.ZERO));
@@ -165,13 +165,13 @@ public class PerformanceAnalyserTest {
         Number initialBalance = new Number(10000);
         ZonedDateTime now = ZonedDateTime.now();
 
-        analyser.updateOnTick(new Number(10000), now);
-        analyser.updateOnTick(new Number(10500), now.plusHours(1));
-        analyser.updateOnTick(new Number(10200), now.plusHours(2));
-        analyser.updateOnTick(new Number(9800), now.plusHours(3));
-        analyser.updateOnTick(new Number(10100), now.plusHours(4));
+        analyser.updateOnTick((10000));
+        analyser.updateOnTick((10500));
+        analyser.updateOnTick((10200));
+        analyser.updateOnTick((9800));
+        analyser.updateOnTick((10100));
 
-        assertEquals(new Number(6.66), analyser.getMaxDrawdown().roundMoneyDown());
+        assertEquals((6.66), analyser.getMaxDrawdown());
     }
 
     @Test
