@@ -1,10 +1,8 @@
 import axios from 'axios';
 import log from '../logger.js'
 
-const DEFAULT_API_URL = 'http://localhost:8080';
-
-const API_BASE_URL = `${import.meta.env.VITE_API_URL || DEFAULT_API_URL}/api/v1`;
-const WS_BASE_URL = `${(import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace('http', 'ws')}/ws/v1`;
+const API_BASE_URL = `/api/v1`;
+const WS_BASE_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,

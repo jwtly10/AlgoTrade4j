@@ -43,7 +43,7 @@ const VersionBanner = () => {
 
     const getBannerContent = () => {
         const capitalizedEnvironment = versionInfo.environment.toUpperCase();
-        return `Environment: ${capitalizedEnvironment} | Version: ${versionInfo.version} | Commit: ${versionInfo.commit}`;
+        return `(${capitalizedEnvironment})  Version: ${versionInfo.version}`;
     };
 
     return (
