@@ -143,7 +143,7 @@ public class OptimisationExecutor {
 
             String id = "optimisation-" + config.getStrategyClass() + "-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "");
             strategyParameters.put(id, new HashMap<>(parameterCombination));
-            log.info("Strategy parameters: {}", strategyParameters);
+            log.info("Strategy parameters size: {}", strategyParameters.size());
 
             TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, id, eventPublisher);
             AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());

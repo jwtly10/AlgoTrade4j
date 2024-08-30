@@ -8,7 +8,6 @@ import dev.jwtly10.core.model.Number;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +21,6 @@ public class iATRCandle implements Indicator {
     private final iATR atr;
     @Getter
     private final List<IndicatorValue> values;
-    @Getter
-    private final List<ZonedDateTime> violationTimestamps;
     private final String name;
     private Bar prevBar;
     private String strategyId;
@@ -34,7 +31,6 @@ public class iATRCandle implements Indicator {
         this.atrMultiplier = sensitivity;
         this.atr = new iATR(atrPeriod);
         this.values = new ArrayList<>();
-        this.violationTimestamps = new ArrayList<>();
         this.name = "ATR_CANDLE " + atrPeriod + " " + sensitivity;
         this.relativeSize = relativeSize;
     }
@@ -49,7 +45,6 @@ public class iATRCandle implements Indicator {
             values.add(indicatorValue);
 
             if (violation) {
-                violationTimestamps.add(bar.getOpenTime());
                 if (eventPublisher != null) {
                     log.trace("Publishing ATR Violation event. Strategy ID: {}, Symbol: {}, Indicator: {}, Timestamp: {}",
                             strategyId, bar.getInstrument(), getName(), bar.getOpenTime());

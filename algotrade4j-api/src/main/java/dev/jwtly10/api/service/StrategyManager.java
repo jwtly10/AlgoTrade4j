@@ -129,14 +129,11 @@ public class StrategyManager {
 
     /**
      * Stop a running strategy.
-     * This is deprecated for now, as its easier to just drop websocket connects to a strategy to trigger close
-     * this also handles cases of client disconnects.
-     * TODO: Remove this once sure no longer needed
+     * Used internally to stop a strategy from a lost ws connection.
      *
      * @param strategyId The ID of the strategy to stop.
      * @return True if the strategy was stopped successfully, false otherwise.
      */
-    @Deprecated
     public boolean stopStrategy(String strategyId) {
         BacktestExecutor executor = runningStrategies.get(strategyId);
         if (executor == null) {

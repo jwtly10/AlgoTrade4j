@@ -424,7 +424,7 @@ const BacktestView = () => {
                                 data.action === 'CLOSE'
                                     ? trade.closePrice.value
                                     : trade.entryPrice.value,
-                            profit: trade.profit.value,
+                            profit: trade.profit,
                             action: data.action,
                         };
                         return updatedTrades;
@@ -449,7 +449,7 @@ const BacktestView = () => {
                                     data.action === 'CLOSE'
                                         ? trade.closePrice.value
                                         : trade.entryPrice.value,
-                                profit: trade.profit.value,
+                                profit: trade.profit,
                                 action: data.action,
                             },
                         ];
@@ -506,7 +506,7 @@ const BacktestView = () => {
                         isLong: trade.long,
                         position: trade.long ? 'long' : 'short',
                         price: trade.closePrice ? trade.closePrice.value : trade.entryPrice.value,
-                        profit: trade.profit ? trade.profit.value : null,
+                        profit: trade.profit ? trade.profit.toFixed(2) : null,
                         action: trade.closeTime ? 'CLOSE' : 'OPEN',
                     }));
 

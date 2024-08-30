@@ -160,7 +160,7 @@ public class DefaultTradeManager implements TradeManager {
         log.trace("Profit/Loss calculation: {} * {} = {}",
                 priceDifference, trade.getQuantity().getValue(), profitLoss);
 
-        trade.setProfit(profitLoss.roundMoneyDown());
+        trade.setProfit(profitLoss.doubleValue());
 
         log.trace("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 
@@ -179,10 +179,10 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     @Override
-    public Number getOpenPositionValue(Instrument instrument) {
+    public double getOpenPositionValue(Instrument instrument) {
         return openTrades.values().stream()
                 .filter(trade -> trade.getInstrument().equals(instrument))
                 .map(Trade::getProfit)
-                .reduce(Number.ZERO, Number::add);
+                .reduce(0.0, Double::sum);
     }
 }

@@ -44,57 +44,58 @@ public class PerformanceAnalyserTest {
         assertEquals(6, analyser.getTicksModelled());
 
         // Calculate statistics
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
         // Assert balance stats
-        assertEquals(new Number(1600), analyser.getTotalNetProfit());
-        assertEquals(new Number(1800), analyser.getGrossProfit());
-        assertEquals(new Number(-200), analyser.getGrossLoss());
-        assertEquals(new Number(9), analyser.getProfitFactor());
-        assertEquals(new Number(320), analyser.getExpectedPayoff());
+        assertEquals((1600), analyser.getTotalNetProfit());
+        assertEquals((1800), analyser.getGrossProfit());
+        assertEquals((-200), analyser.getGrossLoss());
+        assertEquals((9), analyser.getProfitFactor());
+        assertEquals((320), analyser.getExpectedPayoff());
 
         // Assert trade stats
         assertEquals(5, analyser.getTotalTrades());
         assertEquals(3, analyser.getTotalLongTrades());
         assertEquals(3, analyser.getTotalLongWinningTrades());
-        assertEquals(new Number(100), analyser.getLongWinPercentage());
+        assertEquals((100), analyser.getLongWinPercentage());
         assertEquals(2, analyser.getTotalShortTrades());
         assertEquals(1, analyser.getTotalShortWinningTrades());
-        assertEquals(new Number(50), analyser.getShortWinPercentage());
+
+        assertEquals((50), analyser.getShortWinPercentage());
 
         // Assert trade return stats
-        assertEquals(new Number(600), analyser.getLargestProfitableTrade());
-        assertEquals(new Number(-200), analyser.getLargestLosingTrade());
-        assertEquals(new Number(450), analyser.getAverageProfitableTradeReturn());
-        assertEquals(new Number(-200), analyser.getAverageLosingTradeReturn());
+        assertEquals((600), analyser.getLargestProfitableTrade());
+        assertEquals((-200), analyser.getLargestLosingTrade());
+        assertEquals((450), analyser.getAverageProfitableTradeReturn());
+        assertEquals((-200), analyser.getAverageLosingTradeReturn());
 
         // Assert consecutive stats
         assertEquals(3, analyser.getMaxConsecutiveWins());
         assertEquals(1, analyser.getMaxConsecutiveLosses());
-        assertEquals(new Number(1200), analyser.getMaxConsecutiveProfit());
-        assertEquals(new Number(-200), analyser.getMaxConsecutiveLoss());
-        assertEquals(new Number(2), analyser.getAverageConsecutiveWins());
-        assertEquals(new Number(1), analyser.getAverageConsecutiveLosses());
+        assertEquals((1200), analyser.getMaxConsecutiveProfit());
+        assertEquals((-200), analyser.getMaxConsecutiveLoss());
+        assertEquals((2), analyser.getAverageConsecutiveWins());
+        assertEquals((1), analyser.getAverageConsecutiveLosses());
 
         assertEquals(2.85, analyser.getMaxDrawdown(), 0.01);
 
         // Assert Sharpe ratio
-        assertTrue(analyser.getSharpeRatio().isGreaterThan(Number.ZERO));
+        assertTrue(analyser.getSharpeRatio() > 0);
     }
 
     @Test
     void testEmptyTradeList() {
         Map<Integer, Trade> trades = new HashMap<>();
         Number initialBalance = new Number(10000);
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
-        assertEquals(Number.ZERO, analyser.getTotalNetProfit());
-        assertEquals(Number.ZERO, analyser.getGrossProfit());
-        assertEquals(Number.ZERO, analyser.getGrossLoss());
-        assertEquals(Number.ZERO, analyser.getProfitFactor());
-        assertEquals(Number.ZERO, analyser.getExpectedPayoff());
+        assertEquals(0, analyser.getTotalNetProfit());
+        assertEquals(0, analyser.getGrossProfit());
+        assertEquals(0, analyser.getGrossLoss());
+        assertEquals(0, analyser.getProfitFactor());
+        assertEquals(0, analyser.getExpectedPayoff());
         assertEquals(0, analyser.getTotalTrades());
-        assertEquals(Number.ZERO, analyser.getSharpeRatio());
+        assertEquals(0, analyser.getSharpeRatio());
     }
 
     @Test
@@ -106,18 +107,18 @@ public class PerformanceAnalyserTest {
         trades.put(1, createTrade(1, new Number(1), now, new Number(100), new Number(90), new Number(110), true, new Number(100), new Number(110), now.plusHours(1)));
         trades.put(2, createTrade(2, new Number(1), now.plusHours(2), new Number(110), new Number(100), new Number(120), false, new Number(50), new Number(105), now.plusHours(3)));
 
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
-        assertEquals(new Number(150), analyser.getTotalNetProfit());
-        assertEquals(new Number(150), analyser.getGrossProfit());
-        assertEquals(Number.ZERO, analyser.getGrossLoss());
-        assertTrue(analyser.getProfitFactor().equals(Number.ZERO) ||
-                        analyser.getProfitFactor().isGreaterThan(new Number("1E10")),
+        assertEquals((150), analyser.getTotalNetProfit());
+        assertEquals((150), analyser.getGrossProfit());
+        assertEquals(0, analyser.getGrossLoss());
+        assertTrue(analyser.getProfitFactor() == 0 ||
+                        analyser.getProfitFactor() > Double.parseDouble("1E10"),
                 "Profit factor should be undefined (represented as zero) or a very large number");
-        assertEquals(new Number(75), analyser.getExpectedPayoff());
+        assertEquals((75), analyser.getExpectedPayoff());
         assertEquals(2, analyser.getTotalTrades());
-        assertEquals(new Number(100), analyser.getLongWinPercentage());
-        assertEquals(new Number(100), analyser.getShortWinPercentage());
+        assertEquals((100), analyser.getLongWinPercentage());
+        assertEquals((100), analyser.getShortWinPercentage());
     }
 
     @Test
@@ -129,16 +130,16 @@ public class PerformanceAnalyserTest {
         trades.put(1, createTrade(1, new Number(1), now, new Number(100), new Number(90), new Number(110), true, new Number(-50), new Number(95), now.plusHours(1)));
         trades.put(2, createTrade(2, new Number(1), now.plusHours(2), new Number(110), new Number(100), new Number(120), false, new Number(-30), new Number(113), now.plusHours(3)));
 
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
-        assertEquals(new Number(-80), analyser.getTotalNetProfit());
-        assertEquals(Number.ZERO, analyser.getGrossProfit());
-        assertEquals(new Number(-80), analyser.getGrossLoss());
-        assertEquals(Number.ZERO, analyser.getProfitFactor());
-        assertEquals(new Number(-40), analyser.getExpectedPayoff());
+        assertEquals((-80), analyser.getTotalNetProfit());
+        assertEquals(0, analyser.getGrossProfit());
+        assertEquals((-80), analyser.getGrossLoss());
+        assertEquals(0, analyser.getProfitFactor());
+        assertEquals((-40), analyser.getExpectedPayoff());
         assertEquals(2, analyser.getTotalTrades());
-        assertEquals(Number.ZERO, analyser.getLongWinPercentage());
-        assertEquals(Number.ZERO, analyser.getShortWinPercentage());
+        assertEquals(0, analyser.getLongWinPercentage());
+        assertEquals(0, analyser.getShortWinPercentage());
     }
 
     @Test
@@ -152,19 +153,16 @@ public class PerformanceAnalyserTest {
         trades.put(3, createTrade(3, new Number(1), now.plusHours(4), new Number(115), new Number(105), new Number(125), false, new Number(-30), new Number(118), now.plusHours(5)));
         trades.put(4, createTrade(4, new Number(1), now.plusHours(6), new Number(118), new Number(108), new Number(128), false, new Number(-40), new Number(122), now.plusHours(7)));
 
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
         assertEquals(2, analyser.getMaxConsecutiveWins());
         assertEquals(2, analyser.getMaxConsecutiveLosses());
-        assertEquals(new Number(150), analyser.getMaxConsecutiveProfit());
-        assertEquals(new Number(-70), analyser.getMaxConsecutiveLoss());
+        assertEquals((150), analyser.getMaxConsecutiveProfit());
+        assertEquals((-70), analyser.getMaxConsecutiveLoss());
     }
 
     @Test
     void testDrawdown() {
-        Number initialBalance = new Number(10000);
-        ZonedDateTime now = ZonedDateTime.now();
-
         analyser.updateOnTick((10000));
         analyser.updateOnTick((10500));
         analyser.updateOnTick((10200));
@@ -184,14 +182,14 @@ public class PerformanceAnalyserTest {
             trades.put(i, createTrade(i, new Number(1), now.plusHours(i), new Number(100 + i * 10), new Number(90 + i * 10), new Number(110 + i * 10), true, new Number(50), new Number(105 + i * 10), now.plusHours(i + 1)));
         }
 
-        analyser.calculateStatistics(trades, initialBalance);
+        analyser.calculateStatistics(trades, initialBalance.doubleValue());
 
-        assertEquals(Number.ZERO, analyser.getSharpeRatio());
+        assertEquals(0, analyser.getSharpeRatio());
     }
 
     private Trade createTrade(int id, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong, Number profit, Number closePrice, ZonedDateTime closeTime) {
         Trade trade = new Trade(id, Instrument.NAS100USD, quantity, openTime, entryPrice, stopLoss, takeProfit, isLong);
-        trade.setProfit(profit.roundMoneyDown());
+        trade.setProfit(profit.doubleValue());
         trade.setClosePrice(closePrice);
         trade.setCloseTime(closeTime);
         return trade;

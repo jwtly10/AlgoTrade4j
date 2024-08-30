@@ -1,7 +1,6 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.exception.InvalidTradeException;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 
 import java.util.Map;
@@ -58,7 +57,7 @@ public interface TradeManager {
      *
      * @return The total value of open positions
      */
-    Number getOpenPositionValue(Instrument instrument);
+    double getOpenPositionValue(Instrument instrument);
 
     Map<Integer, Trade> getAllTrades();
 

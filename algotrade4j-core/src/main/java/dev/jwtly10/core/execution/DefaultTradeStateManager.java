@@ -58,7 +58,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 : trade.getEntryPrice().subtract(currentPrice);
 
         Number profit = priceDifference.multiply(trade.getQuantity().getValue());
-        trade.setProfit(profit.roundMoneyDown());
+        trade.setProfit(profit.doubleValue());
         eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
         log.trace("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }
@@ -98,25 +98,25 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     private void updateAccountBalanceAndEquity(AccountManager accountManager, TradeManager tradeManager) {
-        Number totalProfit = tradeManager.getAllTrades().values().stream()
+        double totalProfit = tradeManager.getAllTrades().values().stream()
                 .map(Trade::getProfit)
-                .reduce(Number.ZERO, Number::add);
+                .reduce(0.0, Double::sum);
 
         // Calculate current balance by adding total profit to initial balance
-        Number initialBalance = accountManager.getInitialBalance();
-        Number currentBalance = initialBalance.add(totalProfit);
+        double initialBalance = accountManager.getInitialBalance().doubleValue();
+        double currentBalance = initialBalance +totalProfit;
 
         log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
         // Set the current balance
-        accountManager.setBalance(currentBalance);
+        accountManager.setBalance(new Number(currentBalance));
 
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
-        Number unrealizedProfitLoss = tradeManager.getAllTrades().values().stream()
+        double unrealizedProfitLoss = tradeManager.getAllTrades().values().stream()
                 .filter(trade -> trade.getClosePrice().equals(Number.ZERO)) // Filter for open trades
                 .map(Trade::getProfit)
-                .reduce(Number.ZERO, Number::add);
-        Number equity = currentBalance.add(unrealizedProfitLoss);
-        accountManager.setEquity(equity);
+                .reduce(0.0, Double::sum);
+        double equity = currentBalance + unrealizedProfitLoss;
+        accountManager.setEquity(new Number(equity));
         log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
     }

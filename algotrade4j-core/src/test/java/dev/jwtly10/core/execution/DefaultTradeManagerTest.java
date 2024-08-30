@@ -151,7 +151,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(new Number(2), backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(2, backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -180,7 +180,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(new Number(-1), backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(-1, backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -208,7 +208,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(new Number(1.5), backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(1.5, backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -236,7 +236,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(new Number(-1.1), backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(-1.1, backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&

@@ -39,3 +39,5 @@ algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/private_strats/
 lib/
 logs/
 .env-staging
+**/.flattened-pom.xml
+heapdump*

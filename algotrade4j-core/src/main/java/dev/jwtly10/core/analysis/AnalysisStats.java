@@ -1,7 +1,4 @@
 package dev.jwtly10.core.analysis;
 
-import dev.jwtly10.core.model.Number;
-
-public record AnalysisStats(Number initialDeposit, Number totalNetProfit, Number grossProfit, Number grossLoss, Number profitFactor, Number expectedPayoff, double maxDrawdown, int totalTrades, int totalLongTrades, int totalLongWinningTrades, Number longWinPercentage, int totalShortTrades, int totalShortWinningTrades, Number shortWinPercentage, Number largestProfitableTrade, Number largestLosingTrade, Number averageProfitableTradeReturn, Number averageLosingTradeReturn, int maxConsecutiveWins,
-                            int maxConsecutiveLosses, Number maxConsecutiveProfit, Number maxConsecutiveLoss, Number averageConsecutiveWins, Number averageConsecutiveLosses, Number sharpeRatio, int ticksModelled) {
+public record AnalysisStats(double initialDeposit, double totalNetProfit, double grossProfit, double grossLoss, double profitFactor, double expectedPayoff, double maxDrawdown, int totalTrades, int totalLongTrades, int totalLongWinningTrades, double longWinPercentage, int totalShortTrades, int totalShortWinningTrades, double shortWinPercentage, double largestProfitableTrade, double largestLosingTrade, double averageProfitableTradeReturn, double averageLosingTradeReturn, int maxConsecutiveWins, int maxConsecutiveLosses, double maxConsecutiveProfit, double maxConsecutiveLoss, double averageConsecutiveWins, double averageConsecutiveLosses, double sharpeRatio, int ticksModelled) {
 }

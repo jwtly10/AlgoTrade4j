@@ -26,7 +26,6 @@ export const useOptimisationResults = (apiClient) => {
             }
         } catch (error) {
             if (error.response && error.response.status === 404) {
-                log.debug("This was 404");
                 // Continue polling on 404
                 setIsPolling(true);
             } else {

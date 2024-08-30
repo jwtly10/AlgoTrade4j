@@ -135,7 +135,7 @@ public class BacktestExecutor implements DataListener {
         tradeStateManager.updateAccountState(accountManager, tradeManager);
 
         // Run final performance analysis
-        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
+        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance().getValue().doubleValue());
 
         // Spin down the strategy
         strategy.onDeInit();
