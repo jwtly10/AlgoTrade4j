@@ -1,13 +1,13 @@
 import axios from 'axios';
-import log from '../logger.js'
+import log from '../logger.js';
 
 // In prod we are deployed on the same host.
 // Locally we run apps seperately on same host
 const isDev = import.meta.env.MODE === 'development';
-const API_BASE_URL = isDev
-    ? 'http://localhost:8080/api/v1'
-    : '/api/v1';
-const WS_BASE_URL = isDev ? `${'http://localhost:8080'.replace('http', 'ws')}/ws/v1` : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
+const API_BASE_URL = isDev ? 'http://localhost:8080/api/v1' : '/api/v1';
+const WS_BASE_URL = isDev
+    ? `${'http://localhost:8080'.replace('http', 'ws')}/ws/v1`
+    : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
@@ -18,6 +18,19 @@ const axiosInstance = axios.create({
 });
 
 export const systemClient = {
+    /**
+     * This is a utility method to dump the java heap from the frontend
+     * it will only work when running locally hence hardcoding localhost:8080
+     **/
+    dumpHeap: async () => {
+        const url = 'http://localhost:8080/generate-heapdump';
+        try {
+            const res = await axios.get(url);
+            console.log(res);
+        } catch (error) {
+            console.log(error);
+        }
+    },
     monitor: async () => {
         const url = '/system/monitor';
         try {
@@ -42,7 +55,7 @@ export const authClient = {
     login: async (username, password) => {
         const url = '/auth/signin';
         try {
-            const response = await axiosInstance.post(url, {username, password});
+            const response = await axiosInstance.post(url, { username, password });
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -77,7 +90,7 @@ export const authClient = {
         } catch (error) {
             return handleError(error, url);
         }
-    }
+    },
 };
 
 export const adminClient = {
@@ -87,7 +100,7 @@ export const adminClient = {
             const response = await axiosInstance.post(url, userData);
             return handleResponse(response, url);
         } catch (error) {
-            return handleError(error, url)
+            return handleError(error, url);
         }
     },
 
@@ -114,7 +127,7 @@ export const adminClient = {
     changeUserPassword: async (userId, newPassword) => {
         const url = `/admin/users/${userId}/change-password`;
         try {
-            const response = await axiosInstance.post(url, {newPassword});
+            const response = await axiosInstance.post(url, { newPassword });
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -144,7 +157,7 @@ export const adminClient = {
 export const apiClient = {
     startStrategy: async (config, strategyId, showChart) => {
         let runAsync = false;
-        if (config.speed === "INSTANT") {
+        if (config.speed === 'INSTANT') {
             runAsync = true;
         }
         const url = `/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
@@ -227,7 +240,7 @@ export const apiClient = {
             const response = await axiosInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
-            return handleError(error, url)
+            return handleError(error, url);
         }
     },
 
@@ -244,14 +257,13 @@ export const apiClient = {
     getInstruments: async () => {
         const url = `/instruments`;
         try {
-            const response = await axiosInstance.get(url)
-            return handleResponse(response, url)
+            const response = await axiosInstance.get(url);
+            return handleResponse(response, url);
         } catch (error) {
-            return handleError(error, url)
+            return handleError(error, url);
         }
-    }
+    },
 };
-
 
 const handleResponse = (response, url) => {
     log.debug(`Request Response (${url}): `, response.data);
