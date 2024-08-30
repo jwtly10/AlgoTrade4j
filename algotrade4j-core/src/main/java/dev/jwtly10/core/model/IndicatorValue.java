@@ -12,6 +12,6 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @Getter
 public class IndicatorValue {
-    private Number value;
+    private double value;
     private ZonedDateTime dateTime;
 }

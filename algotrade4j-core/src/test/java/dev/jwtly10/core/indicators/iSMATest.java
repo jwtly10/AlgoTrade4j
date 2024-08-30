@@ -34,7 +34,7 @@ class iSMATest {
         assertEquals("SMA 3", iSmaIndicator.getName());
         assertEquals(3, iSmaIndicator.getRequiredPeriods());
         assertFalse(iSmaIndicator.isReady());
-        assertEquals(Number.ZERO, iSmaIndicator.getValue());
+        assertEquals(0, iSmaIndicator.getValue());
     }
 
     @Test
@@ -46,15 +46,15 @@ class iSMATest {
         iSmaIndicator.update(bar1);
 
         assertFalse(iSmaIndicator.isReady());
-        assertEquals(Number.ZERO, iSmaIndicator.getValue());
+        assertEquals(0, iSmaIndicator.getValue());
 
         iSmaIndicator.update(bar2);
         assertFalse(iSmaIndicator.isReady());
-        assertEquals(Number.ZERO, iSmaIndicator.getValue());
+        assertEquals(0, iSmaIndicator.getValue());
 
         iSmaIndicator.update(bar3);
         assertTrue(iSmaIndicator.isReady());
-        assertEquals(new Number("20.00"), iSmaIndicator.getValue());
+        assertEquals(20.00, iSmaIndicator.getValue());
 
         verify(mockEventPublisher, times(3)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
@@ -76,8 +76,8 @@ class iSMATest {
         verify(mockEventPublisher, times(4)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
         ));
-        assertEquals(new Number("30.00"), iSmaIndicator.getValue());
-        assertEquals(new Number("20.00"), iSmaIndicator.getValue(1));
+        assertEquals(30.00, iSmaIndicator.getValue());
+        assertEquals(20.00, iSmaIndicator.getValue(1));
     }
 
     @Test
@@ -98,7 +98,7 @@ class iSMATest {
                 event instanceof IndicatorEvent
         ));
         assertTrue(iSma5.isReady());
-        assertEquals(new Number("30.00"), iSma5.getValue());
+        assertEquals(30.00, iSma5.getValue());
     }
 
     private Bar createMockBar(double closePrice) {

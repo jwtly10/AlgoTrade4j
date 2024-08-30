@@ -4,11 +4,9 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.IndicatorEvent;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.IndicatorValue;
-import dev.jwtly10.core.model.Number;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +18,7 @@ import java.util.List;
 public class iEMA implements Indicator {
     // Params
     private final int period;
-    private final BigDecimal multiplier;
+    private final double multiplier;
 
     @Getter
     private final List<IndicatorValue> values; // The data the indicator produces
@@ -35,7 +33,7 @@ public class iEMA implements Indicator {
      */
     public iEMA(int period) {
         this.period = period;
-        this.multiplier = BigDecimal.valueOf(2.0 / (period + 1));
+        this.multiplier = (2.0 / (period + 1));
         this.values = new ArrayList<>();
         this.name = "EMA " + period;
     }
@@ -50,14 +48,12 @@ public class iEMA implements Indicator {
 
         if (values.isEmpty()) {
             // First value is treated as SMA
-            IndicatorValue indicatorValue = new IndicatorValue(bar.getClose(), bar.getOpenTime());
+            IndicatorValue indicatorValue = new IndicatorValue(bar.getClose().getValue().doubleValue(), bar.getOpenTime());
             values.add(indicatorValue);
         } else {
-            Number previousEMA = values.get(values.size() - 1).getValue();
-            BigDecimal newEMA = bar.getClose().getValue().multiply(multiplier)
-                    .add(previousEMA.getValue().multiply(BigDecimal.ONE.subtract(multiplier)));
-            Number emaPrice = new Number(newEMA);
-            IndicatorValue indicatorValue = new IndicatorValue(emaPrice, bar.getOpenTime());
+            double previousEMA = values.getLast().getValue();
+            double newEMA = (bar.getClose().getValue().doubleValue() * multiplier) + (previousEMA * (1 - multiplier));
+            IndicatorValue indicatorValue = new IndicatorValue(newEMA, bar.getOpenTime());
             values.add(indicatorValue);
         }
 
@@ -73,8 +69,8 @@ public class iEMA implements Indicator {
      * Returns the current EMA value.
      */
     @Override
-    public Number getValue() {
-        return values.isEmpty() ? Number.ZERO : values.get(values.size() - 1).getValue();
+    public double getValue() {
+        return values.isEmpty() ? 0 : values.getLast().getValue();
     }
 
     /**
@@ -82,7 +78,7 @@ public class iEMA implements Indicator {
      * Returns a historical EMA value. Index are 0-based, with 0 representing the most recent value.
      */
     @Override
-    public Number getValue(int index) {
+    public double getValue(int index) {
         if (index < 0 || index >= values.size()) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + values.size());
         }

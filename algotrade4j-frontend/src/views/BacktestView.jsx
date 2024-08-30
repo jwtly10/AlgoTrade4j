@@ -334,13 +334,14 @@ const BacktestView = () => {
     };
 
     const updateIndicator = (data) => {
-        if (data.value.value.value !== 0) {
+        console.log(data)
+        if (data.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({
                 ...prevIndicators,
                 [data.indicatorName]: [
                     ...(prevIndicators[data.indicatorName] || []),
-                    {time: data.value.dateTime, value: data.value.value.value},
+                    {time: data.value.dateTime, value: data.value},
                 ],
             }));
         }
@@ -351,10 +352,10 @@ const BacktestView = () => {
             const newIndicators = {};
             Object.entries(data.indicators).forEach(([indicatorName, values]) => {
                 newIndicators[indicatorName] = values
-                    .filter(indicator => indicator.value.value !== 0)
+                    .filter(indicator => indicator.value !== 0)
                     .map(indicator => ({
                         time: indicator.dateTime,
-                        value: indicator.value.value
+                        value: indicator.value
                     }));
             });
             return newIndicators;

@@ -22,7 +22,7 @@ public class iSMA implements Indicator {
     // Params
     private final int period;
 
-    private final List<Number> rawValues; // The raw running sum
+    private final List<Double> rawValues; // The raw running sum
     @Getter
     private final List<IndicatorValue> values; // The data the indicator produces
     private final String name;
@@ -48,23 +48,22 @@ public class iSMA implements Indicator {
     @Override
     public void update(Bar bar) {
         log.trace("Updating SMA with new bar. Close price: {}", bar.getClose());
-        rawValues.add(bar.getClose());
+        rawValues.add(bar.getClose().getValue().doubleValue());
 
         if (isReady()) {
             BigDecimal sum = rawValues.subList(rawValues.size() - period, rawValues.size()).stream()
-                    .map(Number::getValue)
+                    .map(BigDecimal::valueOf)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal average = sum.divide(BigDecimal.valueOf(period), Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
-            Number smaPrice = new Number(average);
-            IndicatorValue indicatorValue = new IndicatorValue(smaPrice, bar.getOpenTime());
+            IndicatorValue indicatorValue = new IndicatorValue(average.doubleValue(), bar.getOpenTime());
             values.add(indicatorValue);
             if (eventPublisher != null) {
                 log.trace("Publishing SMA event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
-                        strategyId, bar.getInstrument(), getName(), smaPrice, bar.getOpenTime());
+                        strategyId, bar.getInstrument(), getName(), average.doubleValue(), bar.getOpenTime());
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
         } else {
-            IndicatorValue indicatorValue = new IndicatorValue(Number.ZERO, bar.getOpenTime());
+            IndicatorValue indicatorValue = new IndicatorValue(0, bar.getOpenTime());
             values.add(indicatorValue);
             if (eventPublisher != null) {
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
@@ -77,8 +76,8 @@ public class iSMA implements Indicator {
      * Returns the current SMA value.
      */
     @Override
-    public Number getValue() {
-        return values.isEmpty() ? Number.ZERO : values.getLast().getValue();
+    public double getValue() {
+        return values.isEmpty() ? 0 : values.getLast().getValue();
     }
 
     /**
@@ -86,7 +85,7 @@ public class iSMA implements Indicator {
      * Returns a historical SMA value. Index are 0-based, with 0 representing the most recent value.
      */
     @Override
-    public Number getValue(int index) {
+    public double getValue(int index) {
         if (index < 0 || index >= values.size()) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + values.size());
         }

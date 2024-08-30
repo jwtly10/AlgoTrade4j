@@ -69,6 +69,7 @@ class BacktestExecutorTest {
         Tick tick = mock(Tick.class);
         Bar currentBar = mock(Bar.class);
         backtestExecutor.initialise();
+        when(accountManager.getEquity()).thenReturn(new Number(10000));
         backtestExecutor.onTick(tick, currentBar);
         verify(strategy).onTick(tick, currentBar);
         verify(tradeManager).setCurrentTick(tick);
@@ -80,6 +81,7 @@ class BacktestExecutorTest {
     void testOnBarClose() {
         Bar closedBar = mock(Bar.class);
         backtestExecutor.initialise();
+        when(accountManager.getEquity()).thenReturn(new Number(10000));
         backtestExecutor.onBarClose(closedBar);
         verify(strategy).onBarClose(closedBar);
     }

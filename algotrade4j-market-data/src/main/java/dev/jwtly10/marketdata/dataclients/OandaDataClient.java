@@ -55,8 +55,8 @@ public class OandaDataClient implements ExternalDataClient {
                 for (Bar bar : batchBars) {
                     boolean shouldContinue = callback.onCandle(bar);
                     candlesProcessed++;
-                    if (candlesProcessed % 500 == 0) {
-                        log.info("500 bars processed");
+                    if (candlesProcessed % 300 == 0) {
+                        log.info("{}/{} bars processed", candlesProcessed, batchBars.size());
                     }
                     if (!shouldContinue) {
                         return; // Client requested to stop

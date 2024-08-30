@@ -3,7 +3,6 @@ package dev.jwtly10.core.indicators;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.IndicatorValue;
-import dev.jwtly10.core.model.Number;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public interface Indicator {
      *
      * @return the current value of the indicator as a Price object
      */
-    Number getValue();
+    double getValue();
 
     /**
      * Retrieves a historical value of the indicator.
@@ -43,7 +42,7 @@ public interface Indicator {
      * @return the historical value of the indicator at the specified index as a Price object
      * @throws IndexOutOfBoundsException if the index is negative or exceeds the number of available values
      */
-    Number getValue(int index);
+    double getValue(int index);
 
     /**
      * Retrieves the name of the indicator.
