@@ -16,9 +16,8 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:5173",
                                 "https://algotrade4j.trade",
-                                "https://www.algotrade4j.trade",
-                                "http://localhost:3000",
-                                "http://localhost")
+                                "https://www.algotrade4j.trade"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowCredentials(true);
             }

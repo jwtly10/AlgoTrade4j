@@ -30,8 +30,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .addInterceptors(new WebSocketAuthHandshakeInterceptor(jwtUtils, userDetailsService))
                 .setAllowedOrigins("http://localhost:5173",
                         "https://algotrade4j.trade",
-                        "http://localhost:3000",
-                        "http://localhost",
                         "https://www.algotrade4j.trade");
     }
 }

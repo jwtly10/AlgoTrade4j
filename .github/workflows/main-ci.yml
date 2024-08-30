@@ -105,7 +105,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          source: "infra-config/nginx.prod.conf"
+          source: "infra-config/nginx.prod.conf, infra-config/frontend-nginx.conf"
           target: "/opt/algotrade4j"
 
       - name: Configure and reload Nginx
