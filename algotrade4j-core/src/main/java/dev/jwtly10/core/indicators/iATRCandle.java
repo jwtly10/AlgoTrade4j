@@ -45,19 +45,19 @@ public class iATRCandle implements Indicator {
 
         if (atr.isReady()) {
             boolean violation = checkViolation(bar);
-            IndicatorValue indicatorValue = new IndicatorValue(violation ? Number.ONE : Number.ZERO, bar.getOpenTime());
+            IndicatorValue indicatorValue = new IndicatorValue(violation ? 1 : 0, bar.getOpenTime());
             values.add(indicatorValue);
 
             if (violation) {
                 violationTimestamps.add(bar.getOpenTime());
                 if (eventPublisher != null) {
-                    log.debug("Publishing ATR Violation event. Strategy ID: {}, Symbol: {}, Indicator: {}, Timestamp: {}",
+                    log.trace("Publishing ATR Violation event. Strategy ID: {}, Symbol: {}, Indicator: {}, Timestamp: {}",
                             strategyId, bar.getInstrument(), getName(), bar.getOpenTime());
                     eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
                 }
             }
         } else {
-            values.add(new IndicatorValue(Number.ZERO, bar.getOpenTime()));
+            values.add(new IndicatorValue(0, bar.getOpenTime()));
         }
 
         prevBar = bar;
@@ -65,9 +65,9 @@ public class iATRCandle implements Indicator {
 
     private boolean checkViolation(Bar currentBar) {
         Number absDif = (currentBar.getClose().subtract(currentBar.getOpen())).abs();
-        Number atrThreshold = atr.getValue().multiply(new Number(atrMultiplier).getValue());
+        double atrThreshold = atr.getValue() * atrMultiplier;
 
-        boolean atrViolation = absDif.compareTo(atrThreshold) > 0;
+        boolean atrViolation = absDif.compareTo(new Number(atrThreshold)) > 0;
 
         if (prevBar == null) {
             // Can't validate candle size in this case
@@ -84,12 +84,12 @@ public class iATRCandle implements Indicator {
     }
 
     @Override
-    public Number getValue() {
-        return values.isEmpty() ? Number.ZERO : values.getLast().getValue();
+    public double getValue() {
+        return values.isEmpty() ? 0 : values.getLast().getValue();
     }
 
     @Override
-    public Number getValue(int index) {
+    public double getValue(int index) {
         if (index < 0 || index >= values.size()) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + values.size());
         }

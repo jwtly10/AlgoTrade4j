@@ -6,8 +6,10 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
-import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.BarSeries;
+import dev.jwtly10.core.model.IndicatorValue;
+import dev.jwtly10.core.model.Tick;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -138,13 +140,13 @@ class BaseStrategyTest {
         }
 
         @Override
-        public Number getValue() {
-            return null;
+        public double getValue() {
+            return 0.0;
         }
 
         @Override
-        public Number getValue(int index) {
-            return null;
+        public double getValue(int index) {
+            return 0.0;
         }
 
         @Override

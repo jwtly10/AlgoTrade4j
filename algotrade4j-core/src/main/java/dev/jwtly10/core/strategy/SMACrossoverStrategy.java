@@ -46,10 +46,10 @@ public class SMACrossoverStrategy extends BaseStrategy {
     @Override
     public void onBarClose(Bar bar) {
         if (shortISMA.isReady() && longISMA.isReady()) {
-            Number shortSMAValue = shortISMA.getValue();
-            Number longSMAValue = longISMA.getValue();
-            Number prevShortSMAValue = shortISMA.getValue(1);
-            Number prevLongSMAValue = longISMA.getValue(1);
+            double shortSMAValue = shortISMA.getValue();
+            double longSMAValue = longISMA.getValue();
+            double prevShortSMAValue = shortISMA.getValue(1);
+            double prevLongSMAValue = longISMA.getValue(1);
 
             // Check for crossover
 //            if (shortSMAValue.isGreaterThan(longSMAValue) && (prevShortSMAValue.isLessThan(prevLongSMAValue) || prevLongSMAValue.isEquals(prevLongSMAValue))) {
@@ -57,18 +57,18 @@ public class SMACrossoverStrategy extends BaseStrategy {
 //                openLong(createTradeParameters(bar, true));
 //            }
 //
-            if (shortSMAValue.isLessThan(longSMAValue) && (prevShortSMAValue.isGreaterThan(prevLongSMAValue) || prevShortSMAValue.isEquals(prevLongSMAValue))) {
+            if ((shortSMAValue < longSMAValue) && (prevShortSMAValue > prevLongSMAValue) || (prevShortSMAValue == prevLongSMAValue)) {
                 // Sell signal
-                if (shortSMAValue.isEquals(Number.ZERO)) {
+                if (shortSMAValue == 0) {
                     return;
                 }
-                if (longSMAValue.isEquals(Number.ZERO)) {
+                if (longSMAValue == 0) {
                     return;
                 }
-                if (prevShortSMAValue.isEquals(Number.ZERO)) {
+                if (prevShortSMAValue == 0) {
                     return;
                 }
-                if (prevLongSMAValue.isEquals(Number.ZERO)) {
+                if (prevLongSMAValue == 0) {
                     return;
                 }
                 openShort(createTradeParameters(bar, false));

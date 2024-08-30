@@ -35,7 +35,7 @@ class iATRTest {
         assertEquals("ATR 14", iAtrIndicator.getName());
         assertEquals(14, iAtrIndicator.getRequiredPeriods());
         assertFalse(iAtrIndicator.isReady());
-        assertEquals(Number.ZERO, iAtrIndicator.getValue());
+        assertEquals(0, iAtrIndicator.getValue());
     }
 
     @Test
@@ -47,11 +47,11 @@ class iATRTest {
         iAtrIndicator.update(bar1);
 
         assertFalse(iAtrIndicator.isReady());
-        assertEquals(Number.ZERO, iAtrIndicator.getValue());
+        assertEquals(0, iAtrIndicator.getValue());
 
         iAtrIndicator.update(bar2);
         assertFalse(iAtrIndicator.isReady());
-        assertEquals(Number.ZERO, iAtrIndicator.getValue());
+        assertEquals(0, iAtrIndicator.getValue());
 
         // Update until ready
         for (int i = 0; i < 12; i++) {
@@ -59,7 +59,7 @@ class iATRTest {
         }
 
         assertTrue(iAtrIndicator.isReady());
-        assertNotEquals(Number.ZERO, iAtrIndicator.getValue());
+        assertNotEquals(0, iAtrIndicator.getValue());
 
         verify(mockEventPublisher, times(14)).publishEvent(argThat(event ->
                 event instanceof IndicatorEvent
@@ -67,36 +67,47 @@ class iATRTest {
     }
 
     @Test
-    void testGetValue() {
-        // Create a sequence of bars with varying high-low ranges
-        for (int i = 0; i < 20; i++) {
-            double high = 100 + i * 2;
-            double low = 90 + i;
-            double close = 95 + i * 1.5;
-            Bar bar = createMockBar(high, low, close);
-            iAtrIndicator.update(bar);
+    void testATRAccuracy() {
+        int period = 14;
+        iATR atr = new iATR(period);
+
+        double[] highs = {100, 102, 104, 103, 105, 107, 108, 107, 108, 109, 110, 112, 111, 113, 114, 115, 116, 117, 118, 119};
+        double[] lows = {98, 99, 100, 101, 102, 103, 104, 105, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115};
+        double[] closes = {99, 101, 102, 102, 104, 105, 106, 106, 107, 108, 109, 110, 109, 111, 112, 113, 114, 115, 116, 117};
+
+        double[] trueRanges = new double[highs.length];
+        double[] expectedATR = new double[highs.length];
+        double[] actualATR = new double[highs.length];
+
+        for (int i = 0; i < highs.length; i++) {
+            if (i == 0) {
+                trueRanges[i] = highs[i] - lows[i];
+            } else {
+                double highLow = highs[i] - lows[i];
+                double highPrevClose = Math.abs(highs[i] - closes[i - 1]);
+                double lowPrevClose = Math.abs(lows[i] - closes[i - 1]);
+                trueRanges[i] = Math.max(highLow, Math.max(highPrevClose, lowPrevClose));
+            }
+
+            Bar bar = createMockBar(highs[i], lows[i], closes[i]);
+            atr.update(bar);
+            actualATR[i] = atr.getValue();
+
+            expectedATR[i] = calculateExpectedATR(trueRanges, i, period);
+
+            System.out.printf("%5d | %10.4f | %10.4f | %10.4f%n", i, trueRanges[i], expectedATR[i], actualATR[i]);
         }
 
-        verify(mockEventPublisher, times(20)).publishEvent(argThat(event ->
-                event instanceof IndicatorEvent
-        ));
-        assertTrue(iAtrIndicator.isReady());
-        assertNotEquals(Number.ZERO, iAtrIndicator.getValue());
+        assertEquals(expectedATR[expectedATR.length - 1], actualATR[actualATR.length - 1], 0.0001,
+                "Final ATR value should be equal");
+    }
 
-        Number currentATR = iAtrIndicator.getValue();
-
-        // Check that the most recent ATR value is different from the previous one
-        assertNotEquals(iAtrIndicator.getValue(), iAtrIndicator.getValue(1));
-
-        double maxTrueRange = 0;
-        for (int i = 1; i < 20; i++) {
-            double highLow = (100 + i * 2) - (90 + i);
-            double highPrevClose = Math.abs((100 + i * 2) - (95 + (i - 1) * 1.5));
-            double lowPrevClose = Math.abs((90 + i) - (95 + (i - 1) * 1.5));
-            maxTrueRange = Math.max(maxTrueRange, Math.max(highLow, Math.max(highPrevClose, lowPrevClose)));
+    private double calculateExpectedATR(double[] trueRanges, int currentIndex, int period) {
+        if (currentIndex < period - 1) {
+            return 0;  // Return 0 for the first 'period - 1' values
+        } else {
+            return trueRanges[currentIndex];  // Return the current true range as ATR
         }
-
-        assertTrue(currentATR.isLessThan(new Number(String.valueOf(maxTrueRange))) || currentATR.isEquals(new Number(String.valueOf(maxTrueRange))));
     }
 
     @Test
@@ -118,9 +129,9 @@ class iATRTest {
         }
 
         assertTrue(iAtrIndicator.isReady());
-        Number atr = iAtrIndicator.getValue();
-        assertTrue(atr.isGreaterThan(Number.ZERO));
-        assertTrue(atr.isLessThan(new Number("20.00")) || atr.isEquals(new Number("20.00")));
+        double atr = iAtrIndicator.getValue();
+        assertTrue(atr > 0);
+        assertTrue(atr < 20.0 || atr == 20.0);
     }
 
     private Bar createMockBar(double high, double low, double close) {

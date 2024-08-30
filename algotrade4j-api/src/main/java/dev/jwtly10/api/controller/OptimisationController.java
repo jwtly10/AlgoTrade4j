@@ -37,8 +37,10 @@ public class OptimisationController {
         log.debug("Getting results for optimisationId: {}", optimisationId);
         OptimisationResult results = optimisationManager.getResults(optimisationId);
         if (results != null) {
+            log.debug("Results found for optimisationId: {}", optimisationId);
             return ResponseEntity.ok(results);
         } else {
+            log.debug("No optimisation results found for optimisationId {} ", optimisationId);
             throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, ErrorType.NOT_FOUND);
         }
     }

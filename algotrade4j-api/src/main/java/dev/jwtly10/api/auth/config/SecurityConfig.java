@@ -2,6 +2,8 @@ package dev.jwtly10.api.auth.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -17,16 +19,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final Environment env;
+
+    public SecurityConfig(Environment env) {
+        this.env = env;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/system/version").permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    auth
+                            .requestMatchers("/api/v1/auth/**").permitAll()
+                            .requestMatchers("/api/v1/system/version").permitAll();
+
+                    if (env.acceptsProfiles(Profiles.of("dev"))) {
+                        // This allows us to easily make heap dumps on local
+                        auth.requestMatchers("/generate-heapdump").permitAll();
+                    }
+
+                    auth.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -14,7 +14,6 @@ import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -72,10 +71,10 @@ public class OptimisationExecutor {
         // TODO: Limited to 1000 for now, just to avoid running too many strategies at once, before we optimise/stress test
         if (parameterCombinations.size() > 1000) {
             log.warn("This is supported, and should be pretty quick, but just waiting to see at what point this becomes a factor");
-            throw new ExecutionControl.NotImplementedException("Not implemented yet. Testing. Contact owner if you see this");
+            throw new RuntimeException("Too many parameter combinations. We dont support > 1000 yet");
         }
 
-        int batchSize = 30;
+        int batchSize = 50;
 
         int completedRuns = 0;
         for (int i = 0; i < parameterCombinations.size(); i += batchSize) {
@@ -84,10 +83,21 @@ public class OptimisationExecutor {
             int endIndex = Math.min(i + batchSize, parameterCombinations.size());
             List<Map<String, String>> batch = parameterCombinations.subList(i, endIndex);
 
+            log.info("Processing batch {}/{}. Combinations {}-{} out of {}",
+                    (i / batchSize) + 1,
+                    (parameterCombinations.size() + batchSize - 1) / batchSize,
+                    i + 1,
+                    endIndex,
+                    parameterCombinations.size());
+
             List<BacktestExecutor> batchExecutors = processBatch(batch, config);
             allExecutors.addAll(batchExecutors);
-            completedRuns = completedRuns + endIndex;
-            log.info("Completed {}/{} runs", completedRuns, parameterCombinations.size());
+            completedRuns += batch.size();
+
+            log.info("Completed {}/{} runs. {} remaining",
+                    completedRuns,
+                    parameterCombinations.size(),
+                    parameterCombinations.size() - completedRuns);
         }
 
         // Collect all results at the end
@@ -133,7 +143,7 @@ public class OptimisationExecutor {
 
             String id = "optimisation-" + config.getStrategyClass() + "-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "");
             strategyParameters.put(id, new HashMap<>(parameterCombination));
-            log.info("{}", strategyParameters);
+            log.info("Strategy parameters: {}", strategyParameters);
 
             TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, id, eventPublisher);
             AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
@@ -189,7 +199,6 @@ public class OptimisationExecutor {
                 Map<String, String> params = strategyParameters.get(strategyId);
                 var res = new OptimisationResult.SuccessfulStrategy(strategyId, event.getStats(), params);
                 results.addSuccess(res);
-                log.info("Results for strategy {}: {}", strategyId, res.stats());
             }
         }
 

@@ -23,7 +23,7 @@ export const EquityChart = ({equityHistory}) => {
 
         let chartData = equityHistory.map(point => ({
             x: point.timestamp * 1000,
-            y: point.equity.value
+            y: point.equity
         }));
 
         chartData = decimateData(chartData);

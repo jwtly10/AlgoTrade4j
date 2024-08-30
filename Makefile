@@ -5,6 +5,3 @@ bump-major:
 
 bump-minor:
 	@./bump-version.sh minor
-
-bump-patch:
-	@./bump-version.sh patch

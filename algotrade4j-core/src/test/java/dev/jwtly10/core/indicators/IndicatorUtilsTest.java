@@ -88,12 +88,12 @@ class IndicatorUtilsTest {
         private final int period;
         private final double initialValue;
         private boolean updated = false;
-        private Number currentValue;
+        private double currentValue;
 
         public DNUTestIndicator(int period, double initialValue) {
             this.period = period;
             this.initialValue = initialValue;
-            this.currentValue = new Number(initialValue);
+            this.currentValue = initialValue;
         }
 
         @Override
@@ -104,16 +104,16 @@ class IndicatorUtilsTest {
         @Override
         public void update(Bar bar) {
             updated = true;
-            currentValue = bar.getClose();
+            currentValue = bar.getClose().getValue().doubleValue();
         }
 
         @Override
-        public Number getValue() {
+        public double getValue() {
             return currentValue;
         }
 
         @Override
-        public Number getValue(int index) {
+        public double getValue(int index) {
             return currentValue; // Simplified for this test
         }
 

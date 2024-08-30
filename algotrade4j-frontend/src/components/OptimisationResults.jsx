@@ -144,7 +144,7 @@ const OptimizationResults = ({data}) => {
                         {sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((strategy) => (
                             <TableRow key={strategy.strategyId}>
                                 <TableCell>{strategy.stats?.totalNetProfit?.value.toFixed(2) || 'N/A'}</TableCell>
-                                <TableCell>{strategy.stats?.maxDrawdown?.value.toFixed(2) || 'N/A'}%</TableCell>
+                                <TableCell>{strategy.stats?.maxDrawdown?.value || 'N/A'}%</TableCell>
                                 <TableCell>{strategy.stats?.profitFactor?.value.toFixed(2) || 'N/A'}</TableCell>
                                 <TableCell>{strategy.stats?.sharpeRatio?.value.toFixed(4) || 'N/A'}</TableCell>
                                 <TableCell>{strategy.stats?.expectedPayoff?.value.toFixed(2) || 'N/A'}</TableCell>

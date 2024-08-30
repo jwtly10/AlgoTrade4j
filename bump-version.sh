@@ -13,27 +13,22 @@ increment_version() {
         major)
             VERSION_PARTS[0]=$((VERSION_PARTS[0] + 1))
             VERSION_PARTS[1]=0
-            VERSION_PARTS[2]=0
             ;;
         minor)
             VERSION_PARTS[1]=$((VERSION_PARTS[1] + 1))
-            VERSION_PARTS[2]=0
-            ;;
-        patch)
-            VERSION_PARTS[2]=$((VERSION_PARTS[2] + 1))
             ;;
         *)
-            echo "Invalid version part specified. Use 'major', 'minor', or 'patch'."
+            echo "Invalid version part specified. Use 'major' or 'minor'."
             exit 1
             ;;
     esac
 
-    echo "${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${VERSION_PARTS[2]}"
+    echo "${VERSION_PARTS[0]}.${VERSION_PARTS[1]}"
 }
 
 # Check if version part is provided
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <major|minor|patch>"
+    echo "Usage: $0 <major|minor>"
     exit 1
 fi
 

@@ -46,43 +46,44 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     private Integer openPosition(TradeParameters params, boolean isLong) {
-        log.debug("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
+        log.trace("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 isLong ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
 
         Number entryPrice = params.getEntryPrice();
         if (!entryPrice.isEquals(currentTick.getAsk()) || !entryPrice.isEquals(currentTick.getBid())) {
             entryPrice = isLong ? currentTick.getAsk() : currentTick.getBid();
-            log.warn("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
+            // TODO: In live trading this should be INFO?
+            log.trace("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }
 
-        log.debug("Entry price for {}: {}", params.getInstrument(), entryPrice);
+        log.trace("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
         Number balance = params.getBalanceToRisk();
-        log.debug("Selected balance: {}", balance);
+        log.trace("Selected balance: {}", balance);
 
         Number riskInPercent = params.getRiskPercentage().divide(new Number("100").getValue());
         Number riskAmount = balance.multiply(riskInPercent.getValue());
-        log.debug("Risk amount calculation: {} * {} = {}", balance, riskInPercent.getValue(), riskAmount);
+        log.trace("Risk amount calculation: {} * {} = {}", balance, riskInPercent.getValue(), riskAmount);
 
         Number stopLossDistance = isLong ? entryPrice.subtract(params.getStopLoss()).abs() :
                 params.getStopLoss().subtract(entryPrice).abs();
-        log.debug("Stop loss distance calculation: |{} - {}| = {}",
+        log.trace("Stop loss distance calculation: |{} - {}| = {}",
                 isLong ? entryPrice : params.getStopLoss(),
                 isLong ? params.getStopLoss() : entryPrice, stopLossDistance);
 
         Number quantity = params.getQuantity() != null ? params.getQuantity() :
                 riskAmount.divide(stopLossDistance.getValue());
-        log.debug("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
+        log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
 
         Number takeProfit = params.getTakeProfit() != null ? params.getTakeProfit() :
                 (isLong ? entryPrice.add(stopLossDistance.multiply(params.getRiskRatio().getValue())) :
                         entryPrice.subtract(stopLossDistance.multiply(params.getRiskRatio().getValue())));
-        log.debug("Take profit calculation: {} {} ({} * {}) = {}",
+        log.trace("Take profit calculation: {} {} ({} * {}) = {}",
                 entryPrice, isLong ? "+" : "-", stopLossDistance, params.getRiskRatio().getValue(), takeProfit);
 
         quantity = quantity.setScale(2, RoundingMode.DOWN);
-        log.debug("Final quantity after rounding down to 2 decimal places: {}", quantity);
+        log.trace("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
         if (params.getStopLoss().isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
             String reason = params.getStopLoss().isLessThan(Number.ZERO) ? "STOP LOSS" : "TAKE PROFIT";
@@ -103,7 +104,7 @@ public class DefaultTradeManager implements TradeManager {
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
-        log.info("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
+        log.trace("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
                 trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
         return trade.getId();
     }
@@ -119,10 +120,7 @@ public class DefaultTradeManager implements TradeManager {
             throw new IllegalStateException("Price not found for instrument: " + trade.getInstrument());
         }
 
-        log.debug("Closing position: {}", trade);
-        log.debug("Trade details - Symbol: {}, Long: {}, Quantity: {}, Entry Price: {}",
-                trade.getInstrument(), trade.isLong(), trade.getQuantity(), trade.getEntryPrice());
-
+        log.trace("Closing position: {}", trade);
 
         var slippage = new SlippageModel();
         // TODO: We can support different volatility levels now. We can implement this if needed
@@ -143,28 +141,28 @@ public class DefaultTradeManager implements TradeManager {
             closingPrice = trade.isLong() ? currentTick.getBid() : currentTick.getAsk();
         }
 
-        log.debug("Closing price: {}", closingPrice);
+        log.trace("Closing price: {}", closingPrice);
         trade.setClosePrice(closingPrice.setScale(2, RoundingMode.DOWN));
         trade.setCloseTime(currentTick.getDateTime());
 
         Number priceDifference;
         if (trade.isLong()) {
             priceDifference = closingPrice.subtract(trade.getEntryPrice());
-            log.debug("Long trade - Price difference: {} - {} = {}",
+            log.trace("Long trade - Price difference: {} - {} = {}",
                     closingPrice, trade.getEntryPrice(), priceDifference);
         } else {
             priceDifference = trade.getEntryPrice().subtract(closingPrice);
-            log.debug("Short trade - Price difference: {} - {} = {}",
+            log.trace("Short trade - Price difference: {} - {} = {}",
                     trade.getEntryPrice(), closingPrice, priceDifference);
         }
 
         Number profitLoss = priceDifference.multiply(trade.getQuantity().getValue());
-        log.debug("Profit/Loss calculation: {} * {} = {}",
+        log.trace("Profit/Loss calculation: {} * {} = {}",
                 priceDifference, trade.getQuantity().getValue(), profitLoss);
 
         trade.setProfit(profitLoss.roundMoneyDown());
 
-        log.info("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
+        log.trace("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.CLOSE));
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));

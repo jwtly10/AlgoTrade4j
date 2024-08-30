@@ -27,7 +27,7 @@ class iEMATest {
     @Test
     void testInitialState() {
         assertFalse(ema.isReady());
-        assertEquals(Number.ZERO, ema.getValue());
+        assertEquals(0, ema.getValue());
         assertEquals(PERIOD, ema.getRequiredPeriods());
         assertEquals("EMA " + PERIOD, ema.getName());
     }
@@ -38,7 +38,7 @@ class iEMATest {
         ema.update(bar);
 
         assertTrue(ema.isReady());
-        assertEquals(new Number(BigDecimal.valueOf(100)), ema.getValue());
+        assertEquals(100, ema.getValue());
     }
 
     @Test
@@ -55,7 +55,7 @@ class iEMATest {
             expectedEMA = BigDecimal.valueOf(price).multiply(multiplier)
                     .add(expectedEMA.multiply(BigDecimal.ONE.subtract(multiplier)));
 
-            BigDecimal actualValue = ema.getValue().getValue();
+            BigDecimal actualValue = BigDecimal.valueOf(ema.getValue());
             BigDecimal expectedValue = expectedEMA.setScale(Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
 
             assertTrue(
@@ -86,7 +86,7 @@ class iEMATest {
 
         for (int i = 4; i >= 0; i--) {
             BigDecimal expected = expectedValues.get(i).setScale(Number.DECIMAL_PLACES, Number.ROUNDING_MODE);
-            BigDecimal actual = this.ema.getValue(4 - i).getValue();
+            BigDecimal actual = BigDecimal.valueOf(this.ema.getValue(4 - i));
 
             assertTrue(
                     actual.subtract(expected).abs().compareTo(BigDecimal.valueOf(0.002)) < 0,

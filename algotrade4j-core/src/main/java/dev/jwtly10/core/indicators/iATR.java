@@ -16,11 +16,11 @@ public class iATR implements Indicator {
     // Params
     private final int period;
 
-    private final List<Number> trueRanges;
+    private final List<Double> trueRanges;
     @Getter
     private final List<IndicatorValue> values;
     private final String name;
-    private final Number multiplier;
+    private final double multiplier;
     private String strategyId;
     private EventPublisher eventPublisher;
     private Number previousClose;
@@ -31,27 +31,26 @@ public class iATR implements Indicator {
         this.values = new ArrayList<>();
         this.name = "ATR " + period;
         this.previousClose = null;
-        this.multiplier = new Number(2).divide(new Number(period + 1).getValue());
-
+        this.multiplier = (2 / (double) period + 1);
     }
 
     @Override
     public void update(Bar bar) {
-        log.debug("Updating ATR with new bar. High: {}, Low: {}, Close: {}", bar.getHigh(), bar.getLow(), bar.getClose());
+        log.trace("Updating ATR with new bar. High: {}, Low: {}, Close: {}", bar.getHigh(), bar.getLow(), bar.getClose());
 
-        Number trueRange;
+        double trueRange;
         if (previousClose == null) {
-            trueRange = bar.getHigh().subtract(bar.getLow());
+            trueRange = bar.getHigh().subtract(bar.getLow()).getValue().doubleValue();
         } else {
-            Number highLow = bar.getHigh().subtract(bar.getLow());
-            Number highPrevClose = bar.getHigh().subtract(previousClose).abs();
-            Number lowPrevClose = bar.getLow().subtract(previousClose).abs();
+            double highLow = bar.getHigh().subtract(bar.getLow()).getValue().doubleValue();
+            double highPrevClose = bar.getHigh().subtract(previousClose).abs().getValue().doubleValue();
+            double lowPrevClose = bar.getLow().subtract(previousClose).abs().getValue().doubleValue();
 
             trueRange = highLow;
-            if (highPrevClose.isGreaterThan(trueRange)) {
+            if (highPrevClose > trueRange) {
                 trueRange = highPrevClose;
             }
-            if (lowPrevClose.isGreaterThan(trueRange)) {
+            if (lowPrevClose > trueRange) {
                 trueRange = lowPrevClose;
             }
         }
@@ -60,27 +59,26 @@ public class iATR implements Indicator {
         previousClose = bar.getClose();
 
         if (isReady()) {
-            Number atr;
+            double atr;
             if (trueRanges.size() == period) {
                 atr = trueRange;
             } else {
                 //TODO: Make this configurable
                 //Subsequent ATRs use EMA smoothing: ATR = (Current TR * multiplier) + (Prior ATR * (1 - multiplier))
-                Number priorATR = values.getLast().getValue();
-                atr = trueRange.multiply(multiplier.getValue())
-                        .add(priorATR.multiply(Number.ONE.subtract(multiplier).getValue()));
+                double priorATR = values.getLast().getValue();
+                atr = (trueRange * multiplier) + priorATR * (1 - multiplier);
             }
 
             IndicatorValue indicatorValue = new IndicatorValue(atr, bar.getOpenTime());
             values.add(indicatorValue);
 
             if (eventPublisher != null) {
-                log.debug("Publishing ATR event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
+                log.trace("Publishing ATR event. Strategy ID: {}, Symbol: {}, Indicator: {}, Value: {}, Timestamp: {}",
                         strategyId, bar.getInstrument(), getName(), atr, bar.getOpenTime());
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
             }
         } else {
-            IndicatorValue indicatorValue = new IndicatorValue(Number.ZERO, bar.getOpenTime());
+            IndicatorValue indicatorValue = new IndicatorValue(0, bar.getOpenTime());
             values.add(indicatorValue);
             if (eventPublisher != null) {
                 eventPublisher.publishEvent(new IndicatorEvent(strategyId, bar.getInstrument(), getName(), indicatorValue));
@@ -94,12 +92,12 @@ public class iATR implements Indicator {
     }
 
     @Override
-    public Number getValue() {
-        return values.isEmpty() ? Number.ZERO : values.getLast().getValue();
+    public double getValue() {
+        return values.isEmpty() ? 0 : values.getLast().getValue();
     }
 
     @Override
-    public Number getValue(int index) {
+    public double getValue(int index) {
         if (index < 0 || index >= values.size()) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + values.size());
         }
@@ -113,7 +111,7 @@ public class iATR implements Indicator {
 
     @Override
     public boolean isReady() {
-        log.debug("Checking if ATR is ready. Values size: {}, Period: {}", trueRanges.size(), period);
+        log.trace("Checking if ATR is ready. Values size: {}, Period: {}", trueRanges.size(), period);
         return trueRanges.size() >= period;
     }
 

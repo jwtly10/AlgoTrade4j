@@ -1,8 +1,11 @@
 import axios from 'axios';
 import log from '../logger.js'
 
-const API_BASE_URL = `/api/v1`;
-const WS_BASE_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
+// In prod we are deployed on the same host.
+// Locally we run apps seperately on same host
+const isDev = import.meta.env.VITE_NODE_ENV === 'dev'
+const API_BASE_URL = isDev ? 'http://localhost:8080/api/v1' : '/api/v1';
+const WS_BASE_URL = isDev ? `${'http://localhost:8080'.replace('http', 'ws')}/ws/v1` : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
