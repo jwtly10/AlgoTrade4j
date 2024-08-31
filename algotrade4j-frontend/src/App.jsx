@@ -83,7 +83,7 @@ function App() {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline/>
             <Router>
-                <VersionBanner/>
+                <VersionBanner user={user}/>
                 <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
                 <Routes>
                     <Route

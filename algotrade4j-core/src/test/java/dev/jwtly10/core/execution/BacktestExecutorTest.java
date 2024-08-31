@@ -90,6 +90,7 @@ class BacktestExecutorTest {
     void testOnStop() {
         backtestExecutor.initialise();
         when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
+        when(accountManager.getInitialBalance()).thenReturn(new Number(10000));
         backtestExecutor.onStop();
         verify(strategy).onDeInit();
         verify(strategy).onEnd();

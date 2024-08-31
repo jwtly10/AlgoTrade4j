@@ -53,7 +53,7 @@ public class Trade {
     /**
      * The profit of the trade.
      */
-    private Number profit = Number.ZERO;
+    private double profit = 0;
 
     /**
      * The close price of the trade.

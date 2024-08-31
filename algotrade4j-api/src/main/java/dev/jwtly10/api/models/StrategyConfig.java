@@ -13,7 +13,6 @@ import java.util.List;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StrategyConfig {
-    private static final List<String> SUPPORTED_PERIODS = List.of("1m", "5m", "15m", "30m", "1h", "4h", "D");
     private String strategyClass;
     private Number initialCash;
     private InstrumentData instrumentData;

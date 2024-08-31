@@ -1,11 +1,8 @@
 package dev.jwtly10.core.analysis;
 
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
 import lombok.Data;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,39 +46,39 @@ public class PerformanceAnalyser {
 
     // Stats
     private int ticksModelled = 0;
-    private Number sharpeRatio = Number.ZERO;
-    private Number riskFreeRate = new Number(0.02); // Assuming 2% annual risk-free rate
+    private double sharpeRatio = 0;
+    private double riskFreeRate = 0.02; // Assuming 2% annual risk-free rate
 
     // Balance stats
-    private Number initialDeposit = Number.ZERO;
-    private Number totalNetProfit = Number.ZERO;
-    private Number profitFactor = Number.ZERO;
+    private double initialDeposit = 0;
+    private double totalNetProfit = 0;
+    private double profitFactor = 0;
     private double maxDrawdown = 0;
-    private Number grossProfit = Number.ZERO;
-    private Number grossLoss = Number.ZERO;
-    private Number expectedPayoff = Number.ZERO;
+    private double grossProfit = 0;
+    private double grossLoss = 0;
+    private double expectedPayoff = 0;
 
     // Trade stats
     private int totalTrades = 0;
     private int totalLongTrades = 0;
     private int totalLongWinningTrades = 0;
-    private Number longWinPercentage = Number.ZERO;
+    private double longWinPercentage = 0;
     private int totalShortTrades = 0;
     private int totalShortWinningTrades = 0;
-    private Number shortWinPercentage = Number.ZERO;
+    private double shortWinPercentage = 0;
 
     // Trade return stats
-    private Number largestProfitableTrade = Number.ZERO;
-    private Number largestLosingTrade = Number.ZERO;
-    private Number averageProfitableTradeReturn = Number.ZERO;
-    private Number averageLosingTradeReturn = Number.ZERO;
+    private double largestProfitableTrade = 0;
+    private double largestLosingTrade = 0;
+    private double averageProfitableTradeReturn = 0;
+    private double averageLosingTradeReturn = 0;
 
     private int maxConsecutiveWins = 0;
     private int maxConsecutiveLosses = 0;
-    private Number maxConsecutiveProfit = Number.ZERO;
-    private Number maxConsecutiveLoss = Number.ZERO;
-    private Number averageConsecutiveWins = Number.ZERO;
-    private Number averageConsecutiveLosses = Number.ZERO;
+    private double maxConsecutiveProfit = 0;
+    private double maxConsecutiveLoss = 0;
+    private double averageConsecutiveWins = 0;
+    private double averageConsecutiveLosses = 0;
 
     /*
      * Update the equity history on each tick
@@ -103,7 +100,7 @@ public class PerformanceAnalyser {
      * @param trades The trades executed by the strategy
      * @param initialBalance The initial balance of the strategy
      */
-    public void calculateStatistics(Map<Integer, Trade> trades, Number initialBalance) {
+    public void calculateStatistics(Map<Integer, Trade> trades, double initialBalance) {
         this.initialDeposit = initialBalance;
         this.totalTrades = trades.size();
         List<Trade> tradeList = new ArrayList<>(trades.values());
@@ -123,21 +120,21 @@ public class PerformanceAnalyser {
     private void calculateBalanceStats(List<Trade> trades) {
         this.grossProfit = trades.stream()
                 .map(Trade::getProfit)
-                .filter(profit -> profit.isGreaterThan(Number.ZERO))
-                .reduce(Number.ZERO, Number::add);
+                .filter(profit -> profit > 0)
+                .reduce(0.0, Double::sum);
 
         this.grossLoss = trades.stream()
                 .map(Trade::getProfit)
-                .filter(profit -> profit.isLessThan(Number.ZERO))
-                .reduce(Number.ZERO, Number::add);
+                .filter(profit -> profit < 0)
+                .reduce(0.0, Double::sum);
 
-        this.totalNetProfit = this.grossProfit.add(this.grossLoss);
+        this.totalNetProfit = this.grossProfit + this.grossLoss;
 
-        this.profitFactor = this.grossLoss == Number.ZERO ? Number.ZERO :
-                this.grossProfit.divide(this.grossLoss.abs().getValue());
+        this.profitFactor = this.grossLoss == 0 ? 0 :
+                this.grossProfit /  Math.abs(this.grossLoss);
 
-        this.expectedPayoff = this.totalTrades == 0 ? Number.ZERO :
-                this.totalNetProfit.divide(this.totalTrades);
+        this.expectedPayoff = this.totalTrades == 0 ? 0 :
+                this.totalNetProfit / this.totalTrades;
     }
 
     /*
@@ -148,22 +145,22 @@ public class PerformanceAnalyser {
         for (Trade trade : trades) {
             if (trade.isLong()) {
                 this.totalLongTrades++;
-                if (trade.getProfit().isGreaterThan(Number.ZERO)) {
+                if (trade.getProfit() > 0) {
                     this.totalLongWinningTrades++;
                 }
             } else {
                 this.totalShortTrades++;
-                if (trade.getProfit().isGreaterThan(Number.ZERO)) {
+                if (trade.getProfit() > 0) {
                     this.totalShortWinningTrades++;
                 }
             }
         }
 
-        this.longWinPercentage = this.totalLongTrades == 0 ? Number.ZERO :
-                new Number(this.totalLongWinningTrades).divide(this.totalLongTrades).multiply(new BigDecimal(100)).setScale(2, RoundingMode.DOWN);
+        this.longWinPercentage = this.totalLongTrades == 0 ? 0 :
+                (this.totalLongWinningTrades / (double)this.totalLongTrades) * 100;
 
-        this.shortWinPercentage = this.totalShortTrades == 0 ? Number.ZERO :
-                new Number(this.totalShortWinningTrades).divide(this.totalShortTrades).multiply(new BigDecimal(100)).setScale(2, RoundingMode.DOWN);
+        this.shortWinPercentage = this.totalShortTrades == 0 ? 0 :
+                (this.totalShortWinningTrades / (double)this.totalShortTrades) * 100;
     }
 
     /*
@@ -173,37 +170,37 @@ public class PerformanceAnalyser {
     private void calculateTradeReturnStats(List<Trade> trades) {
         this.largestProfitableTrade = trades.stream()
                 .map(Trade::getProfit)
-                .max(Number::compareTo)
-                .orElse(Number.ZERO);
+                .max(Double::compare)
+                .orElse(0.0);
 
         this.largestLosingTrade = trades.stream()
                 .map(Trade::getProfit)
-                .min(Number::compareTo)
-                .orElse(Number.ZERO);
+                .min(Double::compare)
+                .orElse(0.0);
 
-        Number totalProfitableTrades = trades.stream()
+        double totalProfitableTrades = trades.stream()
                 .map(Trade::getProfit)
-                .filter(profit -> profit.isGreaterThan(Number.ZERO))
-                .reduce(Number.ZERO, Number::add);
+                .filter(profit -> profit > 0)
+                .reduce(0.0, Double::sum);
 
-        Number totalLosingTrades = trades.stream()
+        double totalLosingTrades = trades.stream()
                 .map(Trade::getProfit)
-                .filter(profit -> profit.isLessThan(Number.ZERO))
-                .reduce(Number.ZERO, Number::add);
+                .filter(profit -> profit < 0)
+                .reduce(0.0, Double::sum);
 
         int profitableTradesCount = (int) trades.stream()
-                .filter(t -> t.getProfit().isGreaterThan(Number.ZERO))
+                .filter(t -> t.getProfit() > 0)
                 .count();
 
         int losingTradesCount = (int) trades.stream()
-                .filter(t -> t.getProfit().isLessThan(Number.ZERO))
+                .filter(t -> t.getProfit() < 0 )
                 .count();
 
-        this.averageProfitableTradeReturn = profitableTradesCount == 0 ? Number.ZERO :
-                totalProfitableTrades.divide(profitableTradesCount);
+        this.averageProfitableTradeReturn = profitableTradesCount == 0 ? 0 :
+                totalProfitableTrades / profitableTradesCount;
 
-        this.averageLosingTradeReturn = losingTradesCount == 0 ? Number.ZERO :
-                totalLosingTrades.divide(losingTradesCount);
+        this.averageLosingTradeReturn = losingTradesCount == 0 ? 0 :
+                totalLosingTrades / losingTradesCount;
     }
 
     /*
@@ -213,45 +210,45 @@ public class PerformanceAnalyser {
     private void calculateConsecutiveStats(List<Trade> trades) {
         int consecutiveWins = 0;
         int consecutiveLosses = 0;
-        Number consecutiveProfit = Number.ZERO;
-        Number consecutiveLoss = Number.ZERO;
+        double consecutiveProfit = 0;
+        double consecutiveLoss = 0;
         int totalConsecutiveWins = 0;
         int totalConsecutiveLosses = 0;
         int winStreaks = 0;
         int lossStreaks = 0;
 
         for (Trade trade : trades) {
-            if (trade.getProfit().isGreaterThan(Number.ZERO)) {
+            if (trade.getProfit() > 0) {
                 consecutiveWins++;
-                consecutiveProfit = consecutiveProfit.add(trade.getProfit());
+                consecutiveProfit = consecutiveProfit + trade.getProfit();
 
                 if (consecutiveLosses >= 1) {
                     totalConsecutiveLosses += consecutiveLosses;
                     lossStreaks++;
                 }
                 consecutiveLosses = 0;
-                consecutiveLoss = Number.ZERO;
+                consecutiveLoss = 0;
 
                 this.maxConsecutiveWins = Math.max(this.maxConsecutiveWins, consecutiveWins);
-                this.maxConsecutiveProfit = new Number(Math.max(
-                        this.maxConsecutiveProfit.getValue().doubleValue(),
-                        consecutiveProfit.getValue().doubleValue()
-                ));
+                this.maxConsecutiveProfit = Math.max(
+                        this.maxConsecutiveProfit,
+                        consecutiveProfit
+                );
             } else {
                 if (consecutiveWins >= 1) {
                     totalConsecutiveWins += consecutiveWins;
                     winStreaks++;
                 }
                 consecutiveLosses++;
-                consecutiveLoss = consecutiveLoss.add(trade.getProfit());
+                consecutiveLoss = consecutiveLoss + trade.getProfit();
                 consecutiveWins = 0;
-                consecutiveProfit = Number.ZERO;
+                consecutiveProfit = 0;
 
                 this.maxConsecutiveLosses = Math.max(this.maxConsecutiveLosses, consecutiveLosses);
-                this.maxConsecutiveLoss = new Number(Math.min(
-                        this.maxConsecutiveLoss.getValue().doubleValue(),
-                        consecutiveLoss.getValue().doubleValue()
-                ));
+                this.maxConsecutiveLoss = Math.min(
+                        this.maxConsecutiveLoss,
+                        consecutiveLoss
+                );
             }
         }
 
@@ -264,11 +261,11 @@ public class PerformanceAnalyser {
             lossStreaks++;
         }
 
-        this.averageConsecutiveWins = winStreaks == 0 ? Number.ZERO :
-                new Number(totalConsecutiveWins).divide(winStreaks);
+        this.averageConsecutiveWins = winStreaks == 0 ? 0 :
+                totalConsecutiveWins / winStreaks;
 
-        this.averageConsecutiveLosses = lossStreaks == 0 ? Number.ZERO :
-                new Number(totalConsecutiveLosses).divide(lossStreaks);
+        this.averageConsecutiveLosses = lossStreaks == 0 ? 0 :
+                totalConsecutiveLosses / lossStreaks;
     }
 
     /*
@@ -277,29 +274,29 @@ public class PerformanceAnalyser {
      */
     private void calculateSharpeRatio(List<Trade> trades) {
         if (trades.isEmpty()) {
-            this.sharpeRatio = Number.ZERO;
+            this.sharpeRatio = 0;
             return;
         }
 
-        Number totalReturn = trades.stream()
+        double totalReturn = trades.stream()
                 .map(Trade::getProfit)
-                .reduce(Number.ZERO, Number::add);
+                .reduce(0.0, Double::sum);
 
-        Number averageReturn = totalReturn.divide(trades.size());
+        double averageReturn = totalReturn / trades.size();
 
-        Number sumSquaredDeviations = trades.stream()
+        double sumSquaredDeviations = trades.stream()
                 .map(trade -> {
-                    Number deviation = trade.getProfit().subtract(averageReturn);
-                    return deviation.multiply(deviation.getValue());
+                    double deviation = trade.getProfit() - averageReturn;
+                    return deviation * deviation;
                 })
-                .reduce(Number.ZERO, Number::add);
+                .reduce(0.0, Double::sum);
 
-        Number standardDeviation = new Number(Math.sqrt(sumSquaredDeviations.divide(trades.size()).getValue().doubleValue()));
+        double standardDeviation = Math.sqrt(sumSquaredDeviations / trades.size());
 
-        if (standardDeviation.equals(Number.ZERO)) {
-            this.sharpeRatio = Number.ZERO;
+        if (standardDeviation == 0) {
+            this.sharpeRatio = 0;
         } else {
-            this.sharpeRatio = averageReturn.subtract(this.riskFreeRate).divide(standardDeviation.getValue());
+            this.sharpeRatio = (averageReturn - this.riskFreeRate) / standardDeviation;
         }
     }
 

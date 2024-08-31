@@ -4,16 +4,22 @@ import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.event.ErrorEvent;
 import dev.jwtly10.core.event.EventListener;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.zip.GZIPOutputStream;
 
 @Slf4j
 public class WebSocketEventListener implements EventListener {
+    private static final int COMPRESSION_THRESHOLD = 1024; // 1KB
     private final WebSocketSession session;
     private final Set<Class<? extends BaseEvent>> subscribedEventTypes = new HashSet<>();
     private final AtomicBoolean isActive = new AtomicBoolean(true);
@@ -34,7 +40,23 @@ public class WebSocketEventListener implements EventListener {
         synchronized (lock) {
             try {
                 if (session.isOpen()) {
-                    session.sendMessage(new TextMessage(event.toJson()));
+                    String jsonMessage = event.toJson();
+                    byte[] messageBytes = jsonMessage.getBytes(StandardCharsets.UTF_8);
+
+                    ByteBuffer buffer;
+                    if (messageBytes.length > COMPRESSION_THRESHOLD) {
+                        // Compress large messages
+                        byte[] compressedMessage = compressMessage(jsonMessage);
+                        buffer = ByteBuffer.allocate(compressedMessage.length + 1);
+                        buffer.put((byte) 1); // Flag for compressed message
+                        buffer.put(compressedMessage);
+                    } else {
+                        buffer = ByteBuffer.allocate(messageBytes.length + 1);
+                        buffer.put((byte) 0); // Flag for uncompressed message
+                        buffer.put(messageBytes);
+                    }
+                    buffer.flip();
+                    session.sendMessage(new BinaryMessage(buffer));
                 }
             } catch (IllegalStateException e) {
                 log.debug("Session already closed, unable to send event: {}", event);
@@ -43,6 +65,14 @@ public class WebSocketEventListener implements EventListener {
                 log.error("Failed to send message to WS session", e);
             }
         }
+    }
+
+    private byte[] compressMessage(String message) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOut = new GZIPOutputStream(baos)) {
+            gzipOut.write(message.getBytes(StandardCharsets.UTF_8));
+        }
+        return baos.toByteArray();
     }
 
     @Override

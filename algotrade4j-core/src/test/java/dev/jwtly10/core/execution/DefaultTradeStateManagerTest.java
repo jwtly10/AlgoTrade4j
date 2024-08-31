@@ -63,11 +63,11 @@ class DefaultTradeStateManagerTest {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
-        longTrade.setProfit(new Number(10));
+        longTrade.setProfit(10);
         Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
-        shortTrade.setProfit(new Number(20));
+        shortTrade.setProfit(20);
         Trade shortTrade2 = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
-        shortTrade2.setProfit(new Number(-15));
+        shortTrade2.setProfit(-15);
         openTrades.put(1, longTrade);
         openTrades.put(2, shortTrade);
 

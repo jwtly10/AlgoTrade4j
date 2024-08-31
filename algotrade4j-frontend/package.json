@@ -20,6 +20,7 @@
     "date-fns": "^3.6.0",
     "lightweight-charts": "^4.2.0",
     "loglevel": "^1.9.1",
+    "pako": "^2.1.0",
     "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
