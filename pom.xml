@@ -10,7 +10,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>algotrade4j-core</module>
-        <module>algotrade4j-examples</module>
         <module>algotrade4j-api</module>
         <module>algotrade4j-market-data</module>
     </modules>
@@ -77,25 +76,25 @@
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    </configuration>
+                </configuration>
                 <executions>
                     <execution>
                         <id>flatten</id>
                         <phase>process-resources</phase>
                         <goals>
                             <goal>flatten</goal>
-                            </goals>
-                        </execution>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>flatten.clean</id>
                         <phase>clean</phase>
                         <goals>
                             <goal>clean</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </build>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
