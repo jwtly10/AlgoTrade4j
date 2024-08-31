@@ -1,6 +1,8 @@
 import axios from 'axios';
 import log from '../logger.js';
 
+import pako from 'pako';
+
 // In prod we are deployed on the same host.
 // Locally we run apps seperately on same host
 const isDev = import.meta.env.MODE === 'development';
@@ -154,6 +156,7 @@ export const adminClient = {
         }
     },
 };
+
 export const apiClient = {
     startStrategy: async (config, strategyId, showChart) => {
         let runAsync = false;
@@ -212,6 +215,7 @@ export const apiClient = {
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
             const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
+            socket.binaryType = 'arraybuffer';
 
             socket.onopen = () => {
                 socket.send(`STRATEGY:${strategyId}`);
@@ -219,8 +223,22 @@ export const apiClient = {
             };
 
             socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                onMessage(data);
+                try {
+                    const buffer = new Uint8Array(event.data);
+                    const isCompressed = buffer[0] === 1;
+                    const messageData = buffer.slice(1);
+
+                    let jsonData;
+                    if (isCompressed) {
+                        const decompressedData = pako.inflate(messageData, {to: 'string'});
+                        jsonData = JSON.parse(decompressedData);
+                    } else {
+                        jsonData = JSON.parse(new TextDecoder().decode(messageData));
+                    }
+                    onMessage(jsonData);
+                } catch (error) {
+                    log.error('Error processing WebSocket message:', error);
+                }
             };
 
             socket.onerror = (error) => {
