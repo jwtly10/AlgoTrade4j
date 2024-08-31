@@ -8,6 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -34,6 +35,7 @@ public class UserService {
                     userDTO.setUpdatedAt(user.getUpdatedAt());
                     return userDTO;
                 })
+                .sorted(Comparator.comparing(UserDTO::getId))
                 .toList();
     }
 

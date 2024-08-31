@@ -71,6 +71,7 @@ function Navbar({user, setUser}) {
                                 Optimise
                             </Button>
                             {user.role === 'ADMIN' && (
+                                <>
                                 <Button
                                     color="inherit"
                                     component={Link}
@@ -84,6 +85,20 @@ function Navbar({user, setUser}) {
                                 >
                                     Manage Users
                                 </Button>
+                                    <Button
+                                        color="inherit"
+                                        component={Link}
+                                        to="/monitor"
+                                        sx={{
+                                            backgroundColor: isActive('/monitor') ? 'rgba(255,255,255,0.2)' : 'transparent',
+                                            '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                            textTransform: 'none',
+                                            ml: 1
+                                        }}
+                                    >
+                                        Monitor
+                                    </Button>
+                                </>
                             )}
                         </>
                     )}
