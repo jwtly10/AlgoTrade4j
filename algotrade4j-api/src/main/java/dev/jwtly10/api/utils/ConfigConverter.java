@@ -1,6 +1,6 @@
 package dev.jwtly10.api.utils;
 
-import dev.jwtly10.api.models.StrategyConfig;
+import dev.jwtly10.api.model.StrategyConfig;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
 import dev.jwtly10.core.optimisation.ParameterRange;
 import lombok.extern.slf4j.Slf4j;

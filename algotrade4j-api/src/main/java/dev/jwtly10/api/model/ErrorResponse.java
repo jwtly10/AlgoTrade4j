@@ -1,4 +1,4 @@
-package dev.jwtly10.api.models;
+package dev.jwtly10.api.model;
 
 import dev.jwtly10.api.exception.ErrorType;
 import lombok.Getter;

@@ -1,35 +1,67 @@
-import React, { useState } from 'react';
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    Paper,
-    Tab,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TablePagination,
-    TableRow,
-    TableSortLabel,
-    Tabs,
-    Typography,
-} from '@mui/material';
-import TruncatedParams from './TruncatedParams.jsx';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Backdrop, Box, Chip, CircularProgress, Grid, Paper, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, Tabs, Tooltip, Typography,} from '@mui/material';
+import {styled} from '@mui/material/styles';
+import {apiClient} from '../api/apiClient.js'
 
-const OptimizationResults = ({ data }) => {
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+const StyledTableContainer = styled(TableContainer)(({theme}) => ({
+    flexGrow: 1,
+    overflow: 'auto',
+}));
+
+const OptimizationResults = ({task}) => {
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [tabValue, setTabValue] = useState(0);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(9);
     const [orderBy, setOrderBy] = useState('totalNetProfit');
     const [order, setOrder] = useState('desc');
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selectedRun, setSelectedRun] = useState(null);
+
+    useEffect(() => {
+        const fetchResults = async () => {
+            setLoading(true);
+            try {
+                const res = await apiClient.getTaskResults(task.id)
+                setResults(res);
+                setError(null);
+            } catch (err) {
+                setError('Failed to fetch results. Please try again later.');
+                setResults([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchResults();
+    }, [task]);
+
+    const columns = [
+        {id: 'strategyId', label: 'Strategy ID', minWidth: 100},
+        {
+            id: 'totalNetProfit',
+            label: 'Total Net Profit',
+            minWidth: 150,
+            format: (value, row) => {
+                const percentage = (value / row.output.stats?.initialDeposit) * 100;
+                return `${value.toFixed(2)} (${percentage.toFixed(2)}%)`;
+            }
+        }, {id: 'profitFactor', label: 'Profit Factor', minWidth: 110, format: (value) => value.toFixed(2)},
+        {id: 'totalTrades', label: 'Total Trades', minWidth: 100},
+        {id: 'winPercentage', label: 'Win %', minWidth: 90, format: (value) => `${(value * 100).toFixed(2)}%`},
+        {id: 'maxDrawdown', label: 'Max Drawdown', minWidth: 120, format: (value) => `${value.toFixed(2)}%`},
+        {id: 'sharpeRatio', label: 'Sharpe Ratio', minWidth: 110, format: (value) => value.toFixed(2)},
+        {id: 'parameters', label: 'Parameters', minWidth: 200},
+    ];
+
+    const failedColumns = [
+        {id: 'strategyId', label: 'Strategy ID', minWidth: 100},
+        {id: 'reason', label: 'Failure Reason', minWidth: 200},
+        {id: 'parameters', label: 'Parameters', minWidth: 200},
+    ];
+
+    const successfulStrategies = results.filter(result => !result.output.failed);
+    const failedStrategies = results.filter(result => result.output.failed);
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -40,295 +72,172 @@ const OptimizationResults = ({ data }) => {
         setPage(0);
     };
 
-    const handleChangeTab = (event, newValue) => {
-        setTabValue(newValue);
-        setPage(0);
-    };
-
     const handleRequestSort = (property) => {
         const isAsc = orderBy === property && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(property);
     };
 
-    const handleOpenDialog = (run) => {
-        setSelectedRun(run);
-        setOpenDialog(true);
-    };
+    const formatDate = (isoString) => {
+        const date = new Date(isoString);
 
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-    };
-
-    const calculateWinPercentage = (strategy) => {
-        const totalWinningTrades =
-            strategy.stats.totalLongWinningTrades + strategy.stats.totalShortWinningTrades;
-        const totalTrades = strategy.stats.totalTrades;
-        return totalTrades > 0 ? (totalWinningTrades / totalTrades) * 100 : 0;
-    };
-
-    const sortedStrategies = (strategies) => {
-        if (tabValue === 1) return strategies; // Don't sort failed strategies
-        return [...strategies].sort((a, b) => {
-            if (orderBy === 'winPercentage') {
-                const aValue = calculateWinPercentage(a);
-                const bValue = calculateWinPercentage(b);
-                if (bValue < aValue) {
-                    return order === 'asc' ? 1 : -1;
-                }
-                if (bValue > aValue) {
-                    return order === 'asc' ? -1 : 1;
-                }
-                return 0;
-            } else {
-                if (b.stats[orderBy]?.value < a.stats[orderBy]?.value) {
-                    return order === 'asc' ? 1 : -1;
-                }
-                if (b.stats[orderBy]?.value > a.stats[orderBy]?.value) {
-                    return order === 'asc' ? -1 : 1;
-                }
-                return 0;
-            }
-        });
-    };
-
-    const renderSuccessfulStrategiesTable = (strategies) => {
-        const sortedData = sortedStrategies(strategies);
-
-        return (
-            <Box sx={{ height: 'calc(100vh - 300px)', display: 'flex', flexDirection: 'column' }}>
-                <TableContainer component={Paper} sx={{ mt: 2, height: '100%', overflow: 'auto' }}>
-                    <Typography variant="h6" sx={{ p: 2 }}>
-                        Successful Strategies
-                    </Typography>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'totalNetProfit'}
-                                        direction={orderBy === 'totalNetProfit' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('totalNetProfit')}
-                                    >
-                                        Profit
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'maxDrawdown'}
-                                        direction={orderBy === 'maxDrawdown' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('maxDrawdown')}
-                                    >
-                                        Max Drawdown
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'profitFactor'}
-                                        direction={orderBy === 'profitFactor' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('profitFactor')}
-                                    >
-                                        Profit Factor
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'sharpeRatio'}
-                                        direction={orderBy === 'sharpeRatio' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('sharpeRatio')}
-                                    >
-                                        Sharpe Ratio
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'expectedPayoff'}
-                                        direction={orderBy === 'expectedPayoff' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('expectedPayoff')}
-                                    >
-                                        Expected Payoff
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>
-                                    <TableSortLabel
-                                        active={orderBy === 'winPercentage'}
-                                        direction={orderBy === 'winPercentage' ? order : 'asc'}
-                                        onClick={() => handleRequestSort('winPercentage')}
-                                    >
-                                        Win Rate
-                                    </TableSortLabel>
-                                </TableCell>
-                                <TableCell>Parameters</TableCell>
-                                <TableCell>Actions</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sortedData
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((strategy) => (
-                                    <TableRow key={strategy.strategyId}>
-                                        <TableCell>
-                                            {strategy.stats?.totalNetProfit?.toFixed(2) ||
-                                                'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {strategy.stats?.maxDrawdown.toFixed(2) || 'N/A'}%
-                                        </TableCell>
-                                        <TableCell>
-                                            {strategy.stats?.profitFactor?.toFixed(2) ||
-                                                'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {strategy.stats?.sharpeRatio?.toFixed(4) || 'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {strategy.stats?.expectedPayoff?.toFixed(2) ||
-                                                'N/A'}
-                                        </TableCell>
-                                        <TableCell>
-                                            {(
-                                                ((strategy.stats?.totalLongWinningTrades +
-                                                    strategy.stats?.totalShortWinningTrades) /
-                                                    strategy.stats?.totalTrades) *
-                                                100
-                                            ).toFixed(2) || 'N/A'}
-                                            %
-                                        </TableCell>
-                                        <TableCell>
-                                            <TruncatedParams params={strategy.parameters} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button onClick={() => handleOpenDialog(strategy)}>
-                                                View Details
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 25]}
-                        component="div"
-                        count={strategies.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </TableContainer>
-            </Box>
-        );
-    };
-
-    const renderFailedStrategiesTable = (strategies) => {
-        return (
-            <Box sx={{ height: 'calc(100vh - 300px)', display: 'flex', flexDirection: 'column' }}>
-                <TableContainer component={Paper} sx={{ mt: 2, height: '100%', overflow: 'auto' }}>
-                    <Typography variant="h6" sx={{ p: 2 }}>
-                        Failed Strategies
-                    </Typography>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Strategy ID</TableCell>
-                                <TableCell>Failure Reason</TableCell>
-                                <TableCell>Parameters</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {strategies
-                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                .map((strategy) => (
-                                    <TableRow key={strategy.strategyId}>
-                                        <TableCell>{strategy.strategyId}</TableCell>
-                                        <TableCell>{strategy.failureReason}</TableCell>
-                                        <TableCell>
-                                            <TruncatedParams params={strategy.parameters} />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                        </TableBody>
-                    </Table>
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 25]}
-                        component="div"
-                        count={strategies.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                    />
-                </TableContainer>
-            </Box>
-        );
-    };
-    const camelCaseToWords = (s) => {
-        const result = s.replace(/([A-Z])/g, ' $1');
-        return result.charAt(0).toUpperCase() + result.slice(1);
-    };
-
-    const formatValue = (value) => {
-        if (typeof value === 'number') {
-            return value.toFixed(2);
+        if (isNaN(date.getTime())) {
+            return 'Invalid Date';
         }
-        return value;
+
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
     };
+
+    const formatDuration = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+
+        const parts = [];
+        if (hours > 0) parts.push(`${hours}h`);
+        if (minutes > 0) parts.push(`${minutes}m`);
+        if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
+
+        return parts.join(' ');
+    };
+
+    const sortedData = useMemo(() => {
+        const comparator = (a, b) => {
+            let aValue = a.output.stats?.[orderBy] ?? a.output[orderBy];
+            let bValue = b.output.stats?.[orderBy] ?? b.output[orderBy];
+
+            if (orderBy === 'winPercentage') {
+                aValue = (a.output.stats?.totalLongWinningTrades + a.output.stats?.totalShortWinningTrades) / a.output.stats?.totalTrades;
+                bValue = (b.output.stats?.totalLongWinningTrades + b.output.stats?.totalShortWinningTrades) / b.output.stats?.totalTrades;
+            }
+
+            if (aValue < bValue) return order === 'asc' ? -1 : 1;
+            if (aValue > bValue) return order === 'asc' ? 1 : -1;
+            return 0;
+        };
+
+        return [...(tabValue === 0 ? successfulStrategies : failedStrategies)].sort(comparator);
+    }, [successfulStrategies, failedStrategies, order, orderBy, tabValue]);
+
+    const renderTaskInfo = () => (
+        <Paper elevation={1} sx={{p: 2, mb: 2}}>
+            <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Typography variant="subtitle2">Symbol:</Typography>
+                    <Typography>{task.config.instrument}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Typography variant="subtitle2">Period:</Typography>
+                    <Typography>{formatDuration(task.config.period)}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Typography variant="subtitle2">Timeframe:</Typography>
+                    <Typography>
+                        {formatDate(task.config.timeframe.from)} to {formatDate(task.config.timeframe.to)}
+                    </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Typography variant="subtitle2">Strategy:</Typography>
+                    <Typography>{task.config.strategyClass}</Typography>
+                </Grid>
+            </Grid>
+        </Paper>
+    );
+
+
+    const renderTable = (strategies, tableColumns) => (
+        <Paper sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+            <StyledTableContainer>
+                <Table stickyHeader aria-label="sticky table">
+                    <TableHead>
+                        <TableRow>
+                            {tableColumns.map((column) => (
+                                <TableCell
+                                    key={column.id}
+                                    style={{minWidth: column.minWidth}}
+                                    sortDirection={orderBy === column.id ? order : false}
+                                >
+                                    <TableSortLabel
+                                        active={orderBy === column.id}
+                                        direction={orderBy === column.id ? order : 'asc'}
+                                        onClick={() => handleRequestSort(column.id)}
+                                    >
+                                        {column.label}
+                                    </TableSortLabel>
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {strategies
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((row) => (
+                                <TableRow hover role="checkbox" tabIndex={-1} key={row.output.strategyId}>
+                                    {tableColumns.map((column) => {
+                                        const value = column.id === 'strategyId'
+                                            ? row.output.strategyId
+                                            : column.id === 'parameters'
+                                                ? JSON.stringify(row.parameters)
+                                                : column.id === 'winPercentage'
+                                                    ? (row.output.stats?.totalLongWinningTrades + row.output.stats?.totalShortWinningTrades) / row.output.stats?.totalTrades
+                                                    : column.id === 'reason'
+                                                        ? row.output.reason
+                                                        : row.output.stats?.[column.id];
+                                        return (
+                                            <TableCell key={column.id}>
+                                                {column.format && typeof value === 'number'
+                                                    ? column.format(value, row)  // Pass both value and row
+                                                    : column.id === 'parameters'
+                                                        ? (
+                                                            <Tooltip title={value} placement="top">
+                                                                <Chip label="View Parameters" variant="outlined"/>
+                                                            </Tooltip>
+                                                        )
+                                                        : value}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+            </StyledTableContainer>
+            <TablePagination
+                rowsPerPageOptions={[10]}
+                component="div"
+                count={strategies.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+        </Paper>
+    );
+
+    if (loading) {
+        return (
+            <Backdrop open={true} style={{zIndex: 9999, color: '#fff'}}>
+                <CircularProgress color="inherit"/>
+            </Backdrop>
+        );
+    }
+
+    if (error) {
+        return <Typography color="error">{error}</Typography>;
+    }
 
     return (
-        <Box sx={{ width: '100%', bgcolor: 'background.paper', p: 3 }}>
-            <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <Tabs value={tabValue} onChange={handleChangeTab} centered>
-                    <Tab label="Successful Strategy Runs" />
-                    <Tab label="Failed Strategy Runs" />
-                </Tabs>
-                {tabValue === 0 && renderSuccessfulStrategiesTable(data.successfulStrategies)}
-                {tabValue === 1 && renderFailedStrategiesTable(data.failedStrategies)}
-            </Paper>
-
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ borderBottom: 1, borderColor: 'divider', pb: 2 }}>
-                    Detailed Results
-                </DialogTitle>
-                <DialogContent sx={{ p: 3 }}>
-                    {selectedRun && (
-                        <>
-                            <Grid container spacing={3} sx={{ p: 3 }}>
-                                {Object.entries(selectedRun.stats).map(([key, value]) => (
-                                    <Grid item xs={12} sm={6} md={4} key={key}>
-                                        <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
-                                            <Typography
-                                                variant="overline"
-                                                sx={{
-                                                    mb: 1,
-                                                    lineHeight: 1.2,
-                                                    height: '2.4em',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                }}
-                                            >
-                                                {camelCaseToWords(key)}
-                                            </Typography>
-                                            <Typography variant="h6">
-                                                {formatValue(
-                                                    typeof value === 'object' ? value.value : value
-                                                )}
-                                            </Typography>
-                                        </Paper>
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </>
-                    )}
-                </DialogContent>
-                <DialogActions sx={{ borderTop: 1, borderColor: 'divider', pt: 2 }}>
-                    <Button onClick={handleCloseDialog} variant="outlined">
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
+        <Box sx={{display: 'flex', flexDirection: 'column', height: '100%'}}>
+            {renderTaskInfo()}
+            <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
+                <Tab label={`Successful Strategies (${successfulStrategies.length})`}/>
+                <Tab label={`Failed Strategies (${failedStrategies.length})`}/>
+            </Tabs>
+            {renderTable(sortedData, tabValue === 0 ? columns : failedColumns)}
         </Box>
     );
 };

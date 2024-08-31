@@ -132,7 +132,7 @@ function Navbar({user, setUser}) {
                             }}
                         >
                             <Avatar sx={{width: 32, height: 32, mr: 1}}>
-                                {user.firstName?.charAt(0)}
+                                {user.firstName?.charAt(0).toUpperCase()}
                             </Avatar>
                             <Typography variant="body1" sx={{mr: 1}}>
                                 {user.firstName}

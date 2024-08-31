@@ -5,15 +5,12 @@ import {Box, Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Typ
 import ConfigModal from '../components/modals/ConfigModal.jsx';
 import {Toast} from "../components/Toast.jsx";
 import log from '../logger.js'
-import {useOptimisationResults} from "../hooks/useOptimisationResults.js";
-import OptimisationResultsContainer from "../components/OptimisationResultsHandler.jsx";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ClearIcon from '@mui/icons-material/Clear';
+import OptimisationTaskList from "../components/OptimisationTaskList.jsx";
 
 
 const OptimisationView = () => {
-    const {optimisationResults, isPolling, startNewOptimisation, stopOptimisation} = useOptimisationResults(apiClient);
 
     const [isRunning, setIsRunning] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -133,25 +130,23 @@ const OptimisationView = () => {
             strategyClass: strategyClass,
         }
 
-        log.debug('Starting optimisation...');
-
-        const oId = crypto.randomUUID()
+        // const oId = crypto.randomUUID()
         try {
-            await apiClient.startOptimisation(hackConfig, oId)
-            startNewOptimisation(oId)
-            log.debug('Optimisation started');
+            await apiClient.queueOptimisation(hackConfig)
+            // startNewOptimisation(oId)
+            log.debug('Optimisation queued');
             setToast({
                 open: true,
                 level: 'success',
-                message: 'Optimisation started',
+                message: 'Optimisation queued. The page will automatically refresh in a few seconds.',
             })
-            setIsRunning(false);
+            setIsRunning(false)
         } catch (error) {
-            log.error('Failed to start optimisation:', error);
+            log.error('Failed to queue optimisation:', error);
             setToast({
                 open: true,
                 level: 'error',
-                message: 'Failed to start optimisation: ' + error.response.data.message,
+                message: 'Failed to queue optimisation: ' + error.response.data.message,
             })
             setIsRunning(false);
         }
@@ -254,10 +249,7 @@ const OptimisationView = () => {
                     <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
                         {/* Result Section */}
                         <Box sx={{flexGrow: 1, overflow: 'hidden'}}>
-                            <OptimisationResultsContainer
-                                optimisationResults={optimisationResults}
-                                isPolling={isPolling}
-                            />
+                            <OptimisationTaskList/>
                         </Box>
                     </Paper>
                 </Box>
@@ -314,19 +306,6 @@ const OptimisationView = () => {
                             Configure Parameters
                         </Button>
 
-                        <Button
-                            variant="contained"
-                            color="error"
-                            onClick={stopOptimisation}
-                            size="large"
-                            sx={{
-                                mb: 2,
-                            }}
-                            startIcon={<ClearIcon/>}
-                        >
-                            Clear Cache
-                        </Button>
-
                         <Typography variant="body2" color="text.secondary" align="center">
                             Results are only held in memory for a short amount of time. You can clear the cache if you have not started a run in a while, but the system is still polling for results.
                         </Typography>
@@ -355,6 +334,7 @@ const OptimisationView = () => {
                 message={toast.message}
                 severity={toast.level}
                 onClose={handleCloseToast}
+                duration={3000}
             />
         </Box>
     );

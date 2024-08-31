@@ -196,7 +196,6 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
-        log.debug("Initializing strategy from BaseStrategy: {}", strategyId);
         this.barSeries = series;
         this.dataManager = dataManager;
         this.accountManager = accountManager;

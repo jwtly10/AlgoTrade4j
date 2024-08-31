@@ -18,26 +18,26 @@ public class Number implements Comparable<Number> {
      * The number of decimal places to use for all Number instances.
      */
     public static final int DECIMAL_PLACES = 5;
-
     /**
      * The rounding mode to use for all Number operations.
      */
     public static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
-
     /**
      * A constant representing zero.
      */
     public static final Number ZERO = new Number(BigDecimal.ZERO);
-
     /**
      * A constant representing one.
      */
     public static final Number ONE = new Number(BigDecimal.ONE);
-
     /**
      * The underlying BigDecimal value.
      */
     private final BigDecimal value;
+
+    public Number() {
+        this.value = BigDecimal.ZERO;
+    }
 
     /**
      * Constructs a Number from a BigDecimal value.

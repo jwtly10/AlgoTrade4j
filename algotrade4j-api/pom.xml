@@ -102,6 +102,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>3.3.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>7.0.0.Beta1</version>
+        </dependency>
+
     </dependencies>
     <repositories>
         <repository>

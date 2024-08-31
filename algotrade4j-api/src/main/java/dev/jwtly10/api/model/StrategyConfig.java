@@ -1,4 +1,4 @@
-package dev.jwtly10.api.models;
+package dev.jwtly10.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.data.DataSpeed;

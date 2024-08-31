@@ -1,47 +1,103 @@
 package dev.jwtly10.api.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dev.jwtly10.api.auth.utils.SecurityUtils;
 import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
-import dev.jwtly10.api.models.StrategyConfig;
-import dev.jwtly10.api.service.OptimisationManager;
-import dev.jwtly10.core.optimisation.OptimisationResult;
+import dev.jwtly10.api.model.StrategyConfig;
+import dev.jwtly10.api.model.optimisation.OptimisationResultDTO;
+import dev.jwtly10.api.model.optimisation.OptimisationTask;
+import dev.jwtly10.api.service.optimisation.OptimisationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/optimisation")
 @Slf4j
 public class OptimisationController {
-    private final OptimisationManager optimisationManager;
+    private final OptimisationService optimisationService;
 
-    public OptimisationController(OptimisationManager optimisationManager) {
-        this.optimisationManager = optimisationManager;
+    public OptimisationController(OptimisationService optimisationService) {
+        this.optimisationService = optimisationService;
     }
 
-    @PostMapping("/start")
-    public ResponseEntity<String> startOptimisation(@RequestBody StrategyConfig config, @RequestParam("optimisationId") String optimisationId) {
-        log.debug("Starting optimisation: {} with config : {}", optimisationId, config);
+    @PostMapping("/queue")
+    public ResponseEntity<OptimisationTask> queueOptimisation(@RequestBody StrategyConfig config) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        log.debug("Queueing optimisation for user: {} with config: {}", userId, config);
 
         try {
-            optimisationManager.validateOptimisationConfig(config);
-            optimisationManager.startOptimisation(config, optimisationId);
-            return ResponseEntity.accepted().body("Optimisation validated and started");
+            OptimisationTask task = optimisationService.queueOptimisation(config, userId);
+            return ResponseEntity.accepted().body(task);
         } catch (IllegalArgumentException e) {
             throw new StrategyManagerException(e.getMessage(), ErrorType.BAD_REQUEST);
+        } catch (JsonProcessingException e) {
+            // This will be an error with our internal objects & JSON serialisation
+            throw new StrategyManagerException(e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
     }
 
-    @GetMapping("/{optimisationId}/results")
-    public ResponseEntity<OptimisationResult> getOptimisationResults(@PathVariable("optimisationId") String optimisationId) {
-        log.debug("Getting results for optimisationId: {}", optimisationId);
-        OptimisationResult results = optimisationManager.getResults(optimisationId);
-        if (results != null) {
-            log.debug("Results found for optimisationId: {}", optimisationId);
+    @GetMapping("/tasks")
+    public ResponseEntity<List<OptimisationTask>> getUserTasks() {
+        Long userId = SecurityUtils.getCurrentUserId();
+
+        List<OptimisationTask> tasks = optimisationService.getUserTasks(userId);
+        return ResponseEntity.ok(tasks);
+    }
+
+    @DeleteMapping("/tasks/{taskId}")
+    public ResponseEntity<String> deleteTask(@PathVariable("taskId") Long taskId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        log.debug("Deleting task: {} for user: {}", taskId, currentUserId);
+
+        optimisationService.deleteTask(taskId, currentUserId);
+        return ResponseEntity.ok("Task deleted successfully");
+    }
+
+    @GetMapping("/tasks/{taskId}/results")
+    public ResponseEntity<List<OptimisationResultDTO>> getResultsForTask(@PathVariable("taskId") Long taskId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        log.debug("Getting results for task: {} for user: {}", taskId, currentUserId);
+
+        try {
+            List<OptimisationResultDTO> results = optimisationService.getResultsForTask(taskId, currentUserId);
             return ResponseEntity.ok(results);
-        } else {
-            log.debug("No optimisation results found for optimisationId {} ", optimisationId);
-            throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, ErrorType.NOT_FOUND);
+        } catch (IllegalArgumentException e) {
+            throw new StrategyManagerException(e.getMessage(), ErrorType.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new StrategyManagerException(e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
     }
+
+    @PostMapping("/share/{taskId}/{shareWithUserId}")
+    public ResponseEntity<String> shareTask(@PathVariable("taskId") Long taskId, @PathVariable("shareWithUserId") Long shareWithUserId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        log.debug("Sharing task: {} from user: {} with user: {}", taskId, currentUserId, shareWithUserId);
+
+        try {
+            optimisationService.shareTask(taskId, currentUserId, shareWithUserId);
+            return ResponseEntity.ok("Shared Successfully");
+        } catch (IllegalArgumentException e) {
+            throw new StrategyManagerException(e.getMessage(), ErrorType.BAD_REQUEST);
+        } catch (Exception e) {
+            throw new StrategyManagerException(e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
+    }
+
+
+//    @GetMapping("/{optimisationId}/results")
+//    public ResponseEntity<OptimisationResult> getOptimisationResults(@PathVariable("optimisationId") String optimisationId) {
+//        log.debug("Getting results for optimisationId: {}", optimisationId);
+//        OptimisationResult results = optimisationManager.getResults(optimisationId);
+//        if (results != null) {
+//            log.debug("Results found for optimisationId: {}", optimisationId);
+//            return ResponseEntity.ok(results);
+//        } else {
+//            log.debug("No optimisation results found for optimisationId {} ", optimisationId);
+//            throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, ErrorType.NOT_FOUND);
+//        }
+//    }
 }

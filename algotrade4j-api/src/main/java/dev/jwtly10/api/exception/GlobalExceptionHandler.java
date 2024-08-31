@@ -1,6 +1,6 @@
 package dev.jwtly10.api.exception;
 
-import dev.jwtly10.api.models.ErrorResponse;
+import dev.jwtly10.api.model.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

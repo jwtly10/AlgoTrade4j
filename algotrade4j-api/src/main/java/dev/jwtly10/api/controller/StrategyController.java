@@ -2,7 +2,7 @@ package dev.jwtly10.api.controller;
 
 import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
-import dev.jwtly10.api.models.StrategyConfig;
+import dev.jwtly10.api.model.StrategyConfig;
 import dev.jwtly10.api.service.StrategyManager;
 import dev.jwtly10.api.service.StrategyWebSocketHandler;
 import dev.jwtly10.api.service.WebSocketEventListener;

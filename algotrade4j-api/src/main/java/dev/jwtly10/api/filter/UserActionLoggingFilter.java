@@ -21,8 +21,8 @@ public class UserActionLoggingFilter extends OncePerRequestFilter {
     // Some routes we don't care about logging the action
     private final List<String> excludedPaths = Arrays.asList(
             "/api/v1/auth/verify",
-            "/api/v1/system/monitor",
-            "/api/v1/system/version"
+            "/api/v1/system/version",
+            "/api/v1/optimisation/tasks"
     );
 
     @Override
