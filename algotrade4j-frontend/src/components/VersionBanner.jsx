@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
-import { systemClient } from '../api/apiClient';
+import React, {useEffect, useState} from 'react';
+import {Box, Tooltip, Typography} from '@mui/material';
+import {systemClient} from '../api/apiClient';
 
 const BANNER_HEIGHT = '30px';
 
@@ -14,15 +14,13 @@ const VersionBanner = ({ user }) => {
                 const response = await systemClient.version();
                 setVersionInfo({
                     ...response,
-                    environment:
-                        response.environment || process.env.REACT_APP_ENVIRONMENT || 'local',
                 });
             } catch (error) {
                 console.error('Failed to fetch version info:', error);
                 setVersionInfo({
                     version: 'Unknown',
                     commit: 'Unknown',
-                    environment: process.env.REACT_APP_ENVIRONMENT || 'local',
+                    environment: 'Unknown',
                 });
             }
         };
@@ -46,18 +44,13 @@ const VersionBanner = ({ user }) => {
             case 'production':
                 return '#1976d2'; // Blue for production
             case 'dev':
-                return '#9c27b0'; // Purple for local
+                return '#9c27b0'; // Purple for dev
             default:
                 return '#4caf50'; // Green for other environments
         }
     };
 
-    const getBannerContent = () => {
-        const capitalizedEnvironment = versionInfo.environment.toUpperCase();
-        return `${capitalizedEnvironment} - Version: ${versionInfo.version}`;
-    };
-
-    const showDumpHeap = isDevelopment && user.role === 'ADMIN';
+    const showDumpHeap = isDevelopment && user?.role === 'ADMIN';
 
     return (
         <Box
@@ -76,10 +69,16 @@ const VersionBanner = ({ user }) => {
             }}
         >
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                {getBannerContent()}
+                {versionInfo.environment.toUpperCase()} - v{versionInfo.version}
+                {' | '}
+                <Tooltip title={`App started at: ${versionInfo.startTime}`} arrow>
+                    <span style={{cursor: 'help'}}>
+                        Uptime: {calculateUptime(versionInfo.startTime)}
+                    </span>
+                </Tooltip>
                 {showDumpHeap && (
                     <>
-                        {' - '}
+                        {' | '}
                         <span
                             onClick={handleDumpHeap}
                             style={{
@@ -94,6 +93,20 @@ const VersionBanner = ({ user }) => {
             </Typography>
         </Box>
     );
+};
+
+const calculateUptime = (startTime) => {
+    if (!startTime || startTime === 'Unknown') return 'Unknown';
+
+    const start = new Date(startTime);
+    const now = new Date();
+    const diff = now - start;
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    return `${days}d ${hours}h ${minutes}m`;
 };
 
 export default VersionBanner;

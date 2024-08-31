@@ -35,6 +35,7 @@ public class AdminController {
             return ResponseEntity.ok(new LoginResponse(
                     newUser.getId(),
                     newUser.getUsername(),
+                    newUser.getFirstName(),
                     newUser.getEmail(),
                     newUser.getRole().name()));
         } catch (Exception e) {

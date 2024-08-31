@@ -85,10 +85,14 @@ public class AuthController {
             String ipAddress = request.getRemoteAddr();
             userLoginLogService.logUserLogin(userDetails.getId(), ipAddress);
 
+            // If we have found the user details. This should always be found
+            User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+
             // Return user details without the JWT
             return ResponseEntity.ok(new LoginResponse(
                     userDetails.getId(),
                     userDetails.getUsername(),
+                    user.getFirstName(),
                     userDetails.getEmail(),
                     role));
         } catch (BadCredentialsException e) {
@@ -126,8 +130,11 @@ public class AuthController {
                                     .map(item -> item.getAuthority())
                                     .collect(Collectors.toList()).get(0);
 
+                            User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+
                             return ResponseEntity.ok(new LoginResponse(
                                     userDetails.getId(),
+                                    user.getFirstName(),
                                     userDetails.getUsername(),
                                     userDetails.getEmail(),
                                     role
