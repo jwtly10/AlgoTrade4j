@@ -245,10 +245,10 @@ const OptimisationView = () => {
             {/* Main content area */}
             <Box sx={{flexGrow: 1, display: 'flex', overflow: 'hidden'}}>
                 {/* Left section (3/4 width) */}
-                <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden'}}>
-                    <Paper elevation={3} sx={{height: '100%', display: 'flex', flexDirection: 'column', p: 3}}>
+                <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+                    <Paper elevation={3} sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3}}>
                         {/* Result Section */}
-                        <Box sx={{flexGrow: 1, overflow: 'hidden'}}>
+                        <Box sx={{flexGrow: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
                             <OptimisationTaskList/>
                         </Box>
                     </Paper>
@@ -307,7 +307,7 @@ const OptimisationView = () => {
                         </Button>
 
                         <Typography variant="body2" color="text.secondary" align="center">
-                            Results are only held in memory for a short amount of time. You can clear the cache if you have not started a run in a while, but the system is still polling for results.
+                            Parameters are shared between Backtesting and Optimisation screens.
                         </Typography>
 
                         <Box sx={{flexGrow: 1}}/> {/* Spacer */}

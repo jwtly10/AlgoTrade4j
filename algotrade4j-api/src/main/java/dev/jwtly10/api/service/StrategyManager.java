@@ -80,7 +80,7 @@ public class StrategyManager {
         dataProvider.setDataSpeed(dataSpeed);
 
         // TODO: How long does this actually equate too?
-        int defaultSeriesSize = 4000;
+        int defaultSeriesSize = 5000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
