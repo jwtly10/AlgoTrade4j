@@ -18,9 +18,4 @@ public class CoreConfig {
     public StrategyManager strategyManager(EventPublisher eventPublisher) {
         return new StrategyManager(eventPublisher);
     }
-
-//    @Bean
-//    public OptimisationManager optimisationManager() {
-//        return new OptimisationManager();
-//    }
 }

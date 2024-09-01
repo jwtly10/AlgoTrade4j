@@ -36,6 +36,7 @@ CREATE TABLE optimisation_task_tb
 (
     id            BIGSERIAL PRIMARY KEY,
     config        JSON        NOT NULL,
+    progress_info JSON,
     state         VARCHAR(20) NOT NULL,
     error_message TEXT,
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -46,7 +47,8 @@ CREATE TABLE optimisation_results_tb
 (
     id                   BIGSERIAL PRIMARY KEY,
     optimisation_task_id BIGINT REFERENCES optimisation_task_tb (id),
-    result               JSON,
+    parameters           JSON NOT NULL,
+    output               JSON NOT NULL,
     created_at           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -69,4 +71,4 @@ CREATE TABLE optimisation_user_tb
 
 CREATE INDEX idx_optimisation_results_task_id ON optimisation_results_tb (optimisation_task_id);
 CREATE INDEX idx_optimisation_user_task_id ON optimisation_user_tb (optimisation_task_id);
-CREATE INDEX idx_optimisation_user_user_id ON optimisation_user_tb (user_id);
+CREATE INDEX idx_optimisation_user_user_id ON optimisation_user_tb (user_id);;
