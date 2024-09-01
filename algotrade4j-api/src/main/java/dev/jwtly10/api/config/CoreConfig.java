@@ -1,6 +1,5 @@
 package dev.jwtly10.api.config;
 
-import dev.jwtly10.api.service.OptimisationManager;
 import dev.jwtly10.api.service.StrategyManager;
 import dev.jwtly10.core.event.AsyncEventPublisher;
 import dev.jwtly10.core.event.EventPublisher;
@@ -18,10 +17,5 @@ public class CoreConfig {
     @Bean
     public StrategyManager strategyManager(EventPublisher eventPublisher) {
         return new StrategyManager(eventPublisher);
-    }
-
-    @Bean
-    public OptimisationManager optimisationManager() {
-        return new OptimisationManager();
     }
 }

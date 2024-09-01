@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Paper, Typography} from '@mui/material';
 import {systemClient} from '../api/apiClient';
+import log from '../logger.js'
 
 const MonitorView = () => {
     const [monitorInfo, setMonitorInfo] = useState({});
@@ -11,7 +12,7 @@ const MonitorView = () => {
                 const response = await systemClient.monitor();
                 setMonitorInfo(response);
             } catch (error) {
-                console.error('Failed to fetch monitor info:', error);
+                log.error('Failed to fetch monitor info:', error);
             }
         };
 

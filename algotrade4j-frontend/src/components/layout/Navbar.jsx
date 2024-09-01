@@ -1,11 +1,15 @@
 import React, {useState} from 'react';
-import {AppBar, Box, Button, Toolbar, Typography} from '@mui/material';
+import {AppBar, Avatar, Box, Button, IconButton, Menu, MenuItem, Toolbar, Typography} from '@mui/material';
 import {Link, useLocation} from 'react-router-dom';
 import {authClient} from '../../api/apiClient';
 import {Toast} from "../Toast.jsx";
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 function Navbar({user, setUser}) {
     const location = useLocation();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [adminAnchorEl, setAdminAnchorEl] = useState(null);
     const [toast, setToast] = useState({
         open: false,
         message: '',
@@ -17,6 +21,7 @@ function Navbar({user, setUser}) {
         try {
             await authClient.logout();
             setUser(null);
+            handleMenuClose();
         } catch (error) {
             setToast({
                 open: true,
@@ -34,103 +39,138 @@ function Navbar({user, setUser}) {
         setToast(prev => ({...prev, open: false}));
     };
 
+    const handleMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleAdminMenuOpen = (event) => {
+        setAdminAnchorEl(event.currentTarget);
+    };
+
+    const handleAdminMenuClose = () => {
+        setAdminAnchorEl(null);
+    };
+
     const isActive = (path) => location.pathname === path;
+
+    const buttonStyle = (path) => ({
+        backgroundColor: isActive(path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+        '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+        textTransform: 'none',
+        mx: 1
+    });
 
     return (
         <AppBar position="static">
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{mr: 2}}>
+                <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
                     AlgoTrade4J
                 </Typography>
-                <Box sx={{display: 'flex', alignItems: 'center', flexGrow: 1}}>
-                    {user && (
-                        <>
-                            <Button
-                                color="inherit"
-                                component={Link}
-                                to="/backtest"
-                                sx={{
-                                    backgroundColor: isActive('/backtest') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                    textTransform: 'none'
-                                }}
-                            >
-                                Backtest
-                            </Button>
-                            <Button
-                                color="inherit"
-                                component={Link}
-                                to="/optimisation"
-                                sx={{
-                                    backgroundColor: isActive('/optimisation') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                    textTransform: 'none',
-                                    ml: 1
-                                }}
-                            >
-                                Optimise
-                            </Button>
-                            {user.role === 'ADMIN' && (
-                                <Button
+                {user && (
+                    <Box sx={{display: 'flex', alignItems: 'center'}}>
+                        <Button
+                            color="inherit"
+                            component={Link}
+                            to="/backtest"
+                            sx={buttonStyle('/backtest')}
+                        >
+                            Backtest
+                        </Button>
+                        <Button
+                            color="inherit"
+                            component={Link}
+                            to="/optimisation"
+                            sx={buttonStyle('/optimisation')}
+                        >
+                            Optimise
+                        </Button>
+                        {user.role === 'ADMIN' && (
+                            <>
+                                <IconButton
                                     color="inherit"
-                                    component={Link}
-                                    to="/users"
-                                    sx={{
-                                        backgroundColor: isActive('/users') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                        '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                        textTransform: 'none',
-                                        ml: 1
-                                    }}
+                                    onClick={handleAdminMenuOpen}
+                                    sx={{ml: 1}}
                                 >
-                                    Manage Users
-                                </Button>
-                            )}
-                        </>
-                    )}
-                </Box>
-                <Box sx={{display: 'flex', alignItems: 'center'}}>
-                    {user ? (
-                        <>
-                            <Typography variant="body2" sx={{mr: 1}}>
-                                Logged in as {user.username}
+                                    <AdminPanelSettingsIcon/>
+                                </IconButton>
+                                <Menu
+                                    anchorEl={adminAnchorEl}
+                                    open={Boolean(adminAnchorEl)}
+                                    onClose={handleAdminMenuClose}
+                                >
+                                    <MenuItem
+                                        component={Link}
+                                        to="/users"
+                                        onClick={handleAdminMenuClose}
+                                    >
+                                        Manage Users
+                                    </MenuItem>
+                                    <MenuItem
+                                        component={Link}
+                                        to="/monitor"
+                                        onClick={handleAdminMenuClose}
+                                    >
+                                        Monitor
+                                    </MenuItem>
+                                </Menu>
+                            </>
+                        )}
+                        <Box
+                            onClick={handleMenuOpen}
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                ml: 2,
+                                '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
+                                borderRadius: 1,
+                                padding: '4px 8px'
+                            }}
+                        >
+                            <Avatar sx={{width: 32, height: 32, mr: 1}}>
+                                {user.firstName?.charAt(0).toUpperCase()}
+                            </Avatar>
+                            <Typography variant="body1" sx={{mr: 1}}>
+                                {user.firstName}
                             </Typography>
-                            <Button
-                                color="inherit"
-                                onClick={handleLogout}
-                                sx={{textTransform: 'none'}}
-                            >
-                                (Logout)
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                color="inherit"
-                                component={Link}
-                                to="/login"
-                                sx={{
-                                    backgroundColor: isActive('/login') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                    textTransform: 'none'
-                                }}
-                            >
-                                Login
-                            </Button>
-                            <Button
-                                color="inherit"
-                                component={Link}
-                                to="/signup"
-                                sx={{
-                                    backgroundColor: isActive('/signup') ? 'rgba(255,255,255,0.2)' : 'transparent',
-                                    '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                    textTransform: 'none'
-                                }}
-                            >
-                                Sign Up
-                            </Button>
-                        </>
-                    )}
-                </Box>
+                            <ArrowDropDownIcon/>
+                        </Box>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleMenuClose}
+                        >
+                            <MenuItem disabled>
+                                Logged in as {user.username}
+                            </MenuItem>
+                            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                        </Menu>
+                    </Box>
+                )}
+                {!user && (
+                    <Box>
+                        <Button
+                            color="inherit"
+                            component={Link}
+                            to="/login"
+                            sx={buttonStyle('/login')}
+                        >
+                            Login
+                        </Button>
+                        <Button
+                            color="inherit"
+                            component={Link}
+                            to="/signup"
+                            sx={buttonStyle('/signup')}
+                        >
+                            Sign Up
+                        </Button>
+                    </Box>
+                )}
             </Toolbar>
             <Toast
                 {...toast}

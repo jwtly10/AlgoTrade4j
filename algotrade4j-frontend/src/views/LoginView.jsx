@@ -3,6 +3,7 @@ import {Box, Button, IconButton, InputAdornment, TextField} from '@mui/material'
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import {authClient} from '../api/apiClient';
 import {Toast} from '../components/Toast';
+import log from '../logger.js'
 
 function LoginView({setUser, onSuccess}) {
     const [username, setUsername] = useState('');
@@ -22,7 +23,7 @@ function LoginView({setUser, onSuccess}) {
             setUser(userData);
             if (onSuccess) onSuccess();
         } catch (error) {
-            console.error('Login failed:', error);
+            log.error('Login failed:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Invalid username or password' + error,

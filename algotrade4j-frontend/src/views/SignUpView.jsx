@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Box, Button, TextField, Typography} from '@mui/material';
 import {authClient} from '../api/apiClient';
 import {Toast} from "../components/Toast.jsx";
+import log from '../logger.js'
 
 function SignUpView({setUser, onSuccess}) {
     const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ function SignUpView({setUser, onSuccess}) {
             setUser(userData);
             if (onSuccess) onSuccess();
         } catch (error) {
-            console.error('Signup failed:', error);
+            log.error('Signup failed:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Sign up failed',

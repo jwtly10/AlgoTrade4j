@@ -28,9 +28,9 @@ export const systemClient = {
         const url = 'http://localhost:8080/generate-heapdump';
         try {
             const res = await axios.get(url);
-            console.log(res);
+            log.debug(res);
         } catch (error) {
-            console.log(error);
+            log.debug(error);
         }
     },
     monitor: async () => {
@@ -57,7 +57,7 @@ export const authClient = {
     login: async (username, password) => {
         const url = '/auth/signin';
         try {
-            const response = await axiosInstance.post(url, { username, password });
+            const response = await axiosInstance.post(url, {username, password});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -129,7 +129,7 @@ export const adminClient = {
     changeUserPassword: async (userId, newPassword) => {
         const url = `/admin/users/${userId}/change-password`;
         try {
-            const response = await axiosInstance.post(url, { newPassword });
+            const response = await axiosInstance.post(url, {newPassword});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -252,8 +252,8 @@ export const apiClient = {
         });
     },
 
-    startOptimisation: async (config, id) => {
-        const url = `/optimisation/start?optimisationId=${id}`;
+    queueOptimisation: async (config) => {
+        const url = `/optimisation/queue`;
         try {
             const response = await axiosInstance.post(url, config);
             return handleResponse(response, url);
@@ -262,8 +262,38 @@ export const apiClient = {
         }
     },
 
-    getOptimisationResults: async (id) => {
-        const url = `/optimisation/${id}/results`;
+    getOptimisationTasks: async () => {
+        const url = `/optimisation/tasks`;
+        try {
+            const response = await axiosInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    shareTask: async (taskId, shareWithUserId) => {
+        const url = `/optimisation/share/${taskId}/${shareWithUserId}`
+        try {
+            const response = await axiosInstance.post(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    deleteTask: async (taskId) => {
+        const url = `/optimisation/tasks/${taskId}`
+        try {
+            const response = await axiosInstance.delete(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    getTaskResults: async (taskId) => {
+        const url = `/optimisation/tasks/${taskId}/results`
         try {
             const response = await axiosInstance.get(url);
             return handleResponse(response, url);

@@ -12,6 +12,7 @@ import MonitorView from "./views/MonitorView.jsx";
 import VersionBanner from "./components/VersionBanner.jsx";
 import HomeView from "./views/HomeView.jsx";
 import OptimisationView from "./views/OptimisationView.jsx";
+import log from './logger.js';
 
 const darkTheme = createTheme({
     palette: {
@@ -59,7 +60,7 @@ function App() {
                 const userData = await authClient.verifyToken();
                 setUser(userData);
             } catch (error) {
-                console.error('Token verification failed:', error);
+                log.error('Token verification failed:', error);
             } finally {
                 setLoading(false);
             }

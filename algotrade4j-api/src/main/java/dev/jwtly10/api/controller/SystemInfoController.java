@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,19 +17,21 @@ import java.util.Map;
 public class SystemInfoController {
     private final Map<String, String> versionInfo;
     private final Environment environment;
+    private final Date startTime;
+
 
     @Autowired
     public SystemInfoController(Map<String, String> versionInfo, Environment environment) {
         this.versionInfo = versionInfo;
         this.environment = environment;
+        this.startTime = new Date();
     }
 
     @GetMapping("/version")
     public Map<String, String> getVersion() {
         Map<String, String> info = new HashMap<>(versionInfo);
-        info.put(
-                "environment", getEnvironment()
-        );
+        info.put("environment", getEnvironment());
+        info.put("startTime", formatDateTime(startTime));
         return info;
     }
 
@@ -46,6 +49,8 @@ public class SystemInfoController {
                 "javaVersion", System.getProperty("java.version"),
                 "timestamp", new Date().toString(),
                 "environment", getEnvironment(),
+                "startTime", formatDateTime(startTime),
+                "uptime", getUptime(),
                 "jvmMemory", Map.of(
                         "current", Map.of(
                                 "total", formatBytes(totalMemory),
@@ -64,6 +69,15 @@ public class SystemInfoController {
         return Arrays.asList(environment.getActiveProfiles()).contains("dev") ? "dev" : "production";
     }
 
+    private String getUptime() {
+        long uptime = System.currentTimeMillis() - startTime.getTime();
+        long days = uptime / (24 * 60 * 60 * 1000);
+        long hours = (uptime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000);
+        long minutes = (uptime % (60 * 60 * 1000)) / (60 * 1000);
+        long seconds = (uptime % (60 * 1000)) / 1000;
+        return String.format("%d days, %d hours, %d minutes, %d seconds", days, hours, minutes, seconds);
+    }
+
     private String formatBytes(long bytes) {
         final long kilobyte = 1024;
         final long megabyte = kilobyte * 1024;
@@ -78,5 +92,10 @@ public class SystemInfoController {
         } else {
             return bytes + " B";
         }
+    }
+
+    private String formatDateTime(Date date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return sdf.format(date);
     }
 }

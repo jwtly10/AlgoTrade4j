@@ -4,7 +4,7 @@ import 'chartjs-adapter-date-fns';
 import AnalysisReport from '../components/AnalysisReport.jsx';
 import {EquityChart} from '../components/EquityChart.jsx';
 import TradesTable from '../components/TradesTable.jsx';
-import {Box, Button, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Paper, Select, Switch, Tab, Tabs, Typography,} from '@mui/material';
+import {Box, Button, FormControl, Grid, InputLabel, MenuItem, Paper, Select, Tab, Tabs, Typography,} from '@mui/material';
 import {TabPanel} from '../components/TabPanel.jsx';
 import LogsTable from '../components/LogsTable.jsx';
 import ConfigModal from '../components/modals/ConfigModal.jsx';
@@ -334,7 +334,7 @@ const BacktestView = () => {
     };
 
     const updateIndicator = (data) => {
-        console.log(data)
+        log.debug(data)
         if (data.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({
@@ -748,17 +748,17 @@ const BacktestView = () => {
                             Configure Parameters
                         </Button>
 
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={showChart}
-                                    onChange={(e) => setShowChart(e.target.checked)}
-                                    color="primary"
-                                />
-                            }
-                            label="Visual Mode?"
-                            sx={{mb: 2}}
-                        />
+                        {/*<FormControlLabel*/}
+                        {/*    control={*/}
+                        {/*        <Switch*/}
+                        {/*            checked={showChart}*/}
+                        {/*            onChange={(e) => setShowChart(e.target.checked)}*/}
+                        {/*            color="primary"*/}
+                        {/*        />*/}
+                        {/*    }*/}
+                        {/*    label="Visual Mode?"*/}
+                        {/*    sx={{mb: 2}}*/}
+                        {/*/>*/}
 
                         <Box sx={{flexGrow: 1}}/> {/* Spacer */}
 

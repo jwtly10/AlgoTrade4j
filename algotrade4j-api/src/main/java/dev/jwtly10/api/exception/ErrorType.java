@@ -6,5 +6,6 @@ public enum ErrorType {
     NOT_FOUND,
     UNAUTHORIZED,
     FORBIDDEN,
-    VALIDATION_ERROR
+    VALIDATION_ERROR,
+    TOO_MANY_REQUESTS
 }

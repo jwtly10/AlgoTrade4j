@@ -22,7 +22,7 @@ export const Toast = ({open, message, onClose, severity = 'info', duration = 600
             autoHideDuration={duration}
             onClose={onClose}
             anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-            style={{top: '64px'}} // Adjust this value as needed
+            style={{top: '48px'}}
         >
             <Alert onClose={onClose} severity={severity} variant="filled" elevation={6}>
                 {message}

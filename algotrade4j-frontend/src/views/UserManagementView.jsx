@@ -4,8 +4,9 @@ import {Toast} from "../components/Toast.jsx";
 import EditIcon from '@mui/icons-material/Edit';
 import LockIcon from '@mui/icons-material/Lock';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {Box, Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from "@mui/material";
+import {Box, Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from "@mui/material";
 import CreateUserForm from "../components/CreateUserForm.jsx";
+import log from '../logger.js'
 
 
 const UserManagementView = ({loggedInUser}) => {
@@ -41,7 +42,7 @@ const UserManagementView = ({loggedInUser}) => {
             const fetchedUsers = await adminClient.getUsers();
             setUsers(fetchedUsers);
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+            log.error('Failed to fetch users:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to fetch user: ' + error,
@@ -55,7 +56,7 @@ const UserManagementView = ({loggedInUser}) => {
             const fetchedRoles = await adminClient.getRoles();
             setRoles(fetchedRoles);
         } catch (error) {
-            console.error('Failed to fetch roles:', error);
+            log.error('Failed to fetch roles:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to fetch roles: ' + error,
@@ -80,7 +81,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             });
         } catch (error) {
-            console.error('Failed to create user:', error);
+            log.error('Failed to create user:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to create user: ' + error,
@@ -111,7 +112,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             })
         } catch (error) {
-            console.error('Failed to update user:', error);
+            log.error('Failed to update user:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to update user: ' + error,
@@ -131,7 +132,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             })
         } catch (error) {
-            console.error('Failed to change password:', error);
+            log.error('Failed to change password:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to change password: ' + error,
@@ -151,7 +152,7 @@ const UserManagementView = ({loggedInUser}) => {
                     severity: 'success',
                 })
             } catch (error) {
-                console.error('Failed to delete user:', error);
+                log.error('Failed to delete user:', error);
                 setToast({
                     open: true,
                     message: error.response.data.message || 'Failed to delete user: ' + error,
@@ -179,9 +180,9 @@ const UserManagementView = ({loggedInUser}) => {
     };
 
     return (
-        <Container sx={{p: 3}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
-                <Typography variant="h4">User Management</Typography>
+        <Box sx={{padding: 3}}>
+            <Typography variant="h4" gutterBottom>User Management</Typography>
+            <Box sx={{display: 'flex', justifyContent: 'flex-end', mb: 2}}>
                 <Button
                     variant="contained"
                     color="primary"
@@ -190,57 +191,59 @@ const UserManagementView = ({loggedInUser}) => {
                     Create User
                 </Button>
             </Box>
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>First Name</TableCell>
-                            <TableCell>Last Name</TableCell>
-                            <TableCell sx={{fontWeight: 'bold'}}>Username</TableCell>
-                            <TableCell>Email</TableCell>
-                            <TableCell>Role</TableCell>
-                            <TableCell>Created</TableCell>
-                            <TableCell>Last Updated</TableCell>
-                            <TableCell align="center">Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {users.map((user) => (
-                            <TableRow key={user.id}>
-                                <TableCell>{user.firstName}</TableCell>
-                                <TableCell>{user.lastName}</TableCell>
-                                <TableCell sx={{fontWeight: 'bold'}}>{user.username}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>{user.role}</TableCell>
-                                <TableCell>{formatDate(user.createdAt)}</TableCell>
-                                <TableCell>{formatDate(user.updatedAt)}</TableCell>
-                                <TableCell align="center">
-                                    <ButtonGroup size="small" aria-label="user actions">
-                                        <Tooltip title="Edit User">
-                                            <IconButton onClick={() => handleEditUser(user)}>
-                                                <EditIcon/>
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Change Password">
-                                            <IconButton onClick={() => {
-                                                setSelectedUser(user);
-                                                setIsPasswordDialogOpen(true);
-                                            }}>
-                                                <LockIcon/>
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Delete User">
-                                            <IconButton onClick={() => handleDeleteUser(user.id)}>
-                                                <DeleteIcon/>
-                                            </IconButton>
-                                        </Tooltip>
-                                    </ButtonGroup>
-                                </TableCell>
+            <Paper sx={{width: '100%', overflow: 'hidden'}}>
+                <TableContainer sx={{maxHeight: 'calc(100vh - 200px)'}}>
+                    <Table stickyHeader>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>First Name</TableCell>
+                                <TableCell>Last Name</TableCell>
+                                <TableCell sx={{fontWeight: 'bold'}}>Username</TableCell>
+                                <TableCell>Email</TableCell>
+                                <TableCell>Role</TableCell>
+                                <TableCell>Created</TableCell>
+                                <TableCell>Last Updated</TableCell>
+                                <TableCell align="center">Actions</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {users.map((user) => (
+                                <TableRow key={user.id} hover>
+                                    <TableCell>{user.firstName}</TableCell>
+                                    <TableCell>{user.lastName}</TableCell>
+                                    <TableCell sx={{fontWeight: 'bold'}}>{user.username}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>{user.role}</TableCell>
+                                    <TableCell>{formatDate(user.createdAt)}</TableCell>
+                                    <TableCell>{formatDate(user.updatedAt)}</TableCell>
+                                    <TableCell align="center">
+                                        <ButtonGroup size="small" aria-label="user actions">
+                                            <Tooltip title="Edit User">
+                                                <IconButton onClick={() => handleEditUser(user)}>
+                                                    <EditIcon/>
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Change Password">
+                                                <IconButton onClick={() => {
+                                                    setSelectedUser(user);
+                                                    setIsPasswordDialogOpen(true);
+                                                }}>
+                                                    <LockIcon/>
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Delete User">
+                                                <IconButton onClick={() => handleDeleteUser(user.id)}>
+                                                    <DeleteIcon/>
+                                                </IconButton>
+                                            </Tooltip>
+                                        </ButtonGroup>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Paper>
 
             <Dialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
                 <DialogTitle>Edit User</DialogTitle>
@@ -358,7 +361,7 @@ const UserManagementView = ({loggedInUser}) => {
                 {...toast}
                 onClose={handleToastClose}
             />
-        </Container>
+        </Box>
     );
 };
 

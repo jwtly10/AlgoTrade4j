@@ -2,7 +2,7 @@ package dev.jwtly10.api.service;
 
 import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
-import dev.jwtly10.api.models.StrategyConfig;
+import dev.jwtly10.api.model.StrategyConfig;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
@@ -69,8 +69,8 @@ public class StrategyManager {
 
         // Ensure utc
         ZoneId utcZone = ZoneId.of("UTC");
-        ZonedDateTime from = config.getTimeframe().getFrom().atZone(utcZone).withZoneSameInstant(utcZone);
-        ZonedDateTime to = config.getTimeframe().getTo().atZone(utcZone).withZoneSameInstant(utcZone);
+        ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(utcZone);
+        ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(utcZone);
         // We seed the tick generation while backtesting so results can be consistent
         // TODO: implement a way to allow randomized tick generation (some frontend flag)
         DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, spread, period, from, to, 12345L);
@@ -80,7 +80,7 @@ public class StrategyManager {
         dataProvider.setDataSpeed(dataSpeed);
 
         // TODO: How long does this actually equate too?
-        int defaultSeriesSize = 4000;
+        int defaultSeriesSize = 5000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);

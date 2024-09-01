@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,12 +23,18 @@ class OptimisationExecutorTest {
     @Mock
     private DataProvider mockDataProvider;
 
+    @Mock
+    private Consumer<OptimisationRunResult> mockConsumer;
+
+    @Mock
+    private Consumer<OptimisationProgress> mockProgress;
+
     private OptimisationExecutor optimisationExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider);
+        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider, mockConsumer, mockProgress);
     }
 
     @Test

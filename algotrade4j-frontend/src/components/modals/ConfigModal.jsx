@@ -87,13 +87,13 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         setLocalConfig(prevConfig => {
             let updatedConfig = {...prevConfig};
 
-            console.log("imported config: ", importedConfig);
-            console.log("params config: ", updatedConfig.runParams);
+            log.debug("imported config: ", importedConfig);
+            log.debug("params config: ", updatedConfig.runParams);
 
             if (importedConfig) {
                 updatedConfig.runParams = updatedConfig.runParams.map(param => {
                     if (importedConfig.hasOwnProperty(param.name)) {
-                        console.log(`Updating ${param.name} from ${param.value} to ${importedConfig[param.name]}`);
+                        log.debug(`Updating ${param.name} from ${param.value} to ${importedConfig[param.name]}`);
                         return {...param, value: importedConfig[param.name]};
                     }
                     return param;
@@ -103,14 +103,14 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
             // Update other fields that are not in runParams
             Object.keys(importedConfig).forEach(key => {
                 if (!updatedConfig.runParams.some(param => param.name === key) && updatedConfig.hasOwnProperty(key)) {
-                    console.log(`Updating ${key} from ${updatedConfig[key]} to ${importedConfig[key]}`);
+                    log.debug(`Updating ${key} from ${updatedConfig[key]} to ${importedConfig[key]}`);
                     updatedConfig[key] = importedConfig[key];
                 }
             });
 
-            console.log("Previous config:", prevConfig);
-            console.log("Imported configuration:", importedConfig);
-            console.log("Updated configuration:", updatedConfig);
+            log.debug("Previous config:", prevConfig);
+            log.debug("Imported configuration:", importedConfig);
+            log.debug("Updated configuration:", updatedConfig);
 
             // Force a re-render by creating a new object
             return {...updatedConfig};
@@ -118,7 +118,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
         // Set a timeout to log the updated localConfig after the state has been updated
         setTimeout(() => {
-            console.log("LocalConfig after update:", localConfig);
+            log.debug("LocalConfig after update:", localConfig);
         }, 0);
 
         setToast({
