@@ -246,7 +246,7 @@ const OptimisationView = () => {
             <Box sx={{flexGrow: 1, display: 'flex', overflow: 'hidden'}}>
                 {/* Left section (3/4 width) */}
                 <Box sx={{flexGrow: 1, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
-                    <Paper elevation={3} sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3}}>
+                    <Paper elevation={3} sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3, overflow: 'hidden'}}>
                         {/* Result Section */}
                         <Box sx={{flexGrow: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
                             <OptimisationTaskList/>

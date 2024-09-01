@@ -71,4 +71,4 @@ CREATE TABLE optimisation_user_tb
 
 CREATE INDEX idx_optimisation_results_task_id ON optimisation_results_tb (optimisation_task_id);
 CREATE INDEX idx_optimisation_user_task_id ON optimisation_user_tb (optimisation_task_id);
-CREATE INDEX idx_optimisation_user_user_id ON optimisation_user_tb (user_id);;
+CREATE INDEX idx_optimisation_user_user_id ON optimisation_user_tb (user_id);
