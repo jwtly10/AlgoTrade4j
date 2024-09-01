@@ -76,7 +76,7 @@ public class OptimisationService {
         if (existingTask.isPresent()) {
             OptimisationUser task = existingTask.get();
             if (task.isActive()) {
-                throw new StrategyManagerException("This run has already been shared with this user", ErrorType.BAD_REQUEST);
+                throw new StrategyManagerException("The user can already access this run.", ErrorType.BAD_REQUEST);
             } else {
                 // If the task exists but is inactive, reactivate it
                 task.setActive(true);

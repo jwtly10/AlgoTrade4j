@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
+import log from '../logger.js'
 
 const POLL_INTERVAL = 5000; // 5 seconds
 
@@ -12,7 +13,7 @@ export const useOptimisationTasks = (apiClient) => {
             const tasks = await apiClient.getOptimisationTasks();
             setOptimisationTasks(tasks);
         } catch (error) {
-            console.error('Failed to fetch optimisation tasks:', error);
+            log.error('Failed to fetch optimisation tasks:', error);
         } finally {
             setIsLoading(false);
         }

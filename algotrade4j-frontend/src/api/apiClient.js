@@ -28,9 +28,9 @@ export const systemClient = {
         const url = 'http://localhost:8080/generate-heapdump';
         try {
             const res = await axios.get(url);
-            console.log(res);
+            log.debug(res);
         } catch (error) {
-            console.log(error);
+            log.debug(error);
         }
     },
     monitor: async () => {

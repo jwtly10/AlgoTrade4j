@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Tooltip, Typography} from '@mui/material';
 import {systemClient} from '../api/apiClient';
+import log from '../logger.js'
+
 
 const BANNER_HEIGHT = '30px';
 
@@ -16,7 +18,7 @@ const VersionBanner = ({ user }) => {
                     ...response,
                 });
             } catch (error) {
-                console.error('Failed to fetch version info:', error);
+                log.error('Failed to fetch version info:', error);
                 setVersionInfo({
                     version: 'Unknown',
                     commit: 'Unknown',
@@ -31,9 +33,9 @@ const VersionBanner = ({ user }) => {
     const handleDumpHeap = async () => {
         try {
             await systemClient.dumpHeap();
-            console.log('Heap dump initiated');
+            log.debug('Heap dump initiated');
         } catch (error) {
-            console.error('Failed to dump heap:', error);
+            log.error('Failed to dump heap:', error);
         }
     };
 

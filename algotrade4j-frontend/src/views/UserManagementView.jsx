@@ -6,6 +6,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {Box, Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Tooltip, Typography} from "@mui/material";
 import CreateUserForm from "../components/CreateUserForm.jsx";
+import log from '../logger.js'
 
 
 const UserManagementView = ({loggedInUser}) => {
@@ -41,7 +42,7 @@ const UserManagementView = ({loggedInUser}) => {
             const fetchedUsers = await adminClient.getUsers();
             setUsers(fetchedUsers);
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+            log.error('Failed to fetch users:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to fetch user: ' + error,
@@ -55,7 +56,7 @@ const UserManagementView = ({loggedInUser}) => {
             const fetchedRoles = await adminClient.getRoles();
             setRoles(fetchedRoles);
         } catch (error) {
-            console.error('Failed to fetch roles:', error);
+            log.error('Failed to fetch roles:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to fetch roles: ' + error,
@@ -80,7 +81,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             });
         } catch (error) {
-            console.error('Failed to create user:', error);
+            log.error('Failed to create user:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to create user: ' + error,
@@ -111,7 +112,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             })
         } catch (error) {
-            console.error('Failed to update user:', error);
+            log.error('Failed to update user:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to update user: ' + error,
@@ -131,7 +132,7 @@ const UserManagementView = ({loggedInUser}) => {
                 severity: 'success',
             })
         } catch (error) {
-            console.error('Failed to change password:', error);
+            log.error('Failed to change password:', error);
             setToast({
                 open: true,
                 message: error.response.data.message || 'Failed to change password: ' + error,
@@ -151,7 +152,7 @@ const UserManagementView = ({loggedInUser}) => {
                     severity: 'success',
                 })
             } catch (error) {
-                console.error('Failed to delete user:', error);
+                log.error('Failed to delete user:', error);
                 setToast({
                     open: true,
                     message: error.response.data.message || 'Failed to delete user: ' + error,

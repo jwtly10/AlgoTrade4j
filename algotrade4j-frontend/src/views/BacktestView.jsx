@@ -334,7 +334,7 @@ const BacktestView = () => {
     };
 
     const updateIndicator = (data) => {
-        console.log(data)
+        log.debug(data)
         if (data.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({

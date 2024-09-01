@@ -11,6 +11,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import PendingIcon from '@mui/icons-material/Pending';
+import log from '../logger.js'
 
 
 // Styled components for larger dialogs
@@ -223,7 +224,7 @@ const OptimizationTaskList = () => {
     };
 
     const handleShareWithUser = async (userId) => {
-        console.log(`Sharing task ${selectedTask.id} with user ${userId}`);
+        log.debug(`Sharing task ${selectedTask.id} with user ${userId}`);
         setShareDialogOpen(false);
 
         try {
@@ -235,7 +236,7 @@ const OptimizationTaskList = () => {
                 }
             )
         } catch (error) {
-            console.log(error)
+            log.debug(error)
             setToast({
                 open: true,
                 level: 'error',
