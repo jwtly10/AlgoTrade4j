@@ -52,13 +52,8 @@ function SignUpView({setUser, onSuccess}) {
     if (!isSignUpEnabled) {
         return (
             <Box sx={{textAlign: 'center', pb: 3}}>
-                <Typography variant="h6" gutterBottom>
-                    Sign Up Unavailable
-                </Typography>
                 <Typography variant="body1">
-                    We're sorry, but sign up is currently not available.
-                    <br/>
-                    This is probably a privately hosted instance of AlgoTrade4J. Please contact the owner for more information.
+                    Sign up is currently unavailable
                 </Typography>
             </Box>
         );
