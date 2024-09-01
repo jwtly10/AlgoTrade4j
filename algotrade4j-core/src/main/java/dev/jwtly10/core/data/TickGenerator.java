@@ -19,8 +19,12 @@ public class TickGenerator {
     private final Random random;
     private final Duration period;
     private final Instrument instrument;
+    private Number remainingVolume; // Used for ensuring that the total volume is maintained
 
     public TickGenerator(int ticksPerBar, Instrument instrument, Number spread, Duration period, long seed) {
+        if (ticksPerBar < 4) {
+            throw new IllegalArgumentException("Ticks per bar must be at least 4");
+        }
         this.ticksPerBar = ticksPerBar;
         this.spread = spread;
         this.period = period;
@@ -57,10 +61,24 @@ public class TickGenerator {
         };
     }
 
+    /**
+     * Generates ticks for a given bar and invokes the callback for each generated tick.
+     * Ensures that the number of ticks per bar is at least 4.
+     * Randomly determines the indices for the low and high ticks if ticksPerBar is greater than 4.
+     * Calculates the delay per tick based on the data speed.
+     * Generates each tick and invokes the callback.
+     * Sleeps for the calculated delay per tick if delay is greater than 0.
+     *
+     * @param bar      the bar for which ticks are generated
+     * @param speed    the speed at which data is generated
+     * @param callback the callback to be invoked for each generated tick
+     * @throws IllegalArgumentException if ticksPerBar is less than 4
+     */
     public void generateTicks(Bar bar, DataSpeed speed, TickGeneratorCallback callback) {
         if (ticksPerBar < 4) {
             throw new IllegalArgumentException("Ticks per bar must be at least 4");
         }
+        remainingVolume = bar.getVolume();
         boolean hitLow = false;
         boolean hitHigh = false;
         int lowIndex = -1;
@@ -143,7 +161,19 @@ public class TickGenerator {
         Number bid = mid.subtract(calculatedSpread.divide(2));
         Number ask = mid.add(calculatedSpread.divide(2));
 
-        Number tickVolume = volume.multiply(BigDecimal.valueOf(random.nextDouble())).divide(BigDecimal.valueOf(ticksPerBar));
+        Number tickVolume;
+        if (tickIndex == ticksPerBar - 1) {
+            // Last tick gets all remaining volume
+            tickVolume = remainingVolume;
+        } else {
+            // Distribute volume randomly, but ensure we don't exceed remaining volume
+            double randomFactor = random.nextDouble() * (2.0 / ticksPerBar);
+            tickVolume = remainingVolume.multiply(BigDecimal.valueOf(randomFactor));
+            if (tickVolume.compareTo(remainingVolume) > 0) {
+                tickVolume = remainingVolume;
+            }
+        }
+        remainingVolume = remainingVolume.subtract(tickVolume);
 
         return new DefaultTick(
                 bar.getInstrument(),
