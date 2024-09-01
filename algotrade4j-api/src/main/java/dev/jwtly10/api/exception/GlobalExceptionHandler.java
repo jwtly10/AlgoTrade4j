@@ -25,6 +25,10 @@ public class GlobalExceptionHandler {
         HttpStatus status = switch (ex.getErrorType()) {
             case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
+            case FORBIDDEN -> HttpStatus.FORBIDDEN;
+            case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
+            case TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
 
@@ -41,6 +45,7 @@ public class GlobalExceptionHandler {
             case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
             case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
+            case TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
 

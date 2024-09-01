@@ -1,5 +1,6 @@
 package dev.jwtly10.api.controller;
 
+import dev.jwtly10.api.config.ratelimit.RateLimit;
 import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;
@@ -32,6 +33,7 @@ public class StrategyController {
     }
 
     @PostMapping("/start")
+    @RateLimit(limit = 5)
     public ResponseEntity<String> startStrategy(
             @RequestBody StrategyConfig config,
             @RequestParam("strategyId") String strategyId,

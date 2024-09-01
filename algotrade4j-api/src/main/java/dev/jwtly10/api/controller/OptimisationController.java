@@ -2,6 +2,7 @@ package dev.jwtly10.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.jwtly10.api.auth.utils.SecurityUtils;
+import dev.jwtly10.api.config.ratelimit.RateLimit;
 import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;
@@ -25,6 +26,7 @@ public class OptimisationController {
     }
 
     @PostMapping("/queue")
+    @RateLimit(limit = 5)
     public ResponseEntity<OptimisationTask> queueOptimisation(@RequestBody StrategyConfig config) {
         Long userId = SecurityUtils.getCurrentUserId();
         log.debug("Queueing optimisation for user: {} with config: {}", userId, config);
@@ -58,6 +60,7 @@ public class OptimisationController {
     }
 
     @GetMapping("/tasks/{taskId}/results")
+    @RateLimit(limit = 15)
     public ResponseEntity<List<OptimisationResultDTO>> getResultsForTask(@PathVariable("taskId") Long taskId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         log.debug("Getting results for task: {} for user: {}", taskId, currentUserId);
@@ -86,18 +89,4 @@ public class OptimisationController {
             throw new StrategyManagerException(e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
     }
-
-
-//    @GetMapping("/{optimisationId}/results")
-//    public ResponseEntity<OptimisationResult> getOptimisationResults(@PathVariable("optimisationId") String optimisationId) {
-//        log.debug("Getting results for optimisationId: {}", optimisationId);
-//        OptimisationResult results = optimisationManager.getResults(optimisationId);
-//        if (results != null) {
-//            log.debug("Results found for optimisationId: {}", optimisationId);
-//            return ResponseEntity.ok(results);
-//        } else {
-//            log.debug("No optimisation results found for optimisationId {} ", optimisationId);
-//            throw new StrategyManagerException("No results found for optimisationId: " + optimisationId, ErrorType.NOT_FOUND);
-//        }
-//    }
 }

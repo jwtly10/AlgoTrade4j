@@ -6,6 +6,7 @@ import dev.jwtly10.api.auth.model.SignupRequest;
 import dev.jwtly10.api.auth.model.User;
 import dev.jwtly10.api.auth.model.dto.UserDTO;
 import dev.jwtly10.api.auth.service.UserService;
+import dev.jwtly10.api.config.ratelimit.RateLimit;
 import dev.jwtly10.api.exception.ApiException;
 import dev.jwtly10.api.exception.ErrorType;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,7 @@ public class AdminController {
     }
 
     @PostMapping("/users")
+    @RateLimit(limit = 10)
     public ResponseEntity<?> createUser(@RequestBody SignupRequest user) {
         try {
             User newUser = userService.createUser(user.getUsername(), user.getEmail(), user.getPassword(), user.getFirstName(), user.getLastName());
