@@ -88,11 +88,7 @@ public class AsyncEventPublisher implements EventPublisher {
      */
     public void publishErrorEvent(String strategyId, Exception e) {
         for (EventListener listener : listeners) {
-            try {
-                listener.onError(strategyId, e);
-            } catch (Exception listenerException) {
-                log.error("Error in listener while processing error event", listenerException);
-            }
+            listener.onError(strategyId, e);
         }
     }
 
