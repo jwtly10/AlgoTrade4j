@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * Executor for running the optimisation process.
  * This class is responsible for generating parameter combinations, running strategies, and collecting results.
  * The optimisation process is run in batches to avoid running too many strategies at once.
- * The results are collected at the end and triggered to the event publisher
+ * The results and progress updates are via emitted via callbacks
  */
 @Slf4j
 public class OptimisationExecutor {
@@ -41,6 +41,12 @@ public class OptimisationExecutor {
     private volatile boolean running = false;
 
 
+    /**
+     * @param eventPublisher   the event publisher that handles all events emitted by the strategies ran during backtesting
+     * @param dataProvider     the data provider that handles data
+     * @param resultCallback   a Consumer that allows callers to handle new results that have been emitted during optimisation
+     * @param progressCallback a Consumre that allows callers to handle progress updates once each batch has been processed
+     */
     public OptimisationExecutor(EventPublisher eventPublisher, DataProvider dataProvider, Consumer<OptimisationRunResult> resultCallback, Consumer<OptimisationProgress> progressCallback) {
         this.resultCallback = resultCallback;
         this.progressCallback = progressCallback;
@@ -124,56 +130,6 @@ public class OptimisationExecutor {
         log.info("Total execution time: {} minutes and {} seconds", minutes, seconds);
     }
 
-    private void processBatchResults(List<BacktestExecutor> batchExecutors) {
-        for (BacktestExecutor executor : batchExecutors) {
-            String strategyId = executor.getStrategyId();
-            AnalysisEvent res = resultListener.getResults().get(strategyId);
-            Map<String, String> params = strategyParameters.get(strategyId);
-
-            StrategyOutput strategyOutput = new StrategyOutput();
-            strategyOutput.setStrategyId(strategyId);
-
-            if (res != null) {
-                strategyOutput.setFailed(false);
-                strategyOutput.setStats(res.getStats());
-                OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
-                resultCallback.accept(result);
-            } else {
-                // If there is no stats for a strategy, we can assume that it failed.
-                // and That it was handled by 'onStrategyFailure', so we can do nothing.
-                // else lets be sure and save generic message this:
-                if (!failedStrategyIds.contains(strategyId)) {
-                    log.warn("A strategy did not contain a result but was not counted as failed: {}", executor);
-                    strategyOutput.setFailed(true);
-                    strategyOutput.setReason("Strategy execution failed or produced no results");
-                    OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
-                    resultCallback.accept(result);
-                }
-            }
-        }
-    }
-
-
-    public void onStrategyFailure(String strategyId, Exception e) {
-        StrategyOutput strategyOutput = new StrategyOutput();
-        strategyOutput.setStrategyId(strategyId);
-        strategyOutput.setFailed(true);
-        failedStrategyIds.add(strategyId);
-
-        String reason;
-        if (e instanceof BacktestExecutorException) {
-            Throwable cause = e.getCause();
-            reason = Objects.requireNonNullElse(cause, e).getMessage();
-        } else {
-            reason = e.getMessage();
-        }
-        strategyOutput.setReason(reason);
-
-        Map<String, String> params = strategyParameters.get(strategyId);
-        OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
-        resultCallback.accept(result);
-    }
-
     /**
      * Process a batch of strategies with the given parameter combinations.
      *
@@ -240,6 +196,68 @@ public class OptimisationExecutor {
         }
         return batchExecutors;
     }
+
+    /**
+     * Processes a batch of executors to get results and emit to callbacks
+     *
+     * @param batchExecutors the executors that were being run
+     */
+    private void processBatchResults(List<BacktestExecutor> batchExecutors) {
+        for (BacktestExecutor executor : batchExecutors) {
+            String strategyId = executor.getStrategyId();
+            AnalysisEvent res = resultListener.getResults().get(strategyId);
+            Map<String, String> params = strategyParameters.get(strategyId);
+
+            StrategyOutput strategyOutput = new StrategyOutput();
+            strategyOutput.setStrategyId(strategyId);
+
+            if (res != null) {
+                strategyOutput.setFailed(false);
+                strategyOutput.setStats(res.getStats());
+                OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
+                resultCallback.accept(result);
+            } else {
+                // If there is no stats for a strategy, we can assume that it failed.
+                // and That it was handled by 'onStrategyFailure', so we can do nothing.
+                // else lets be sure and save generic message this:
+                if (!failedStrategyIds.contains(strategyId)) {
+                    log.warn("A strategy did not contain a result but was not counted as failed: {}", executor);
+                    strategyOutput.setFailed(true);
+                    strategyOutput.setReason("Strategy execution failed or produced no results");
+                    OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
+                    resultCallback.accept(result);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Emits on error event to callback
+     *
+     * @param strategyId the strategyID this failure is for
+     * @param e          the exception
+     */
+    public void onStrategyFailure(String strategyId, Exception e) {
+        StrategyOutput strategyOutput = new StrategyOutput();
+        strategyOutput.setStrategyId(strategyId);
+        strategyOutput.setFailed(true);
+        failedStrategyIds.add(strategyId);
+
+        String reason;
+        if (e instanceof BacktestExecutorException) {
+            Throwable cause = e.getCause();
+            reason = Objects.requireNonNullElse(cause, e).getMessage();
+        } else {
+            reason = e.getMessage();
+        }
+        strategyOutput.setReason(reason);
+
+        Map<String, String> params = strategyParameters.get(strategyId);
+        OptimisationRunResult result = new OptimisationRunResult(strategyId, params, strategyOutput);
+        resultCallback.accept(result);
+    }
+
 
     /**
      * Generate all possible combinations of the given parameter ranges.
