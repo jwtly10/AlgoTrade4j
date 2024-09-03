@@ -32,7 +32,7 @@ function App() {
                 log.error('Token verification failed:', error);
                 toast({
                     title: 'Session Expired',
-                    description: error.message,
+                    description: "Your session has expired. Please login again.",
                     status: 'destructive'
                 })
             } finally {
