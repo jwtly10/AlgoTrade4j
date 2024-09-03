@@ -29,7 +29,7 @@ function LoginView({setUser, onSuccess}) {
             log.error('Login failed:', error);
             toast({
                 title: "Error",
-                description: error.response?.data?.message || 'Invalid username or password',
+                description: "Error logging in: " + error.message,
                 variant: "destructive",
             });
         }

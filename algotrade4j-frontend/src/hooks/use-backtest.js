@@ -163,7 +163,7 @@ export const useBacktest = () => {
             log.error('Failed to queue optimisation:', error);
             toast({
                 title: "Error",
-                description: `Failed to queue optimisation: ${error.response?.data?.message || error.message}`,
+                description: `Failed to queue optimisation: ${error.message}`,
                 variant: "destructive",
             });
         }
@@ -227,7 +227,7 @@ export const useBacktest = () => {
             log.error('Failed to start strategy:', error);
             toast({
                 title: "Strategy Start Failed",
-                description: `Failed to start strategy: ${error.response.data.message}`,
+                description: `Failed to start strategy: ${error.message}`,
                 variant: "destructive",
             });
             setIsStrategyRunning(false);
@@ -543,7 +543,7 @@ export const useBacktest = () => {
             log.error('Failed to get strategy params:', error);
             toast({
                 title: "Params Fetch Failed",
-                description: `Failed to get strategy params: ${error.response.data.message}`,
+                description: `Failed to get strategy params: ${error.message}`,
                 variant: "destructive",
             });
         }

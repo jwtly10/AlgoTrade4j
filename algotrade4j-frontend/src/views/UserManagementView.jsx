@@ -47,7 +47,7 @@ const UserManagementView = ({loggedInUser}) => {
             });
             toast({
                 title: "Failed to fetch users",
-                description: error.response.data.message || 'Failed to fetch user: ' + error,
+                description: "Error fetching users: " + error.message,
                 variant: "destructive",
             });
         }
@@ -61,7 +61,7 @@ const UserManagementView = ({loggedInUser}) => {
             log.error('Failed to fetch roles:', error);
             toast({
                 title: "Failed to fetch roles",
-                description: error.response.data.message || 'Failed to fetch roles: ' + error,
+                description: "Error fetching roles: " + error.message,
                 variant: "destructive",
             });
         }
@@ -85,7 +85,7 @@ const UserManagementView = ({loggedInUser}) => {
             log.error('Failed to create user:', error);
             toast({
                 title: "Error",
-                description: error.response?.data?.message || `Failed to create user: ${error}`,
+                description: "Error creating user: " + error.message,
                 variant: "destructive",
             });
         }
@@ -115,7 +115,7 @@ const UserManagementView = ({loggedInUser}) => {
             log.error('Failed to update user:', error);
             toast({
                 title: "Error",
-                description: error.response?.data?.message || `Failed to update user: ${error}`,
+                description: "Error updating user: " + error.message,
                 variant: "destructive",
             });
         }
@@ -134,7 +134,7 @@ const UserManagementView = ({loggedInUser}) => {
             log.error('Failed to change password:', error);
             toast({
                 title: "Error",
-                description: error.response?.data?.message || `Failed to change password: ${error}`,
+                description: "Error changing password: " + error.message,
                 variant: "destructive",
             });
         }
@@ -153,7 +153,7 @@ const UserManagementView = ({loggedInUser}) => {
                 log.error('Failed to delete user:', error);
                 toast({
                     title: "Error",
-                    description: error.response?.data?.message || `Failed to delete user: ${error}`,
+                    description: "Error deleting user: " + error.message,
                     variant: "destructive",
                 });
             }

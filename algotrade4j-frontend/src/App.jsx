@@ -14,11 +14,13 @@ import {ThemeProvider} from "./components/ThemeProvider";
 import {Toaster} from "./components/ui/toaster";
 import UnauthorizedAccessView from "@/views/UnauthorizedAccessView.jsx";
 import MonitorView from "@/views/MonitorView.jsx";
+import {useToast} from "@/hooks/use-toast.js";
 
 function App() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const [authModalOpen, setAuthModalOpen] = useState(false);
+    const {toast} = useToast();
 
     useEffect(() => {
         const verifyToken = async () => {
@@ -28,6 +30,11 @@ function App() {
                 setUser(userData);
             } catch (error) {
                 log.error('Token verification failed:', error);
+                toast({
+                    title: 'Session Expired',
+                    description: error.message,
+                    status: 'destructive'
+                })
             } finally {
                 setLoading(false);
             }

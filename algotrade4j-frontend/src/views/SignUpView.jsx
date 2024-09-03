@@ -31,7 +31,7 @@ function SignUpView({setUser, onSuccess}) {
             log.error('Signup failed:', error);
             toast({
                 title: "Error",
-                description: error.response.data.message || 'Sign up failed',
+                description: "Error signing up: " + error.message || 'Sign up failed',
                 variant: "destructive",
             });
         }

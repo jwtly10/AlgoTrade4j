@@ -320,5 +320,23 @@ const handleResponse = (response, url) => {
 
 const handleError = (error, url) => {
     log.error(`API call failed (${url}): `, error);
-    throw error;
+
+    let errorMessage;
+
+    if (error.response && error.response.data && error.response.data.message) {
+        // Case 1: Nice error from the backend
+        errorMessage = error.response.data.message;
+    } else if (error.message) {
+        // Case 2: Error with a message property
+        errorMessage = error.message;
+    } else {
+        // Case 3: Unexpected error format
+        errorMessage = 'An unexpected error occurred';
+    }
+
+    // Create a custom error object with the extracted message
+    const customError = new Error(errorMessage);
+    customError.originalError = error;
+
+    throw customError;
 };

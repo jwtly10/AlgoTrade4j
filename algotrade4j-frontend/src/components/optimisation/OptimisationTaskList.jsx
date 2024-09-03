@@ -183,7 +183,7 @@ const OptimizationTaskList = () => {
         } catch (error) {
             toast({
                 title: "Error",
-                description: `Failed to get users: ${error.response?.data?.message || error.message}`,
+                description: `Failed to get users: ${error.message}`,
                 variant: "destructive",
             });
         }
@@ -202,7 +202,7 @@ const OptimizationTaskList = () => {
             } catch (error) {
                 toast({
                     title: "Error",
-                    description: `Failed to delete task: ${error.response?.data?.message || error.message}`,
+                    description: `Error deleting run: ${error.message}`,
                     variant: "destructive",
                 });
             }
@@ -232,7 +232,7 @@ const OptimizationTaskList = () => {
             log.debug(error)
             toast({
                 title: "Error",
-                description: error.response?.data?.message || error.message,
+                description: "Error sharing with user: " + error.message,
                 variant: "destructive",
             });
         }

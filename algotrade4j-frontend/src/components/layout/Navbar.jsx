@@ -21,7 +21,7 @@ function Navbar({user, setUser}) {
         } catch (error) {
             toast({
                 title: "Error",
-                description: error.response?.data?.message || 'Error logging out',
+                description: error.message || 'Error logging out',
                 variant: "destructive",
             });
         }
