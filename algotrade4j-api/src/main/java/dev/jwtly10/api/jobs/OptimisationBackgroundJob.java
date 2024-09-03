@@ -55,7 +55,7 @@ public class OptimisationBackgroundJob {
 
     @Scheduled(fixedDelayString = "${optimisation.job.delay:60000}")
     public void processPendingOptimisationTasks() {
-        log.info("Running Optimisation Job");
+        log.debug("Running Optimisation Job");
         if (!taskSemaphore.tryAcquire()) {
             log.info("Maximum number of concurrent tasks reached. Skipping this run.");
             return;
@@ -64,9 +64,10 @@ public class OptimisationBackgroundJob {
         try {
             OptimisationTask pendingTask = taskService.findFirstByState(OptimisationState.PENDING);
             if (pendingTask != null) {
+                log.info("Found pending optimisation task id: {}", pendingTask.getId());
                 processTask(pendingTask);
             } else {
-                log.info("No pending tasks found.");
+                log.debug("No pending tasks found.");
                 taskSemaphore.release();  // Release if no task was processed
             }
         } catch (Exception e) {
