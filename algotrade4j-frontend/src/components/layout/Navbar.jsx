@@ -1,182 +1,139 @@
-import React, {useState} from 'react';
-import {AppBar, Avatar, Box, Button, IconButton, Menu, MenuItem, Toolbar, Typography} from '@mui/material';
+import React from 'react';
 import {Link, useLocation} from 'react-router-dom';
-import {authClient} from '../../api/apiClient';
-import {Toast} from "../Toast.jsx";
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import {authClient} from '@/api/apiClient.js';
+import {Avatar, AvatarFallback} from "@/components/ui/avatar";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {ChevronDown, Moon, Settings, Sun} from "lucide-react";
+import {useToast} from "@/hooks/use-toast";
+import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button.jsx";
+import {useTheme} from '@/components/ThemeProvider';
 
 function Navbar({user, setUser}) {
     const location = useLocation();
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [adminAnchorEl, setAdminAnchorEl] = useState(null);
-    const [toast, setToast] = useState({
-        open: false,
-        message: '',
-        severity: 'info',
-        duration: 6000
-    });
+    const {toast} = useToast();
+    const {theme, toggleTheme} = useTheme();
 
     const handleLogout = async () => {
         try {
             await authClient.logout();
             setUser(null);
-            handleMenuClose();
         } catch (error) {
-            setToast({
-                open: true,
-                message: error.response.data.message || 'Error logging out',
-                severity: 'error',
-                duration: 6000
+            toast({
+                title: "Error",
+                description: error.message || 'Error logging out',
+                variant: "destructive",
             });
         }
     };
 
-    const handleToastClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
+    const isActive = (path) => {
+        if (path === '/') {
+            return location.pathname === '/';
         }
-        setToast(prev => ({...prev, open: false}));
+        return location.pathname.startsWith(path);
     };
 
-    const handleMenuOpen = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
-
-    const handleAdminMenuOpen = (event) => {
-        setAdminAnchorEl(event.currentTarget);
-    };
-
-    const handleAdminMenuClose = () => {
-        setAdminAnchorEl(null);
-    };
-
-    const isActive = (path) => location.pathname === path;
-
-    const buttonStyle = (path) => ({
-        backgroundColor: isActive(path) ? 'rgba(255,255,255,0.2)' : 'transparent',
-        '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-        textTransform: 'none',
-        mx: 1
-    });
+    const navItemStyles = "px-3 py-2 text-sm font-medium rounded-md transition-colors";
+    const navItemActiveStyles = "bg-primary text-primary-foreground";
+    const navItemInactiveStyles = "text-foreground hover:bg-accent hover:text-accent-foreground";
 
     return (
-        <AppBar position="static">
-            <Toolbar>
-                <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-                    AlgoTrade4J
-                </Typography>
-                {user && (
-                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                        <Button
-                            color="inherit"
-                            component={Link}
+        <nav className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm p-2 px-4">
+            <div className="flex justify-between items-center">
+                <Link to="/" className="text-xl font-bold text-foreground hover:text-primary transition-colors">
+                    AT4J
+                </Link>
+
+                {user ? (
+                    <div className="flex items-center space-x-1">
+                        <Link
                             to="/backtest"
-                            sx={buttonStyle('/backtest')}
+                            className={cn(
+                                navItemStyles,
+                                isActive('/backtest') ? navItemActiveStyles : navItemInactiveStyles
+                            )}
                         >
                             Backtest
-                        </Button>
-                        <Button
-                            color="inherit"
-                            component={Link}
+                        </Link>
+                        <Link
                             to="/optimisation"
-                            sx={buttonStyle('/optimisation')}
+                            className={cn(
+                                navItemStyles,
+                                isActive('/optimisation') ? navItemActiveStyles : navItemInactiveStyles
+                            )}
                         >
                             Optimise
-                        </Button>
+                        </Link>
+
                         {user.role === 'ADMIN' && (
-                            <>
-                                <IconButton
-                                    color="inherit"
-                                    onClick={handleAdminMenuOpen}
-                                    sx={{ml: 1}}
-                                >
-                                    <AdminPanelSettingsIcon/>
-                                </IconButton>
-                                <Menu
-                                    anchorEl={adminAnchorEl}
-                                    open={Boolean(adminAnchorEl)}
-                                    onClose={handleAdminMenuClose}
-                                >
-                                    <MenuItem
-                                        component={Link}
-                                        to="/users"
-                                        onClick={handleAdminMenuClose}
-                                    >
-                                        Manage Users
-                                    </MenuItem>
-                                    <MenuItem
-                                        component={Link}
-                                        to="/monitor"
-                                        onClick={handleAdminMenuClose}
-                                    >
-                                        Monitor
-                                    </MenuItem>
-                                </Menu>
-                            </>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className={cn(navItemStyles, "flex items-center", isActive('/users') || isActive('/monitor') ? navItemActiveStyles : navItemInactiveStyles)}>
+                                        <Settings className="h-4 w-4 mr-1"/>
+                                        Admin
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/users">Manage Users</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/monitor">Monitor</Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         )}
-                        <Box
-                            onClick={handleMenuOpen}
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                                ml: 2,
-                                '&:hover': {backgroundColor: 'rgba(255,255,255,0.1)'},
-                                borderRadius: 1,
-                                padding: '4px 8px'
-                            }}
-                        >
-                            <Avatar sx={{width: 32, height: 32, mr: 1}}>
-                                {user.firstName?.charAt(0).toUpperCase()}
-                            </Avatar>
-                            <Typography variant="body1" sx={{mr: 1}}>
-                                {user.firstName}
-                            </Typography>
-                            <ArrowDropDownIcon/>
-                        </Box>
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={Boolean(anchorEl)}
-                            onClose={handleMenuClose}
-                        >
-                            <MenuItem disabled>
-                                Logged in as {user.username}
-                            </MenuItem>
-                            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                        </Menu>
-                    </Box>
-                )}
-                {!user && (
-                    <Box>
-                        <Button
-                            color="inherit"
-                            component={Link}
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className={cn(navItemStyles, "flex items-center space-x-1")}>
+                                    <Avatar className="h-6 w-6">
+                                        <AvatarFallback>{user.firstName?.charAt(0).toUpperCase()}</AvatarFallback>
+                                    </Avatar>
+                                    <span>{user.firstName}</span>
+                                    <ChevronDown className="h-3 w-3"/>
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Logged in as {user.username}</DropdownMenuLabel>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
+                            {theme === 'light' ? (
+                                <Moon className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
+                            ) : (
+                                <Sun className="h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>
+                            )}
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex items-center space-x-1">
+                        <Link
                             to="/login"
-                            sx={buttonStyle('/login')}
+                            className={cn(
+                                navItemStyles,
+                                isActive('/login') ? navItemActiveStyles : navItemInactiveStyles
+                            )}
                         >
                             Login
-                        </Button>
-                        <Button
-                            color="inherit"
-                            component={Link}
+                        </Link>
+                        <Link
                             to="/signup"
-                            sx={buttonStyle('/signup')}
+                            className={cn(
+                                navItemStyles,
+                                isActive('/signup') ? navItemActiveStyles : navItemInactiveStyles
+                            )}
                         >
                             Sign Up
-                        </Button>
-                    </Box>
+                        </Link>
+                    </div>
                 )}
-            </Toolbar>
-            <Toast
-                {...toast}
-                onClose={handleToastClose}
-            />
-        </AppBar>
+            </div>
+        </nav>
     );
 }
 

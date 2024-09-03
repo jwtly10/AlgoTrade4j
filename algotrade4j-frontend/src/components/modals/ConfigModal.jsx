@@ -1,12 +1,26 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tabs, TextField, Tooltip, Typography,} from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
-import {apiClient} from '../../api/apiClient.js'
-import log from '../../logger.js'
-import {Toast} from "../Toast.jsx";
+import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {Textarea} from "@/components/ui/textarea";
+import {CalendarIcon, InfoIcon} from 'lucide-react';
+import {apiClient} from '@/api/apiClient.js';
+import log from '../../logger.js';
+import {useToast} from "@/hooks/use-toast";
+import {ScrollArea} from "@/components/ui/scroll-area";
+import {Calendar} from "@/components/ui/calendar"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {format, parseISO} from "date-fns"
 
 const JsonImportDialog = ({open, onClose, onImport}) => {
     const [jsonInput, setJsonInput] = useState('');
+    const {toast} = useToast()
 
     const handleImport = () => {
         try {
@@ -15,59 +29,66 @@ const JsonImportDialog = ({open, onClose, onImport}) => {
             onClose();
         } catch (error) {
             log.error("Failed to parse imported JSON", error);
-            // You might want to show an error message to the user here
+            toast({
+                title: "Import Error",
+                description: "Failed to parse the imported JSON. Please check your input.",
+                variant: "destructive",
+            })
         }
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle>Import JSON Configuration</DialogTitle>
-            <DialogContent>
-                <TextField
-                    multiline
-                    rows={10}
-                    fullWidth
-                    variant="outlined"
-                    value={jsonInput}
-                    onChange={(e) => setJsonInput(e.target.value)}
-                    placeholder="Paste your JSON configuration here"
-                />
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Import JSON Configuration</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="json-input">JSON Configuration</Label>
+                        <Textarea
+                            id="json-input"
+                            value={jsonInput}
+                            onChange={(e) => setJsonInput(e.target.value)}
+                            placeholder="Paste your JSON configuration here"
+                            className="min-h-[200px]"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleImport}>Import</Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={handleImport} variant="contained" color="primary">
-                    Import
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };
 
-
 const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass, showOptimiseParams = false}) => {
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = useState('parameters');
+    const [activeGroup, setActiveGroup] = useState('');
     const [localConfig, setLocalConfig] = useState(strategyConfig);
     const [instruments, setInstruments] = useState([]);
     const [isJsonImportOpen, setIsJsonImportOpen] = useState(false);
-
-    const [toast, setToast] = useState({
-        open: false,
-        level: 'info',
-        message: '',
-    });
-    const handleCloseToast = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setToast({...toast, level: "info", open: false});
-    };
+    const {toast} = useToast();
 
     useEffect(() => {
         if (open) {
             log.debug("Config", strategyConfig);
             setLocalConfig(strategyConfig);
+            const groups = Object.keys(groupParams(strategyConfig.runParams));
+            setActiveGroup(groups[0] || '');
         }
     }, [open, strategyClass]);
+
+    const groupParams = (params) => {
+        return params.reduce((groups, param) => {
+            const group = param.group || 'Ungrouped';
+            if (!groups[group]) groups[group] = [];
+            groups[group].push(param);
+            return groups;
+        }, {});
+    };
 
     useEffect(() => {
         // Get all supported instruments
@@ -82,6 +103,20 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
         fetchInstruments()
     }, [])
+
+    const handleDateChange = (field, date) => {
+        console.log(date)
+        console.log(date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : '')
+        setLocalConfig(prevConfig => ({
+            ...prevConfig,
+            timeframe: {
+                ...prevConfig.timeframe,
+                [field]: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : ''
+            }
+        }));
+
+        console.log(localConfig.timeframe)
+    };
 
     const handleJsonImport = (importedConfig) => {
         setLocalConfig(prevConfig => {
@@ -121,19 +156,14 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
             log.debug("LocalConfig after update:", localConfig);
         }, 0);
 
-        setToast({
-            open: true,
-            message: "Configuration imported",
-            severity: "success",
-        });
+        toast({
+            title: "Configuration imported",
+            description: "Your configuration has been successfully imported.",
+        })
     };
 
     const saveToLocalStorage = () => {
         localStorage.setItem(`strategyConfig_${strategyClass}`, JSON.stringify(localConfig));
-    };
-
-    const handleTabChange = (event, newValue) => {
-        setActiveTab(newValue);
     };
 
     const handleInputChange = (index, field, value) => {
@@ -164,296 +194,285 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         onClose();
     };
 
+    const groupedParams = groupParams(localConfig.runParams);
+
     return (
-        <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth keepMounted sx={{padding: 3}} disableEnforceFocus disableRestoreFocus aria-hidden={false}>
-            <DialogTitle sx={{padding: 3, display: 'flex', alignItems: 'center'}}>
-                {showOptimiseParams ? "Optimisation Configuration" : "Strategy Configuration"}
-                {showOptimiseParams && (
-                    <Tooltip
-                        title="Here you can set a range of values you would like to optimise for. Along with parameters used for the test"
-                        placement="right"
-                        componentsProps={{
-                            tooltip: {
-                                sx: {
-                                    fontSize: '1rem',
-                                    padding: '8px 12px'
-                                }
-                            }
-                        }}
-                    >
-                        <IconButton sx={{marginLeft: 1, padding: 0}}>
-                            <InfoIcon fontSize="small"/>
-                        </IconButton>
-                    </Tooltip>
-                )}
-            </DialogTitle>
-            <Box sx={{px: 3}}>
-                <Tabs value={activeTab} onChange={handleTabChange}>
-                    <Tab label="Parameters"/>
-                    <Tab label="Run Configuration"/>
-                </Tabs>
-            </Box>
-            <DialogContent>
-                {activeTab === 0 && (
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Parameter</TableCell>
-                                    <TableCell>Value</TableCell>
-                                    {showOptimiseParams && (
-                                        <>
-                                            <TableCell>Start</TableCell>
-                                            <TableCell>Stop</TableCell>
-                                            <TableCell>Step</TableCell>
-                                            <TableCell>Optimize</TableCell>
-                                        </>
-                                    )}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {Object.entries(
-                                    localConfig.runParams.reduce((groups, param) => {
-                                        const group = param.group || 'Ungrouped';
-                                        if (!groups[group]) groups[group] = [];
-                                        groups[group].push(param);
-                                        return groups;
-                                    }, {})
-                                ).map(([groupName, params], groupIndex) => (
-                                    <React.Fragment key={groupName}>
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={6}
-                                                style={{
-                                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                                    padding: '12px 16px',
-                                                }}
-                                            >
-                                                <Typography
-                                                    variant="subtitle1"
-                                                    style={{
-                                                        color: '#fff',
-                                                        fontWeight: 'bold',
-                                                        textTransform: 'uppercase'
-                                                    }}
-                                                >
-                                                    {groupName}
-                                                </Typography>
-                                            </TableCell>
-                                        </TableRow>
-                                        {params.map((param, index) => (
-                                            <TableRow key={param.name}>
-                                                <TableCell>
-                                                    <Stack direction="row" alignItems="center" spacing={1}>
-                                                        <Typography variant="body1">{param.name}</Typography>
-                                                        <Tooltip
-                                                            title={param.description || 'No description available'}
-                                                            arrow
-                                                            placement="top"
-                                                            componentsProps={{
-                                                                tooltip: {
-                                                                    sx: {
-                                                                        fontSize: '1rem',
-                                                                        padding: '8px 12px',
-                                                                        maxWidth: '300px',
-                                                                        lineHeight: 1.5,
-                                                                    }
-                                                                }
-                                                            }}
-                                                        >
-                                                            <IconButton size="small">
-                                                                <InfoIcon fontSize="small" color="action"/>
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Stack>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Stack spacing={1}>
-                                                        <TextField
-                                                            size="small"
+        <Dialog open={open} onOpenChange={(openState) => {
+            if (!openState) {
+                handleClose();
+            }
+        }}>
+            <DialogContent className="w-full max-w-[1100px] max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center">
+                        {showOptimiseParams ? "Optimisation Configuration" : "Strategy Configuration"}
+                    </DialogTitle>
+                </DialogHeader>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow overflow-hidden">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="parameters">Parameters</TabsTrigger>
+                        <TabsTrigger value="run-config">Run Configuration</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="parameters" className="flex-grow overflow-hidden">
+                        <div className="flex h-full">
+                            <div className="w-1/3 md:w-1/4 border-r">
+                                <ScrollArea className="h-full">
+                                    {Object.keys(groupedParams).map((group) => (
+                                        <Button
+                                            key={group}
+                                            variant={activeGroup === group ? "secondary" : "ghost"}
+                                            className="w-full justify-start"
+                                            onClick={() => setActiveGroup(group)}
+                                        >
+                                            {group}
+                                        </Button>
+                                    ))}
+                                </ScrollArea>
+                            </div>
+                            <div className="w-2/3 md:w-3/4 pl-4">
+                                <ScrollArea className="h-full pr-4">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Parameter</TableHead>
+                                                <TableHead>Value</TableHead>
+                                                {showOptimiseParams && (
+                                                    <>
+                                                        <TableHead>Start</TableHead>
+                                                        <TableHead>Stop</TableHead>
+                                                        <TableHead>Step</TableHead>
+                                                        <TableHead>Optimize</TableHead>
+                                                    </>
+                                                )}
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {groupedParams[activeGroup]?.map((param) => (
+                                                <TableRow key={param.name}>
+                                                    <TableCell>
+                                                        <div className="flex items-center space-x-2">
+                                                            <Label>{param.name}</Label>
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                                                            <InfoIcon className="h-4 w-4"/>
+                                                                            <span className="sr-only">Info</span>
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{param.description || 'No description available'}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Input
                                                             value={param.value}
                                                             onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'value', e.target.value)}
                                                             autoComplete="off"
                                                         />
-                                                        <Typography variant="caption" color="textSecondary">
-                                                            (Default: {param.defaultValue})
-                                                        </Typography>
-                                                    </Stack>
-                                                </TableCell>
-                                                {showOptimiseParams && (
-                                                    <>
-                                                        <TableCell>
-                                                            <TextField
-                                                                size="small"
-                                                                value={param.start || ''}
-                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
-                                                                autoComplete="off"
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <TextField
-                                                                size="small"
-                                                                value={param.stop || ''}
-                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
-                                                                autoComplete="off"
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <TextField
-                                                                size="small"
-                                                                value={param.step || ''}
-                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
-                                                                autoComplete="off"
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Checkbox
-                                                                checked={param.selected || false}
-                                                                onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', e.target.checked)}
-                                                            />
-                                                        </TableCell>
+                                                    </TableCell>
+                                                    {showOptimiseParams && (
+                                                        <>
+                                                            <TableCell>
+                                                                <Input
+                                                                    value={param.start || ''}
+                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
+                                                                    autoComplete="off"
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Input
+                                                                    value={param.stop || ''}
+                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
+                                                                    autoComplete="off"
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Input
+                                                                    value={param.step || ''}
+                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
+                                                                    autoComplete="off"
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Checkbox
+                                                                    checked={param.selected || false}
+                                                                    onCheckedChange={(checked) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', checked)}
+                                                                />
+                                                            </TableCell>
+                                                        </>
+                                                    )}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </ScrollArea>
+                            </div>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="run-config" className="flex-grow overflow-hidden">
+                        <ScrollArea className="h-full pr-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="initial-cash">Initial Cash</Label>
+                                    <Input
+                                        id="initial-cash"
+                                        value={localConfig.initialCash}
+                                        onChange={(e) => handleConfigChange('initialCash', e.target.value)}
+                                    />
+                                </div>
 
-                                                    </>
-                                                )}
-                                            </TableRow>
-                                        ))}
-                                    </React.Fragment>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                )}
-                {activeTab === 1 && (
-                    <div>
-                        <TextField
-                            label="Initial Cash"
-                            value={localConfig.initialCash}
-                            onChange={(e) => handleConfigChange('initialCash', e.target.value)}
-                            fullWidth
-                            margin="normal"
-                        />
-                        {!showOptimiseParams && (
-                            <FormControl fullWidth margin="normal">
-                                <InputLabel id="speed-label">Speed</InputLabel>
-                                <Select
-                                    labelId="speed-label"
-                                    value={localConfig.speed}
-                                    onChange={(e) => handleConfigChange('speed', e.target.value)}
-                                    label="speed"
-                                >
-                                    <MenuItem value="SLOW">Slow (Visual)</MenuItem>
-                                    <MenuItem value="NORMAL">Normal (Visual)</MenuItem>
-                                    {/*<MenuItem value="FAST">Fast</MenuItem>*/}
-                                    {/*<MenuItem value="VERY_FAST">Very fast</MenuItem>*/}
-                                    <MenuItem value="INSTANT">Instant (Async)</MenuItem>
-                                </Select>
-                            </FormControl>
-                        )}
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="spread-label">Spread</InputLabel>
-                            <Select
-                                labelId="spread-label"
-                                value={localConfig.spread}
-                                onChange={(e) => handleConfigChange('spread', e.target.value)}
-                                label="Spread"
-                            >
-                                <MenuItem value="5">5</MenuItem>
-                                <MenuItem value="10">10</MenuItem>
-                                <MenuItem value="30">30</MenuItem>
-                                <MenuItem value="50">50</MenuItem>
-                                <MenuItem value="100">100</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="instrument-label">Instrument</InputLabel>
-                            <Select
-                                labelId="instrument-label"
-                                value={localConfig.instrumentData.internalSymbol || ''}
-                                onChange={(e) => {
-                                    const selectedInstrument = instruments.find(i => i.internalSymbol === e.target.value)
-                                    handleConfigChange('instrumentData', selectedInstrument)
-                                }
-                                }
-                                label="Instrument"
-                            >
-                                {
-                                    instruments.length > 0 ? (
-                                        instruments.map((instrument, index) => (
-                                            <MenuItem key={index} value={instrument.internalSymbol}>{instrument.internalSymbol}</MenuItem>
-                                        ))
-                                    ) : (
-                                        <MenuItem value="" disabled>No Instruments available</MenuItem>
-                                    )
-                                }
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth margin="normal">
-                            <InputLabel id="period-label">Period</InputLabel>
-                            <Select
-                                labelId="period-label"
-                                value={localConfig.period}
-                                onChange={(e) => handleConfigChange('period', e.target.value)}
-                                label="period"
-                            >
-                                <MenuItem value="M1">1m</MenuItem>
-                                <MenuItem value="M5">5m</MenuItem>
-                                <MenuItem value="M15">15m</MenuItem>
-                                <MenuItem value="M30">30m</MenuItem>
-                                <MenuItem value="H1">1H</MenuItem>
-                                <MenuItem value="H4">4H</MenuItem>
-                                <MenuItem value="D">1D</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="From"
-                            type="date"
-                            value={localConfig.timeframe.from.slice(0, 10)}
-                            onChange={(e) => handleConfigChange('timeframe', {
-                                ...localConfig.timeframe,
-                                from: e.target.value + 'T00:00:00Z'
-                            })}
-                            fullWidth
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                        <TextField
-                            label="To"
-                            type="date"
-                            value={localConfig.timeframe.to.slice(0, 10)}
-                            onChange={(e) => handleConfigChange('timeframe', {
-                                ...localConfig.timeframe,
-                                to: e.target.value + 'T00:00:00Z'
-                            })}
-                            fullWidth
-                            margin="normal"
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                    </div>
-                )}
+                                {!showOptimiseParams && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="speed">Speed</Label>
+                                        <Select
+                                            value={localConfig.speed}
+                                            onValueChange={(value) => handleConfigChange('speed', value)}
+                                        >
+                                            <SelectTrigger id="speed">
+                                                <SelectValue placeholder="Select speed"/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="SLOW">Slow (Visual)</SelectItem>
+                                                <SelectItem value="NORMAL">Normal (Visual)</SelectItem>
+                                                <SelectItem value="INSTANT">Instant (Async)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="spread">Spread</Label>
+                                    <Select
+                                        value={localConfig.spread}
+                                        onValueChange={(value) => handleConfigChange('spread', value)}
+                                    >
+                                        <SelectTrigger id="spread">
+                                            <SelectValue placeholder="Select spread"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="5">5</SelectItem>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="30">30</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="instrument">Instrument</Label>
+                                    <Select
+                                        value={localConfig.instrumentData.internalSymbol || ''}
+                                        onValueChange={(value) => {
+                                            const selectedInstrument = instruments.find(i => i.internalSymbol === value)
+                                            handleConfigChange('instrumentData', selectedInstrument)
+                                        }}
+                                    >
+                                        <SelectTrigger id="instrument">
+                                            <SelectValue placeholder="Select instrument"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {instruments.length > 0 ? (
+                                                instruments.map((instrument, index) => (
+                                                    <SelectItem key={index} value={instrument.internalSymbol}>
+                                                        {instrument.internalSymbol}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <SelectItem value="" disabled>No Instruments available</SelectItem>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="period">Period</Label>
+                                    <Select
+                                        value={localConfig.period}
+                                        onValueChange={(value) => handleConfigChange('period', value)}
+                                    >
+                                        <SelectTrigger id="period">
+                                            <SelectValue placeholder="Select period"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="M1">1m</SelectItem>
+                                            <SelectItem value="M5">5m</SelectItem>
+                                            <SelectItem value="M15">15m</SelectItem>
+                                            <SelectItem value="M30">30m</SelectItem>
+                                            <SelectItem value="H1">1H</SelectItem>
+                                            <SelectItem value="H4">4H</SelectItem>
+                                            <SelectItem value="D">1D</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="from-date">From</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start text-left font-normal"
+                                                id="from-date"
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4"/>
+                                                {localConfig.timeframe.from ? format(parseISO(localConfig.timeframe.from), 'PPP') : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={localConfig.timeframe.from ? parseISO(localConfig.timeframe.from) : undefined}
+                                                onSelect={(date) => handleDateChange('from', date)}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="to-date">To</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full justify-start text-left font-normal"
+                                                id="to-date"
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4"/>
+                                                {localConfig.timeframe.to ? format(parseISO(localConfig.timeframe.to), 'PPP') : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={localConfig.timeframe.to ? parseISO(localConfig.timeframe.to) : undefined}
+                                                onSelect={(date) => handleDateChange('to', date)}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            </div>
+                        </ScrollArea>
+                    </TabsContent>
+                </Tabs>
+                <DialogFooter>
+                    {!showOptimiseParams && (
+                        <Button variant="outline" onClick={() => setIsJsonImportOpen(true)}>Import JSON</Button>
+                    )}
+                    <Button variant="outline" onClick={handleReset}>Reset</Button>
+                    <Button onClick={handleClose}>Close</Button>
+                </DialogFooter>
             </DialogContent>
-            <DialogActions sx={{padding: 3}}>
-                {!showOptimiseParams && (
-                    <Button onClick={() => setIsJsonImportOpen(true)}>Import JSON</Button>
-                )}
-                <Button onClick={handleReset}>Reset</Button>
-                <Button onClick={handleClose} variant="contained" color="primary">
-                    Close
-                </Button>
-            </DialogActions>
             <JsonImportDialog
                 open={isJsonImportOpen}
                 onClose={() => setIsJsonImportOpen(false)}
                 onImport={handleJsonImport}
-            />
-            <Toast
-                open={toast.open}
-                message={toast.message}
-                severity={toast.level}
-                onClose={handleCloseToast}
             />
         </Dialog>
     );

@@ -1,8 +1,12 @@
-import React from 'react';
-import {Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, List, ListItem, ListItemAvatar, ListItemText, TextField, Typography} from '@mui/material';
+import React, {useState} from 'react';
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "../ui/dialog";
+import {Button} from "../ui/button";
+import {Input} from "../ui/input";
+import {ScrollArea} from "../ui/scroll-area";
+import {Avatar, AvatarFallback} from "../ui/avatar";
 
-const ShareDialog = ({open, onClose, users, handleShareWithUser}) => {
-    const [searchTerm, setSearchTerm] = React.useState('');
+const ShareDialog = ({open, onOpenChange, users, handleShareWithUser}) => {
+    const [searchTerm, setSearchTerm] = useState('');
 
     const filteredUsers = users.filter(user =>
         user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -11,60 +15,53 @@ const ShareDialog = ({open, onClose, users, handleShareWithUser}) => {
     );
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle>
-                <Box display="flex" alignItems="center">
-                    <Typography variant="h6">Share Optimisation Run</Typography>
-                </Box>
-            </DialogTitle>
-            <Divider/>
-            <DialogContent>
-                <TextField
-                    autoFocus
-                    margin="dense"
-                    id="search"
-                    label="Search users"
-                    type="text"
-                    fullWidth
-                    variant="outlined"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{marginBottom: '20px'}}
-                />
-                <List>
-                    {filteredUsers.map((user) => (
-                        <ListItem
-                            button
-                            key={user.id}
-                            onClick={() => handleShareWithUser(user.id)}
-                            style={{borderRadius: '8px', marginBottom: '8px'}}
-                        >
-                            <ListItemAvatar>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Share Optimisation Run</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <Input
+                        id="search"
+                        placeholder="Search users"
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="mb-4"
+                    />
+                    <ScrollArea className="h-[300px] rounded-md border p-4">
+                        {filteredUsers.map((user) => (
+                            <div
+                                key={user.id}
+                                className="flex items-center space-x-4 p-2 hover:bg-accent rounded-lg cursor-pointer"
+                                onClick={() => handleShareWithUser(user.id)}
+                            >
                                 <Avatar>
-                                    {user.username.charAt(0).toUpperCase()}
+                                    <AvatarFallback>
+                                        {user.username.charAt(0).toUpperCase()}
+                                    </AvatarFallback>
                                 </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                                primary={`${user.firstName} ${user.lastName}`}
-                                secondary={
-                                    <React.Fragment>
-                                        <Typography component="span" variant="body2" color="text.primary">
-                                            {user.email}
-                                        </Typography>
-                                        {` — ${user.role}`}
-                                    </React.Fragment>
-                                }
-                            />
-                        </ListItem>
-                    ))}
-                </List>
+                                <div className="flex-1 space-y-1">
+                                    <p className="text-sm font-medium leading-none">
+                                        {`${user.firstName} ${user.lastName}`}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        {user.email}
+                                    </p>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {user.role}
+                                </div>
+                            </div>
+                        ))}
+                    </ScrollArea>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
+                </DialogFooter>
             </DialogContent>
-            <Divider/>
-            <DialogActions>
-                <Button onClick={onClose} color="primary">
-                    Cancel
-                </Button>
-            </DialogActions>
         </Dialog>
     );
 };
