@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,} from 'recharts';
+import {Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
 import {format} from 'date-fns';
 
 export const EquityChart = ({equityHistory}) => {
@@ -44,8 +44,15 @@ export const EquityChart = ({equityHistory}) => {
                     type="number"
                     scale="time"
                     domain={['dataMin', 'dataMax']}
+                    allowDataOverflow={false}
+                    allowDecimals={false}
+                    allowDuplicatedCategory={false}
                 />
-                <YAxis tickFormatter={formatYAxis}/>
+                <YAxis
+                    tickFormatter={formatYAxis}
+                    allowDecimals={false}
+                    allowDataOverflow={false}
+                />
                 <CartesianGrid strokeDasharray="3 3"/>
                 <Tooltip
                     labelFormatter={formatXAxis}

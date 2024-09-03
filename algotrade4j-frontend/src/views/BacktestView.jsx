@@ -112,16 +112,31 @@ const BacktestView = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 {[
                                     {label: 'Initial Balance', value: account.initialBalance},
-                                    {label: 'Current Balance', value: account.balance},
-                                    {label: 'Equity', value: account.equity},
+                                    {
+                                        label: 'Current Balance',
+                                        value: account.balance,
+                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                    },
+                                    {
+                                        label: 'Equity',
+                                        value: account.equity,
+                                        diff: ((account.equity - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                    },
                                     {
                                         label: 'Open Position Value',
                                         value: Math.round((account.equity - account.balance + Number.EPSILON) * 100) / 100
                                     }
                                 ].map((item, index) => (
                                     <div key={index} className="bg-card text-card-foreground rounded p-2">
-                                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                                        <p className="text-sm font-semibold">${item.value.toLocaleString()}</p>
+                                        <p className="text-sm text-muted-foreground">{item.label}</p>
+                                        <p className="text-md font-semibold">
+                                            ${item.value.toLocaleString()}
+                                            {item.diff !== undefined && account.balance !== 0 && (
+                                                <span className={`ml-2 text-sm ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    ({item.diff > 0 ? '+' : ''}{item.diff}%)
+                </span>
+                                            )}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
