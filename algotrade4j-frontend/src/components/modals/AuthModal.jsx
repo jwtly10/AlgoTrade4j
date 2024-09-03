@@ -1,31 +1,27 @@
-import React, {useState} from 'react';
-import {Box, Dialog, DialogContent, DialogTitle, Tab, Tabs} from '@mui/material';
+import React from 'react';
+import {Dialog, DialogContent} from "@/components/ui/dialog";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import LoginView from '../../views/LoginView';
-import SignUpView from '../../views/SignUpView';
+import SignUpView from "@/views/SignUpView.jsx";
 
 function AuthModal({open, onClose, setUser}) {
-    const [tabValue, setTabValue] = useState(0);
-
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue);
-    };
-
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth disableEnforceFocus disableRestoreFocus aria-hidden={false}>
-            <DialogTitle>
-                <Tabs value={tabValue} onChange={handleTabChange} centered>
-                    <Tab label="Login"/>
-                    <Tab label="Sign Up"/>
+        <Dialog open={open} onOpenChange={onClose}>
+            <DialogContent className="sm:max-w-[425px]">
+                <Tabs defaultValue="login" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="login">Login</TabsTrigger>
+                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                    </TabsList>
+                    <div className="p-4">
+                        <TabsContent value="login">
+                            <LoginView setUser={setUser} onSuccess={onClose}/>
+                        </TabsContent>
+                        <TabsContent value="signup">
+                            <SignUpView setUser={setUser} onSuccess={onClose}/>
+                        </TabsContent>
+                    </div>
                 </Tabs>
-            </DialogTitle>
-            <DialogContent>
-                <Box sx={{p: 2}}>
-                    {tabValue === 0 ? (
-                        <LoginView setUser={setUser} onSuccess={onClose}/>
-                    ) : (
-                        <SignUpView setUser={setUser} onSuccess={onClose}/>
-                    )}
-                </Box>
             </DialogContent>
         </Dialog>
     );

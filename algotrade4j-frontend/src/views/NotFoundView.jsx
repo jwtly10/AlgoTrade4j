@@ -1,29 +1,19 @@
 import React from 'react';
-import {Box, Button, Typography} from '@mui/material';
 import {Link} from 'react-router-dom';
+import {Button} from "@/components/ui/button";
 
 function NotFoundView() {
     return (
-        <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="80vh"
-        >
-            <Typography variant="h1" color="primary" gutterBottom>
-                404
-            </Typography>
-            <Typography variant="h5" color="textSecondary" gutterBottom>
-                Oops! Page not found.
-            </Typography>
-            <Typography variant="body1" color="textSecondary" paragraph>
+        <div className="flex flex-col justify-center items-center min-h-[80vh]">
+            <h1 className="text-6xl font-bold text-primary mb-2">404</h1>
+            <h2 className="text-2xl text-muted-foreground mb-4">Oops! Page not found.</h2>
+            <p className="text-muted-foreground mb-6 text-center max-w-md">
                 The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
-            </Typography>
-            <Button component={Link} to="/" variant="contained" color="primary">
-                Go to Homepage
+            </p>
+            <Button asChild>
+                <Link to="/">Go to Homepage</Link>
             </Button>
-        </Box>
+        </div>
     );
 }
 

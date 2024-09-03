@@ -1,7 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {ColorType, createChart, CrosshairMode, TickMarkType} from 'lightweight-charts';
-import {Box} from '@mui/material';
-import log from '../logger.js'
+import log from '../../logger.js'
 
 const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
@@ -256,7 +255,7 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
         });
     }
 
-    return <Box ref={chartContainerRef} style={{width: '100%', height: '100%'}}/>;
+    return <div ref={chartContainerRef} style={{width: '100%', height: '100%'}}/>;
 };
 
 export default TradingViewChart;

@@ -1,10 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Tooltip, Typography} from '@mui/material';
-import {systemClient} from '../api/apiClient';
-import log from '../logger.js'
-
-
-const BANNER_HEIGHT = '30px';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import {systemClient} from '@/api/apiClient.js';
+import log from '../../logger.js';
 
 const VersionBanner = ({ user }) => {
     const isDevelopment = import.meta.env.MODE === 'development';
@@ -44,56 +41,44 @@ const VersionBanner = ({ user }) => {
     const getBannerColor = () => {
         switch (versionInfo.environment.toLowerCase()) {
             case 'production':
-                return '#1976d2'; // Blue for production
+                return 'bg-blue-600'; // Blue for production
             case 'dev':
-                return '#9c27b0'; // Purple for dev
+                return 'bg-purple-600'; // Purple for dev
             default:
-                return '#4caf50'; // Green for other environments
+                return 'bg-green-600'; // Green for other environments
         }
     };
 
     const showDumpHeap = isDevelopment && user?.role === 'ADMIN';
 
     return (
-        <Box
-            sx={{
-                backgroundColor: getBannerColor(),
-                color: '#ffffff',
-                padding: '4px',
-                textAlign: 'center',
-                height: BANNER_HEIGHT,
-                lineHeight: BANNER_HEIGHT,
-                fontWeight: 'bold',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-        >
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+        <div className={`${getBannerColor()} text-white p-1 text-center h-8 leading-8 font-bold shadow-md flex justify-center items-center`}>
+            <div className="text-sm font-bold">
                 {versionInfo.environment.toUpperCase()} - v{versionInfo.version}
                 {' | '}
-                <Tooltip title={`App started at: ${versionInfo.startTime}`} arrow>
-                    <span style={{cursor: 'help'}}>
-                        Uptime: {calculateUptime(versionInfo.startTime)}
-                    </span>
-                </Tooltip>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                            Uptime: {calculateUptime(versionInfo.startTime)}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>App started at: {versionInfo.startTime}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 {showDumpHeap && (
                     <>
                         {' | '}
                         <span
                             onClick={handleDumpHeap}
-                            style={{
-                                cursor: 'pointer',
-                                textDecoration: 'underline',
-                            }}
+                            className="cursor-pointer underline"
                         >
-                            DEBUG: Dump Java Heap
-                        </span>
+              DEBUG: Dump Java Heap
+            </span>
                     </>
                 )}
-            </Typography>
-        </Box>
+            </div>
+        </div>
     );
 };
 

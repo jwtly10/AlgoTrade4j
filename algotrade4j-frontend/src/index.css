@@ -1,6 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .App {
     width: 100%;
     height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+/* Scrollbar styles using theme variables */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(var(--secondary));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--accent-foreground));
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--secondary));
+}
+
+@layer base {
+    :root {
+        --background: 240 8% 95%;
+        --foreground: 240 8% 5%;
+
+        --card: 240 8% 95%;
+        --card-foreground: 240 8% 5%;
+
+        --popover: 240 8% 95%;
+        --popover-foreground: 240 8% 5%;
+
+        --primary: 233 91% 64%;
+        --primary-foreground: 180 9% 98%;
+
+        --secondary: 228 11% 91%;
+        --secondary-foreground: 240 8% 5%;
+
+        --muted: 240 9% 91%;
+        --muted-foreground: 231 9% 45%;
+
+        --accent: 228 11% 91%;
+        --accent-foreground: 240 8% 5%;
+
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 230 9% 87%;
+        --input: 233 9% 81%;
+        --ring: 233 36% 72%;
+
+        --radius: 0.5rem;
+    }
+
+    .dark {
+        --background: 240 3% 6%;
+        --foreground: 0 0% 98%;
+
+        --card: 210 6% 7%;
+        --card-foreground: 0 0% 98%;
+
+        --popover: 210 6% 7%;
+        --popover-foreground: 0 0% 98%;
+
+        --primary: 233 91% 64%;
+        --primary-foreground: 0 0% 98%;
+
+        --secondary: 240 5% 15%;
+        --secondary-foreground: 0 0% 98%;
+
+        --muted: 230 5% 22%;
+        --muted-foreground: 235 5% 49%;
+
+        --accent: 233 45% 14%;
+        --accent-foreground: 0 0% 98%;
+
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 240 5% 12%;
+        --input: 240 4% 18%;
+        --ring: 233 91% 40%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }

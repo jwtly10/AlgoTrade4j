@@ -14,6 +14,10 @@ export default defineConfig({
                 find: /^src(.+)/,
                 replacement: path.resolve(__dirname, 'src/$1'),
             },
+            {
+                find: '@',
+                replacement: path.resolve(__dirname, 'src')
+            }
         ],
     },
     server: {

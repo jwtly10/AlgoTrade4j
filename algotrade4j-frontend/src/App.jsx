@@ -1,52 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
-import {Box, CircularProgress, CssBaseline, ThemeProvider} from '@mui/material';
-import {createTheme} from '@mui/material/styles';
 import Navbar from './components/layout/Navbar';
 import BacktestView from './views/BacktestView';
 import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/UserManagementView';
 import NotFoundView from "./views/NotFoundView.jsx";
-import MonitorView from "./views/MonitorView.jsx";
-import VersionBanner from "./components/VersionBanner.jsx";
+import VersionBanner from "./components/layout/VersionBanner.jsx";
 import HomeView from "./views/HomeView.jsx";
 import OptimisationView from "./views/OptimisationView.jsx";
 import log from './logger.js';
-
-const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-    },
-    components: {
-        MuiCssBaseline: {
-            styleOverrides: `
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: #888 #1e1e1e;
-        }
-
-        *::-webkit-scrollbar {
-          width: 10px;
-        }
-
-        *::-webkit-scrollbar-track {
-          background: #1e1e1e;
-        }
-
-        *::-webkit-scrollbar-thumb {
-          background-color: #888;
-          border-radius: 6px;
-          border: 3px solid #1e1e1e;
-        }
-
-        *::-webkit-scrollbar-thumb:hover {
-          background-color: #555;
-        }
-      `,
-        },
-    },
-});
+import {ThemeProvider} from "./components/ThemeProvider";
+import {Toaster} from "./components/ui/toaster";
+import UnauthorizedAccessView from "@/views/UnauthorizedAccessView.jsx";
+import MonitorView from "@/views/MonitorView.jsx";
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -74,51 +41,64 @@ function App() {
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-                <CircularProgress/>
-            </Box>
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            </div>
         );
     }
 
     return (
-        <ThemeProvider theme={darkTheme}>
-            <CssBaseline/>
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <Router>
-                <VersionBanner user={user}/>
-                <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
-                <Routes>
-                    <Route
-                        path="/"
-                        element={user ? <HomeView/> : <Navigate to="/login" replace/>}
-                    />
-                    <Route
-                        path="/backtest"
-                        element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
-                    />
-                    <Route
-                        path="/optimisation"
-                        element={user ? <OptimisationView/> : <Navigate to="/login" replace/>}
-                    />
-                    <Route
-                        path="/monitor"
-                        element={user ? <MonitorView/> : <Navigate to="/login" replace/>}
-                    />
-                    <Route
-                        path="/login"
-                        element={user ? <Navigate to="/backtest" replace/> : <AuthModal open={true} onClose={() => {
-                        }} setUser={setUser}/>}
-                    />
-                    <Route path="/signup" element={<Navigate to="/login" replace/>}/>
-                    {user && user.role === 'ADMIN' && (
-                        <Route path="/users" element={<UserManagementView loggedInUser={user}/>}/>
-                    )}
-                    <Route
-                        path="*"
-                        element={user ? <NotFoundView/> : <Navigate to="/login" replace/>}
-                    />
-                </Routes>
-                {!user && <AuthModal open={authModalOpen} onClose={handleCloseAuthModal} setUser={setUser}/>}
+                <div className="min-h-screen bg-background text-foreground">
+                    <VersionBanner user={user}/>
+                    <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
+                    <Routes>
+                        <Route
+                            path="/"
+                            element={user ? <HomeView/> : <Navigate to="/login" replace/>}
+                        />
+                        <Route
+                            path="/backtest"
+                            element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
+                        />
+
+                        <Route
+                            path="/login"
+                            element={user ? <Navigate to="/" replace/> : <AuthModal open={true} onClose={() => {
+                            }} setUser={setUser}/>}
+                        />
+
+                        <Route
+                            path="/optimisation"
+                            element={user ? <OptimisationView/> : <Navigate to="/login" replace/>}
+                        />
+
+                        <Route path="/signup" element={<Navigate to="/login" replace/>}/>
+
+                        {/* Admin routes */}
+                        <Route
+                            path="/users"
+                            element={user ? (
+                                user.role === 'ADMIN' ? <UserManagementView loggedInUser={user}/> : <UnauthorizedAccessView/>
+                            ) : <Navigate to="/login" replace/>}
+                        />
+                        <Route
+                            path="/monitor"
+                            element={user ? (
+                                user.role === 'ADMIN' ? <MonitorView/> : <UnauthorizedAccessView/>
+                            ) : <Navigate to="/login" replace/>}
+                        />
+
+                        <Route
+                            path="*"
+                            element={user ? <NotFoundView/> : <Navigate to="/login" replace/>}
+                        />
+                    </Routes>
+                    {!user && <AuthModal open={authModalOpen} onClose={handleCloseAuthModal} setUser={setUser}/>}
+                </div>
             </Router>
+            <Toaster/>
         </ThemeProvider>
     );
 }
