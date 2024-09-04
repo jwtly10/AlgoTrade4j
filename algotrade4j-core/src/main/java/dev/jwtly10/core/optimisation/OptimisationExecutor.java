@@ -1,19 +1,18 @@
 package dev.jwtly10.core.optimisation;
 
-import dev.jwtly10.core.account.AccountManager;
-import dev.jwtly10.core.account.DefaultAccountManager;
-import dev.jwtly10.core.analysis.PerformanceAnalyser;
+import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.exception.BacktestExecutorException;
-import dev.jwtly10.core.execution.*;
+import dev.jwtly10.core.execution.BacktestExecutor;
+import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.Strategy;
-import dev.jwtly10.core.utils.StrategyReflectionUtils;
+import dev.jwtly10.core.strategy.StrategyFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -37,6 +36,9 @@ public class OptimisationExecutor {
     private final Consumer<OptimisationRunResult> resultCallback;
     private final Consumer<OptimisationProgress> progressCallback;
     private final List<String> failedStrategyIds = new CopyOnWriteArrayList<>();
+    private final StrategyFactory strategyFactory;
+    private final ExecutorFactory executorFactory;
+    private final DataManagerFactory dataManagerFactory;
     private OptimisationProgress progress;
     private volatile boolean running = false;
 
@@ -47,13 +49,23 @@ public class OptimisationExecutor {
      * @param resultCallback   a Consumer that allows callers to handle new results that have been emitted during optimisation
      * @param progressCallback a Consumre that allows callers to handle progress updates once each batch has been processed
      */
-    public OptimisationExecutor(EventPublisher eventPublisher, DataProvider dataProvider, Consumer<OptimisationRunResult> resultCallback, Consumer<OptimisationProgress> progressCallback) {
+    public OptimisationExecutor(
+            EventPublisher eventPublisher,
+            DataProvider dataProvider,
+            Consumer<OptimisationRunResult> resultCallback,
+            Consumer<OptimisationProgress> progressCallback,
+            StrategyFactory strategyFactory,
+            ExecutorFactory executorFactory,
+            DataManagerFactory dataManagerFactory) {
         this.resultCallback = resultCallback;
         this.progressCallback = progressCallback;
         this.resultListener = new OptimisationResultListener(this);
         this.eventPublisher = eventPublisher;
         this.eventPublisher.addListener(resultListener);
         this.dataProvider = dataProvider;
+        this.strategyFactory = strategyFactory;
+        this.executorFactory = executorFactory;
+        this.dataManagerFactory = dataManagerFactory;
     }
 
     /**
@@ -143,13 +155,10 @@ public class OptimisationExecutor {
         Duration period = config.getPeriod();
         Instrument instrument = config.getInstrument();
 
-        // Shared deps
-        BarSeries barSeries = new DefaultBarSeries("Optimisation", 4000);
-        Tick currentTick = new DefaultTick();
-
         // Ensure instant
         dataProvider.setDataSpeed(DataSpeed.INSTANT);
-        DefaultDataManager dataManager = new DefaultDataManager("optimisation-run", instrument, dataProvider, period, barSeries, eventPublisher);
+        DefaultDataManager dataManager = (DefaultDataManager) dataManagerFactory.createDataManager(instrument, period, eventPublisher, dataProvider);
+
         dataManager.setIsOptimising(true);
 
         for (Map<String, String> parameterCombination : batch) {
@@ -159,22 +168,16 @@ public class OptimisationExecutor {
             String id = "optimisation-" + config.getStrategyClass() + "-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "");
             strategyParameters.put(id, new HashMap<>(parameterCombination));
 
-            TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, id, eventPublisher);
-            AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
-            TradeStateManager tradeStateManager = new DefaultTradeStateManager(id, eventPublisher);
-            PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
-
             Strategy strategy = null;
             try {
-                // use the generated id for this specific parameter combo
-                strategy = StrategyReflectionUtils.getStrategyFromClassName(config.getStrategyClass(), id);
+                strategy = strategyFactory.createStrategy(config.getStrategyClass(), id);
             } catch (Exception e) {
-                // Adding more context to error message
+                // Context
                 throw new Exception("Error getting strategy from " + config.getStrategyClass() + ": " + e.getClass() + " " + e.getMessage(), e);
             }
 
             strategy.setParameters(parameterCombination);
-            BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+            BacktestExecutor executor = executorFactory.createExecutor(strategy, id, dataManager, eventPublisher, config.getInitialCash());
             executor.initialise();
             dataManager.addDataListener(executor);
 

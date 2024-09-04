@@ -5,13 +5,16 @@ import dev.jwtly10.api.model.optimisation.OptimisationTask;
 import dev.jwtly10.api.model.optimisation.ProgressInfo;
 import dev.jwtly10.api.service.optimisation.OptimisationResultService;
 import dev.jwtly10.api.service.optimisation.OptimisationTaskService;
+import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.SyncEventPublisher;
+import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
 import dev.jwtly10.core.optimisation.OptimisationExecutor;
 import dev.jwtly10.core.optimisation.OptimisationProgress;
 import dev.jwtly10.core.optimisation.OptimisationRunResult;
+import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.dataclients.OandaDataClient;
@@ -38,6 +41,9 @@ public class OptimisationBackgroundJob {
     private final Executor virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
     private final Semaphore taskSemaphore;
 
+    private final StrategyFactory strategyFactory;
+    private final ExecutorFactory executorFactory;
+    private final DataManagerFactory dataManagerFactory;
 
     @Value("${oanda.api.key}")
     private String oandaApiKey;
@@ -46,10 +52,20 @@ public class OptimisationBackgroundJob {
     @Value("${oanda.api.url}")
     private String oandaApiUrl;
 
-    public OptimisationBackgroundJob(OptimisationTaskService taskService, OptimisationResultService resultService, @Value("${optimisation.max.concurrent.tasks:1}") int maxConcurrentTasks) {
+
+    public OptimisationBackgroundJob(
+            OptimisationTaskService taskService,
+            OptimisationResultService resultService,
+            @Value("${optimisation.max.concurrent.tasks:1}") int maxConcurrentTasks,
+            StrategyFactory strategyFactory,
+            ExecutorFactory executorFactory,
+            DataManagerFactory dataManagerFactory) {
         this.taskService = taskService;
         this.resultService = resultService;
         this.taskSemaphore = new Semaphore(maxConcurrentTasks);
+        this.strategyFactory = strategyFactory;
+        this.executorFactory = executorFactory;
+        this.dataManagerFactory = dataManagerFactory;
     }
 
 
@@ -133,7 +149,15 @@ public class OptimisationBackgroundJob {
             ));
         };
 
-        return new OptimisationExecutor(internalEventPublisher, dataProvider, resultCallback, progressCallback);
+        return new OptimisationExecutor(
+                internalEventPublisher,
+                dataProvider,
+                resultCallback,
+                progressCallback,
+                strategyFactory,
+                executorFactory,
+                dataManagerFactory
+        );
     }
 
     private void handleOptimisationError(OptimisationTask task, Exception e) {

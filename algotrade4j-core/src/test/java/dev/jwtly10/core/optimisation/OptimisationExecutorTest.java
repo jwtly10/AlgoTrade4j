@@ -1,8 +1,11 @@
 package dev.jwtly10.core.optimisation;
 
+import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,12 +32,21 @@ class OptimisationExecutorTest {
     @Mock
     private Consumer<OptimisationProgress> mockProgress;
 
+    @Mock
+    private StrategyFactory mockStrategyFactory;
+
+    @Mock
+    private DataManagerFactory mockDataManagerFactory;
+
+    @Mock
+    private ExecutorFactory mockExecutorFactory;
+
     private OptimisationExecutor optimisationExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider, mockConsumer, mockProgress);
+        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider, mockConsumer, mockProgress, mockStrategyFactory, mockExecutorFactory, mockDataManagerFactory);
     }
 
     @Test

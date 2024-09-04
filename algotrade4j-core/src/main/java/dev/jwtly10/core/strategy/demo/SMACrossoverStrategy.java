@@ -1,10 +1,12 @@
-package dev.jwtly10.core.strategy;
+package dev.jwtly10.core.strategy.demo;
 
 import dev.jwtly10.core.indicators.iSMA;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.strategy.BaseStrategy;
+import dev.jwtly10.core.strategy.Parameter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

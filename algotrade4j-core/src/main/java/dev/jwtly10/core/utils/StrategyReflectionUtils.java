@@ -20,7 +20,7 @@ public class StrategyReflectionUtils {
         try {
             Class<?> clazz;
             try {
-                clazz = Class.forName("dev.jwtly10.core.strategy." + className);
+                clazz = Class.forName("dev.jwtly10.core.strategy.demo" + className);
             } catch (ClassNotFoundException e) {
                 try {
                     clazz = Class.forName("dev.jwtly10.core.strategy.private_strats." + className);
