@@ -2,51 +2,56 @@ package dev.jwtly10.core.optimisation;
 
 import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
+import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 class OptimisationExecutorTest {
 
     @Mock
-    private EventPublisher mockEventPublisher;
-
+    private EventPublisher eventPublisher;
     @Mock
-    private DataProvider mockDataProvider;
-
+    private DataProvider dataProvider;
     @Mock
-    private Consumer<OptimisationRunResult> mockConsumer;
-
+    private Consumer<OptimisationRunResult> resultCallback;
     @Mock
-    private Consumer<OptimisationProgress> mockProgress;
-
+    private Consumer<OptimisationProgress> progressCallback;
     @Mock
-    private StrategyFactory mockStrategyFactory;
-
+    private StrategyFactory strategyFactory;
     @Mock
-    private DataManagerFactory mockDataManagerFactory;
-
+    private ExecutorFactory executorFactory;
     @Mock
-    private ExecutorFactory mockExecutorFactory;
+    private DataManagerFactory dataManagerFactory;
 
     private OptimisationExecutor optimisationExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider, mockConsumer, mockProgress, mockStrategyFactory, mockExecutorFactory, mockDataManagerFactory);
+        optimisationExecutor = new OptimisationExecutor(
+                eventPublisher, dataProvider, resultCallback, progressCallback,
+                strategyFactory, executorFactory, dataManagerFactory
+        );
     }
 
     @Test
@@ -203,6 +208,67 @@ class OptimisationExecutorTest {
         }
     }
 
+    // This test doesn't actually run any data, but ensures we are correctly starting an optimisation run. And 'completing' till the end
+    // This will be covered in our integration test
+    @Test
+    void testExecuteTask() throws Exception {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Arrays.asList(
+                new ParameterRange("val", "param1", "1", "2", "1", true)
+        ));
+        config.setInstrument(Instrument.NAS100USD);
+        config.setPeriod(Duration.ofMinutes(5));
+        config.setStrategyClass("TestStrategy");
 
-    // TODO: Add test for the execution process
+        Strategy mockStrategy = mock(Strategy.class);
+        when(strategyFactory.createStrategy(anyString(), anyString())).thenReturn(mockStrategy);
+
+        BacktestExecutor mockExecutor = mock(BacktestExecutor.class);
+        when(executorFactory.createExecutor(any(), anyString(), any(), any(), any())).thenReturn(mockExecutor);
+
+        DefaultDataManager mockDataManager = mock(DefaultDataManager.class);
+        when(dataManagerFactory.createDataManager(any(), any(), any(), any())).thenReturn(mockDataManager);
+
+        optimisationExecutor.executeTask(config);
+
+        verify(progressCallback, atLeastOnce()).accept(any(OptimisationProgress.class));
+        verify(resultCallback, atLeastOnce()).accept(any(OptimisationRunResult.class));
+        verify(mockDataManager).start();
+        verify(mockDataManager).stop();
+    }
+
+    @Test
+    void testOnStrategyFailure() {
+        String strategyId = "testStrategy";
+        Exception testException = new RuntimeException("Test error");
+
+        optimisationExecutor.onStrategyFailure(strategyId, testException);
+
+        verify(resultCallback).accept(argThat(result ->
+                result.getStrategyId().equals(strategyId) &&
+                        result.getOutput().isFailed() &&
+                        result.getOutput().getReason().equals("Test error")
+        ));
+    }
+
+    @Test
+    void testExecuteTaskWithNoParameterCombinations() {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Collections.emptyList());
+
+        assertThrows(RuntimeException.class, () -> optimisationExecutor.executeTask(config));
+    }
+
+    @Test
+    void testExecuteTaskWithTooManyParameterCombinations() {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Arrays.asList(
+                new ParameterRange("val", "param1", "1", "100", "1", true),
+                new ParameterRange("val", "param2", "1", "100", "1", true)
+        ));
+
+        assertThrows(RuntimeException.class, () -> optimisationExecutor.executeTask(config));
+    }
+
+
 }
