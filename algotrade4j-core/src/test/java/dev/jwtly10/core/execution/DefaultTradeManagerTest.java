@@ -2,6 +2,7 @@ package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +12,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 
 import static dev.jwtly10.core.model.Instrument.NAS100USD;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -243,5 +243,79 @@ class DefaultTradeManagerTest {
                         ((TradeEvent) event).getAction() == TradeEvent.Action.CLOSE &&
                         ((TradeEvent) event).getInstrument().equals(SYMBOL)
         ));
+    }
+
+    @Test
+    void testOpenPositionValue() {
+        Trade trade1 = new Trade(
+                NAS100USD,
+                new Number("0.5"),
+                new Number("10"),
+                ZonedDateTime.now(),
+                new Number("8"),
+                new Number("12"),
+                true
+        );
+        trade1.setProfit(10);
+
+        Trade trade2 = new Trade(
+                NAS100USD,
+                new Number("0.5"),
+                new Number("10"),
+                ZonedDateTime.now(),
+                new Number("12"),
+                new Number("8"),
+                false
+        );
+        trade2.setProfit(20);
+
+        backtestTradeManager.getOpenTrades().put(1, trade1);
+        backtestTradeManager.getOpenTrades().put(2, trade2);
+
+        assertEquals(30, backtestTradeManager.getOpenPositionValue(SYMBOL));
+    }
+
+    @Test
+    void testOpenPositionWithNegativeQuantity() {
+        TradeParameters params = new TradeParameters();
+        params.setInstrument(SYMBOL);
+        params.setEntryPrice(new Number("50000"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
+        when(mockCurrentTick.getDateTime()).thenReturn(ZonedDateTime.now());
+        params.setStopLoss(new Number("49999.99"));
+        params.setRiskRatio(new Number("2"));
+        params.setRiskPercentage(new Number("0.0000001"));
+        params.setBalanceToRisk(new Number("0.01"));
+        params.setQuantity(new Number("-1"));
+
+        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+
+        assertThrows(InvalidTradeException.class, () -> backtestTradeManager.openLong(params));
+    }
+
+    @Test
+    void testCloseNonExistentPosition() {
+        assertThrows(IllegalArgumentException.class, () -> backtestTradeManager.closePosition(999, false));
+    }
+
+    @Test
+    void testClosePositionWithNullPrice() {
+        TradeParameters params = new TradeParameters();
+        params.setInstrument(SYMBOL);
+        params.setEntryPrice(new Number("50000"));
+        when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
+        when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
+        params.setStopLoss(new Number("49000"));
+        params.setRiskRatio(new Number("2"));
+        params.setRiskPercentage(new Number("1"));
+        params.setBalanceToRisk(new Number("10000"));
+
+        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        int tradeId = backtestTradeManager.openLong(params);
+
+        backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, null, null, new Number("10"), new Number("100"), ZonedDateTime.now()));
+
+        assertThrows(IllegalStateException.class, () -> backtestTradeManager.closePosition(tradeId, false));
     }
 }
