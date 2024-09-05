@@ -42,7 +42,8 @@ function LoginView({setUser, onSuccess}) {
     return (
         <Card className="border-0 shadow-none">
             <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
+                <CardTitle className="text-2xl font-bold text-center">AlgoTrade4Java</CardTitle>
+                <p className="text-center text-sm text-gray-500">A Java-powered algorithmic trading platform</p>
             </CardHeader>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>

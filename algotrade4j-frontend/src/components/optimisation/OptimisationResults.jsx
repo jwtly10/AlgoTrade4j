@@ -133,6 +133,20 @@ const OptimizationResults = ({task}) => {
         </Card>
     );
 
+    function convertPeriodToSelectText(period) {
+        const secondsToValue = {
+            60: "M1",
+            300: "M5",
+            900: "M15",
+            1800: "M30",
+            3600: "H1",
+            14400: "H4",
+            86400: "D"
+        };
+
+        return secondsToValue[period] || "Unknown";
+    }
+
     const renderTable = (strategies, tableColumns) => (
         <div className="rounded-lg border shadow-sm overflow-hidden">
             <Table>
@@ -172,7 +186,20 @@ const OptimizationResults = ({task}) => {
                                             {column.format && typeof value === 'number'
                                                 ? column.format(value, row)
                                                 : column.id === 'parameters'
-                                                    ? <PrettyJsonViewer jsonData={value}/>
+                                                    ? (() => {
+                                                        const originalJsonString = Object.values(value).join('');
+                                                        const parsedValue = JSON.parse(originalJsonString);
+                                                        const combinedData = {
+                                                            ...parsedValue,
+                                                            timeframe: task.config.timeframe,
+                                                            instrument: task.config.instrument,
+                                                            strategyClass: task.config.strategyClass,
+                                                            period: convertPeriodToSelectText(task.config.period),
+                                                            speed: "INSTANT",
+                                                            spread: task.config.spread
+                                                        };
+                                                        return <PrettyJsonViewer jsonData={combinedData}/>;
+                                                    })()
                                                     : value}
                                         </TableCell>
                                     );

@@ -105,8 +105,6 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
     }, [])
 
     const handleDateChange = (field, date) => {
-        console.log(date)
-        console.log(date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : '')
         setLocalConfig(prevConfig => ({
             ...prevConfig,
             timeframe: {
@@ -114,11 +112,30 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                 [field]: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : ''
             }
         }));
-
-        console.log(localConfig.timeframe)
     };
 
+    const validateJsonImport = (json) => {
+        // TODO: We should validate the json we are letting users passed in
+        // However, until we refactor some of this frontend. We will not do this.
+        // At the moment the json works for data from the DB, if the user changes something in the json
+        // it will not be handled.
+    }
+
     const handleJsonImport = (importedConfig) => {
+
+        try {
+            validateJsonImport(importedConfig)
+        } catch (error) {
+            toast(
+                {
+                    title: "Import Error",
+                    description: error,
+                    variant: "destructive",
+                }
+            )
+        }
+
+
         setLocalConfig(prevConfig => {
             let updatedConfig = {...prevConfig};
 

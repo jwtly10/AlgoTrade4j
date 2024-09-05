@@ -28,7 +28,7 @@ axiosInstance.interceptors.response.use(
                 // Logout properly to clean http only cookie
                 await authClient.logout();
             } catch (logoutError) {
-                console.error('Error during logout:', logoutError);
+                log.error('Error during logout:', logoutError);
             }
 
             // Redirect to login page, forcing page reload

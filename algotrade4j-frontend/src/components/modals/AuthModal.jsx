@@ -7,7 +7,7 @@ import SignUpView from "@/views/SignUpView.jsx";
 function AuthModal({open, onClose, setUser}) {
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" hideCloseIcon={true}>
                 <Tabs defaultValue="login" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="login">Login</TabsTrigger>

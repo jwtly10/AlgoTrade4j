@@ -58,8 +58,8 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <Router>
                 <div className="min-h-screen bg-background text-foreground">
-                    <VersionBanner user={user}/>
-                    <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
+                    {user && (<VersionBanner user={user}/>)}
+                    {user && (<Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>)}
                     <Routes>
                         <Route
                             path="/"

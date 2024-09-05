@@ -63,6 +63,31 @@ export const useBacktest = () => {
     });
 
     useEffect(() => {
+        const loadSavedChartData = () => {
+            const chartData = localStorage.getItem('chartData');
+            const analysisData = localStorage.getItem('analysisData');
+            const tradeData = localStorage.getItem('tradeData');
+            const accountData = localStorage.getItem('accountData');
+            const indicatorData = localStorage.getItem('indicatorData');
+
+            if (chartData && analysisData && tradeData && accountData && indicatorData) {
+                try {
+                    setChartData(JSON.parse(chartData));
+                    setTrades(JSON.parse(tradeData));
+                    setAccount(JSON.parse(accountData));
+                    setIndicators(JSON.parse(indicatorData));
+                    setAnalysisData(JSON.parse(analysisData));
+                    setEquityHistory(JSON.parse(analysisData).equityHistory);
+                } catch (error) {
+                    log.error('Failed to parse saved chart data:', error);
+                }
+            }
+        };
+
+        loadSavedChartData();
+    }, []);
+
+    useEffect(() => {
         const fetchStrategies = async () => {
             try {
                 const res = await apiClient.getStrategies();
@@ -185,6 +210,7 @@ export const useBacktest = () => {
             strategyClass: strategyClass,
         }
 
+
         setAccount({
             initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
             balance: 0,
@@ -192,6 +218,11 @@ export const useBacktest = () => {
         });
         // Clean previous data
         setChartData([]);
+        localStorage.removeItem('chartData');
+        localStorage.removeItem('tradeData');
+        localStorage.removeItem('accountData');
+        localStorage.removeItem('indicatorData');
+        localStorage.removeItem('analysisData');
         setAnalysisData(null);
         setEquityHistory([]);
         setTrades([]);
@@ -320,6 +351,7 @@ export const useBacktest = () => {
     const setAnalysis = (data) => {
         setAnalysisData(data);
         setEquityHistory(data.equityHistory);
+        saveAnalysisDataToLocalStorage(data);
     };
 
     const updateTrades = (data) => {
@@ -366,16 +398,19 @@ export const useBacktest = () => {
                         value: indicator.value
                     }));
             });
+            saveIndicatorDataToLocalStorage(newIndicators)
             return newIndicators;
         });
     }
 
     const updateAccount = (data) => {
-        setAccount({
+        const accountData = {
             initialBalance: data.account.initialBalance.value,
             balance: data.account.balance.value,
             equity: data.account.equity.value,
-        });
+        }
+        setAccount(accountData);
+        saveAccountDataToLocalStorage(accountData)
     };
 
     const updateTradingViewChart = useCallback(
@@ -493,7 +528,7 @@ export const useBacktest = () => {
 
                     // Sort the data by time to ensure correct order
                     newChartData.sort((a, b) => new Date(a.time) - new Date(b.time));
-
+                    saveChartDataToLocalStorage(newChartData)
                     return newChartData;
                 });
             } else if (data.type === "ALL_TRADES") {
@@ -521,6 +556,7 @@ export const useBacktest = () => {
                     // Sort trades by openTime
                     newTrades.sort((a, b) => new Date(a.openTime) - new Date(b.openTime));
 
+                    saveTradeDataToLocalStorage(newTrades)
                     return newTrades;
                 });
 
@@ -608,6 +644,46 @@ export const useBacktest = () => {
         // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
         loadConfigFromLocalStorage(runParams, stratClass);
     }
+
+    const saveChartDataToLocalStorage = (data) => {
+        try {
+            localStorage.setItem('chartData', JSON.stringify(data));
+        } catch (error) {
+            log.error('Failed to save chart data to localStorage:', error);
+        }
+    };
+
+    const saveTradeDataToLocalStorage = (data) => {
+        try {
+            localStorage.setItem('tradeData', JSON.stringify(data));
+        } catch (error) {
+            log.error('Failed to save trade data to localStorage:', error);
+        }
+    };
+
+    const saveAccountDataToLocalStorage = (data) => {
+        try {
+            localStorage.setItem('accountData', JSON.stringify(data));
+        } catch (error) {
+            log.error('Failed to save account data to localStorage:', error);
+        }
+    };
+
+    const saveIndicatorDataToLocalStorage = (data) => {
+        try {
+            localStorage.setItem('indicatorData', JSON.stringify(data));
+        } catch (error) {
+            log.error('Failed to save indicator data to localStorage:', error);
+        }
+    };
+
+    const saveAnalysisDataToLocalStorage = (data) => {
+        try {
+            localStorage.setItem('analysisData', JSON.stringify(data));
+        } catch (error) {
+            log.error('Failed to save analysis data to localStorage:', error);
+        }
+    };
 
     return {
         isStrategyRunning,

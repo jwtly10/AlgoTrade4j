@@ -95,7 +95,7 @@ const BacktestView = () => {
                                     {logs.length > 0 ? (
                                         <LogsTable logs={logs}/>
                                     ) : (
-                                        <p className="p-4 text-center">No logs available yet.</p>
+                                        <p className="p-4 text-center">Logs are available once you run a new strategy.</p>
                                     )}
                                 </TabsContent>
                             </div>
@@ -113,6 +113,11 @@ const BacktestView = () => {
                                 {[
                                     {label: 'Initial Balance', value: account.initialBalance},
                                     {
+                                        label: 'Profit',
+                                        value: account.balance !== 0.0 ? Math.round((account.balance - account.initialBalance + Number.EPSILON) * 100) / 100 : 0,
+                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                    },
+                                    {
                                         label: 'Current Balance',
                                         value: account.balance,
                                         diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
@@ -121,10 +126,6 @@ const BacktestView = () => {
                                         label: 'Equity',
                                         value: account.equity,
                                         diff: ((account.equity - account.initialBalance) / account.initialBalance * 100).toFixed(2)
-                                    },
-                                    {
-                                        label: 'Open Position Value',
-                                        value: Math.round((account.equity - account.balance + Number.EPSILON) * 100) / 100
                                     }
                                 ].map((item, index) => (
                                     <div key={index} className="bg-card text-card-foreground rounded p-2">
