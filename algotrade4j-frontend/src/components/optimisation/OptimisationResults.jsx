@@ -196,7 +196,10 @@ const OptimizationResults = ({task}) => {
                                                             strategyClass: task.config.strategyClass,
                                                             period: convertPeriodToSelectText(task.config.period),
                                                             speed: "INSTANT",
-                                                            spread: task.config.spread
+                                                            spread: (function () {
+                                                                const parsed = parseInt(task.config.spread).toFixed(0);
+                                                                return isNaN(parsed) ? 30 : parsed;
+                                                            })()
                                                         };
                                                         return <PrettyJsonViewer jsonData={combinedData}/>;
                                                     })()

@@ -10,7 +10,6 @@ import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -294,25 +293,30 @@ public class OptimisationExecutor {
 
         ParameterRange range = parameterRanges.get(index);
 
-        if (!range.getSelected()) {
-            // Use the realtime value configured, since we are not optimising for this parameter
-            currentCombination.put(range.getName(), range.getValue());
-            generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
-        } else {
-            Number start = new Number(range.getStart());
-            Number end = new Number(range.getEnd());
-            Number step = new Number(range.getStep());
-
-            if (start.equals(end)) {
-                currentCombination.put(range.getName(), start.toString());
+        try {
+            if (!range.getSelected()) {
+                // Use the realtime value configured, since we are not optimising for this parameter
+                currentCombination.put(range.getName(), range.getValue());
                 generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
             } else {
-                for (Number value = start; value.compareTo(end) <= 0; value = value.add(step)) {
-                    currentCombination.put(range.getName(), value.toString());
+                // We will use double for parameters. We shouldn't have to rely on precision above supported that doubles
+                // For parameters that user submit. In that case there is something clearly overfitted.
+                double start = Double.parseDouble(range.getStart());
+                double end = Double.parseDouble(range.getEnd());
+                double step = Double.parseDouble(range.getStep());
+
+                if (start == end) {
+                    currentCombination.put(range.getName(), String.valueOf(start));
                     generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+                } else {
+                    for (double value = start; value <= end; value = value + step) {
+                        currentCombination.put(range.getName(), String.valueOf(value));
+                        generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+                    }
                 }
             }
-
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid parameter range: " + range, e);
         }
     }
 }
