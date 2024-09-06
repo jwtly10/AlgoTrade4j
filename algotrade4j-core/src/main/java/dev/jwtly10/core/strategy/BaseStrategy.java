@@ -98,7 +98,7 @@ public abstract class BaseStrategy implements Strategy {
      *
      * @return the initial balance
      */
-    public Number getInitialBalance() {
+    public double getInitialBalance() {
         return accountManager.getInitialBalance();
     }
 
@@ -107,7 +107,7 @@ public abstract class BaseStrategy implements Strategy {
      *
      * @return the current balance
      */
-    public Number getBalance() {
+    public double getBalance() {
         return accountManager.getBalance();
     }
 
@@ -116,7 +116,7 @@ public abstract class BaseStrategy implements Strategy {
      *
      * @return the current equity
      */
-    public Number getEquity() {
+    public double getEquity() {
         return accountManager.getEquity();
     }
 

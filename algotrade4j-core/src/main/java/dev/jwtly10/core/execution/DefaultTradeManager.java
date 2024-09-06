@@ -59,12 +59,12 @@ public class DefaultTradeManager implements TradeManager {
 
         log.trace("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
-        Number balance = params.getBalanceToRisk();
+        double balance = params.getBalanceToRisk();
         log.trace("Selected balance: {}", balance);
 
-        Number riskInPercent = params.getRiskPercentage().divide(new Number("100").getValue());
-        Number riskAmount = balance.multiply(riskInPercent.getValue());
-        log.trace("Risk amount calculation: {} * {} = {}", balance, riskInPercent.getValue(), riskAmount);
+        double riskInPercent = params.getRiskPercentage() / 100;
+        double riskAmount = balance * riskInPercent;
+        log.trace("Risk amount calculation: {} * {} = {}", balance, riskInPercent, riskAmount);
 
         Number stopLossDistance = isLong ? entryPrice.subtract(params.getStopLoss()).abs() :
                 params.getStopLoss().subtract(entryPrice).abs();
@@ -72,8 +72,9 @@ public class DefaultTradeManager implements TradeManager {
                 isLong ? entryPrice : params.getStopLoss(),
                 isLong ? params.getStopLoss() : entryPrice, stopLossDistance);
 
-        Number quantity = params.getQuantity() != null ? params.getQuantity() :
-                riskAmount.divide(stopLossDistance.getValue());
+        // If quantity == 0 ( the default of a double ) then we should calculate the expected quantity based on the risk amount
+        double quantity = params.getQuantity() != 0 ? params.getQuantity() :
+                riskAmount / stopLossDistance.getValue().doubleValue();
         log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
 
         Number takeProfit = params.getTakeProfit() != null ? params.getTakeProfit() :
@@ -82,7 +83,7 @@ public class DefaultTradeManager implements TradeManager {
         log.trace("Take profit calculation: {} {} ({} * {}) = {}",
                 entryPrice, isLong ? "+" : "-", stopLossDistance, params.getRiskRatio().getValue(), takeProfit);
 
-        quantity = quantity.setScale(2, RoundingMode.DOWN);
+        quantity = Math.floor(quantity * 100) / 100;
         log.trace("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
         if (params.getStopLoss().isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
@@ -92,7 +93,7 @@ public class DefaultTradeManager implements TradeManager {
                     reason.equals("STOP LOSS") ? params.getStopLoss() : params.getTakeProfit()));
         }
 
-        if (quantity.isLessThan(Number.ZERO)) {
+        if (quantity < 0) {
             log.warn("Quantity cannot be below 0");
             throw new InvalidTradeException(String.format("Quantity cannot be below 0 for the new trade opened @ %s. Value was %s", currentTick.getDateTime().toString(), quantity));
         }
@@ -156,11 +157,11 @@ public class DefaultTradeManager implements TradeManager {
                     trade.getEntryPrice(), closingPrice, priceDifference);
         }
 
-        Number profitLoss = priceDifference.multiply(trade.getQuantity().getValue());
+        double profitLoss = priceDifference.getValue().doubleValue() * trade.getQuantity();
         log.trace("Profit/Loss calculation: {} * {} = {}",
-                priceDifference, trade.getQuantity().getValue(), profitLoss);
+                priceDifference, trade.getQuantity(), profitLoss);
 
-        trade.setProfit(profitLoss.doubleValue());
+        trade.setProfit(profitLoss);
 
         log.trace("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 

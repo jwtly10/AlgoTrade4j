@@ -7,7 +7,6 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,9 +116,9 @@ class OptimisationExecutorTest {
         System.out.println(combinations);
 
         assertEquals(3, combinations.size());
-        assertEquals(new Number("0.10").toString(), combinations.getFirst().get("Threshold"));
-        assertEquals(new Number("0.20").toString(), combinations.get(1).get("Threshold"));
-        assertEquals(new Number("0.30").toString(), combinations.getLast().get("Threshold"));
+        assertEquals(String.valueOf(0.10), combinations.getFirst().get("Threshold"));
+        assertEquals(String.valueOf(0.20), combinations.get(1).get("Threshold"));
+        assertEquals(String.valueOf(0.30), combinations.getLast().get("Threshold"));
     }
 
     @Test
@@ -149,25 +148,25 @@ class OptimisationExecutorTest {
 
         // First combination
         Map<String, String> firstCombination = combinations.getFirst();
-        assertEquals("10.00000", firstCombination.get("SMA1"));
-        assertEquals("20.00000", firstCombination.get("SMA2"));
-        assertEquals("30.00000", firstCombination.get("SMA3"));
-        assertEquals("40.00000", firstCombination.get("SMA4"));
-        assertEquals("50", firstCombination.get("SMA5"));  // Default value
-        assertEquals("1.00000", firstCombination.get("Threshold"));
+        assertEquals(String.valueOf(10.00000), firstCombination.get("SMA1"));
+        assertEquals(String.valueOf(20.0000), firstCombination.get("SMA2"));
+        assertEquals(String.valueOf(30.00000), firstCombination.get("SMA3"));
+        assertEquals(String.valueOf(40.00000), firstCombination.get("SMA4"));
+        assertEquals(String.valueOf(50), firstCombination.get("SMA5"));  // Default value
+        assertEquals(String.valueOf(1.00000), firstCombination.get("Threshold"));
 
         // Last combination
         Map<String, String> lastCombination = combinations.getLast();
-        assertEquals("30.00000", lastCombination.get("SMA1"));
-        assertEquals("40.00000", lastCombination.get("SMA2"));
-        assertEquals("50.00000", lastCombination.get("SMA3"));
-        assertEquals("60.00000", lastCombination.get("SMA4"));
-        assertEquals("50", lastCombination.get("SMA5"));  // Default value
-        assertEquals("2.00000", lastCombination.get("Threshold"));
+        assertEquals(String.valueOf(30.00000), lastCombination.get("SMA1"));
+        assertEquals(String.valueOf(40.00000), lastCombination.get("SMA2"));
+        assertEquals(String.valueOf(50.00000), lastCombination.get("SMA3"));
+        assertEquals(String.valueOf(60.00000), lastCombination.get("SMA4"));
+        assertEquals(String.valueOf(50), lastCombination.get("SMA5"));  // Default value
+        assertEquals(String.valueOf(2.00000), lastCombination.get("Threshold"));
 
         // SMA5 always has its default value
         for (Map<String, String> combination : combinations) {
-            assertEquals("50", combination.get("SMA5"));
+            assertEquals(String.valueOf(50), combination.get("SMA5"));
         }
     }
 
@@ -191,20 +190,20 @@ class OptimisationExecutorTest {
 
         // Check the first combination
         Map<String, String> firstCombination = combinations.getFirst();
-        assertEquals("10.00000", firstCombination.get("SMA1"));
-        assertEquals("25", firstCombination.get("SMA2"));  // Default value
-        assertEquals("30.00000", firstCombination.get("SMA3"));
+        assertEquals(String.valueOf(10.00000), firstCombination.get("SMA1"));
+        assertEquals(String.valueOf(25), firstCombination.get("SMA2"));  // Default value
+        assertEquals(String.valueOf(30.00000), firstCombination.get("SMA3"));
 
         // Check the last combination
         Map<String, String> lastCombination = combinations.getLast();
-        assertEquals("20.00000", lastCombination.get("SMA1"));
-        assertEquals("25", lastCombination.get("SMA2"));  // Default value
-        assertEquals("40.00000", lastCombination.get("SMA3"));
+        assertEquals(String.valueOf(20.00000), lastCombination.get("SMA1"));
+        assertEquals(String.valueOf(25), lastCombination.get("SMA2"));  // Default value
+        assertEquals(String.valueOf(40.00000), lastCombination.get("SMA3"));
 
         // Check that all combinations include SMA2 with its default value
         for (Map<String, String> combination : combinations) {
             assertTrue(combination.containsKey("SMA2"));
-            assertEquals("25", combination.get("SMA2"));
+            assertEquals(String.valueOf(25), combination.get("SMA2"));
         }
     }
 
@@ -224,7 +223,7 @@ class OptimisationExecutorTest {
         when(strategyFactory.createStrategy(anyString(), anyString())).thenReturn(mockStrategy);
 
         BacktestExecutor mockExecutor = mock(BacktestExecutor.class);
-        when(executorFactory.createExecutor(any(), anyString(), any(), any(), any())).thenReturn(mockExecutor);
+        when(executorFactory.createExecutor(any(), anyString(), any(), any(), anyDouble())).thenReturn(mockExecutor);
 
         DefaultDataManager mockDataManager = mock(DefaultDataManager.class);
         when(dataManagerFactory.createDataManager(any(), any(), any(), any())).thenReturn(mockDataManager);

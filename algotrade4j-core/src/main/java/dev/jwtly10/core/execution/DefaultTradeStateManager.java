@@ -46,7 +46,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
         // Risk management TODO: Should we move this out the trade manager?
         // We will stop running if we go below 10% of initial balance.
-        if (accountManager.getEquity().isLessThan(accountManager.getInitialBalance().multiply(new Number(0.1)))) {
+        if (accountManager.getEquity() < (accountManager.getInitialBalance() * 0.1)) {
             throw new RiskException("Equity below 10%. Stopping strategy.");
         }
     }
@@ -57,8 +57,8 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 ? currentPrice.subtract(trade.getEntryPrice())
                 : trade.getEntryPrice().subtract(currentPrice);
 
-        Number profit = priceDifference.multiply(trade.getQuantity().getValue());
-        trade.setProfit(profit.doubleValue());
+        double profit = priceDifference.getValue().doubleValue() * trade.getQuantity();
+        trade.setProfit(profit);
         eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
         log.trace("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }
@@ -103,12 +103,12 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 .reduce(0.0, Double::sum);
 
         // Calculate current balance by adding total profit to initial balance
-        double initialBalance = accountManager.getInitialBalance().doubleValue();
-        double currentBalance = initialBalance +totalProfit;
+        double initialBalance = accountManager.getInitialBalance();
+        double currentBalance = initialBalance + totalProfit;
 
         log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
         // Set the current balance
-        accountManager.setBalance(new Number(currentBalance));
+        accountManager.setBalance(currentBalance);
 
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
         double unrealizedProfitLoss = tradeManager.getAllTrades().values().stream()
@@ -116,7 +116,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
         double equity = currentBalance + unrealizedProfitLoss;
-        accountManager.setEquity(new Number(equity));
+        accountManager.setEquity(equity);
         log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
     }

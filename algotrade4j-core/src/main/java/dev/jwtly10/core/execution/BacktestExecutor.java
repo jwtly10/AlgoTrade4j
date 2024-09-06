@@ -77,7 +77,7 @@ public class BacktestExecutor implements DataListener {
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
             strategy.onTick(tick, currentBar);
             tradeStateManager.updateTradeStates(tradeManager, tick);
-            performanceAnalyser.updateOnTick(accountManager.getEquity().getValue().doubleValue());
+            performanceAnalyser.updateOnTick(accountManager.getEquity());
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }
@@ -95,7 +95,7 @@ public class BacktestExecutor implements DataListener {
             IndicatorUtils.updateIndicators(strategy, closedBar);
             strategy.onBarClose(closedBar);
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
-            performanceAnalyser.updateOnBar(accountManager.getEquity().getValue().doubleValue(), closedBar.getCloseTime());
+            performanceAnalyser.updateOnBar(accountManager.getEquity(), closedBar.getCloseTime());
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }
@@ -135,7 +135,7 @@ public class BacktestExecutor implements DataListener {
         tradeStateManager.updateAccountState(accountManager, tradeManager);
 
         // Run final performance analysis
-        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance().getValue().doubleValue());
+        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
 
         // Spin down the strategy
         strategy.onDeInit();

@@ -40,8 +40,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("10000"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(10000.0);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);
@@ -64,8 +64,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("10000"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(10000);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openShort(params);
@@ -89,8 +89,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);
@@ -103,7 +103,7 @@ class DefaultTradeManagerTest {
         assertNotNull(tradeId);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
         assertEquals(new Number(14), backtestTradeManager.getOpenTrades().get(tradeId).getTakeProfit());
-        assertEquals(new Number(0.5), backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
+        assertEquals(0.5, backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
     }
 
     @Test
@@ -115,8 +115,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openShort(params);
@@ -129,7 +129,7 @@ class DefaultTradeManagerTest {
         assertNotNull(tradeId);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
         assertEquals(new Number(6), backtestTradeManager.getOpenTrades().get(tradeId).getTakeProfit());
-        assertEquals(new Number(0.5), backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
+        assertEquals(0.5, backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
     }
 
     @Test
@@ -141,8 +141,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
@@ -170,8 +170,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
@@ -198,8 +198,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
@@ -226,8 +226,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("100"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
@@ -249,7 +249,7 @@ class DefaultTradeManagerTest {
     void testOpenPositionValue() {
         Trade trade1 = new Trade(
                 NAS100USD,
-                new Number("0.5"),
+                0.5,
                 new Number("10"),
                 ZonedDateTime.now(),
                 new Number("8"),
@@ -260,7 +260,7 @@ class DefaultTradeManagerTest {
 
         Trade trade2 = new Trade(
                 NAS100USD,
-                new Number("0.5"),
+                0.5,
                 new Number("10"),
                 ZonedDateTime.now(),
                 new Number("12"),
@@ -285,9 +285,9 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getDateTime()).thenReturn(ZonedDateTime.now());
         params.setStopLoss(new Number("49999.99"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("0.0000001"));
-        params.setBalanceToRisk(new Number("0.01"));
-        params.setQuantity(new Number("-1"));
+        params.setRiskPercentage(0.0000001);
+        params.setBalanceToRisk(0.01);
+        params.setQuantity(-1);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
 
@@ -308,8 +308,8 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
         params.setRiskRatio(new Number("2"));
-        params.setRiskPercentage(new Number("1"));
-        params.setBalanceToRisk(new Number("10000"));
+        params.setRiskPercentage(1);
+        params.setBalanceToRisk(10000);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);

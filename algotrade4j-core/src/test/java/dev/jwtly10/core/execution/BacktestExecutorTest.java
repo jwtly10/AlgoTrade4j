@@ -6,7 +6,6 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.Strategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,19 +68,19 @@ class BacktestExecutorTest {
         Tick tick = mock(Tick.class);
         Bar currentBar = mock(Bar.class);
         backtestExecutor.initialise();
-        when(accountManager.getEquity()).thenReturn(new Number(10000));
+        when(accountManager.getEquity()).thenReturn(10000.0);
         backtestExecutor.onTick(tick, currentBar);
         verify(strategy).onTick(tick, currentBar);
         verify(tradeManager).setCurrentTick(tick);
         verify(tradeStateManager).updateTradeStates(tradeManager, tick);
-        when(accountManager.getEquity()).thenReturn(new Number(1000));
+        when(accountManager.getEquity()).thenReturn(1000.0);
     }
 
     @Test
     void testOnBarClose() {
         Bar closedBar = mock(Bar.class);
         backtestExecutor.initialise();
-        when(accountManager.getEquity()).thenReturn(new Number(10000));
+        when(accountManager.getEquity()).thenReturn(10000.0);
         backtestExecutor.onBarClose(closedBar);
         verify(strategy).onBarClose(closedBar);
     }
@@ -90,7 +89,7 @@ class BacktestExecutorTest {
     void testOnStop() {
         backtestExecutor.initialise();
         when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
-        when(accountManager.getInitialBalance()).thenReturn(new Number(10000));
+        when(accountManager.getInitialBalance()).thenReturn(10000.0);
         backtestExecutor.onStop();
         verify(strategy).onDeInit();
         verify(strategy).onEnd();

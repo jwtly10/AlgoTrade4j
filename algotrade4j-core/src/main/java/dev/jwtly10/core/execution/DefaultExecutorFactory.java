@@ -6,13 +6,12 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.model.DefaultTick;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.Strategy;
 
 public class DefaultExecutorFactory implements ExecutorFactory {
     @Override
-    public BacktestExecutor createExecutor(Strategy strategy, String id, DataManager dataManager, EventPublisher eventPublisher, Number initialCash) {
+    public BacktestExecutor createExecutor(Strategy strategy, String id, DataManager dataManager, EventPublisher eventPublisher, double initialCash) {
         Tick currentTick = new DefaultTick();
         TradeManager tradeManager = new DefaultTradeManager(currentTick, dataManager.getBarSeries(), id, eventPublisher);
         AccountManager accountManager = new DefaultAccountManager(

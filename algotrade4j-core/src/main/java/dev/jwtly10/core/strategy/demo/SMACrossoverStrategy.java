@@ -99,7 +99,7 @@ public class SMACrossoverStrategy extends BaseStrategy {
 
         params.setStopLoss(stopLossPrice);
         params.setRiskRatio(new Number(2));
-        params.setRiskPercentage(new Number(1));
+        params.setRiskPercentage(1);
         params.setBalanceToRisk(getBalance());
 
         return params;

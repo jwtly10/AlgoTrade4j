@@ -14,7 +14,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StrategyConfig {
     private String strategyClass;
-    private Number initialCash;
+    private double initialCash;
     private InstrumentData instrumentData;
     private Period period;
     private DataSpeed speed;
@@ -26,7 +26,7 @@ public class StrategyConfig {
         if (strategyClass == null || strategyClass.isEmpty()) {
             throw new IllegalStateException("Strategy class must be specified");
         }
-        if (initialCash == null || initialCash.doubleValue() <= 0) {
+        if (initialCash <= 0) {
             throw new IllegalStateException("Initial cash must be a positive number");
         }
         if (instrumentData == null) {

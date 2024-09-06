@@ -15,7 +15,7 @@ public class TradeParameters {
     /**
      * The quantity of the trade.
      */
-    private Number quantity;
+    private double quantity;
 
     /**
      * The entry price of the trade.
@@ -40,7 +40,7 @@ public class TradeParameters {
     /**
      * The risk percentage of the trade.
      */
-    private Number riskPercentage;
+    private double riskPercentage;
 
     /**
      * The risk ratio of the trade.
@@ -50,5 +50,5 @@ public class TradeParameters {
     /**
      * The balance to risk for the trade.
      */
-    private Number balanceToRisk;
+    private double balanceToRisk;
 }

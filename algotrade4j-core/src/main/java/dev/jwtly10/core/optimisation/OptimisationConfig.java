@@ -16,7 +16,7 @@ public class OptimisationConfig {
     private Duration period;
     private Number spread;
     private DataSpeed speed;
-    private Number initialCash;
+    private double initialCash;
     private List<ParameterRange> parameterRanges;
     private Timeframe timeframe;
 
@@ -36,7 +36,7 @@ public class OptimisationConfig {
         if (speed == null) {
             throw new IllegalStateException("Data speed must be specified");
         }
-        if (initialCash == null || initialCash.doubleValue() <= 0) {
+        if (initialCash <= 0) {
             throw new IllegalStateException("Initial cash must be a positive number");
         }
         if (parameterRanges == null || parameterRanges.isEmpty()) {

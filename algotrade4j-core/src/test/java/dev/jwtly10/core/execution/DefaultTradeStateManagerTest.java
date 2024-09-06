@@ -43,8 +43,8 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_updatesTrades() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
-        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
+        Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(1, longTrade);
         openTrades.put(2, shortTrade);
 
@@ -62,11 +62,11 @@ class DefaultTradeStateManagerTest {
     void updateAccountState_updatesAccount() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
+        Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
         longTrade.setProfit(10);
-        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         shortTrade.setProfit(20);
-        Trade shortTrade2 = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade shortTrade2 = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         shortTrade2.setProfit(-15);
         openTrades.put(1, longTrade);
         openTrades.put(2, shortTrade);
@@ -75,9 +75,9 @@ class DefaultTradeStateManagerTest {
         when(tick.getBid()).thenReturn(new Number("1.2050"));
         when(tick.getAsk()).thenReturn(new Number("1.3950"));
 
-        when(accountManager.getInitialBalance()).thenReturn(new Number(1000));
-        when(accountManager.getEquity()).thenReturn(new Number(1000));
-        when(accountManager.getBalance()).thenReturn(new Number(1000));
+        when(accountManager.getInitialBalance()).thenReturn(1000.00);
+        when(accountManager.getEquity()).thenReturn(1000.00);
+        when(accountManager.getBalance()).thenReturn(1000.00);
 
         tradeStateManager.updateAccountState(accountManager, tradeManager);
         verify(mockEventPublisher, times(1)).publishEvent(
@@ -89,15 +89,15 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_executesStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade longTrade = new Trade(NAS100USD, new Number("1"), new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
+        Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
         openTrades.put(1, longTrade);
 
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
         when(tick.getBid()).thenReturn(new Number("1.1940"));
         when(tick.getAsk()).thenReturn(new Number("1.1945"));
 
-        when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
-        when(accountManager.getEquity()).thenReturn(new Number("1000"));
+        when(accountManager.getInitialBalance()).thenReturn(1000.0);
+        when(accountManager.getEquity()).thenReturn(1000.0);
 
         tradeStateManager.updateTradeStates(tradeManager, tick);
 
@@ -108,7 +108,7 @@ class DefaultTradeStateManagerTest {
     void updateTradeStates_doesNotExecuteStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(2, shortTrade);
 
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
@@ -116,8 +116,8 @@ class DefaultTradeStateManagerTest {
         when(tick.getBid()).thenReturn(new Number("1.4050"));
         when(tick.getAsk()).thenReturn(new Number("1.4055"));
 
-        when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
-        when(accountManager.getEquity()).thenReturn(new Number("1000"));
+        when(accountManager.getInitialBalance()).thenReturn(1000.0);
+        when(accountManager.getEquity()).thenReturn(1000.0);
 
         tradeStateManager.updateTradeStates(tradeManager, tick);
     }
@@ -126,11 +126,11 @@ class DefaultTradeStateManagerTest {
     void updateAccountState_throwsWhenBelowThreshold() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
-        Trade shortTrade = new Trade(NAS100USD, new Number("1"), new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(2, shortTrade);
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
-        when(accountManager.getInitialBalance()).thenReturn(new Number("1000"));
-        when(accountManager.getEquity()).thenReturn(new Number("10")); // 1% of equity
+        when(accountManager.getInitialBalance()).thenReturn(1000.0);
+        when(accountManager.getEquity()).thenReturn(10.0); // 1% of equity
 
         assertThrows(RiskException.class, () -> tradeStateManager.updateAccountState(accountManager, tradeManager));
     }
