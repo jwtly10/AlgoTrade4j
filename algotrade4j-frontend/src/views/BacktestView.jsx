@@ -111,7 +111,7 @@ const BacktestView = () => {
                             <h3 className="text-lg font-semibold mb-3">Account Summary</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    {label: 'Initial Balance', value: account.initialBalance},
+                                    {label: 'Initial Balance', value: account.initialBalance.toLocaleString()},
                                     {
                                         label: 'Profit',
                                         value: account.balance !== 0.0 ? Math.round((account.balance - account.initialBalance + Number.EPSILON) * 100) / 100 : 0,
@@ -131,7 +131,7 @@ const BacktestView = () => {
                                     <div key={index} className="bg-card text-card-foreground rounded p-2">
                                         <p className="text-sm text-muted-foreground">{item.label}</p>
                                         <p className="text-md font-semibold">
-                                            ${item.value.toLocaleString()}
+                                            ${item.value}
                                             {item.diff !== undefined && account.balance !== 0 && (
                                                 <span className={`ml-2 text-sm ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     ({item.diff > 0 ? '+' : ''}{item.diff}%)

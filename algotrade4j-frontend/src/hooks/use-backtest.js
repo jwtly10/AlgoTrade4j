@@ -11,7 +11,7 @@ export const useBacktest = () => {
 
     const [isStrategyRunning, setIsStrategyRunning] = useState(false);
     const [account, setAccount] = useState({
-        initialBalance: 10000,
+        initialBalance: 0,
         balance: 0,
         equity: 0,
     });
@@ -212,7 +212,7 @@ export const useBacktest = () => {
 
 
         setAccount({
-            initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+            initialBalance: Number((strategyConfig.initialCash ? strategyConfig.initialCash : 0)),
             balance: 0,
             equity: 0,
         });
@@ -271,7 +271,7 @@ export const useBacktest = () => {
                 // We can stop strategy by just closing ws connection
                 setIsStrategyRunning(false);
                 setAccount({
-                    initialBalance: (strategyConfig.initialCash ? strategyConfig.initialCash : 0),
+                    initialBalance: 0,
                     balance: 0,
                     equity: 0,
                 });
@@ -293,8 +293,10 @@ export const useBacktest = () => {
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
         } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
+            log.info(data)
             updateAccount(data);
         } else if (data.type === 'STRATEGY_STOP') {
+            log.info("Strategy stop event")
             setIsStrategyRunning(false);
             setAsync(false);
         } else if (data.type === 'ANALYSIS') {
@@ -306,8 +308,10 @@ export const useBacktest = () => {
         } else if (data.type === "BAR_SERIES") {
             updateTradingViewChart(data)
         } else if (data.type === "ALL_TRADES") {
+            log.info("All trades event")
             updateTradingViewChart(data)
         } else if (data.type === "ALL_INDICATORS") {
+            log.info("All indicator event")
             setAllIndicators(data)
         } else if (data.type === "PROGRESS") {
             updateAsyncProgress(data)
@@ -405,9 +409,9 @@ export const useBacktest = () => {
 
     const updateAccount = (data) => {
         const accountData = {
-            initialBalance: data.account.initialBalance.value,
-            balance: data.account.balance.value,
-            equity: data.account.equity.value,
+            initialBalance: data.account.initialBalance,
+            balance: data.account.balance.toFixed(2),
+            equity: data.account.equity.toFixed(2),
         }
         setAccount(accountData);
         saveAccountDataToLocalStorage(accountData)

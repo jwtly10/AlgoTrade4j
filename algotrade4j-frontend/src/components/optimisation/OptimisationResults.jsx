@@ -112,7 +112,11 @@ const OptimizationResults = ({task}) => {
 
     const renderTaskInfo = () => (
         <Card className="mb-2">
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-3">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 p-3">
+                <div className="text-center">
+                    <h3 className="text-sm font-semibold mb-2">Initial Balance</h3>
+                    <p className="text-md">${task.config.initialCash.toLocaleString()}</p>
+                </div>
                 <div className="text-center">
                     <h3 className="text-sm font-semibold mb-2">Symbol</h3>
                     <p className="text-md">{task.config.instrument}</p>
@@ -199,7 +203,8 @@ const OptimizationResults = ({task}) => {
                                                             spread: (function () {
                                                                 const parsed = parseInt(task.config.spread).toFixed(0);
                                                                 return isNaN(parsed) ? 30 : parsed;
-                                                            })()
+                                                            })(),
+                                                            initialCash: task.config.initialCash
                                                         };
                                                         return <PrettyJsonViewer jsonData={combinedData}/>;
                                                     })()
