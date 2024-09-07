@@ -44,21 +44,22 @@ public class OandaClient {
         return new InstrumentCandlesRequest(this, instrument);
     }
 
-    List<DefaultBar> executeRequest(InstrumentCandlesRequest request) throws Exception {
+
+    public OandaCandleResponse fetchCandles(Instrument instrument, Duration period, ZonedDateTime from, ZonedDateTime to) throws Exception {
         log.debug("Fetching candles for : {} ({}) time: {} -> {}",
-                request.getInstrument(),
-                request.getPeriod(),
-                request.getFrom().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                request.getTo().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                instrument,
+                period,
+                from.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                to.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
 
-        String endpoint = String.format("/v3/instruments/%s/candles", request.getInstrument().getOandaSymbol());
+        String endpoint = String.format("/v3/instruments/%s/candles", instrument.getOandaSymbol());
         String url = apiUrl + endpoint;
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
-        String fromParam = request.getFrom().format(formatter);
-        String toParam = request.getTo().format(formatter);
-        String granularity = convertPeriodToGranularity(request.getPeriod());
+        String fromParam = from.format(formatter);
+        String toParam = to.format(formatter);
+        String granularity = OandaUtils.convertPeriodToGranularity(period);
 
         Request req = new Request.Builder()
                 .url(url + String.format("?includeFirst=false&from=%s&to=%s&granularity=%s", fromParam, toParam, granularity))
@@ -74,8 +75,7 @@ public class OandaClient {
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
-            OandaCandleResponse candleResponse = objectMapper.readValue(response, OandaCandleResponse.class);
-            return convertOandaCandles(candleResponse);
+            return objectMapper.readValue(response, OandaCandleResponse.class);
         } catch (Exception e) {
             log.error("Failed to fetch data from Oanda API", e);
             throw e;

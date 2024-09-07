@@ -1,11 +1,11 @@
-package dev.jwtly10.marketdata.dataclients;
+package dev.jwtly10.marketdata.oanda;
 
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
-import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -74,11 +74,6 @@ public class OandaDataClient implements ExternalDataClient {
     }
 
     private List<DefaultBar> fetchBatch(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
-        return client.instrumentCandles(instrument)
-                .from(from)
-                .to(to)
-                .granularity(period)
-                .fetch();
-
+        return OandaUtils.convertOandaCandles(client.fetchCandles(instrument, period, from, to));
     }
 }
