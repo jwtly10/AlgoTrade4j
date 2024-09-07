@@ -15,13 +15,13 @@ import java.util.Random;
 @Slf4j
 public class TickGenerator {
     private final int ticksPerBar;
-    private final Number spread;
+    private final int spread;
     private final Random random;
     private final Duration period;
     private final Instrument instrument;
     private Number remainingVolume; // Used for ensuring that the total volume is maintained
 
-    public TickGenerator(int ticksPerBar, Instrument instrument, Number spread, Duration period, long seed) {
+    public TickGenerator(int ticksPerBar, Instrument instrument, int spread, Duration period, long seed) {
         if (ticksPerBar < 4) {
             throw new IllegalArgumentException("Ticks per bar must be at least 4");
         }
@@ -32,7 +32,7 @@ public class TickGenerator {
         this.instrument = instrument;
     }
 
-    public TickGenerator(Number spread, Instrument instrument, Duration period, long seed) {
+    public TickGenerator(int spread, Instrument instrument, Duration period, long seed) {
         this.ticksPerBar = mapTicksPerBarToPeriod(period);
         log.info("For duration {}, generating {} ticks", period, ticksPerBar);
         this.spread = spread;
@@ -156,7 +156,7 @@ public class TickGenerator {
             }
         }
 
-        Number calculatedSpread = new Number(this.spread.doubleValue() * Math.pow(10, -instrument.getDecimalPlaces()));
+        Number calculatedSpread = new Number(this.spread * Math.pow(10, -instrument.getDecimalPlaces()));
 
         Number bid = mid.subtract(calculatedSpread.divide(2));
         Number ask = mid.add(calculatedSpread.divide(2));

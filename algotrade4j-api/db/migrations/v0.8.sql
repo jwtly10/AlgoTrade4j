@@ -9,3 +9,23 @@ SET config = jsonb_set(
              )
 WHERE config ->> 'initialCash' IS NOT NULL
   AND (config -> 'initialCash')::jsonb ? 'value';
+
+-- Updates all config where spread": {"value": 10} ->  "spread": "10"
+UPDATE optimisation_task_tb
+SET config = jsonb_set(
+        config::jsonb,
+        '{spread}',
+        to_jsonb((config ->> 'spread')::json ->> 'value')::jsonb
+             )
+WHERE config ->> 'spread' IS NOT NULL
+  AND (config -> 'spread')::jsonb ? 'value';
+
+-- Validates and sets all 'strings' to integers to match java int type
+UPDATE optimisation_task_tb
+SET config = jsonb_set(
+        config::jsonb,
+        '{spread}',
+        to_jsonb(CAST(CAST(config ->> 'spread' AS numeric) AS INTEGER))
+             )
+WHERE config ->> 'spread' IS NOT NULL
+  AND config ->> 'spread' ~ '^[0-9]*\.?[0-9]+$'; -- This checks if the value is a valid number

@@ -30,7 +30,7 @@ class TickGeneratorTest {
 
     @Test
     void testConstructorWithExplicitTicksPerBar() {
-        TickGenerator generator = new TickGenerator(100, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(100, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(100, ticks.size());
     }
@@ -46,14 +46,14 @@ class TickGeneratorTest {
             "P1D, 200"
     })
     void testConstructorWithPeriodMapping(Duration period, int expectedTicks) {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, period, 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, period, 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(expectedTicks, ticks.size());
     }
 
     @Test
     void testTickGeneration() {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(40, ticks.size());
@@ -74,7 +74,7 @@ class TickGeneratorTest {
 
     @Test
     void testTimeDistribution() {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         ZonedDateTime startTime = testBar.getOpenTime();
@@ -93,21 +93,20 @@ class TickGeneratorTest {
 
     @Test
     void testSpreadCalculation() {
-        Number spread = new Number(10);
+        int spread = 10;
         TickGenerator generator = new TickGenerator(spread, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
-
         for (DefaultTick tick : ticks) {
-            Number calculatedSpread = tick.getAsk().subtract(tick.getBid());
-            assertEquals(spread.multiply(new Number(instrument.getMinimumMove())), calculatedSpread);
-            assertEquals(tick.getMid(), tick.getBid().add(spread.multiply(new Number(instrument.getMinimumMove())).divide(2)));
-            assertEquals(tick.getMid(), tick.getAsk().subtract(spread.multiply(new Number(instrument.getMinimumMove())).divide(2)));
+            double calculatedSpread = tick.getAsk().subtract(tick.getBid()).getValue().doubleValue();
+            assertEquals(spread * instrument.getMinimumMove(), calculatedSpread);
+            assertEquals(tick.getMid(), tick.getBid().add(new Number((spread * instrument.getMinimumMove()) / 2)));
+            assertEquals(tick.getMid(), tick.getAsk().subtract(new Number((spread * instrument.getMinimumMove()) / 2)));
         }
     }
 
     @Test
     void testVolumeDistribution() {
-        TickGenerator generator = new TickGenerator(new Number("10"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         Number totalVolume = new Number("0");
@@ -127,7 +126,7 @@ class TickGeneratorTest {
 
     @Test
     void testMinimumTicksPerBar() {
-        TickGenerator generator = new TickGenerator(4, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(4, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(4, ticks.size());
@@ -140,7 +139,7 @@ class TickGeneratorTest {
     @Test
     void testInvalidTicksPerBar() {
         assertThrows(IllegalArgumentException.class, () ->
-                new TickGenerator(3, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L));
+                new TickGenerator(3, instrument, 10, Duration.ofMinutes(5), 42L));
     }
 
     private List<DefaultTick> generateTicks(TickGenerator generator) {

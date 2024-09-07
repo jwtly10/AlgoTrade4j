@@ -3,7 +3,6 @@ package dev.jwtly10.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.model.InstrumentData;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
 import lombok.Data;
@@ -18,7 +17,7 @@ public class StrategyConfig {
     private InstrumentData instrumentData;
     private Period period;
     private DataSpeed speed;
-    private Number spread;
+    private int spread;
     private Timeframe timeframe;
     private List<RunParameter> runParams;
 
@@ -36,7 +35,7 @@ public class StrategyConfig {
         if (speed == null) {
             throw new IllegalStateException("Data speed must be specified");
         }
-        if (spread == null || spread.doubleValue() < 0) {
+        if (spread < 0) {
             throw new IllegalStateException("Spread must be a non-negative number");
         }
         if (timeframe == null) {

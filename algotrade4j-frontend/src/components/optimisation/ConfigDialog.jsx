@@ -50,7 +50,7 @@ const ConfigDialog = ({open, onOpenChange, selectedTask}) => {
                             </div>
                             <div>
                                 <dt className="font-medium inline">Initial Cash:</dt>
-                                <dd className="inline ml-1">{config?.initialCash}</dd>
+                                <dd className="inline ml-1">${config?.initialCash.toLocaleString()}</dd>
                             </div>
                         </dl>
                     </div>

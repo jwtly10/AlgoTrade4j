@@ -12,7 +12,6 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
@@ -61,7 +60,7 @@ public class StrategyManager {
         config.validate();
 
         Duration period = config.getPeriod().getDuration();
-        Number spread = config.getSpread();
+        int spread = config.getSpread();
         Instrument instrument = config.getInstrumentData().getInstrument();
 
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);

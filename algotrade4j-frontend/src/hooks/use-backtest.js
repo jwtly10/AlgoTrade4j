@@ -464,7 +464,7 @@ export const useBacktest = () => {
                             stopLoss: trade.stopLoss.value,
                             closePrice: trade.closePrice.value,
                             takeProfit: trade.takeProfit.value,
-                            quantity: trade.quantity.value,
+                            quantity: trade.quantity,
                             isLong: trade.long,
                             position: trade.long ? 'long' : 'short',
                             price:
@@ -489,7 +489,7 @@ export const useBacktest = () => {
                                 stopLoss: trade.stopLoss.value,
                                 closePrice: trade.closePrice.value,
                                 takeProfit: trade.takeProfit.value,
-                                quantity: trade.quantity.value,
+                                quantity: trade.quantity,
                                 isLong: trade.long,
                                 position: trade.long ? 'long' : 'short',
                                 price:
@@ -549,7 +549,7 @@ export const useBacktest = () => {
                         stopLoss: trade.stopLoss.value,
                         closePrice: trade.closePrice ? trade.closePrice.value : null,
                         takeProfit: trade.takeProfit.value,
-                        quantity: trade.quantity.value,
+                        quantity: trade.quantity,
                         isLong: trade.long,
                         position: trade.long ? 'long' : 'short',
                         price: trade.closePrice ? trade.closePrice.value : trade.entryPrice.value,
