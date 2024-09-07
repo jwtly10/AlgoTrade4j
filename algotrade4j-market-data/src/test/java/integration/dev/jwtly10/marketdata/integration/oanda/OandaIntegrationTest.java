@@ -1,10 +1,14 @@
 package integration.dev.jwtly10.marketdata.integration.oanda;
 
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
+import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -16,13 +20,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * A collection of integration tests for the Oanda API client.
+ */
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "OANDA_ACCOUNT_ID", matches = ".+")
-class OandaDataClientIntegrationTest {
+class OandaIntegrationTest {
 
     private OandaClient client;
     private OandaDataClient oandaClient;
@@ -176,5 +184,71 @@ class OandaDataClientIntegrationTest {
                 error.getMessage());
 
         assertTrue(receivedBars.isEmpty(), "Expected no bars to be received");
+    }
+
+    @Test
+    void testCanStreamPriceData() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicInteger receivedTicks = new AtomicInteger(0);
+
+        client.streamPrices(List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
+            @Override
+            public void onPrice(OandaPriceResponse price) {
+                System.out.println(price);
+                DefaultTick tick = OandaUtils.mapPriceToTick(price);
+                System.out.println(tick);
+                receivedTicks.incrementAndGet();
+                if (receivedTicks.get() >= 5) {
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+                latch.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Stream complete");
+                latch.countDown();
+            }
+        });
+
+        boolean completed = latch.await(3, TimeUnit.SECONDS);
+
+        if (!completed) {
+            System.out.println("Test timed out. Received " + receivedTicks.get() + " ticks.");
+        }
+
+        assert receivedTicks.get() > 0 : "No ticks were received";
+    }
+
+    @Test
+    void testCanFetchTrades() throws Exception {
+        // Test can fetch with instrument filter
+        var res = client.fetchTrades(null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
+        System.out.println(res);
+        assertNotNull(res.lastTransactionID());
+//        assertNotEquals(0, res.trades().size());
+
+        // Test can fetch with no instrument filter
+        var res2 = client.fetchTrades(null, TradeStateFilter.ALL, null, 10);
+        System.out.println(res2);
+        assertNotNull(res2.lastTransactionID());
+//        assertNotEquals(0, res2.trades().size());
+
+        // Fetch trades with specific ids
+        var res3 = client.fetchTrades(List.of("2", "3"), TradeStateFilter.ALL, null, 10);
+        System.out.println(res3);
+        assertNotNull(res3.lastTransactionID());
+//        assertEquals(2, res3.trades().size());
+
+        // Fetch open trades
+        var res4 = client.fetchTrades(null, TradeStateFilter.OPEN, null, 10);
+        System.out.println(res4);
+        assertNotNull(res4.lastTransactionID());
+//        assertNotEquals(0, res4.trades().size());
     }
 }

@@ -3,8 +3,10 @@ package dev.jwtly10.marketdata.oanda;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -141,6 +144,74 @@ public class OandaClient {
             log.error("Failed to fetch data from Oanda API", e);
             throw e;
         }
+    }
+
+    /**
+     * Fetches trades from the Oanda API based on the specified parameters.
+     *
+     * @param ids        the list of trade ids to fetch
+     * @param state      the state of the trades to fetch
+     * @param instrument the instrument to filter by
+     * @param count      the number of trades to fetch
+     * @return the OandaTradeResponse containing the trade data
+     * @throws Exception if an error occurs while fetching the data
+     */
+    public OandaTradeResponse fetchTrades(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
+        log.debug("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
+        String url = buildTradesUrl(ids, state, instrument, count);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to fetch trades from Oanda API: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.debug("Fetched trades: {}", response);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, OandaTradeResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to fetch trades from Oanda API", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Builds the URL for fetching trades based on the specified parameters.
+     *
+     * @param ids        the list of trade ids to fetch
+     * @param state      the state of the trades to fetch
+     * @param instrument the instrument to filter by
+     * @param count      the number of trades to fetch
+     * @return the URL for fetching trades
+     */
+    private String buildTradesUrl(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
+        // TODO: Haven't implemented beforeId (see Oanda API documentation)
+        StringBuilder urlBuilder = new StringBuilder(String.format("%s/v3/accounts/%s/trades", apiUrl, accountId));
+
+        List<String> queryParams = new ArrayList<>();
+
+        if (ids != null && !ids.isEmpty()) {
+            queryParams.add("ids=" + String.join(",", ids));
+        }
+        if (state != null) {
+            queryParams.add("state=" + state.name());
+        }
+        if (instrument != null) {
+            queryParams.add("instrument=" + instrument.getOandaSymbol());
+        }
+        if (count != null) {
+            queryParams.add("count=" + count);
+        }
+        if (!queryParams.isEmpty()) {
+            urlBuilder.append("?").append(String.join("&", queryParams));
+        }
+        return urlBuilder.toString();
     }
 
     /**
