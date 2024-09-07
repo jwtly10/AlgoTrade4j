@@ -300,8 +300,7 @@ public class OptimisationExecutor {
                 currentCombination.put(range.getName(), range.getValue());
                 generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
             } else {
-                // We will use double for parameters. We shouldn't have to rely on precision above supported that doubles
-                // For parameters that user submit. In that case there is something clearly overfitted.
+                // Number is used here, as we often get rounding precision errors when using doubles directly
                 Number start = new Number(Double.parseDouble(range.getStart()));
                 Number end = new Number(Double.parseDouble(range.getEnd()));
                 Number step = new Number(Double.parseDouble(range.getStep()));
