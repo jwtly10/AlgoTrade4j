@@ -1,25 +1,29 @@
 package dev.jwtly10.marketdata.oanda;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
-import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Number;
+import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Oanda API client
- * https://developer.oanda.com/rest-live-v20/introduction/
+ * <a href="https://developer.oanda.com/rest-live-v20/introduction/">Official REST API Documentation</a>
  * Oanda deals with dates in New york time
  */
 @Slf4j
@@ -28,6 +32,8 @@ public class OandaClient {
     private final String accountId;
     private final String apiUrl;
     private final OkHttpClient client;
+    @Setter
+    private String streamUrl = "https://stream-fxpractice.oanda.com";
 
     public OandaClient(String apiUrl, String apiKey, String accountId, OkHttpClient client) {
         this.apiKey = apiKey;
@@ -40,11 +46,66 @@ public class OandaClient {
         this(apiUrl, apiKey, accountId, new OkHttpClient());
     }
 
-    public InstrumentCandlesRequest instrumentCandles(Instrument instrument) {
-        return new InstrumentCandlesRequest(this, instrument);
+    /**
+     * Streams prices for the specified instruments and invokes the callback for each price update.
+     *
+     * @param instruments the list of instruments to stream prices for
+     * @param callback    the callback to be invoked for each price update
+     */
+    public void streamPrices(List<Instrument> instruments, PriceStreamCallback callback) {
+        log.debug("Streaming prices for instruments: {}", instruments);
+        String instrumentParams = instruments.stream()
+                .map(Instrument::getOandaSymbol)
+                .collect(Collectors.joining(","));
+
+        String url = String.format("%s/v3/accounts/%s/pricing/stream?instruments=%s", streamUrl, accountId, instrumentParams);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        log.trace("New line from stream: {}", line);
+                        if (line.contains("\"type\":\"PRICE\"")) {
+                            ObjectMapper mapper = new ObjectMapper();
+                            OandaPriceResponse priceResponse = mapper.readValue(line, OandaPriceResponse.class);
+                            callback.onPrice(priceResponse);
+                        }
+
+                        if (line.contains("error")) {
+                            throw new Exception("Error in stream: " + line);
+                        }
+                    }
+                } catch (Exception e) {
+                    callback.onError(e);
+                } finally {
+                    callback.onComplete();
+                }
+            }
+        });
     }
 
-
+    /**
+     * Fetches candle data for the specified instrument and time period.
+     *
+     * @param instrument the instrument to fetch candles for
+     * @param period     the duration of each candle
+     * @param from       the start time for the data
+     * @param to         the end time for the data
+     * @return the OandaCandleResponse containing the candle data
+     * @throws Exception if an error occurs while fetching the data
+     */
     public OandaCandleResponse fetchCandles(Instrument instrument, Duration period, ZonedDateTime from, ZonedDateTime to) throws Exception {
         log.debug("Fetching candles for : {} ({}) time: {} -> {}",
                 instrument,
@@ -83,71 +144,26 @@ public class OandaClient {
     }
 
     /**
-     * Convert Oanda candles to a list of DefaultBar
-     *
-     * @param res the Oanda candle response
-     * @return a list of DefaultBar
+     * Callback interface for handling price stream updates.
      */
-    private List<DefaultBar> convertOandaCandles(OandaCandleResponse res) {
-        var instrument = Instrument.fromOandaSymbol(res.instrument());
-        return res.candles().stream()
-                .map(candle -> new DefaultBar(instrument,
-                        convertGranularityToDuration(res.granularity()),
-                        ZonedDateTime.parse(candle.time()),
-                        new Number(candle.mid().o()),
-                        new Number(candle.mid().h()),
-                        new Number(candle.mid().l()),
-                        new Number(candle.mid().c()),
-                        new Number(candle.volume())))
-                .toList();
-    }
+    public interface PriceStreamCallback {
+        /**
+         * Called when a new price is received.
+         *
+         * @param priceResponse the price response
+         */
+        void onPrice(OandaPriceResponse priceResponse);
 
-    /**
-     * Convert a period to a granularity string
-     *
-     * @param period the period
-     * @return the granularity string in for the format accepted by the Oanda API
-     */
-    private String convertPeriodToGranularity(Duration period) {
-        if (period.toMinutes() == 1) return "M1";
-        if (period.toMinutes() == 5) return "M5";
-        if (period.toMinutes() == 15) return "M15";
-        if (period.toMinutes() == 30) return "M30";
-        if (period.toHours() == 1) return "H1";
-        if (period.toHours() == 4) return "H4";
-        if (period.toDays() == 1) return "D";
-        throw new IllegalArgumentException("Unsupported period: " + period);
-    }
+        /**
+         * Called when an error occurs during streaming.
+         *
+         * @param e the exception that occurred
+         */
+        void onError(Exception e);
 
-    /**
-     * Convert a granularity string to a duration
-     *
-     * @param granularity the granularity string
-     * @return the duration
-     */
-    private Duration convertGranularityToDuration(String granularity) {
-        return switch (granularity) {
-            case "M1" -> Duration.ofMinutes(1);
-            case "M5" -> Duration.ofMinutes(5);
-            case "M15" -> Duration.ofMinutes(15);
-            case "M30" -> Duration.ofMinutes(30);
-            case "H1" -> Duration.ofHours(1);
-            case "H4" -> Duration.ofHours(4);
-            case "D" -> Duration.ofDays(1);
-            default -> throw new IllegalArgumentException("Unsupported granularity: " + granularity);
-        };
-    }
-
-    // Inner classes for JSON deserialization
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandleResponse(List<OandaCandle> candles, String instrument, String granularity) {
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandle(String time, OandaCandleMid mid, int volume) {
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandleMid(String o, String h, String l, String c) {
+        /**
+         * Called when the streaming is complete.
+         */
+        void onComplete();
     }
 }
