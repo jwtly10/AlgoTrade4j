@@ -69,7 +69,7 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
         <TableRow>
             <TableCell>{task.id}</TableCell>
             <TableCell>{task.config.strategyClass}</TableCell>
-            <TableCell>
+            <TableCell className="max-w-xs p-2">
                 <Badge variant={getStateColor(task.state)}>
                     {getStateIcon(task.state)}
                     <span className="ml-2">{task.state}</span>
@@ -89,16 +89,9 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                     </div>
                 )}
                 {task.state === 'FAILED' && (
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <p className="text-sm text-red-500 mt-1 cursor-help">Click for error details</p>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-red-600">{task.errorMessage || "An error occurred"}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <p className="text-red-600 break-words">
+                        {"Error during optimization run: " + task.errorMessage || "An error occurred"}
+                    </p>
                 )}
             </TableCell>
             <TableCell>{formatDate(task.createdAt)}</TableCell>
