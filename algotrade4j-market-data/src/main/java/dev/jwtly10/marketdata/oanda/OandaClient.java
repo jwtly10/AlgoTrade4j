@@ -8,6 +8,7 @@ import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,56 +49,6 @@ public class OandaClient {
 
     public OandaClient(String apiUrl, String apiKey, String accountId) {
         this(apiUrl, apiKey, accountId, new OkHttpClient());
-    }
-
-    /**
-     * Streams prices for the specified instruments and invokes the callback for each price update.
-     *
-     * @param instruments the list of instruments to stream prices for
-     * @param callback    the callback to be invoked for each price update
-     */
-    public void streamPrices(List<Instrument> instruments, PriceStreamCallback callback) {
-        log.debug("Streaming prices for instruments: {}", instruments);
-        String instrumentParams = instruments.stream()
-                .map(Instrument::getOandaSymbol)
-                .collect(Collectors.joining(","));
-
-        String url = String.format("%s/v3/accounts/%s/pricing/stream?instruments=%s", streamUrl, accountId, instrumentParams);
-
-        Request req = new Request.Builder()
-                .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .build();
-
-        client.newCall(req).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                callback.onError(e);
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
-                        log.trace("New line from stream: {}", line);
-                        if (line.contains("\"type\":\"PRICE\"")) {
-                            ObjectMapper mapper = new ObjectMapper();
-                            OandaPriceResponse priceResponse = mapper.readValue(line, OandaPriceResponse.class);
-                            callback.onPrice(priceResponse);
-                        }
-
-                        if (line.contains("error")) {
-                            throw new Exception("Error in stream: " + line);
-                        }
-                    }
-                } catch (Exception e) {
-                    callback.onError(e);
-                } finally {
-                    callback.onComplete();
-                }
-            }
-        });
     }
 
     /**
@@ -214,6 +165,105 @@ public class OandaClient {
         }
     }
 
+    // Streaming endpoints
+
+    /**
+     * Streams prices for the specified instruments and invokes the callback for each price update.
+     *
+     * @param instruments the list of instruments to stream prices for
+     * @param callback    the callback to be invoked for each price update
+     */
+    public void streamPrices(List<Instrument> instruments, PriceStreamCallback callback) {
+        log.debug("Streaming prices for instruments: {}", instruments);
+        String instrumentParams = instruments.stream()
+                .map(Instrument::getOandaSymbol)
+                .collect(Collectors.joining(","));
+
+        String url = String.format("%s/v3/accounts/%s/pricing/stream?instruments=%s", streamUrl, accountId, instrumentParams);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        log.trace("New line from stream: {}", line);
+                        if (line.contains("\"type\":\"PRICE\"")) {
+                            ObjectMapper mapper = new ObjectMapper();
+                            OandaPriceResponse priceResponse = mapper.readValue(line, OandaPriceResponse.class);
+                            callback.onPrice(priceResponse);
+                        }
+
+                        if (line.contains("error")) {
+                            throw new Exception("Error in stream: " + line);
+                        }
+                    }
+                } catch (Exception e) {
+                    callback.onError(e);
+                } finally {
+                    callback.onComplete();
+                }
+            }
+        });
+    }
+
+    /**
+     * Streams transactions for the account and invokes the callback for each transaction update.
+     *
+     * @param callback the callback to be invoked for each transaction update
+     */
+    public void streamTransactions(TransactionStreamCallback callback) {
+        log.debug("Streaming transactions for account: {}", accountId);
+        String url = String.format("%s/v3/accounts/%s/transactions/stream", streamUrl, accountId);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                log.error("Failed to stream transactions", e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        log.trace("New line from stream: {}", line);
+                        if (line.contains("\"type\":\"TRANSACTION\"")) {
+                            log.debug("New transaction: {}", line);
+                            ObjectMapper mapper = new ObjectMapper();
+                            OandaTransactionResponse transaction = mapper.readValue(line, OandaTransactionResponse.class);
+                            callback.onTransaction(transaction);
+                        }
+
+                        if (line.contains("error")) {
+                            throw new Exception("Error in stream: " + line);
+                        }
+                    }
+                } catch (Exception e){
+                    callback.onError(e);
+                } finally {
+                    callback.onComplete();
+                }
+            }
+        });
+    }
+
+
     /**
      * Builds the URL for fetching trades based on the specified parameters.
      *
@@ -268,6 +318,30 @@ public class OandaClient {
         /**
          * Called when the streaming is complete.
          */
+        void onComplete();
+    }
+
+    /**
+     * Callback interface for handling transaction stream updates.
+     */
+    public interface TransactionStreamCallback {
+        /**
+        * Called when a new transaction is received.
+        * 
+        * @param transaction the transaction
+        */
+        void onTransaction(OandaTransactionResponse transactionResponse);
+
+        /**
+        * Called when an error occurs during streaming.
+        *
+        * @param e the exception that occurred
+        */
+        void onError(Exception e);
+
+        /**
+        * Called when the streaming is complete.
+        */
         void onComplete();
     }
 }

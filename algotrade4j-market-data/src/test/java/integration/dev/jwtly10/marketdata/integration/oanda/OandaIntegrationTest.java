@@ -8,6 +8,7 @@ import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -187,6 +188,39 @@ class OandaIntegrationTest {
     }
 
     @Test
+    void testCanFetchTrades() throws Exception {
+        // Test can fetch with instrument filter
+        var res = client.fetchTrades(null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
+        System.out.println(res);
+        assertNotNull(res.lastTransactionID());
+//        assertNotEquals(0, res.trades().size());
+
+        // Test can fetch with no instrument filter
+        var res2 = client.fetchTrades(null, TradeStateFilter.ALL, null, 10);
+        System.out.println(res2);
+        assertNotNull(res2.lastTransactionID());
+//        assertNotEquals(0, res2.trades().size());
+
+        // Fetch trades with specific ids
+        var res3 = client.fetchTrades(List.of("2", "3"), TradeStateFilter.ALL, null, 10);
+        System.out.println(res3);
+        assertNotNull(res3.lastTransactionID());
+//        assertEquals(2, res3.trades().size());
+
+        // Fetch open trades
+        var res4 = client.fetchTrades(null, TradeStateFilter.OPEN, null, 10);
+        System.out.println(res4);
+        assertNotNull(res4.lastTransactionID());
+//        assertNotEquals(0, res4.trades().size());
+    }
+
+    @Test
+    void testCanFetchAccountDetails() throws Exception{
+        var res = client.fetchAccount();
+        System.out.println(res);
+    }
+
+    @Test
     void testCanStreamPriceData() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTicks = new AtomicInteger(0);
@@ -226,35 +260,39 @@ class OandaIntegrationTest {
     }
 
     @Test
-    void testCanFetchTrades() throws Exception {
-        // Test can fetch with instrument filter
-        var res = client.fetchTrades(null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
-        System.out.println(res);
-        assertNotNull(res.lastTransactionID());
-//        assertNotEquals(0, res.trades().size());
+    void testCanStreamTransactions() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicInteger receivedTrans = new AtomicInteger(0);
 
-        // Test can fetch with no instrument filter
-        var res2 = client.fetchTrades(null, TradeStateFilter.ALL, null, 10);
-        System.out.println(res2);
-        assertNotNull(res2.lastTransactionID());
-//        assertNotEquals(0, res2.trades().size());
+        client.streamTransactions(new OandaClient.TransactionStreamCallback() {
+            @Override
+            public void onTransaction(OandaTransactionResponse transaction) {
+                System.out.println(transaction);
+                receivedTrans.incrementAndGet();
+                if (receivedTrans.get() >= 5) {
+                    latch.countDown();
+                }
+            }
 
-        // Fetch trades with specific ids
-        var res3 = client.fetchTrades(List.of("2", "3"), TradeStateFilter.ALL, null, 10);
-        System.out.println(res3);
-        assertNotNull(res3.lastTransactionID());
-//        assertEquals(2, res3.trades().size());
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+                latch.countDown();
+            }
 
-        // Fetch open trades
-        var res4 = client.fetchTrades(null, TradeStateFilter.OPEN, null, 10);
-        System.out.println(res4);
-        assertNotNull(res4.lastTransactionID());
-//        assertNotEquals(0, res4.trades().size());
-    }
+            @Override
+            public void onComplete() {
+                System.out.println("Stream complete");
+                latch.countDown();
+            }
+        });
 
-    @Test
-    void testCanFetchAccountDetails() throws Exception{
-        var res = client.fetchAccount();
-        System.out.println(res);
+        boolean completed = latch.await(3, TimeUnit.SECONDS);
+
+        if (!completed) {
+            System.out.println("Test timed out. Received " + receivedTrans.get() + " transactions.");
+        }
+
+        assert receivedTrans.get() > 0 : "No transactions were received";
     }
 }
