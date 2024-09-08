@@ -28,4 +28,19 @@ SET config = jsonb_set(
         to_jsonb(CAST(CAST(config ->> 'spread' AS numeric) AS INTEGER))
              )
 WHERE config ->> 'spread' IS NOT NULL
-  AND config ->> 'spread' ~ '^[0-9]*\.?[0-9]+$'; -- This checks if the value is a valid number
+  AND config ->> 'spread' ~ '^[0-9]*\.?[0-9]+$';
+-- This checks if the value is a valid number
+
+-- Live trading service SQL
+
+CREATE TABLE live_strategies_tb
+(
+    id            BIGSERIAL PRIMARY KEY,
+    strategy_name VARCHAR(255) NOT NULL,
+    account_id    VARCHAR(255) NOT NULL,
+    config        JSON         NOT NULL,
+    is_active     BOOLEAN   DEFAULT false,
+    is_hidden     BOOLEAN   DEFAULT false,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

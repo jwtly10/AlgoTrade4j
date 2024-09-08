@@ -1,6 +1,6 @@
-package dev.jwtly10.api.model;
+package dev.jwtly10.common.model;
 
-import dev.jwtly10.api.exception.ErrorType;
+import dev.jwtly10.common.exception.ErrorType;
 import lombok.Getter;
 
 @Getter

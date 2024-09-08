@@ -1,4 +1,4 @@
-package dev.jwtly10.api.exception;
+package dev.jwtly10.liveservice.exception;
 
 import dev.jwtly10.common.exception.ApiException;
 import dev.jwtly10.common.exception.ErrorType;
@@ -20,33 +20,15 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(StrategyManagerException.class)
-    public ResponseEntity<ErrorResponse> handleStrategyManagerException(StrategyManagerException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ex.getErrorType());
-
-        HttpStatus status = switch (ex.getErrorType()) {
-            case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
-            case NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
-            case FORBIDDEN -> HttpStatus.FORBIDDEN;
-            case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
-            case TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;
-            default -> HttpStatus.INTERNAL_SERVER_ERROR;
-        };
-
-        return new ResponseEntity<>(errorResponse, status);
-    }
-
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ex.getErrorType());
 
         HttpStatus status = switch (ex.getErrorType()) {
-            case BAD_REQUEST -> HttpStatus.BAD_REQUEST;
+            case BAD_REQUEST, VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
             case FORBIDDEN -> HttpStatus.FORBIDDEN;
-            case VALIDATION_ERROR -> HttpStatus.BAD_REQUEST;
             case TOO_MANY_REQUESTS -> HttpStatus.TOO_MANY_REQUESTS;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
@@ -77,5 +59,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public void handleNoResourceFoundException(NoResourceFoundException ex) {
+        log.error("Resource not found: ", ex);
     }
 }

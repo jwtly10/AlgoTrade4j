@@ -1,7 +1,6 @@
 package dev.jwtly10.api.service.optimisation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import dev.jwtly10.api.exception.ErrorType;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;
 import dev.jwtly10.api.model.optimisation.*;
@@ -9,6 +8,7 @@ import dev.jwtly10.api.repository.optimisation.OptimisationResultRepository;
 import dev.jwtly10.api.repository.optimisation.OptimisationTaskRepository;
 import dev.jwtly10.api.repository.optimisation.OptimisationUserRepository;
 import dev.jwtly10.api.utils.ConfigConverter;
+import dev.jwtly10.common.exception.ErrorType;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;

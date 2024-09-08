@@ -1,5 +1,6 @@
 package dev.jwtly10.api.exception;
 
+import dev.jwtly10.common.exception.ErrorType;
 import lombok.Getter;
 
 @Getter

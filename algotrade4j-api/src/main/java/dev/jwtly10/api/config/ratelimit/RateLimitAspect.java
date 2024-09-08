@@ -1,7 +1,7 @@
 package dev.jwtly10.api.config.ratelimit;
 
 import dev.jwtly10.api.auth.model.UserDetailsImpl;
-import dev.jwtly10.api.exception.RateLimitException;
+import dev.jwtly10.common.exception.RateLimitException;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
