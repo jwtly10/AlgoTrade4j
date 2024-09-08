@@ -251,4 +251,10 @@ class OandaIntegrationTest {
         assertNotNull(res4.lastTransactionID());
 //        assertNotEquals(0, res4.trades().size());
     }
+
+    @Test
+    void testCanFetchAccountDetails() throws Exception{
+        var res = client.fetchAccount();
+        System.out.println(res);
+    }
 }

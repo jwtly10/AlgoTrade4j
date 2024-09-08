@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
@@ -177,6 +178,38 @@ public class OandaClient {
             return objectMapper.readValue(response, OandaTradeResponse.class);
         } catch (Exception e) {
             log.error("Failed to fetch trades from Oanda API", e);
+            throw e;
+        }
+    }
+
+    /**
+     * Fetches the account details for the specified account.
+     *
+     * @return the OandaAccountResponse containing the account details
+     * @throws Exception 
+     */
+    public OandaAccountResponse fetchAccount() throws Exception{
+        log.debug("Fetching account details for account {}", accountId);
+
+        String url = apiUrl + "/v3/accounts/" + accountId;
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        try (Response res = client.newCall(req).execute()){
+            String response = res.body().string();
+            if (!res.isSuccessful()){
+                log.error("Failed to fetch Account details from Oanda API: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.debug("Fetched account details: {}", response);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, OandaAccountResponse.class);
+        } catch (Exception e ){
+            log.error("Failed to fetch account details from Oanda API", e);
             throw e;
         }
     }
