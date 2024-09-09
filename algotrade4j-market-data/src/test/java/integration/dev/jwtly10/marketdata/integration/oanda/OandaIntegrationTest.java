@@ -7,6 +7,9 @@ import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
@@ -202,7 +205,7 @@ class OandaIntegrationTest {
 //        assertNotEquals(0, res2.trades().size());
 
         // Fetch trades with specific ids
-        var res3 = client.fetchTrades(List.of("2", "3"), TradeStateFilter.ALL, null, 10);
+        var res3 = client.fetchTrades(List.of("5", "10"), TradeStateFilter.ALL, null, 10);
         System.out.println(res3);
         assertNotNull(res3.lastTransactionID());
 //        assertEquals(2, res3.trades().size());
@@ -215,8 +218,8 @@ class OandaIntegrationTest {
     }
 
     @Test
-    void testCanFetchAccountDetails() throws Exception{
-        var res = client.fetchAccount();
+    void testCanFetchAccountDetails() throws Exception {
+        OandaAccountResponse res = client.fetchAccount();
         System.out.println(res);
     }
 
@@ -232,7 +235,7 @@ class OandaIntegrationTest {
                 DefaultTick tick = OandaUtils.mapPriceToTick(price);
                 System.out.println(tick);
                 receivedTicks.incrementAndGet();
-                if (receivedTicks.get() >= 5) {
+                if (receivedTicks.get() >= 15) {
                     latch.countDown();
                 }
             }
@@ -250,7 +253,7 @@ class OandaIntegrationTest {
             }
         });
 
-        boolean completed = latch.await(3, TimeUnit.SECONDS);
+        boolean completed = latch.await(10, TimeUnit.SECONDS);
 
         if (!completed) {
             System.out.println("Test timed out. Received " + receivedTicks.get() + " ticks.");
@@ -294,5 +297,30 @@ class OandaIntegrationTest {
         }
 
         assert receivedTrans.get() > 0 : "No transactions were received";
+    }
+
+    @Test
+    void testCanOpenAndCloseTrade() throws Exception {
+        // Test opening a trade
+        MarketOrderRequest req = MarketOrderRequest.builder()
+                .type(MarketOrderRequest.OrderType.MARKET)
+                .instrument(Instrument.NAS100USD.getOandaSymbol())
+                .timeInForce(MarketOrderRequest.TimeInForce.FOK)
+                .units(2)
+                .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
+                        .price("18709")
+                        .timeInForce(MarketOrderRequest.TimeInForce.GTC)
+                        .build())
+                .stopLossOnFill(MarketOrderRequest.StopLossDetails.builder()
+                        .price("18407")
+                        .timeInForce(MarketOrderRequest.TimeInForce.GTC)
+                        .build())
+                .build();
+        OandaOpenTradeResponse trade = client.openTrade(req);
+        assertNotNull(trade);
+        System.out.println(trade);
+
+        // Test closing a trade
+        client.closeTrade(trade.orderFillTransaction().tradeOpened().tradeID());
     }
 }

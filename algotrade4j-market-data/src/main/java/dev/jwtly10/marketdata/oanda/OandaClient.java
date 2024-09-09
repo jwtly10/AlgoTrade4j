@@ -3,12 +3,10 @@ package dev.jwtly10.marketdata.oanda;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.marketdata.oanda.models.OandaOrder;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
-import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
+import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.oanda.response.*;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -137,9 +135,9 @@ public class OandaClient {
      * Fetches the account details for the specified account.
      *
      * @return the OandaAccountResponse containing the account details
-     * @throws Exception 
+     * @throws Exception
      */
-    public OandaAccountResponse fetchAccount() throws Exception{
+    public OandaAccountResponse fetchAccount() throws Exception {
         log.debug("Fetching account details for account {}", accountId);
 
         String url = apiUrl + "/v3/accounts/" + accountId;
@@ -149,9 +147,9 @@ public class OandaClient {
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
 
-        try (Response res = client.newCall(req).execute()){
+        try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
-            if (!res.isSuccessful()){
+            if (!res.isSuccessful()) {
                 log.error("Failed to fetch Account details from Oanda API: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
@@ -159,10 +157,69 @@ public class OandaClient {
             log.debug("Fetched account details: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response, OandaAccountResponse.class);
-        } catch (Exception e ){
+        } catch (Exception e) {
             log.error("Failed to fetch account details from Oanda API", e);
             throw e;
         }
+    }
+
+    public OandaOpenTradeResponse openTrade(MarketOrderRequest orderRequest) throws Exception {
+        log.debug("Opening trade: {}", orderRequest);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
+
+        OandaOrder order = new OandaOrder(orderRequest);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String reqJson = objectMapper.writeValueAsString(order);
+
+        log.debug("Request JSON: {}", reqJson);
+
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"), reqJson);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .post(body)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to open trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.debug("Opened trade: {}", response);
+            return objectMapper.readValue(response, OandaOpenTradeResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to open trade", e);
+            throw e;
+        }
+    }
+
+    public void closeTrade(String id) throws Exception {
+        log.debug("Closing trade: {}", id);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/trades/" + id + "/close";
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .put(RequestBody.create(MediaType.parse("application/json"), ""))
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            if (!res.isSuccessful()) {
+                log.error("Failed to close trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + res.body().string());
+            }
+
+            log.debug("Closed trade: {}", id);
+        } catch (Exception e) {
+            log.error("Failed to close trade", e);
+            throw e;
+        }
+
     }
 
     // Streaming endpoints
@@ -254,7 +311,7 @@ public class OandaClient {
                             throw new Exception("Error in stream: " + line);
                         }
                     }
-                } catch (Exception e){
+                } catch (Exception e) {
                     callback.onError(e);
                 } finally {
                     callback.onComplete();
@@ -326,22 +383,22 @@ public class OandaClient {
      */
     public interface TransactionStreamCallback {
         /**
-        * Called when a new transaction is received.
-        * 
-        * @param transaction the transaction
-        */
+         * Called when a new transaction is received.
+         *
+         * @param transactionResponse the transaction
+         */
         void onTransaction(OandaTransactionResponse transactionResponse);
 
         /**
-        * Called when an error occurs during streaming.
-        *
-        * @param e the exception that occurred
-        */
+         * Called when an error occurs during streaming.
+         *
+         * @param e the exception that occurred
+         */
         void onError(Exception e);
 
         /**
-        * Called when the streaming is complete.
-        */
+         * Called when the streaming is complete.
+         */
         void onComplete();
     }
 }

@@ -52,6 +52,7 @@ public class BacktestExecutor implements DataListener {
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
 
+    @Override
     public void initialise() {
         if (initialised) {
             log.warn("BacktestExecutor for strategy {} is already initialized", strategyId);
@@ -109,7 +110,7 @@ public class BacktestExecutor implements DataListener {
         }
         try {
             strategy.onNewDay(newDay);
-            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
+            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us notify frontend of progress each day
             eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);

@@ -51,4 +51,6 @@ public class TradeParameters {
      * The balance to risk for the trade.
      */
     private double balanceToRisk;
+
+    private boolean isLong;
 }

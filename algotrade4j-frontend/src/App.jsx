@@ -15,6 +15,7 @@ import {Toaster} from "./components/ui/toaster";
 import UnauthorizedAccessView from "@/views/UnauthorizedAccessView.jsx";
 import MonitorView from "@/views/MonitorView.jsx";
 import {useToast} from "@/hooks/use-toast.js";
+import LiveStrategyView from "@/views/LiveStrategyView.jsx";
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -68,6 +69,10 @@ function App() {
                         <Route
                             path="/backtest"
                             element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
+                        />
+                        <Route
+                            path="/live"
+                            element={user ? <LiveStrategyView/> : <Navigate to="/login" replace/>}
                         />
 
                         <Route

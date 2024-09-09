@@ -5,12 +5,18 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.model.InstrumentData;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 public class LiveStrategyConfig {
     private String strategyClass;
     private double initialCash;
@@ -74,6 +80,7 @@ public class LiveStrategyConfig {
     }
 
     @Data
+    @Builder
     public static class RunParameter {
         private String name;
         private String value;

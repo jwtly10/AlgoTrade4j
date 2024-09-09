@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +34,16 @@ public class DefaultTradeManager implements TradeManager {
         this.strategyId = strategyId;
         this.barSeries = barSeries;
         this.currentTick = currentTick;
+    }
+
+    @Override
+    public void updateOpenTrades(List<Trade> trades) {
+
+    }
+
+    @Override
+    public void updateAllTrades(List<Trade> trades) {
+
     }
 
     @Override

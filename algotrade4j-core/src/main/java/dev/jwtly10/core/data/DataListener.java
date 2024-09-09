@@ -10,6 +10,8 @@ import java.time.ZonedDateTime;
  */
 public interface DataListener {
 
+    void initialise();
+
     /**
      * Called when a new tick is received.
      *

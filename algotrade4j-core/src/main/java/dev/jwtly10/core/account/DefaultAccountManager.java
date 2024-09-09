@@ -46,6 +46,12 @@ public class DefaultAccountManager implements AccountManager {
     }
 
     @Override
+    public void updateAccountInfo(Account account) {
+        this.account.setBalance(account.getBalance());
+        this.account.setEquity(account.getEquity());
+    }
+
+    @Override
     public double getOpenPositionValue() {
         return getEquity() - getBalance();
     }
