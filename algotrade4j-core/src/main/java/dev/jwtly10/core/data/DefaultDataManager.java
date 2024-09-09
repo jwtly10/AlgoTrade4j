@@ -7,6 +7,7 @@ import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -32,8 +33,10 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     @Getter
     private volatile Number currentAsk;
     @Getter // For testing
+    @Setter
     private Bar currentBar;
     @Getter // For testing
+    @Setter
     private ZonedDateTime nextBarCloseTime;
     @Getter
     private boolean running = false;
@@ -53,6 +56,12 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         this.instrument = instrument;
         this.dataProvider.addDataProviderListener(this);
         this.eventPublisher = eventPublisher;
+    }
+
+    @Override
+    public void initialise(Bar currentBar, ZonedDateTime nextBarCloseTime) {
+        this.currentBar = currentBar;
+        this.nextBarCloseTime = nextBarCloseTime;
     }
 
     @Override

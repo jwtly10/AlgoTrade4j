@@ -6,6 +6,7 @@ import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.DefaultTradeManager;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.*;
@@ -150,6 +151,7 @@ public class LiveStrategyManager {
         listener.subscribe(AnalysisEvent.class);
         listener.subscribe(LogEvent.class);
         listener.subscribe(ErrorEvent.class);
+        listener.subscribe(AsyncIndicatorsEvent.class);
 
         try {
             start(config, "testing");
@@ -176,6 +178,7 @@ public class LiveStrategyManager {
         barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyName, config.getInstrumentData().getInstrument(), bar)));
 
         DefaultDataManager dataManager = new DefaultDataManager(strategyName, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
+        dataManager.initialise(barSeries.getLastBar(), barSeries.getLastBar().getOpenTime().plus(config.getPeriod().getDuration()));
 
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
@@ -195,6 +198,7 @@ public class LiveStrategyManager {
                 strategy,
                 tradeManager,
                 accountManager,
+                dataManager,
                 eventPublisher,
                 liveStateManager
         );

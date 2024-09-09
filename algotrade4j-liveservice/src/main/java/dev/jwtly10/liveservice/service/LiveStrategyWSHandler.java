@@ -34,7 +34,6 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         log.info("Received message: {} ", message.getPayload());
         String payload = message.getPayload();
         if (payload.startsWith("STRATEGY:")) {
-            log.info("DO WE DO THIS?!?!?");
             String strategyId = payload.substring(9);
             log.info("Strategy id: {} ", strategyId);
             strategySessions.put(strategyId, session);

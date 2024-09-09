@@ -1,5 +1,6 @@
 package dev.jwtly10.core.data;
 
+import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
@@ -10,6 +11,11 @@ import java.time.ZonedDateTime;
  * Interface for managing data operations and listeners.
  */
 public interface DataManager {
+
+    /**
+     * Initialise the data manager with the current bar and the next bar close time.
+     */
+    void initialise(Bar currentBar, ZonedDateTime nextBarCloseTime);
 
     /**
      * Starts the data manager.

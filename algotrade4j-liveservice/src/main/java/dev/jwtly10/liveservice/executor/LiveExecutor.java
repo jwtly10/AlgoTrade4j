@@ -2,14 +2,18 @@ package dev.jwtly10.liveservice.executor;
 
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataListener;
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.event.StrategyStopEvent;
+import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
@@ -19,6 +23,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +36,7 @@ public class LiveExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final AccountManager accountManager;
     private final EventPublisher eventPublisher;
+    private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -38,14 +46,17 @@ public class LiveExecutor implements DataListener {
     private volatile boolean initialised = false;
 
     public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
+                        DataManager dataManager,
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
+        this.dataManager = dataManager;
         this.accountManager = accountManager;
         this.eventPublisher = eventPublisher;
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
+        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
     }
 
     @Override
@@ -59,6 +70,15 @@ public class LiveExecutor implements DataListener {
 
         strategy.onStart();
         initialised = true;
+
+        if (!this.dataManager.getBarSeries().isEmpty()) {
+            IndicatorUtils.initializeIndicators(strategy, this.dataManager.getBarSeries().getBars());
+            Map<String, List<IndicatorValue>> allIndicatorsValues = new HashMap<>();
+            for (Indicator i : strategy.getIndicators()) {
+                allIndicatorsValues.put(i.getName(), i.getValues());
+            }
+            eventPublisher.publishEvent(new AsyncIndicatorsEvent(strategyId, dataManager.getInstrument(), allIndicatorsValues));
+        }
 
         // Start polling for account/trade data
         scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 5, TimeUnit.SECONDS);
