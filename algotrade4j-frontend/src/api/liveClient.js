@@ -2,8 +2,6 @@ import axios from 'axios';
 import log from '../logger.js';
 import pako from 'pako';
 
-// In prod we are deployed on the same host.
-// Locally we run apps seperately on same host
 const isDev = import.meta.env.MODE === 'development';
 // const API_BASE_URL = isDev ? 'http://localhost:8081/api/v1' : '/api/v1';
 // const WS_BASE_URL = isDev

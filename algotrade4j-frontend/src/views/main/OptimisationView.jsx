@@ -1,11 +1,11 @@
 import React from 'react';
 import 'chartjs-adapter-date-fns';
 import {Play, Settings} from "lucide-react";
-import ConfigModal from '../components/modals/ConfigModal.jsx';
-import OptimisationTaskList from "../components/optimisation/OptimisationTaskList.jsx";
-import {Button} from "../components/ui/button";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../components/ui/select";
-import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
+import ConfigModal from '../../components/modals/ConfigModal.jsx';
+import OptimisationTaskList from "../../components/optimisation/OptimisationTaskList.jsx";
+import {Button} from "../../components/ui/button.jsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../../components/ui/select.jsx";
+import {Card, CardContent, CardHeader, CardTitle} from "../../components/ui/card.jsx";
 import {useBacktest} from "@/hooks/use-backtest.js";
 
 const OptimisationView = () => {

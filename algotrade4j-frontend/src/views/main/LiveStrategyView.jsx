@@ -1,20 +1,20 @@
-import React, {useEffect} from 'react';
+import React, {useState} from 'react';
 import 'chartjs-adapter-date-fns';
-import AnalysisReport from '../components/backtesting/AnalysisReport.jsx';
-import {EquityChart} from '../components/backtesting/EquityChart.jsx';
-import TradesTable from '../components/backtesting/TradesTable.jsx';
-import LogsTable from '../components/backtesting/LogsTable.jsx';
-import ConfigModal from '../components/modals/ConfigModal.jsx';
-import LoadingChart from "../components/backtesting/LoadingChart.jsx";
-import TradingViewChart from "../components/backtesting/TradingViewChart.jsx";
-import EmptyChart from "../components/backtesting/EmptyChart.jsx";
+import AnalysisReport from '../../components/backtesting/AnalysisReport.jsx';
+import {EquityChart} from '../../components/backtesting/EquityChart.jsx';
+import TradesTable from '../../components/backtesting/TradesTable.jsx';
+import LogsTable from '../../components/backtesting/LogsTable.jsx';
+import ConfigModal from '../../components/modals/ConfigModal.jsx';
+import LoadingChart from "../../components/backtesting/LoadingChart.jsx";
+import TradingViewChart from "../../components/backtesting/TradingViewChart.jsx";
+import EmptyChart from "../../components/backtesting/EmptyChart.jsx";
 
-import {Card} from "@/components/ui/card";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Button} from "@/components/ui/button";
-import {CircleStop as StopIcon, PlayIcon, Settings} from "lucide-react";
+import {Card} from "@/components/ui/card.jsx";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.jsx";
+import {Button} from "@/components/ui/button.jsx";
+import {Edit2, Eye, Plus} from "lucide-react";
 import {useLive} from "@/hooks/use-live.js";
+
 
 const LiveStrategyView = () => {
     const {
@@ -31,7 +31,6 @@ const LiveStrategyView = () => {
         isModalOpen,
         setIsModalOpen,
         strategies,
-        strategyClass,
         isAsync,
         progressData,
         showChart,
@@ -45,8 +44,113 @@ const LiveStrategyView = () => {
         handleChangeStrategy,
     } = useLive();
 
-    useEffect(() => {
-    }, []);
+    const [strategyClass, setStrategyClass] = useState(null);
+
+    const mockLiveStrategies = [
+        {
+            id: 1,
+            strategyName: "DJATR - Original",
+            config: {strategyClass: "DJATRStrategy"},
+            brokerConfig: {
+                broker: "OANDA",
+                account_id: "001-001-1234567-001",
+                type: "DEMO"
+            },
+            stats: {
+                totalTrades: 50,
+                winRate: 60,
+                profitFactor: 1.5,
+                sharpeRatio: 1.2
+            },
+            isActive: true
+        },
+        {
+            id: 2,
+            strategyName: "DJATR - Archit Variation",
+            config: {strategyClass: "RSIStrategy"},
+            brokerConfig: {
+                broker: "MT4",
+                account_id: "MT4-12345",
+                type: "LIVE"
+            },
+            stats: {
+                totalTrades: 30,
+                winRate: 55,
+                profitFactor: 1.3,
+                sharpeRatio: 1.1
+            },
+            isActive: false
+        },
+        {
+            id: 3,
+            strategyName: "MACD Divergence",
+            config: {strategyClass: "MACDDivergence"},
+            brokerConfig: {
+                broker: "VANTAGE",
+                account_id: "VAN-98765",
+                type: "LIVE"
+            },
+            stats: {
+                totalTrades: 75,
+                winRate: 62,
+                profitFactor: 1.8,
+                sharpeRatio: 1.4
+            },
+            isActive: true
+        },
+        {
+            id: 4,
+            strategyName: "Bollinger Bands Squeeze",
+            config: {strategyClass: "BollingerSqueeze"},
+            brokerConfig: {
+                broker: "OANDA",
+                account_id: "001-001-7654321-002",
+                type: "DEMO"
+            },
+            stats: {
+                totalTrades: 40,
+                winRate: 58,
+                profitFactor: 1.4,
+                sharpeRatio: 1.0
+            },
+            isActive: true
+        },
+        {
+            id: 5,
+            strategyName: "Fibonacci Retracement",
+            config: {strategyClass: "FibonacciRetracement"},
+            brokerConfig: {
+                broker: "MT4",
+                account_id: "MT4-67890",
+                type: "LIVE"
+            },
+            stats: {
+                totalTrades: 60,
+                winRate: 65,
+                profitFactor: 2.0,
+                sharpeRatio: 1.6
+            },
+            isActive: false
+        }
+    ];
+
+    const handleViewStrategy = (strategyId) => {
+        // Implement view logic
+        console.log("Viewing strategy:", strategyId);
+    };
+
+    const handleEditStrategy = (strategyId, strategyClass) => {
+        // Implement edit logic
+        console.log("Editing strategy:", strategyId, "Class:", strategyClass);
+        setStrategyClass(strategyClass);
+        handleOpenParams();
+    };
+
+    const handleNewStrategy = () => {
+        // Implement new strategy creation logic
+        console.log("Creating new live strategy");
+        // You might want to open a modal or navigate to a new page for strategy creation
+    };
 
     return (
         <div className="flex flex-col h-[calc(100vh-32px-68px)] w-screen overflow-hidden p-4">
@@ -107,111 +211,67 @@ const LiveStrategyView = () => {
                 </div>
 
                 {/* Right section (1/4 width) */}
-                {/* Right section (responsive width) */}
                 <div className="w-full md:w-1/3 lg:w-1/4 min-w-[280px] p-4 bg-background shadow overflow-auto">
                     <div className="flex flex-col h-full space-y-6">
-                        <div className="bg-background rounded-lg shadow-sm p-4">
-                            <h3 className="text-lg font-semibold mb-3">Account Summary</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    {label: 'Initial Balance', value: account.initialBalance.toLocaleString()},
-                                    {
-                                        label: 'Profit',
-                                        value: account.balance !== 0.0 ? Math.round((account.balance - account.initialBalance + Number.EPSILON) * 100) / 100 : 0,
-                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
-                                    },
-                                    {
-                                        label: 'Current Balance',
-                                        value: account.balance,
-                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
-                                    },
-                                    {
-                                        label: 'Equity',
-                                        value: account.equity,
-                                        diff: ((account.equity - account.initialBalance) / account.initialBalance * 100).toFixed(2)
-                                    }
-                                ].map((item, index) => (
-                                    <div key={index} className="bg-card text-card-foreground rounded p-2">
-                                        <p className="text-sm text-muted-foreground">{item.label}</p>
-                                        <p className="text-md font-semibold">
-                                            ${item.value}
-                                            {item.diff !== undefined && account.balance !== 0 && (
-                                                <span className={`ml-2 text-sm ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    ({item.diff > 0 ? '+' : ''}{item.diff}%)
-                </span>
-                                            )}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold">Live Strategies</h2>
+                            <Button variant="outline" size="sm" onClick={handleNewStrategy}>
+                                <Plus className="w-4 h-4 mr-1"/> New Live Strategy
+                            </Button>
                         </div>
-
                         <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">Strategy Control</h3>
-                            <Select
-                                value={strategyClass}
-                                onValueChange={handleChangeStrategy}
-                            >
-                                <SelectTrigger className="w-full">
-                                    <SelectValue placeholder="Select a strategy"/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {strategies.length > 0 ? (
-                                        strategies.map((strategy, index) => (
-                                            <SelectItem key={index} value={strategy || `strategy-${index}`}>
-                                                {strategy}
-                                            </SelectItem>
-                                        ))
-                                    ) : (
-                                        <SelectItem value="no-strategies" disabled>
-                                            No strategies available
-                                        </SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
-
-                            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-                                <Button
-                                    variant={isStrategyRunning ? "destructive" : "default"}
-                                    onClick={isStrategyRunning ? stopStrategy : startStrategy}
-                                    disabled={strategyClass === ""}
-                                    size="lg"
-                                    className="w-full sm:w-1/2"
-                                >
-                                    {isStrategyRunning ? (
-                                        <>
-                                            <StopIcon className="mr-2 h-4 w-4"/>
-                                            Stop Strategy
-                                        </>
-                                    ) : (
-                                        <>
-                                            <PlayIcon className="mr-2 h-4 w-4"/>
-                                            Watch
-                                        </>
-                                    )}
-                                </Button>
-
-                                <Button
-                                    variant="outline"
-                                    onClick={handleOpenParams}
-                                    disabled={strategyClass === ""}
-                                    size="lg"
-                                    className="w-full sm:w-1/2"
-                                >
-                                    <Settings className="mr-2 h-4 w-4"/>
-                                    Configure
-                                </Button>
-                            </div>
+                            {mockLiveStrategies.map((strategy) => (
+                                <Card key={strategy.id} className="p-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-lg font-semibold">{strategy.strategyName}</h3>
+                                        <div className="flex items-center space-x-2">
+            <span className={`px-2 py-1 rounded text-sm ${strategy.isActive ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                {strategy.isActive ? 'Active' : 'Inactive'}
+            </span>
+                                            <span className={`px-2 py-1 rounded text-sm ${strategy.brokerConfig.type === 'LIVE' ? 'bg-blue-500 text-white' : 'bg-yellow-500 text-white'}`}>
+                {strategy.brokerConfig.type}
+            </span>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Broker</p>
+                                            <p className="font-semibold">{strategy.brokerConfig.broker}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Account ID</p>
+                                            <p className="font-semibold">{strategy.brokerConfig.account_id}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Total Trades</p>
+                                            <p className="font-semibold">{strategy.stats.totalTrades}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Win Rate</p>
+                                            <p className="font-semibold">{strategy.stats.winRate}%</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Profit Factor</p>
+                                            <p className="font-semibold">{strategy.stats.profitFactor}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Sharpe Ratio</p>
+                                            <p className="font-semibold">{strategy.stats.sharpeRatio}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end space-x-2">
+                                        <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy.id)}>
+                                            <Eye className="w-4 h-4 mr-1"/> View
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy.id, strategy.config.strategyClass)}>
+                                            <Edit2 className="w-4 h-4 mr-1"/> Edit
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
                         </div>
-
-                        <div className="flex-grow"/>
-
-                        <p className="text-sm text-muted-foreground text-center">
-                            Select a strategy and configure parameters before starting.
-                        </p>
                     </div>
                 </div>
-
             </div>
 
             {/* Modals */}

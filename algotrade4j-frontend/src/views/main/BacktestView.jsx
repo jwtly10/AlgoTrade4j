@@ -1,18 +1,18 @@
 import React from 'react';
 import 'chartjs-adapter-date-fns';
-import AnalysisReport from '../components/backtesting/AnalysisReport.jsx';
-import {EquityChart} from '../components/backtesting/EquityChart.jsx';
-import TradesTable from '../components/backtesting/TradesTable.jsx';
-import LogsTable from '../components/backtesting/LogsTable.jsx';
-import ConfigModal from '../components/modals/ConfigModal.jsx';
-import LoadingChart from "../components/backtesting/LoadingChart.jsx";
-import TradingViewChart from "../components/backtesting/TradingViewChart.jsx";
-import EmptyChart from "../components/backtesting/EmptyChart.jsx";
+import AnalysisReport from '../../components/backtesting/AnalysisReport.jsx';
+import {EquityChart} from '../../components/backtesting/EquityChart.jsx';
+import TradesTable from '../../components/backtesting/TradesTable.jsx';
+import LogsTable from '../../components/backtesting/LogsTable.jsx';
+import ConfigModal from '../../components/modals/ConfigModal.jsx';
+import LoadingChart from "../../components/backtesting/LoadingChart.jsx";
+import TradingViewChart from "../../components/backtesting/TradingViewChart.jsx";
+import EmptyChart from "../../components/backtesting/EmptyChart.jsx";
 
-import {Card} from "@/components/ui/card";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Button} from "@/components/ui/button";
+import {Card} from "@/components/ui/card.jsx";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.jsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.jsx";
+import {Button} from "@/components/ui/button.jsx";
 import {CircleStop as StopIcon, PlayIcon, Settings} from "lucide-react";
 import {useBacktest} from "@/hooks/use-backtest.js";
 

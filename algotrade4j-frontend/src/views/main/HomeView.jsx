@@ -1,6 +1,6 @@
 import React from 'react';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.jsx";
+import {Button} from "@/components/ui/button.jsx";
 import {Activity, BarChart, History, RefreshCcwDot, Settings, Zap} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
 
