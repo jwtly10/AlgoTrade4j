@@ -17,6 +17,7 @@ import dev.jwtly10.core.optimisation.OptimisationRunResult;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
+import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import lombok.extern.slf4j.Slf4j;
@@ -123,7 +124,8 @@ public class OptimisationBackgroundJob {
 
     private void runOptimisation(OptimisationConfig config, OptimisationTask task) throws Exception {
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
-        ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
+        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient);
+        ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(ZoneId.of("UTC"));
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(ZoneId.of("UTC"));

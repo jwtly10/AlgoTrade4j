@@ -19,6 +19,7 @@ import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
+import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,8 @@ public class StrategyManager {
         Instrument instrument = config.getInstrumentData().getInstrument();
 
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
-        ExternalDataClient externalDataClient = new OandaDataClient(oandaClient);
+        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient);
+        ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
         // Ensure utc
         ZoneId utcZone = ZoneId.of("UTC");

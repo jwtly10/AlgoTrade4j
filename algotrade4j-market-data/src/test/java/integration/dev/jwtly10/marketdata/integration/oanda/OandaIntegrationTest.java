@@ -4,6 +4,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.common.ClientCallback;
+import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
@@ -38,6 +39,7 @@ class OandaIntegrationTest {
 
     private OandaClient client;
     private OandaDataClient oandaClient;
+    private OandaBrokerClient brokerClient;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +51,8 @@ class OandaIntegrationTest {
         assertNotNull(accountId, "OANDA_ACCOUNT_ID environment variable must be set");
 
         client = new OandaClient(baseUrl, apiKey, accountId);
-        oandaClient = new OandaDataClient(client);
+        brokerClient = new OandaBrokerClient(client);
+        oandaClient = new OandaDataClient(brokerClient);
     }
 
     @Test

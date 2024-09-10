@@ -5,7 +5,6 @@ import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -18,10 +17,10 @@ import java.util.List;
 @Slf4j
 public class OandaDataClient implements ExternalDataClient {
     private static final int MAX_CANDLES_PER_REQUEST = 5000; // Oanda's limit on candles you can request at a time
-    private final OandaClient client;
+    private final OandaBrokerClient client;
 
-    public OandaDataClient(OandaClient oandaClient) {
-        this.client = oandaClient;
+    public OandaDataClient(OandaBrokerClient client) {
+        this.client = client;
     }
 
     public void fetchCandles(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period, ClientCallback callback) {
@@ -44,7 +43,7 @@ public class OandaDataClient implements ExternalDataClient {
                     batchTo = to;
                 }
 
-                List<DefaultBar> batchBars = fetchBatch(instrument, currentFrom, batchTo, period);
+                List<DefaultBar> batchBars = client.fetchCandles(instrument, currentFrom, batchTo, period);
                 log.debug("Found {} bars in latest fetch. Processing them now.", batchBars.size());
 
                 if (batchBars.isEmpty()) {
@@ -71,9 +70,5 @@ public class OandaDataClient implements ExternalDataClient {
             log.error("Failure while fetching candles and notifying systems. Stopping.", e);
             callback.onError(e);
         }
-    }
-
-    private List<DefaultBar> fetchBatch(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
-        return OandaUtils.convertOandaCandles(client.fetchCandles(instrument, period, from, to));
     }
 }

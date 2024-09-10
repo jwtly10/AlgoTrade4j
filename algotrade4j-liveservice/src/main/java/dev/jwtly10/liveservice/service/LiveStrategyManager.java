@@ -20,13 +20,11 @@ import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -165,6 +163,7 @@ public class LiveStrategyManager {
 
         StrategyFactory strategyFactory = new DefaultStrategyFactory();
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
+        OandaBrokerClient client = new OandaBrokerClient(oandaClient);
 
         // TODO: Validate config against the current strategy version. Need to notify if this is invalid
         Strategy strategy = strategyFactory.createStrategy(config.getStrategyClass(), strategyName);
@@ -173,7 +172,7 @@ public class LiveStrategyManager {
         BarSeries barSeries = new DefaultBarSeries(5000);
 
         // We should prefil the bar series with some historic data
-        List<DefaultBar> preCandles = fetchBatch(oandaClient, config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(2), ZonedDateTime.now(), config.getPeriod().getDuration());
+        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(2), ZonedDateTime.now(), config.getPeriod().getDuration());
         preCandles.forEach(barSeries::addBar);
         barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyName, config.getInstrumentData().getInstrument(), bar)));
 
@@ -222,9 +221,5 @@ public class LiveStrategyManager {
 
     public boolean stopStrategy(String id) {
         return true;
-    }
-
-    private List<DefaultBar> fetchBatch(OandaClient client, Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
-        return OandaUtils.convertOandaCandles(client.fetchCandles(instrument, period, from, to));
     }
 }
