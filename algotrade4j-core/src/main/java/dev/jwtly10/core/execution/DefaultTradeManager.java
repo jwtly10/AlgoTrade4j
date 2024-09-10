@@ -48,76 +48,40 @@ public class DefaultTradeManager implements TradeManager {
 
     @Override
     public Integer openLong(TradeParameters params) {
-        return openPosition(params, true);
+        params.setLong(true);
+        return openPosition(params);
     }
 
     @Override
     public Integer openShort(TradeParameters params) {
-        return openPosition(params, false);
+        params.setLong(false);
+        return openPosition(params);
     }
 
-    private Integer openPosition(TradeParameters params, boolean isLong) {
+    private Integer openPosition(TradeParameters params) {
         log.trace("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
-                isLong ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
+                params.isLong() ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
 
         Number entryPrice = params.getEntryPrice();
         if (!entryPrice.isEquals(currentTick.getAsk()) || !entryPrice.isEquals(currentTick.getBid())) {
-            entryPrice = isLong ? currentTick.getAsk() : currentTick.getBid();
-            // TODO: In live trading this should be INFO?
+            entryPrice = params.isLong() ? currentTick.getAsk() : currentTick.getBid();
             log.trace("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }
+        // These values won't be known by the strategy specifically, we can inject them here
+        params.setEntryPrice(entryPrice);
+        params.setOpenTime(currentTick.getDateTime());
 
         log.trace("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
-        double balance = params.getBalanceToRisk();
-        log.trace("Selected balance: {}", balance);
-
-        double riskInPercent = params.getRiskPercentage() / 100;
-        double riskAmount = balance * riskInPercent;
-        log.trace("Risk amount calculation: {} * {} = {}", balance, riskInPercent, riskAmount);
-
-        Number stopLossDistance = isLong ? entryPrice.subtract(params.getStopLoss()).abs() :
-                params.getStopLoss().subtract(entryPrice).abs();
-        log.trace("Stop loss distance calculation: |{} - {}| = {}",
-                isLong ? entryPrice : params.getStopLoss(),
-                isLong ? params.getStopLoss() : entryPrice, stopLossDistance);
-
-        // If quantity == 0 ( the default of a double ) then we should calculate the expected quantity based on the risk amount
-        double quantity = params.getQuantity() != 0 ? params.getQuantity() :
-                riskAmount / stopLossDistance.getValue().doubleValue();
-        log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
-
-        Number takeProfit = params.getTakeProfit() != null ? params.getTakeProfit() :
-                (isLong ? entryPrice.add(stopLossDistance.multiply(params.getRiskRatio().getValue())) :
-                        entryPrice.subtract(stopLossDistance.multiply(params.getRiskRatio().getValue())));
-        log.trace("Take profit calculation: {} {} ({} * {}) = {}",
-                entryPrice, isLong ? "+" : "-", stopLossDistance, params.getRiskRatio().getValue(), takeProfit);
-
-        quantity = Math.floor(quantity * 100) / 100;
-        log.trace("Final quantity after rounding down to 2 decimal places: {}", quantity);
-
-        if (params.getStopLoss().isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
-            String reason = params.getStopLoss().isLessThan(Number.ZERO) ? "STOP LOSS" : "TAKE PROFIT";
-            log.warn("{} cannot be below 0", reason);
-            throw new InvalidTradeException(String.format("%s cannot be below 0 for the new trade opened @ %s. Value was %s", reason, currentTick.getDateTime().toString(),
-                    reason.equals("STOP LOSS") ? params.getStopLoss() : params.getTakeProfit()));
-        }
-
-        if (quantity < 0) {
-            log.warn("Quantity cannot be below 0");
-            throw new InvalidTradeException(String.format("Quantity cannot be below 0 for the new trade opened @ %s. Value was %s", currentTick.getDateTime().toString(), quantity));
-        }
-
-        Trade trade = new Trade(params.getInstrument(), quantity, entryPrice, barSeries.getLastBar().getOpenTime(),
-                params.getStopLoss(), takeProfit, isLong);
+        Trade trade = params.createTrade();
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
-        log.trace("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}, riskAmount={} at {}",
-                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), riskAmount, trade.getOpenTime());
+        log.trace("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={} at {}",
+                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), trade.getOpenTime());
         return trade.getId();
     }
 

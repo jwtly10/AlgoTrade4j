@@ -1,8 +1,10 @@
 package dev.jwtly10.marketdata.oanda;
 
 import dev.jwtly10.core.account.Account;
+import dev.jwtly10.core.model.DefaultBar;
+import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.oanda.models.OandaTrade;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
@@ -65,19 +67,19 @@ public class OandaBrokerClient implements BrokerClient {
     }
 
     @Override
-    public Trade openTrade(TradeParameters params) {
+    public Trade openTrade(Trade trade) {
         try {
             MarketOrderRequest req = MarketOrderRequest.builder()
                     .type(MarketOrderRequest.OrderType.MARKET)
                     .timeInForce(MarketOrderRequest.TimeInForce.FOK)
-                    .instrument(params.getInstrument().getOandaSymbol())
-                    .units(params.isLong() ? params.getQuantity() : -params.getQuantity()) // Oanda specific logic for determining short/long trades
+                    .instrument(trade.getInstrument().getOandaSymbol())
+                    .units(trade.isLong() ? trade.getQuantity() : -trade.getQuantity()) // Oanda specific logic for determining short/long trades
                     .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
-                            .price(params.getTakeProfit().getValue().toString())
+                            .price(trade.getTakeProfit().getValue().toString())
                             .timeInForce(MarketOrderRequest.TimeInForce.GTC)
                             .build())
                     .stopLossOnFill(MarketOrderRequest.StopLossDetails.builder()
-                            .price(params.getStopLoss().getValue().toString())
+                            .price(trade.getStopLoss().getValue().toString())
                             .timeInForce(MarketOrderRequest.TimeInForce.GTC)
                             .build())
                     .build();
@@ -86,12 +88,12 @@ public class OandaBrokerClient implements BrokerClient {
             return new Trade(
                     Integer.parseInt(res.orderFillTransaction().orderID()), // external id
                     Instrument.fromOandaSymbol(res.orderCreateTransaction().instrument()), // instrument
-                    params.isLong() ? params.getQuantity() : -params.getQuantity(), // Quantity
+                    trade.isLong() ? trade.getQuantity() : -trade.getQuantity(), // Quantity
                     ZonedDateTime.parse(res.orderFillTransaction().time()), // open time
                     new Number(res.orderFillTransaction().tradeOpened().price()), // entry price
                     new Number(res.orderCreateTransaction().stopLossOnFill().price()), // stop loss
                     new Number(res.orderCreateTransaction().takeProfitOnFill().price()), // Take profit
-                    params.isLong() // is long
+                    trade.isLong() // is long
             );
         } catch (Exception e) {
             log.error("Error opening trade", e);

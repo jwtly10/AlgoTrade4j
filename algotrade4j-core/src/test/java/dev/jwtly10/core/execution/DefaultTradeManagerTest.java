@@ -67,7 +67,9 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(10000);
 
-        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        ZonedDateTime openTime = ZonedDateTime.now();
+        when(mockCurrentTick.getDateTime()).thenReturn(openTime);
+        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openShort(params);
 
 
@@ -78,6 +80,7 @@ class DefaultTradeManagerTest {
         ));
         assertNotNull(tradeId);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
+        assertEquals(openTime, backtestTradeManager.getOpenTrades().get(tradeId).getOpenTime());
     }
 
     @Test
@@ -92,7 +95,9 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
 
-        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        ZonedDateTime openTime = ZonedDateTime.now();
+        when(mockCurrentTick.getDateTime()).thenReturn(openTime);
+        when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         int tradeId = backtestTradeManager.openLong(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -104,6 +109,7 @@ class DefaultTradeManagerTest {
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
         assertEquals(new Number(14), backtestTradeManager.getOpenTrades().get(tradeId).getTakeProfit());
         assertEquals(0.5, backtestTradeManager.getOpenTrades().get(tradeId).getQuantity());
+        assertEquals(openTime, backtestTradeManager.getOpenTrades().get(tradeId).getOpenTime());
     }
 
     @Test

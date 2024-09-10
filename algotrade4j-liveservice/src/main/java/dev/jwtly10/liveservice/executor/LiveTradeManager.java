@@ -40,13 +40,17 @@ public class LiveTradeManager implements TradeManager {
     @Override
     public Integer openLong(TradeParameters params) throws InvalidTradeException {
         params.setLong(true);
-        return brokerClient.openTrade(params).getId();
+        return openPosition(params);
     }
 
     @Override
     public Integer openShort(TradeParameters params) throws InvalidTradeException {
         params.setLong(false);
-        return brokerClient.openTrade(params).getId();
+        return openPosition(params);
+    }
+
+    private Integer openPosition(TradeParameters params) {
+        return brokerClient.openTrade(params.createTrade()).getId();
     }
 
     @Override
