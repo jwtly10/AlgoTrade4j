@@ -66,13 +66,10 @@ function App() {
                             path="/"
                             element={user ? <HomeView/> : <Navigate to="/login" replace/>}
                         />
+
                         <Route
                             path="/backtest"
                             element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
-                        />
-                        <Route
-                            path="/live"
-                            element={user ? <LiveStrategyView/> : <Navigate to="/login" replace/>}
                         />
 
                         <Route
@@ -99,6 +96,13 @@ function App() {
                             path="/monitor"
                             element={user ? (
                                 user.role === 'ADMIN' ? <MonitorView/> : <UnauthorizedAccessView/>
+                            ) : <Navigate to="/login" replace/>}
+                        />
+
+                        <Route
+                            path="/live"
+                            element={user ? (
+                                user.role === 'ADMIN' ? <LiveStrategyView/> : <UnauthorizedAccessView/>
                             ) : <Navigate to="/login" replace/>}
                         />
 
