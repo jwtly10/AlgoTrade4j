@@ -37,8 +37,9 @@ CREATE TABLE live_strategies_tb
 (
     id            BIGSERIAL PRIMARY KEY,
     strategy_name VARCHAR(255) NOT NULL,
-    account_id    VARCHAR(255) NOT NULL,
+    broker_config JSON         NOT NULL,
     config        JSON         NOT NULL,
+    stats         JSON,
     is_active     BOOLEAN   DEFAULT false,
     is_hidden     BOOLEAN   DEFAULT false,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

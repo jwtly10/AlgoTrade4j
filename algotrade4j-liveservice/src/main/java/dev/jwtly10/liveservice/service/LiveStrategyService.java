@@ -4,6 +4,7 @@ import dev.jwtly10.common.exception.ApiException;
 import dev.jwtly10.common.exception.ErrorType;
 import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.LiveStrategyConfig;
+import dev.jwtly10.liveservice.model.Stats;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,17 @@ public class LiveStrategyService {
 
     public LiveStrategyService(LiveStrategyRepository liveStrategyRepository) {
         this.liveStrategyRepository = liveStrategyRepository;
+    }
+
+    public LiveStrategy updateStrategyStats(Long liveStrategyId, Stats stats) {
+        log.info("Updating live strategy stats for strategy ID: {}", liveStrategyId);
+
+        // Validate that the LiveStrategy exists
+        LiveStrategy liveStrategy = liveStrategyRepository.findById(liveStrategyId)
+                .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+
+        liveStrategy.setStats(stats);
+        return liveStrategyRepository.save(liveStrategy);
     }
 
     public LiveStrategy createLiveStrategy(LiveStrategyConfig config, String strategyName) {

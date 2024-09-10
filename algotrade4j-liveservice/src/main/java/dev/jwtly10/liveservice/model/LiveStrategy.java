@@ -27,12 +27,17 @@ public class LiveStrategy {
     @Column(name = "strategy_name", nullable = false)
     private String strategyName;
 
-    @Column(name = "account_id", nullable = false)
-    private String accountId;
+    @Column(name = "broker_config", nullable = false, columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private BrokerConfig brokerConfig;
 
     @Column(nullable = false, columnDefinition = "json")
     @JdbcTypeCode(SqlTypes.JSON)
     private LiveStrategyConfig config;
+
+    @Column(columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Stats stats;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
