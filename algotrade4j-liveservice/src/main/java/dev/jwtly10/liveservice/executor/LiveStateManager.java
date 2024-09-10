@@ -27,6 +27,9 @@ public class LiveStateManager {
         this.strategyId = strategyId;
     }
 
+    /**
+     * Update the trade and account states of the strategy
+     */
     public void updateState() {
         try {
             // Update account information

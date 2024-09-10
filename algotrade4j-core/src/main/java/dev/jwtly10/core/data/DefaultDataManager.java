@@ -70,9 +70,6 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         running = true;
         startTime = Instant.now();
         try {
-            // TODO: ThIs should only be happening in the live trading variant
-
-
             dataProvider.start();
         } catch (DataProviderException e) {
             log.error("Error starting data provider", e);

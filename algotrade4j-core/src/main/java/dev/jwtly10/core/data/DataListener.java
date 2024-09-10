@@ -7,9 +7,13 @@ import java.time.ZonedDateTime;
 
 /**
  * Interface for listening to data events such as ticks and bar closures.
+ * Mainly used for engines that facilitate trading strategies
  */
 public interface DataListener {
 
+    /**
+     * Called when the data listener is initialised.
+     */
     void initialise();
 
     /**

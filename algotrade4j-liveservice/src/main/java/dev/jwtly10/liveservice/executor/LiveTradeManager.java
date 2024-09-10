@@ -61,17 +61,20 @@ public class LiveTradeManager implements TradeManager {
 
     @Override
     public Trade getTrade(Integer tradeId) {
-        return null;
+        return allTrades.get(tradeId);
     }
 
     @Override
     public double getOpenPositionValue(Instrument instrument) {
-        return 0;
+        return openTrades.values().stream()
+                .filter(trade -> trade.getInstrument().equals(instrument))
+                .mapToDouble(trade -> trade.getQuantity() * currentTick.getBid().doubleValue())
+                .sum();
     }
 
     @Override
     public Map<Integer, Trade> getAllTrades() {
-        return Map.of();
+        return allTrades;
     }
 
     @Override
