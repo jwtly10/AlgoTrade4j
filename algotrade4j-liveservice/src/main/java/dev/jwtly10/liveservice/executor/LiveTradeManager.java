@@ -2,10 +2,8 @@ package dev.jwtly10.liveservice.executor;
 
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.execution.TradeManager;
-import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.model.Trade;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
 
 import java.util.List;
@@ -60,7 +58,14 @@ public class LiveTradeManager implements TradeManager {
 
     @Override
     public void loadTrades() {
-        brokerClient.getAllTrades();
+        List<Trade> trades = brokerClient.getAllTrades();
+        trades.forEach(trade -> allTrades.put(trade.getId(), trade));
+
+        trades.forEach(trade -> {
+            if (trade.getClosePrice() == Number.ZERO) {
+                openTrades.put(trade.getId(), trade);
+            }
+        });
     }
 
     @Override

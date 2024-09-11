@@ -12,9 +12,7 @@ import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.IndicatorValue;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveservice.exception.LiveExecutorException;
@@ -68,8 +66,11 @@ public class LiveExecutor implements DataListener {
 
         log.info("Initializing strategy: {} with parameters: {}", strategyId, ParameterHandler.getParameters(strategy));
 
-        strategy.onStart();
         initialised = true;
+
+        //  Load all the trades from the broker into memory
+        tradeManager.loadTrades();
+        strategy.onStart();
 
         if (!this.dataManager.getBarSeries().isEmpty()) {
             IndicatorUtils.initializeIndicators(strategy, this.dataManager.getBarSeries().getBars());
@@ -153,5 +154,30 @@ public class LiveExecutor implements DataListener {
     @Override
     public String getStrategyId() {
         return this.strategyId;
+    }
+
+    public List<Bar> getBars() {
+        return dataManager.getBarSeries().getBars();
+    }
+
+    public BarSeries getBarSeries() {
+        return dataManager.getBarSeries();
+    }
+
+    public Instrument getInstrument() {
+        return dataManager.getInstrument();
+    }
+
+    public Map<Integer, Trade> getTrades() {
+        return tradeManager.getAllTrades();
+    }
+
+    public Map<String, List<IndicatorValue>> getIndicators() {
+        Map<String, List<IndicatorValue>> allIndicatorsValues = new HashMap<>();
+        for (Indicator i : strategy.getIndicators()) {
+            allIndicatorsValues.put(i.getName(), i.getValues());
+        }
+
+        return allIndicatorsValues;
     }
 }

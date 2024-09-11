@@ -84,5 +84,7 @@ public class LiveStrategyConfig {
     public static class RunParameter {
         private String name;
         private String value;
+        private String description;
+        private String group;
     }
 }

@@ -1,6 +1,11 @@
 package dev.jwtly10.liveservice.service;
 
-import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
+import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
+import dev.jwtly10.core.event.async.AsyncTradesEvent;
+import dev.jwtly10.liveservice.executor.LiveExecutor;
+import dev.jwtly10.liveservice.repository.RunnerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -8,8 +13,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -19,9 +24,11 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
     private final EventPublisher eventPublisher;
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
+    private final RunnerRepository runnerRepository;
 
-    public LiveStrategyWSHandler(EventPublisher eventPublisher) {
+    public LiveStrategyWSHandler(EventPublisher eventPublisher, RunnerRepository runnerRepository) {
         this.eventPublisher = eventPublisher;
+        this.runnerRepository = runnerRepository;
     }
 
     @Override
@@ -36,39 +43,52 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         if (payload.startsWith("STRATEGY:")) {
             String strategyId = payload.substring(9);
             log.info("Strategy id: {} ", strategyId);
-            strategySessions.put(strategyId, session);
-            log.info("Updated strategySessions map. Size: {}", strategySessions.size());
+            LiveExecutor executor = runnerRepository.getStrategy(strategyId);
+            if (executor != null) {
+                WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);
+                listeners.put(session, listener);
+                eventPublisher.addListener(listener);
+                listener.subscribe(BarEvent.class);
+                listener.subscribe(TradeEvent.class);
+                listener.subscribe(IndicatorEvent.class);
+                listener.subscribe(StrategyStopEvent.class);
+                listener.subscribe(AccountEvent.class);
+                listener.subscribe(AnalysisEvent.class);
+                listener.subscribe(LogEvent.class);
+                listener.subscribe(ErrorEvent.class);
+                listener.subscribe(AsyncIndicatorsEvent.class);
+                listener.subscribe(AsyncTradesEvent.class);
+                sendInitialState(session, executor);
+            } else {
+                try {
+                    session.sendMessage(new TextMessage("ERROR:" + message));
+                } catch (IOException e) {
+                    log.error("Error sending error message", e);
+                }
+            }
+        }
+    }
 
-            // Setup the listener for this strategy
-            WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);
-            listeners.put(session, listener);
-            eventPublisher.addListener(listener);
+
+    private void sendInitialState(WebSocketSession session, LiveExecutor executor) {
+        try {
+            WebSocketEventListener listener = listeners.get(session);
+            AsyncBarSeriesEvent barSeriesEvent = new AsyncBarSeriesEvent(executor.getStrategyId(), executor.getInstrument(), executor.getBarSeries());
+            listener.sendBinaryMessage(barSeriesEvent.toJson());
+            AsyncTradesEvent tradesEvent = new AsyncTradesEvent(executor.getStrategyId(), executor.getInstrument(), executor.getTrades());
+            listener.sendBinaryMessage(tradesEvent.toJson());
+            AsyncIndicatorsEvent indicatorsEvent = new AsyncIndicatorsEvent(executor.getStrategyId(), executor.getInstrument(), executor.getIndicators());
+            listener.sendBinaryMessage(indicatorsEvent.toJson());
+        } catch (IOException e) {
+            log.error("Error sending initial state", e);
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         log.info("Session closed: {} ", session);
-        // Stop the strategy on session closed
-        Optional<String> strategyId = strategySessions.entrySet().stream()
-                .filter(entry -> entry.getValue().equals(session))
-                .map(Map.Entry::getKey)
-                .findFirst();
-
-        strategyId.ifPresent(id -> {
-            boolean stopped = retryStopStrategy(id);
-            if (stopped) {
-                log.info("Stopped strategy: {}", id);
-                strategySessions.remove(id);
-            } else {
-                log.warn("Failed to stop strategy after retries: {}", id);
-            }
-        });
-
-        WebSocketEventListener listener = listeners.get(session);
+        WebSocketEventListener listener = listeners.remove(session);
         if (listener != null) {
-            listener.deactivate();
-            listeners.remove(session);
             eventPublisher.removeListener(listener);
         }
     }

@@ -20,7 +20,8 @@ public class LiveStrategyController {
 
     @GetMapping
     public ResponseEntity<List<LiveStrategy>> getLiveStrategies() {
-        return null;
+        List<LiveStrategy> liveStrategies = liveStrategyService.getNonHiddenLiveStrategies();
+        return ResponseEntity.ok(liveStrategies);
     }
 
     @PostMapping

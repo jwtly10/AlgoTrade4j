@@ -9,6 +9,8 @@ import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @Slf4j
 public class LiveStrategyService {
@@ -16,6 +18,11 @@ public class LiveStrategyService {
 
     public LiveStrategyService(LiveStrategyRepository liveStrategyRepository) {
         this.liveStrategyRepository = liveStrategyRepository;
+    }
+
+    public List<LiveStrategy> getNonHiddenLiveStrategies() {
+        log.info("Fetching all non-hidden live strategies");
+        return liveStrategyRepository.findLiveStrategiesByHiddenIsFalse();
     }
 
     public LiveStrategy updateStrategyStats(Long liveStrategyId, Stats stats) {

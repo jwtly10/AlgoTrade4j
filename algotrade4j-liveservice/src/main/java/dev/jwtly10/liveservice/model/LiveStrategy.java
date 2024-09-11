@@ -40,10 +40,10 @@ public class LiveStrategy {
     private Stats stats;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean active;
 
     @Column(name = "is_hidden", nullable = false)
-    private boolean isHidden;
+    private boolean hidden;
 
     @Column(name = "created_at")
     @CreationTimestamp

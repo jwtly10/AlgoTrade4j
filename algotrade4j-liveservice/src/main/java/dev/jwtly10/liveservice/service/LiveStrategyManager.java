@@ -2,12 +2,10 @@ package dev.jwtly10.liveservice.service;
 
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
-import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
-import dev.jwtly10.core.event.*;
-import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
-import dev.jwtly10.core.execution.DefaultTradeManager;
+import dev.jwtly10.core.event.BarEvent;
+import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
@@ -15,7 +13,9 @@ import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.liveservice.executor.LiveExecutor;
 import dev.jwtly10.liveservice.executor.LiveStateManager;
+import dev.jwtly10.liveservice.executor.LiveTradeManager;
 import dev.jwtly10.liveservice.model.LiveStrategyConfig;
+import dev.jwtly10.liveservice.repository.RunnerRepository;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
@@ -23,25 +23,19 @@ import dev.jwtly10.marketdata.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class LiveStrategyManager {
-    private final ConcurrentHashMap<String, DataListener> runningStrategies = new ConcurrentHashMap<>();
-
-    private final LiveStrategyWSHandler webSocketHandler;
-
     private final EventPublisher eventPublisher;
-
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+    private final RunnerRepository runnerRepository;
 
     @Value("${oanda.api.key}")
     private String oandaApiKey;
@@ -50,8 +44,8 @@ public class LiveStrategyManager {
     @Value("${oanda.api.url}")
     private String oandaApiUrl;
 
-    public LiveStrategyManager(LiveStrategyWSHandler webSocketHandler, EventPublisher eventPublisher) {
-        this.webSocketHandler = webSocketHandler;
+    public LiveStrategyManager(EventPublisher eventPublisher, RunnerRepository runnerRepository) {
+        this.runnerRepository = runnerRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -117,40 +111,6 @@ public class LiveStrategyManager {
                 )
                 .build();
 
-        // We've created the config. Now we create a websocket listener for this event
-        WebSocketSession session = null;
-        WebSocketEventListener listener = null;
-        int maxAttempts = 25; // 5 seconds total (25 * 200ms)
-        int attempts = 0;
-
-        while (attempts < maxAttempts) {
-            session = webSocketHandler.getSessionForStrategy("testing");
-            if (session != null) {
-                listener = webSocketHandler.getListenerForSession(session);
-                if (listener != null) {
-                    break;
-                }
-            }
-
-            attempts++;
-            try {
-                Thread.sleep(200); // Wait for 200ms before retrying
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted while waiting for session/listener");
-            }
-        }
-
-        listener.subscribe(BarEvent.class);
-        listener.subscribe(TradeEvent.class);
-        listener.subscribe(IndicatorEvent.class);
-        listener.subscribe(StrategyStopEvent.class);
-        listener.subscribe(AccountEvent.class);
-        listener.subscribe(AnalysisEvent.class);
-        listener.subscribe(LogEvent.class);
-        listener.subscribe(ErrorEvent.class);
-        listener.subscribe(AsyncIndicatorsEvent.class);
-
         try {
             start(config, "testing");
         } catch (Exception e) {
@@ -159,8 +119,6 @@ public class LiveStrategyManager {
     }
 
     public void start(LiveStrategyConfig config, String strategyName) throws Exception {
-//        config.validate();
-
         StrategyFactory strategyFactory = new DefaultStrategyFactory();
         OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
         OandaBrokerClient client = new OandaBrokerClient(oandaClient);
@@ -171,8 +129,7 @@ public class LiveStrategyManager {
         LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(oandaClient, config.getInstrumentData().getInstrument());
         BarSeries barSeries = new DefaultBarSeries(5000);
 
-        // We should prefil the bar series with some historic data
-        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(2), ZonedDateTime.now(), config.getPeriod().getDuration());
+        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(4), ZonedDateTime.now(), config.getPeriod().getDuration());
         preCandles.forEach(barSeries::addBar);
         barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyName, config.getInstrumentData().getInstrument(), bar)));
 
@@ -182,14 +139,12 @@ public class LiveStrategyManager {
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
 
-        Tick currentTick = new DefaultTick();
-
         // Empty account for now
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategyName, eventPublisher);
+        TradeManager tradeManager = new LiveTradeManager(client);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient);
-        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyName);
+        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyName, config.getInstrumentData().getInstrument());
 
         strategy.setParameters(runParams);
 
@@ -211,15 +166,21 @@ public class LiveStrategyManager {
                 dataManager.start();
             } catch (Exception e) {
                 log.error("Error running strategy", e);
-                runningStrategies.remove(strategy.getStrategyId());
+                runnerRepository.removeStrategy(strategy.getStrategyId());
                 eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
             }
         });
 
-        runningStrategies.put(strategy.getStrategyId(), executor);
+        runnerRepository.addStrategy(strategy.getStrategyId(), executor);
     }
 
+    // TODO: Review, how do we handle stops? Do we?
     public boolean stopStrategy(String id) {
-        return true;
+        LiveExecutor executor = runnerRepository.getStrategy(id);
+        if (executor != null) {
+            executor.onStop();
+            return true;
+        }
+        return false;
     }
 }
