@@ -4,7 +4,6 @@ import AnalysisReport from '../../components/backtesting/AnalysisReport.jsx';
 import {EquityChart} from '../../components/backtesting/EquityChart.jsx';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
-import ConfigModal from '../../components/modals/ConfigModal.jsx';
 import LoadingChart from "../../components/backtesting/LoadingChart.jsx";
 import TradingViewChart from "../../components/backtesting/TradingViewChart.jsx";
 import EmptyChart from "../../components/backtesting/EmptyChart.jsx";
@@ -14,6 +13,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.jsx
 import {Button} from "@/components/ui/button.jsx";
 import {Edit2, Eye, Plus} from "lucide-react";
 import {useLive} from "@/hooks/use-live.js";
+import LiveConfigModal from "@/components/modals/LiveConfigModal.jsx";
 
 
 const LiveStrategyView = () => {
@@ -28,8 +28,8 @@ const LiveStrategyView = () => {
         logs,
         tabValue,
         setTabValue,
-        isModalOpen,
-        setIsModalOpen,
+        // isModalOpen,
+        // setIsModalOpen,
         strategies,
         isAsync,
         progressData,
@@ -39,18 +39,102 @@ const LiveStrategyView = () => {
         setStrategyConfig,
         startStrategy,
         stopStrategy,
-        handleOpenParams,
-        handleConfigSave,
+        // handleOpenParams,
+        // handleConfigSave,
         handleChangeStrategy,
     } = useLive();
 
-    const [strategyClass, setStrategyClass] = useState(null);
+    const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleOpenConfig = () => {
+        setIsModalOpen(true);
+    }
+
+    const handleConfigSave = () => {
+        console.log("Saving strategy config");
+    }
 
     const mockLiveStrategies = [
         {
             id: 1,
             strategyName: "DJATR - Original",
-            config: {strategyClass: "DJATRStrategy"},
+            config: {
+                period: 900,
+                instrumentData: {
+                    internalSymbol: "NAS100USD"
+                },
+                initialCash: 10000,
+                strategyClass: "DJATRStrategy",
+                runParams: [
+                    {
+                        "name": "Trade Direction",
+                        "description": "Trade direction for the strategy",
+                        "value": "ANY",
+                        "group": "lol"
+                    },
+                    {
+                        "name": "Start Trading Time (Hour)",
+                        "description": "Trade direction for the strategy",
+                        "value": "9",
+                        "group": "Ungrouped"
+                    },
+                    {
+                        "name": "End Trading Time (Hour)",
+                        "description": "Trade direction for the strategy",
+                        "value": "20",
+                        "group": "Ungrouped"
+                    },
+                    {
+                        "name": "Stop Loss Size (pips)",
+                        "description": "Trade direction for the strategy",
+                        "value": "25.0",
+                        "group": "Risk"
+                    },
+                    {
+                        "name": "Risk Ratio (RR)",
+                        "description": "Trade direction for the strategy",
+                        "value": "4.0",
+                        "group": "Risk"
+                    },
+                    {
+                        "name": "Risk % Per trade",
+                        "description": "Trade direction for the strategy",
+                        "value": "1.0",
+                        "group": "Risk"
+                    },
+                    {
+                        "name": "ATR Length",
+                        "description": "Trade direction for the strategy",
+                        "value": "14",
+                        "group": "Indicator"
+                    },
+                    {
+                        "name": "ATR Sensitivity",
+                        "description": "Trade direction for the strategy",
+                        "value": "0.6",
+                        "group": "Indicator"
+                    },
+                    {
+                        "name": "Relative Size Diff",
+                        "description": "Trade direction for the strategy",
+                        "value": "2.0",
+                        "group": "Indicator"
+                    },
+                    {
+                        "name": "Short EMA Length",
+                        "description": "Trade direction for the strategy",
+                        "value": "50",
+                        "group": "Indicator"
+                    },
+                    {
+                        "name": "Long EMA Length",
+                        "description": "Trade direction for the strategy",
+                        "value": "0",
+                        "group": "Indicator"
+                    }
+                ]
+            },
             brokerConfig: {
                 broker: "OANDA",
                 account_id: "001-001-1234567-001",
@@ -64,74 +148,6 @@ const LiveStrategyView = () => {
             },
             isActive: true
         },
-        {
-            id: 2,
-            strategyName: "DJATR - Archit Variation",
-            config: {strategyClass: "RSIStrategy"},
-            brokerConfig: {
-                broker: "MT4",
-                account_id: "MT4-12345",
-                type: "LIVE"
-            },
-            stats: {
-                totalTrades: 30,
-                winRate: 55,
-                profitFactor: 1.3,
-                sharpeRatio: 1.1
-            },
-            isActive: false
-        },
-        {
-            id: 3,
-            strategyName: "MACD Divergence",
-            config: {strategyClass: "MACDDivergence"},
-            brokerConfig: {
-                broker: "VANTAGE",
-                account_id: "VAN-98765",
-                type: "LIVE"
-            },
-            stats: {
-                totalTrades: 75,
-                winRate: 62,
-                profitFactor: 1.8,
-                sharpeRatio: 1.4
-            },
-            isActive: true
-        },
-        {
-            id: 4,
-            strategyName: "Bollinger Bands Squeeze",
-            config: {strategyClass: "BollingerSqueeze"},
-            brokerConfig: {
-                broker: "OANDA",
-                account_id: "001-001-7654321-002",
-                type: "DEMO"
-            },
-            stats: {
-                totalTrades: 40,
-                winRate: 58,
-                profitFactor: 1.4,
-                sharpeRatio: 1.0
-            },
-            isActive: true
-        },
-        {
-            id: 5,
-            strategyName: "Fibonacci Retracement",
-            config: {strategyClass: "FibonacciRetracement"},
-            brokerConfig: {
-                broker: "MT4",
-                account_id: "MT4-67890",
-                type: "LIVE"
-            },
-            stats: {
-                totalTrades: 60,
-                winRate: 65,
-                profitFactor: 2.0,
-                sharpeRatio: 1.6
-            },
-            isActive: false
-        }
     ];
 
     const handleViewStrategy = (strategyId) => {
@@ -139,11 +155,11 @@ const LiveStrategyView = () => {
         console.log("Viewing strategy:", strategyId);
     };
 
-    const handleEditStrategy = (strategyId, strategyClass) => {
-        // Implement edit logic
-        console.log("Editing strategy:", strategyId, "Class:", strategyClass);
-        setStrategyClass(strategyClass);
-        handleOpenParams();
+    const handleEditStrategy = (pickedLiveStrat) => {
+        console.log("Editing strategy:", pickedLiveStrat.strategyName, "Class:", pickedLiveStrat.config.strategyClass);
+        setPickedLiveStrategy(pickedLiveStrat);
+        setIsModalOpen(true);  // Change this from handleOpenConfig()
+        console.log("isModalOpen set to true");
     };
 
     const handleNewStrategy = () => {
@@ -260,10 +276,10 @@ const LiveStrategyView = () => {
                                         </div>
                                     </div>
                                     <div className="flex justify-end space-x-2">
-                                        <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy.id)}>
+                                        <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
                                             <Eye className="w-4 h-4 mr-1"/> View
                                         </Button>
-                                        <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy.id, strategy.config.strategyClass)}>
+                                        <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy)}>
                                             <Edit2 className="w-4 h-4 mr-1"/> Edit
                                         </Button>
                                     </div>
@@ -275,13 +291,11 @@ const LiveStrategyView = () => {
             </div>
 
             {/* Modals */}
-            <ConfigModal
+            <LiveConfigModal
                 open={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleConfigSave}
-                strategyConfig={strategyConfig}
-                setStrategyConfig={setStrategyConfig}
-                strategyClass={strategyClass}
+                strategyConfig={pickedLiveStrategy}
             />
         </div>
     );
