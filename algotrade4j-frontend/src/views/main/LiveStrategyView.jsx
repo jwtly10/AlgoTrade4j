@@ -4,7 +4,6 @@ import AnalysisReport from '../../components/backtesting/AnalysisReport.jsx';
 import {EquityChart} from '../../components/backtesting/EquityChart.jsx';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
-import LoadingChart from "../../components/backtesting/LoadingChart.jsx";
 import TradingViewChart from "../../components/backtesting/TradingViewChart.jsx";
 import EmptyChart from "../../components/backtesting/EmptyChart.jsx";
 
@@ -14,6 +13,7 @@ import {Button} from "@/components/ui/button.jsx";
 import {Edit2, Eye, Plus} from "lucide-react";
 import {useLive} from "@/hooks/use-live.js";
 import LiveConfigModal from "@/components/modals/LiveConfigModal.jsx";
+import LiveCreateStratModal from "@/components/modals/LiveCreateStratModal.jsx";
 
 
 const LiveStrategyView = () => {
@@ -46,21 +46,14 @@ const LiveStrategyView = () => {
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleOpenConfig = () => {
-        setIsModalOpen(true);
-    }
-
-    const handleConfigSave = () => {
-        console.log("Saving strategy config");
-    }
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const mockLiveStrategies = [
         {
             id: 1,
             strategyName: "DJATR - Original",
             config: {
-                period: 900,
+                period: "M15",
                 instrumentData: {
                     internalSymbol: "NAS100USD"
                 },
@@ -150,23 +143,42 @@ const LiveStrategyView = () => {
         },
     ];
 
-    const handleViewStrategy = (strategyId) => {
+    const handleViewStrategy = async (strategyId) => {
         // Implement view logic
         console.log("Viewing strategy:", strategyId);
+        startStrategy()
     };
 
     const handleEditStrategy = (pickedLiveStrat) => {
         console.log("Editing strategy:", pickedLiveStrat.strategyName, "Class:", pickedLiveStrat.config.strategyClass);
         setPickedLiveStrategy(pickedLiveStrat);
         setIsModalOpen(true);  // Change this from handleOpenConfig()
-        console.log("isModalOpen set to true");
     };
 
     const handleNewStrategy = () => {
         // Implement new strategy creation logic
         console.log("Creating new live strategy");
         // You might want to open a modal or navigate to a new page for strategy creation
+        setIsCreateModalOpen(true);
     };
+
+    const handleConfigSave = () => {
+        console.log("Saving strategy config");
+        // Here we will need to call the backend API to save the strategy config
+        // we will need validation on this
+        // And there will be some logic that either restarts the app or puts the strategy back into pending state.
+        // So we will need to recall the api to get the list of live strategies in the system
+        setIsModalOpen(false)
+    }
+
+    const handleNewStratSave = (data) => {
+        console.log("Creating new strategy", data);
+        // Here we will need to call the backend API to save the new strategy
+        // we will need validation on this
+        // And there will be some logic that either restarts the app or puts the strategy back into pending state.
+        // So we will need to recall the api to get the list of live strategies in the system
+        setIsCreateModalOpen(false)
+    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-32px-68px)] w-screen overflow-hidden p-4">
@@ -177,9 +189,7 @@ const LiveStrategyView = () => {
                     <Card className="h-full flex flex-col p-6">
                         {/* Chart Section */}
                         <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
-                            {isStrategyRunning && isAsync ? (
-                                <LoadingChart progressData={progressData} startTime={startTime}/>
-                            ) : chartData && chartData.length > 0 ? (
+                            {chartData && chartData.length > 0 ? (
                                 <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             ) : (
                                 <EmptyChart trades={trades} showChart={showChart}/>
@@ -296,6 +306,12 @@ const LiveStrategyView = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSave={handleConfigSave}
                 strategyConfig={pickedLiveStrategy}
+            />
+            <LiveCreateStratModal
+                open={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSave={handleNewStratSave}
+                strategies={strategies}
             />
         </div>
     );

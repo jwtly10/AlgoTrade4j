@@ -264,7 +264,6 @@ export const useLive = () => {
     };
 
     const handleWebSocketMessage = (data) => {
-        console.log("Are we getting any ws data? " + data)
         if (
             data.type === 'BAR' ||
             (data.type === 'TRADE' && (data.action === 'OPEN' || data.action === 'CLOSE'))

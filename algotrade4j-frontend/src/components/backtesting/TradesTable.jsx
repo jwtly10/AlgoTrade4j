@@ -122,9 +122,9 @@ function TradesTable({trades}) {
                                 <TableCell>{trade.instrument}</TableCell>
                                 <TableCell>{trade.entry}</TableCell>
                                 <TableCell>{trade.closePrice}</TableCell>
-                                <TableCell>{trade.stopLoss}</TableCell>
-                                <TableCell>{trade.takeProfit}</TableCell>
-                                <TableCell>${trade.profit}</TableCell>
+                                <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
+                                <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
+                                <TableCell>${trade.profit ? trade.profit : "0.00"}</TableCell>
                             </TableRow>
                         ))}
                 </TableBody>

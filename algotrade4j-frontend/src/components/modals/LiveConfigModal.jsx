@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {format} from "date-fns";
 import {Button} from "@/components/ui/button";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input";
@@ -11,6 +10,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {InfoIcon} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
+import isEqual from 'lodash/isEqual';
 
 const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
     if (!strategyConfig) {
@@ -19,13 +19,16 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
     const [activeTab, setActiveTab] = useState('parameters');
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
+    const [localConfig, setLocalConfig] = useState(strategyConfig);
+    const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
         if (open && strategyConfig) {
+            setLocalConfig(strategyConfig);
+            setHasChanges(false);
             const groups = Object.keys(groupParams(strategyConfig.config.runParams));
             setActiveGroup(groups[0] || '');
         }
-
     }, [open, strategyConfig]);
 
     useEffect(() => {
@@ -49,46 +52,39 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
             return groups;
         }, {});
     };
-
-    const handleDateChange = (field, date) => {
-        const updatedConfig = {
-            ...strategyConfig,
-            config: {
-                ...strategyConfig.config,
-                timeframe: {
-                    ...strategyConfig.config.timeframe,
-                    [field]: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : ''
-                }
-            }
-        };
-        onSave(updatedConfig);
-    };
+    ;
 
     const handleInputChange = (index, field, value) => {
-        const updatedRunParams = [...strategyConfig.config.runParams];
-        updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
-        const updatedConfig = {
-            ...strategyConfig,
-            config: {
-                ...strategyConfig.config,
-                runParams: updatedRunParams
-            }
-        };
-        onSave(updatedConfig);
+        setLocalConfig(prevConfig => {
+            const updatedRunParams = [...prevConfig.config.runParams];
+            updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
+            const newConfig = {
+                ...prevConfig,
+                config: {
+                    ...prevConfig.config,
+                    runParams: updatedRunParams
+                }
+            };
+            setHasChanges(!isEqual(newConfig, strategyConfig));
+            return newConfig;
+        });
     };
 
     const handleConfigChange = (field, value) => {
-        const updatedConfig = {
-            ...strategyConfig,
-            config: {
-                ...strategyConfig.config,
-                [field]: value,
-            }
-        };
-        onSave(updatedConfig);
+        setLocalConfig(prevConfig => {
+            const newConfig = {
+                ...prevConfig,
+                config: {
+                    ...prevConfig.config,
+                    [field]: value,
+                }
+            };
+            setHasChanges(!isEqual(newConfig, strategyConfig));
+            return newConfig;
+        });
     };
 
-    const groupedParams = groupParams(strategyConfig.config.runParams);
+    const groupedParams = groupParams(localConfig.config.runParams);
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -171,34 +167,15 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
                                     <Label htmlFor="initial-cash">Initial Cash</Label>
                                     <Input
                                         id="initial-cash"
-                                        value={strategyConfig.config.initialCash}
+                                        value={localConfig.config.initialCash}
                                         onChange={(e) => handleConfigChange('initialCash', e.target.value)}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="spread">Spread</Label>
-                                    <Select
-                                        value={strategyConfig.config.spread}
-                                        onValueChange={(value) => handleConfigChange('spread', value)}
-                                    >
-                                        <SelectTrigger id="spread">
-                                            <SelectValue placeholder="Select spread"/>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="5">5</SelectItem>
-                                            <SelectItem value="10">10</SelectItem>
-                                            <SelectItem value="30">30</SelectItem>
-                                            <SelectItem value="50">50</SelectItem>
-                                            <SelectItem value="100">100</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
                                     <Label htmlFor="instrument">Instrument</Label>
                                     <Select
-                                        value={strategyConfig.config.instrumentData.internalSymbol || ''}
+                                        value={localConfig.config.instrumentData.internalSymbol || ''}
                                         onValueChange={(value) => {
                                             const selectedInstrument = instruments.find(i => i.internalSymbol === value)
                                             handleConfigChange('instrumentData', selectedInstrument)
@@ -224,20 +201,20 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
                                 <div className="space-y-2">
                                     <Label htmlFor="period">Period</Label>
                                     <Select
-                                        value={strategyConfig.config.period}
+                                        value={localConfig.config.period}
                                         onValueChange={(value) => handleConfigChange('period', value)}
                                     >
                                         <SelectTrigger id="period">
                                             <SelectValue placeholder="Select period"/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="M1">1m</SelectItem>
-                                            <SelectItem value="M5">5m</SelectItem>
-                                            <SelectItem value="M15">15m</SelectItem>
-                                            <SelectItem value="M30">30m</SelectItem>
-                                            <SelectItem value="H1">1H</SelectItem>
-                                            <SelectItem value="H4">4H</SelectItem>
-                                            <SelectItem value="D">1D</SelectItem>
+                                            <SelectItem value="M1">M1</SelectItem>
+                                            <SelectItem value="M5">M5</SelectItem>
+                                            <SelectItem value="M15">M15</SelectItem>
+                                            <SelectItem value="M30">M30</SelectItem>
+                                            <SelectItem value="H1">H1</SelectItem>
+                                            <SelectItem value="H4">H4</SelectItem>
+                                            <SelectItem value="D">D</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -245,8 +222,20 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
                         </ScrollArea>
                     </TabsContent>
                 </Tabs>
-                <DialogFooter>
-                    <Button onClick={onClose}>Close</Button>
+                <DialogFooter className="space-x-2">
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="default"
+                        onClick={() => onSave(localConfig)}
+                        disabled={!hasChanges}
+                    >
+                        Save changes
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
