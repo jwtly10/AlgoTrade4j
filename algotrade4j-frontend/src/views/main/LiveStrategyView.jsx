@@ -1,7 +1,5 @@
 import React, {useState} from 'react';
 import 'chartjs-adapter-date-fns';
-import AnalysisReport from '../../components/backtesting/AnalysisReport.jsx';
-import {EquityChart} from '../../components/backtesting/EquityChart.jsx';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
 import TradingViewChart from "../../components/backtesting/TradingViewChart.jsx";
@@ -18,6 +16,7 @@ import LiveCreateStratModal from "@/components/modals/LiveCreateStratModal.jsx";
 
 const LiveStrategyView = () => {
     const {
+        isConnected,
         isStrategyRunning,
         account,
         trades,
@@ -187,52 +186,43 @@ const LiveStrategyView = () => {
                 {/* Left section (3/4 width) */}
                 <div className="flex-grow h-full overflow-hidden">
                     <Card className="h-full flex flex-col p-6">
-                        {/* Chart Section */}
-                        <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
-                            {chartData && chartData.length > 0 ? (
-                                <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
-                            ) : (
-                                <EmptyChart trades={trades} showChart={showChart}/>
-                            )}
-                        </div>
+                        {isConnected ? (
+                            <>
+                                {/* Chart Section */}
+                                <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
+                                    {chartData && chartData.length > 0 ? (
+                                        <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
+                                    ) : (
+                                        <EmptyChart trades={trades} showChart={showChart}/>
+                                    )}
+                                </div>
 
-                        {/* Tabs and Content Section */}
-                        <Tabs value={tabValue} onValueChange={setTabValue} className="flex-grow flex flex-col overflow-hidden">
-                            <TabsList>
-                                <TabsTrigger value="trades">Trades</TabsTrigger>
-                                <TabsTrigger value="analysis">Analysis</TabsTrigger>
-                                <TabsTrigger value="equity">Equity History</TabsTrigger>
-                                <TabsTrigger value="logs">Logs</TabsTrigger>
-                            </TabsList>
-                            <div className="flex-grow overflow-hidden">
-                                <TabsContent value="trades" className="h-full overflow-auto">
-                                    <TradesTable trades={trades}/>
-                                </TabsContent>
-                                <TabsContent value="analysis" className="h-full overflow-auto">
-                                    {analysisData !== null ? (
-                                        <AnalysisReport data={analysisData}/>
-                                    ) : (
-                                        <p className="p-4 text-center">No analysis data available yet.</p>
-                                    )}
-                                </TabsContent>
-                                <TabsContent value="equity" className="h-full">
-                                    {equityHistory.length > 0 ? (
-                                        <div className="h-full">
-                                            <EquityChart equityHistory={equityHistory}/>
-                                        </div>
-                                    ) : (
-                                        <p className="p-4 text-center">No equity history available yet.</p>
-                                    )}
-                                </TabsContent>
-                                <TabsContent value="logs" className="h-full overflow-auto">
-                                    {logs.length > 0 ? (
-                                        <LogsTable logs={logs}/>
-                                    ) : (
-                                        <p className="p-4 text-center">Logs are available once you run a new strategy.</p>
-                                    )}
-                                </TabsContent>
+                                {/* Tabs and Content Section */}
+                                <Tabs value={tabValue} onValueChange={setTabValue} className="flex-grow flex flex-col overflow-hidden">
+                                    <TabsList>
+                                        <TabsTrigger value="trades">Trades</TabsTrigger>
+                                        <TabsTrigger value="logs">Logs</TabsTrigger>
+                                    </TabsList>
+                                    <div className="flex-grow overflow-hidden">
+                                        <TabsContent value="trades" className="h-full overflow-auto">
+                                            <TradesTable trades={trades} split={true}/>
+                                        </TabsContent>
+                                        <TabsContent value="logs" className="h-full overflow-auto">
+                                            {logs.length > 0 ? (
+                                                <LogsTable logs={logs}/>
+                                            ) : (
+                                                <p className="p-4 text-center">No logs available</p>
+                                            )}
+                                        </TabsContent>
+                                    </div>
+                                </Tabs>
+                            </>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center">
+                                <h2 className="text-2xl font-bold mb-4">No Live Strategy Connected</h2>
+                                <p className="text-center mb-6">Select a strategy from the right panel to view live data.</p>
                             </div>
-                        </Tabs>
+                        )}
                     </Card>
                 </div>
 

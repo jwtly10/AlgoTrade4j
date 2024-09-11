@@ -42,6 +42,8 @@ export const useLive = () => {
     const [showChart, setShowChart] = useState(true);
     const [startTime, setStartTime] = useState(null);
 
+    const [isConnected, setIsConnected] = useState(false);
+
     const [strategyConfig, setStrategyConfig] = useState({
         strategyClass: '',
         initialCash: '10000',
@@ -232,6 +234,7 @@ export const useLive = () => {
                 "testing",
                 handleWebSocketMessage
             );
+            setIsConnected(true);
             setStartTime(Date.now());
         } catch (error) {
             log.error('Failed to start strategy:', error);
@@ -241,6 +244,7 @@ export const useLive = () => {
                 variant: "destructive",
             });
             setIsStrategyRunning(false);
+            setIsConnected(false);
         }
     };
 
@@ -669,6 +673,7 @@ export const useLive = () => {
     };
 
     return {
+        isConnected,
         isStrategyRunning,
         account,
         trades,

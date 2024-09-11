@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Button} from "@/components/ui/button";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+
 
 function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPerPageChange}) {
     const totalPages = Math.ceil(count / rowsPerPage);
@@ -70,17 +72,30 @@ function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPe
     );
 }
 
-function TradesTable({trades}) {
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+function TradesTable({trades, split = false}) {
+    const [openPage, setOpenPage] = useState(0);
+    const [closedPage, setClosedPage] = useState(0);
+    const [openRowsPerPage, setOpenRowsPerPage] = useState(10);
+    const [closedRowsPerPage, setClosedRowsPerPage] = useState(10);
+    const [activeTab, setActiveTab] = useState("open");
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleChangePage = (tabType) => (event, newPage) => {
+        if (tabType === 'open') {
+            setOpenPage(newPage);
+        } else {
+            setClosedPage(newPage);
+        }
     };
 
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+    const handleChangeRowsPerPage = (tabType) => (event) => {
+        const newRowsPerPage = parseInt(event.target.value, 10);
+        if (tabType === 'open') {
+            setOpenRowsPerPage(newRowsPerPage);
+            setOpenPage(0);
+        } else {
+            setClosedRowsPerPage(newRowsPerPage);
+            setClosedPage(0);
+        }
     };
 
     if (trades.length === 0) {
@@ -91,7 +106,10 @@ function TradesTable({trades}) {
         );
     }
 
-    return (
+    const openTrades = trades.filter(trade => !trade.closeTime && (!trade.closePrice || trade.closePrice === 0));
+    const closedTrades = trades.filter(trade => trade.closeTime || (trade.closePrice && trade.closePrice !== 0));
+
+    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange) => (
         <div className="rounded-md border">
             <Table>
                 <TableHeader>
@@ -110,34 +128,71 @@ function TradesTable({trades}) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {trades
+                    {tradesToRender
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((trade) => (
                             <TableRow key={trade.id}>
                                 <TableCell>{trade.tradeId}</TableCell>
                                 <TableCell>{new Date(trade.openTime * 1000).toLocaleString()}</TableCell>
                                 <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
-                                <TableCell>{trade.closeTime ? new Date(trade.closeTime * 1000).toLocaleString() : "N/A"}</TableCell>
+                                <TableCell>{trade.closeTime ? new Date(trade.closeTime * 1000).toLocaleString() : ""}</TableCell>
                                 <TableCell>{trade.quantity}</TableCell>
                                 <TableCell>{trade.instrument}</TableCell>
                                 <TableCell>{trade.entry}</TableCell>
-                                <TableCell>{trade.closePrice}</TableCell>
+                                <TableCell>{trade.closePrice !== 0 ? trade.closePrice : ""}</TableCell>
                                 <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
                                 <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
-                                <TableCell>${trade.profit ? trade.profit : "0.00"}</TableCell>
+                                <TableCell>{trade.profit ? trade.profit : "0.00"}</TableCell>
                             </TableRow>
                         ))}
                 </TableBody>
             </Table>
             <CustomTablePagination
-                count={trades.length}
+                count={tradesToRender.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
+                onPageChange={onPageChange}
+                onRowsPerPageChange={onRowsPerPageChange}
             />
         </div>
     );
+
+    if (split) {
+        return (
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                    <TabsTrigger value="open">Open Trades</TabsTrigger>
+                    <TabsTrigger value="closed">Closed Trades</TabsTrigger>
+                </TabsList>
+                <TabsContent value="open">
+                    {renderTable(
+                        openTrades,
+                        openPage,
+                        openRowsPerPage,
+                        handleChangePage('open'),
+                        handleChangeRowsPerPage('open')
+                    )}
+                </TabsContent>
+                <TabsContent value="closed">
+                    {renderTable(
+                        closedTrades,
+                        closedPage,
+                        closedRowsPerPage,
+                        handleChangePage('closed'),
+                        handleChangeRowsPerPage('closed')
+                    )}
+                </TabsContent>
+            </Tabs>
+        );
+    } else {
+        return renderTable(
+            trades,
+            openPage,
+            openRowsPerPage,
+            handleChangePage('open'),
+            handleChangeRowsPerPage('open')
+        );
+    }
 }
 
 export default TradesTable;

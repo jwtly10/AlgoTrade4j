@@ -82,7 +82,7 @@ public class LiveExecutor implements DataListener {
         }
 
         // Start polling for account/trade data
-        scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 1, TimeUnit.SECONDS);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Live Strategy initialized"));
     }
 
