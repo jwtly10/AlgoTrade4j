@@ -23,9 +23,11 @@ import java.util.List;
 public class OandaBrokerClient implements BrokerClient {
 
     private final OandaClient client;
+    private final String accountId;
 
-    public OandaBrokerClient(OandaClient client) {
+    public OandaBrokerClient(OandaClient client, String accountId) {
         this.client = client;
+        this.accountId = accountId;
     }
 
     public List<DefaultBar> fetchCandles(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
@@ -34,8 +36,12 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public Account getAccountInfo() {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot fetch account info.");
+            throw new RuntimeException("Account ID not set. Cannot fetch account info.");
+        }
         try {
-            OandaAccountResponse res = client.fetchAccount();
+            OandaAccountResponse res = client.fetchAccount(accountId);
             // TODO: Make initial balance settable at account level
             return new Account(100000, Double.parseDouble(res.account().balance()), Double.parseDouble(res.account().balance()));
         } catch (Exception e) {
@@ -46,8 +52,12 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public List<Trade> getOpenTrades() {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot fetch open trades.");
+            throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
+        }
         try {
-            OandaTradeResponse res = client.fetchTrades(null, TradeStateFilter.OPEN, null, null);
+            OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.OPEN, null, null);
             return res.trades().stream().map(OandaTrade::toTrade).toList();
         } catch (Exception e) {
             log.error("Error fetching open trades", e);
@@ -57,8 +67,12 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public List<Trade> getAllTrades() {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot fetch all trades.");
+            throw new RuntimeException("Account ID not set. Cannot fetch all trades.");
+        }
         try {
-            OandaTradeResponse res = client.fetchTrades(null, TradeStateFilter.ALL, null, null);
+            OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, null);
             return res.trades().stream().map(OandaTrade::toTrade).toList();
         } catch (Exception e) {
             log.error("Error fetching all trades", e);
@@ -68,6 +82,10 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public Trade openTrade(Trade trade) {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot open trade.");
+            throw new RuntimeException("Account ID not set. Cannot open trade.");
+        }
         try {
             MarketOrderRequest req = MarketOrderRequest.builder()
                     .type(MarketOrderRequest.OrderType.MARKET)
@@ -83,7 +101,7 @@ public class OandaBrokerClient implements BrokerClient {
                             .timeInForce(MarketOrderRequest.TimeInForce.GTC)
                             .build())
                     .build();
-            OandaOpenTradeResponse res = client.openTrade(req);
+            OandaOpenTradeResponse res = client.openTrade(accountId, req);
 
             return new Trade(
                     Integer.parseInt(res.orderFillTransaction().orderID()), // external id
@@ -103,10 +121,30 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public void closeTrade(Integer tradeId) {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot close trade.");
+            throw new RuntimeException("Account ID not set. Cannot close trade.");
+        }
         try {
-            client.closeTrade(String.valueOf(tradeId));
+            client.closeTrade(accountId, String.valueOf(tradeId));
         } catch (Exception e) {
             log.error("Error closing trade", e);
         }
+    }
+
+    @Override
+    public void streamPrices(List<Instrument> instruments, Object callback) {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot stream prices.");
+            throw new RuntimeException("Account ID not set. Cannot stream prices.");
+        }
+        try {
+            // Hack - we don't have any other clients so this works for now.
+            OandaClient.PriceStreamCallback c = (OandaClient.PriceStreamCallback) callback;
+            client.streamPrices(accountId, instruments, c);
+        } catch (Exception e) {
+            log.error("Error streaming prices", e);
+        }
+
     }
 }

@@ -8,7 +8,6 @@ import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
 import dev.jwtly10.marketdata.oanda.response.*;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -32,21 +31,25 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OandaClient {
     private final String apiKey;
-    private final String accountId;
     private final String apiUrl;
     private final OkHttpClient client;
-    @Setter
-    private String streamUrl = "https://stream-fxpractice.oanda.com";
+    private final String streamUrl;
 
-    public OandaClient(String apiUrl, String apiKey, String accountId, OkHttpClient client) {
+    public OandaClient(String apiUrl, String apiKey, OkHttpClient client) {
         this.apiKey = apiKey;
-        this.accountId = accountId;
         this.apiUrl = apiUrl;
         this.client = client;
+
+        if (apiUrl.contains("trade")) {
+//            streamUrl = "https://stream-fxtrade.oanda.com";
+            throw new IllegalArgumentException("Live trading on real account is not supported yet");
+        } else {
+            streamUrl = "https://stream-fxpractice.oanda.com";
+        }
     }
 
-    public OandaClient(String apiUrl, String apiKey, String accountId) {
-        this(apiUrl, apiKey, accountId, new OkHttpClient());
+    public OandaClient(String apiUrl, String apiKey) {
+        this(apiUrl, apiKey, new OkHttpClient());
     }
 
     /**
@@ -106,9 +109,9 @@ public class OandaClient {
      * @return the OandaTradeResponse containing the trade data
      * @throws Exception if an error occurs while fetching the data
      */
-    public OandaTradeResponse fetchTrades(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
+    public OandaTradeResponse fetchTrades(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
         log.debug("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
-        String url = buildTradesUrl(ids, state, instrument, count);
+        String url = buildTradesUrl(accountId, ids, state, instrument, count);
 
         Request req = new Request.Builder()
                 .url(url)
@@ -137,7 +140,7 @@ public class OandaClient {
      * @return the OandaAccountResponse containing the account details
      * @throws Exception
      */
-    public OandaAccountResponse fetchAccount() throws Exception {
+    public OandaAccountResponse fetchAccount(String accountId) throws Exception {
         log.debug("Fetching account details for account {}", accountId);
 
         String url = apiUrl + "/v3/accounts/" + accountId;
@@ -163,7 +166,7 @@ public class OandaClient {
         }
     }
 
-    public OandaOpenTradeResponse openTrade(MarketOrderRequest orderRequest) throws Exception {
+    public OandaOpenTradeResponse openTrade(String accountId, MarketOrderRequest orderRequest) throws Exception {
         log.debug("Opening trade: {}", orderRequest);
         String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
 
@@ -198,7 +201,7 @@ public class OandaClient {
         }
     }
 
-    public void closeTrade(String id) throws Exception {
+    public void closeTrade(String accountId, String id) throws Exception {
         log.debug("Closing trade: {}", id);
         String url = apiUrl + "/v3/accounts/" + accountId + "/trades/" + id + "/close";
 
@@ -230,7 +233,7 @@ public class OandaClient {
      * @param instruments the list of instruments to stream prices for
      * @param callback    the callback to be invoked for each price update
      */
-    public void streamPrices(List<Instrument> instruments, PriceStreamCallback callback) {
+    public void streamPrices(String accountId, List<Instrument> instruments, PriceStreamCallback callback) {
         log.debug("Streaming prices for instruments: {}", instruments);
         String instrumentParams = instruments.stream()
                 .map(Instrument::getOandaSymbol)
@@ -277,9 +280,10 @@ public class OandaClient {
     /**
      * Streams transactions for the account and invokes the callback for each transaction update.
      *
-     * @param callback the callback to be invoked for each transaction update
+     * @param accountId the account id to stream transactions for
+     * @param callback  the callback to be invoked for each transaction update
      */
-    public void streamTransactions(TransactionStreamCallback callback) {
+    public void streamTransactions(String accountId, TransactionStreamCallback callback) {
         log.debug("Streaming transactions for account: {}", accountId);
         String url = String.format("%s/v3/accounts/%s/transactions/stream", streamUrl, accountId);
 
@@ -324,13 +328,14 @@ public class OandaClient {
     /**
      * Builds the URL for fetching trades based on the specified parameters.
      *
+     * @param accountId  the account id to build url for
      * @param ids        the list of trade ids to fetch
      * @param state      the state of the trades to fetch
      * @param instrument the instrument to filter by
      * @param count      the number of trades to fetch
      * @return the URL for fetching trades
      */
-    private String buildTradesUrl(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
+    private String buildTradesUrl(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
         // TODO: Haven't implemented beforeId (see Oanda API documentation)
         StringBuilder urlBuilder = new StringBuilder(String.format("%s/v3/accounts/%s/trades", apiUrl, accountId));
 

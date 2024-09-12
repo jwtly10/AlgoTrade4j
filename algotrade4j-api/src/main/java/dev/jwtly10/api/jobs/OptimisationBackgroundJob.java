@@ -46,13 +46,7 @@ public class OptimisationBackgroundJob {
     private final ExecutorFactory executorFactory;
     private final DataManagerFactory dataManagerFactory;
 
-    @Value("${oanda.api.key}")
-    private String oandaApiKey;
-    @Value("${oanda.account.id}")
-    private String oandaAccountId;
-    @Value("${oanda.api.url}")
-    private String oandaApiUrl;
-
+    private final OandaClient oandaClient;
 
     public OptimisationBackgroundJob(
             OptimisationTaskService taskService,
@@ -60,13 +54,16 @@ public class OptimisationBackgroundJob {
             @Value("${optimisation.max.concurrent.tasks:1}") int maxConcurrentTasks,
             StrategyFactory strategyFactory,
             ExecutorFactory executorFactory,
-            DataManagerFactory dataManagerFactory) {
+            DataManagerFactory dataManagerFactory,
+            OandaClient oandaClient
+    ) {
         this.taskService = taskService;
         this.resultService = resultService;
         this.taskSemaphore = new Semaphore(maxConcurrentTasks);
         this.strategyFactory = strategyFactory;
         this.executorFactory = executorFactory;
         this.dataManagerFactory = dataManagerFactory;
+        this.oandaClient = oandaClient;
     }
 
 
@@ -123,8 +120,7 @@ public class OptimisationBackgroundJob {
     }
 
     private void runOptimisation(OptimisationConfig config, OptimisationTask task) throws Exception {
-        OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
-        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient);
+        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient, null);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(ZoneId.of("UTC"));

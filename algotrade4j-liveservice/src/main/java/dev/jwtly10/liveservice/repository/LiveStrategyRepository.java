@@ -10,4 +10,6 @@ import java.util.List;
 public interface LiveStrategyRepository extends JpaRepository<LiveStrategy, Long> {
     List<LiveStrategy> findLiveStrategiesByHiddenIsFalse();
 
+    List<LiveStrategy> findLiveStrategiesByHiddenIsFalseAndActiveIsTrue();
+
 }

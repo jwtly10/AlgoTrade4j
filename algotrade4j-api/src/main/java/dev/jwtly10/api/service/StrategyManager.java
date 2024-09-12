@@ -24,7 +24,6 @@ import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -44,17 +43,12 @@ import java.util.stream.Collectors;
 public class StrategyManager {
     private final EventPublisher eventPublisher;
     private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
+    private final OandaClient oandaClient;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
-    @Value("${oanda.api.key}")
-    private String oandaApiKey;
-    @Value("${oanda.account.id}")
-    private String oandaAccountId;
-    @Value("${oanda.api.url}")
-    private String oandaApiUrl;
-
-    public StrategyManager(EventPublisher eventPublisher) {
+    public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient) {
         this.eventPublisher = eventPublisher;
+        this.oandaClient = oandaClient;
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
@@ -64,8 +58,7 @@ public class StrategyManager {
         int spread = config.getSpread();
         Instrument instrument = config.getInstrumentData().getInstrument();
 
-        OandaClient oandaClient = new OandaClient(oandaApiUrl, oandaApiKey, oandaAccountId);
-        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient);
+        OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient, null);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
         // Ensure utc

@@ -6,6 +6,7 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
@@ -24,15 +25,14 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
     private final Instrument instrument;
     private final List<DataProviderListener> listeners;
-    private final OandaClient oandaClient; // Assuming you have an OandaClient class
+    private final OandaBrokerClient oandaClient;
     @Setter
     private DataSpeed dataSpeed = DataSpeed.INSTANT;
     @Getter
     private boolean isRunning;
-
     private ZonedDateTime from;
 
-    public LiveExternalDataProvider(OandaClient oandaClient, Instrument instrument) {
+    public LiveExternalDataProvider(OandaBrokerClient oandaClient, Instrument instrument) {
         this.oandaClient = oandaClient;
         this.instrument = instrument;
         this.listeners = new ArrayList<>();

@@ -40,18 +40,19 @@ class OandaIntegrationTest {
     private OandaClient client;
     private OandaDataClient oandaClient;
     private OandaBrokerClient brokerClient;
+    private String accountId;
 
     @BeforeEach
     void setUp() {
         String apiKey = System.getenv("OANDA_API_KEY");
-        String accountId = System.getenv("OANDA_ACCOUNT_ID");
+        this.accountId = System.getenv("OANDA_ACCOUNT_ID");
         String baseUrl = "https://api-fxpractice.oanda.com";
 
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
         assertNotNull(accountId, "OANDA_ACCOUNT_ID environment variable must be set");
 
-        client = new OandaClient(baseUrl, apiKey, accountId);
-        brokerClient = new OandaBrokerClient(client);
+        client = new OandaClient(baseUrl, apiKey);
+        brokerClient = new OandaBrokerClient(client, null);
         oandaClient = new OandaDataClient(brokerClient);
     }
 
@@ -196,25 +197,25 @@ class OandaIntegrationTest {
     @Test
     void testCanFetchTrades() throws Exception {
         // Test can fetch with instrument filter
-        var res = client.fetchTrades(null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
+        var res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
         System.out.println(res);
         assertNotNull(res.lastTransactionID());
 //        assertNotEquals(0, res.trades().size());
 
         // Test can fetch with no instrument filter
-        var res2 = client.fetchTrades(null, TradeStateFilter.ALL, null, 10);
+        var res2 = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, 10);
         System.out.println(res2);
         assertNotNull(res2.lastTransactionID());
 //        assertNotEquals(0, res2.trades().size());
 
         // Fetch trades with specific ids
-        var res3 = client.fetchTrades(List.of("5", "10"), TradeStateFilter.ALL, null, 10);
+        var res3 = client.fetchTrades(accountId, List.of("5", "10"), TradeStateFilter.ALL, null, 10);
         System.out.println(res3);
         assertNotNull(res3.lastTransactionID());
 //        assertEquals(2, res3.trades().size());
 
         // Fetch open trades
-        var res4 = client.fetchTrades(null, TradeStateFilter.OPEN, null, 10);
+        var res4 = client.fetchTrades(accountId, null, TradeStateFilter.OPEN, null, 10);
         System.out.println(res4);
         assertNotNull(res4.lastTransactionID());
 //        assertNotEquals(0, res4.trades().size());
@@ -222,7 +223,7 @@ class OandaIntegrationTest {
 
     @Test
     void testCanFetchAccountDetails() throws Exception {
-        OandaAccountResponse res = client.fetchAccount();
+        OandaAccountResponse res = client.fetchAccount(accountId);
         System.out.println(res);
     }
 
@@ -231,7 +232,7 @@ class OandaIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTicks = new AtomicInteger(0);
 
-        client.streamPrices(List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
+        client.streamPrices(accountId, List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
             @Override
             public void onPrice(OandaPriceResponse price) {
                 System.out.println(price);
@@ -270,7 +271,7 @@ class OandaIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTrans = new AtomicInteger(0);
 
-        client.streamTransactions(new OandaClient.TransactionStreamCallback() {
+        client.streamTransactions(accountId, new OandaClient.TransactionStreamCallback() {
             @Override
             public void onTransaction(OandaTransactionResponse transaction) {
                 System.out.println(transaction);
@@ -319,11 +320,11 @@ class OandaIntegrationTest {
                         .timeInForce(MarketOrderRequest.TimeInForce.GTC)
                         .build())
                 .build();
-        OandaOpenTradeResponse trade = client.openTrade(req);
+        OandaOpenTradeResponse trade = client.openTrade(accountId, req);
         assertNotNull(trade);
         System.out.println(trade);
 
         // Test closing a trade
-        client.closeTrade(trade.orderFillTransaction().tradeOpened().tradeID());
+        client.closeTrade(accountId, trade.orderFillTransaction().tradeOpened().tradeID());
     }
 }

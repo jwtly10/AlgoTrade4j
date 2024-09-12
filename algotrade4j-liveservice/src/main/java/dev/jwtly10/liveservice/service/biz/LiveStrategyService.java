@@ -27,6 +27,11 @@ public class LiveStrategyService {
         return liveStrategyRepository.findLiveStrategiesByHiddenIsFalse();
     }
 
+    public List<LiveStrategy> getActiveLiveStrategies() {
+        log.info("Fetching all active live strategies");
+        return liveStrategyRepository.findLiveStrategiesByHiddenIsFalseAndActiveIsTrue();
+    }
+
     public LiveStrategy updateStrategyStats(Long liveStrategyId, Stats stats) {
         log.info("Updating live strategy stats for strategy ID: {}", liveStrategyId);
 

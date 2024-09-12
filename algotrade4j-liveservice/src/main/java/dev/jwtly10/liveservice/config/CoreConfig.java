@@ -9,12 +9,19 @@ import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.liveservice.repository.RunnerRepository;
-import dev.jwtly10.liveservice.service.LiveStrategyManager;
+import dev.jwtly10.marketdata.oanda.OandaClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CoreConfig {
+
+    @Value("${oanda.api.key}")
+    private String oandaApiKey;
+    @Value("${oanda.api.url}")
+    private String oandaApiUrl;
+
 
     @Bean
     public EventPublisher eventPublisher() {
@@ -24,11 +31,6 @@ public class CoreConfig {
     @Bean
     public StrategyFactory strategyFactory() {
         return new DefaultStrategyFactory();
-    }
-
-    @Bean
-    public LiveStrategyManager liveStrategyManager(EventPublisher eventPublisher, RunnerRepository runnerRepository) {
-        return new LiveStrategyManager(eventPublisher, runnerRepository);
     }
 
     @Bean
@@ -44,5 +46,10 @@ public class CoreConfig {
     @Bean
     public RunnerRepository runnerRepository() {
         return new RunnerRepository();
+    }
+
+    @Bean
+    public OandaClient oandaClient() {
+        return new OandaClient(oandaApiUrl, oandaApiKey);
     }
 }
