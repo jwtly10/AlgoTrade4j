@@ -1,5 +1,6 @@
 package dev.jwtly10.liveservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,10 +16,11 @@ import java.time.LocalDateTime;
  * LiveStrategy
  */
 @Entity
-@Table(name = "live_strategy_tb")
+@Table(name = "live_strategies_tb")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LiveStrategy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +29,9 @@ public class LiveStrategy {
     @Column(name = "strategy_name", nullable = false)
     private String strategyName;
 
-    @Column(name = "broker_config", nullable = false, columnDefinition = "json")
-    @JdbcTypeCode(SqlTypes.JSON)
-    private BrokerConfig brokerConfig;
+    @OneToOne
+    @JoinColumn(name = "broker_account_id", nullable = false)
+    private BrokerAccount brokerAccount;
 
     @Column(nullable = false, columnDefinition = "json")
     @JdbcTypeCode(SqlTypes.JSON)

@@ -1,9 +1,9 @@
-package dev.jwtly10.liveservice.service;
+package dev.jwtly10.liveservice.service.biz;
 
 import dev.jwtly10.common.exception.ApiException;
 import dev.jwtly10.common.exception.ErrorType;
+import dev.jwtly10.liveservice.model.BrokerAccount;
 import dev.jwtly10.liveservice.model.LiveStrategy;
-import dev.jwtly10.liveservice.model.LiveStrategyConfig;
 import dev.jwtly10.liveservice.model.Stats;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +15,11 @@ import java.util.List;
 @Slf4j
 public class LiveStrategyService {
     private final LiveStrategyRepository liveStrategyRepository;
+    private final BrokerAccountService brokerAccountService;
 
-    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository) {
+    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository, BrokerAccountService brokerAccountService) {
         this.liveStrategyRepository = liveStrategyRepository;
+        this.brokerAccountService = brokerAccountService;
     }
 
     public List<LiveStrategy> getNonHiddenLiveStrategies() {
@@ -36,17 +38,19 @@ public class LiveStrategyService {
         return liveStrategyRepository.save(liveStrategy);
     }
 
-    public LiveStrategy createLiveStrategy(LiveStrategyConfig config, String strategyName) {
-        log.info("Creating live strategy: {}", strategyName);
-        config.validate();
+    public LiveStrategy createLiveStrategy(LiveStrategy strategy) {
+        log.info("Creating live strategy: {}", strategy.getStrategyName());
+        // Validate live strategy configuration
+
+        // Validate live strategy name must be unique
+
+        // Validate broker config
+        BrokerAccount brokerAccount = brokerAccountService.getBrokerAccount(strategy.getBrokerAccount().getAccountId());
+        strategy.setBrokerAccount(brokerAccount);
 
         // Save the strategy to the database
-        LiveStrategy liveStrategy = new LiveStrategy();
-        liveStrategy.setStrategyName(strategyName);
-        liveStrategy.setConfig(config);
-        liveStrategy.setActive(false); // Will force the user to activate the strategy specifically
-
-        return liveStrategyRepository.save(liveStrategy);
+        strategy.setActive(false); // Will force the user to activate the strategy specifically, when they want to run it
+        return liveStrategyRepository.save(strategy);
     }
 
     public LiveStrategy toggleStrategy(Long id) {

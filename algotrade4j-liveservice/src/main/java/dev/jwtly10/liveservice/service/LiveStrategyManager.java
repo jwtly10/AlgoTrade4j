@@ -111,11 +111,11 @@ public class LiveStrategyManager {
                 )
                 .build();
 
-        try {
-            start(config, "testing");
-        } catch (Exception e) {
-            log.error("Error starting strategy", e);
-        }
+//        try {
+//            start(config, "testing");
+//        } catch (Exception e) {
+//            log.error("Error starting strategy", e);
+//        }
     }
 
     public void start(LiveStrategyConfig config, String strategyName) throws Exception {

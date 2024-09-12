@@ -1,26 +1,26 @@
 import React, {useEffect, useState} from 'react';
-import {Button} from "@/components/ui/button";
-import {Checkbox} from "@/components/ui/checkbox";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {Textarea} from "@/components/ui/textarea";
+import {Button} from '@/components/ui/button';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
+import {Textarea} from '@/components/ui/textarea';
 import {CalendarIcon, InfoIcon} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
 import log from '../../logger.js';
-import {useToast} from "@/hooks/use-toast";
-import {ScrollArea} from "@/components/ui/scroll-area";
-import {Calendar} from "@/components/ui/calendar"
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
-import {format, parseISO} from "date-fns"
+import {useToast} from '@/hooks/use-toast';
+import {ScrollArea} from '@/components/ui/scroll-area';
+import {Calendar} from '@/components/ui/calendar';
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {format, parseISO} from 'date-fns';
 
 const JsonImportDialog = ({open, onClose, onImport}) => {
     const [jsonInput, setJsonInput] = useState('');
-    const {toast} = useToast()
+    const {toast} = useToast();
 
     const handleImport = () => {
         try {
@@ -28,12 +28,12 @@ const JsonImportDialog = ({open, onClose, onImport}) => {
             onImport(importedConfig);
             onClose();
         } catch (error) {
-            log.error("Failed to parse imported JSON", error);
+            log.error('Failed to parse imported JSON', error);
             toast({
-                title: "Import Error",
-                description: "Failed to parse the imported JSON. Please check your input.",
-                variant: "destructive",
-            })
+                title: 'Import Error',
+                description: 'Failed to parse the imported JSON. Please check your input.',
+                variant: 'destructive',
+            });
         }
     };
 
@@ -56,7 +56,9 @@ const JsonImportDialog = ({open, onClose, onImport}) => {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button variant="outline" onClick={onClose}>
+                        Cancel
+                    </Button>
                     <Button onClick={handleImport}>Import</Button>
                 </DialogFooter>
             </DialogContent>
@@ -64,7 +66,14 @@ const JsonImportDialog = ({open, onClose, onImport}) => {
     );
 };
 
-const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategyClass, showOptimiseParams = false}) => {
+const ConfigModal = ({
+                         open,
+                         onClose,
+                         strategyConfig,
+                         setStrategyConfig,
+                         strategyClass,
+                         showOptimiseParams = false,
+                     }) => {
     const [activeTab, setActiveTab] = useState('parameters');
     const [activeGroup, setActiveGroup] = useState('');
     const [localConfig, setLocalConfig] = useState(strategyConfig);
@@ -74,7 +83,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     useEffect(() => {
         if (open) {
-            log.debug("Config", strategyConfig);
+            log.debug('Config', strategyConfig);
             setLocalConfig(strategyConfig);
             const groups = Object.keys(groupParams(strategyConfig.runParams));
             setActiveGroup(groups[0] || '');
@@ -94,23 +103,23 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         // Get all supported instruments
         const fetchInstruments = async () => {
             try {
-                const inst = await apiClient.getInstruments()
-                setInstruments(inst)
+                const inst = await apiClient.getInstruments();
+                setInstruments(inst);
             } catch (e) {
-                log.error("Failed to fetch instruments")
+                log.error('Failed to fetch instruments');
             }
-        }
+        };
 
-        fetchInstruments()
-    }, [])
+        fetchInstruments();
+    }, []);
 
     const handleDateChange = (field, date) => {
-        setLocalConfig(prevConfig => ({
+        setLocalConfig((prevConfig) => ({
             ...prevConfig,
             timeframe: {
                 ...prevConfig.timeframe,
-                [field]: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : ''
-            }
+                [field]: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'") : '',
+            },
         }));
     };
 
@@ -119,33 +128,31 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
         // However, until we refactor some of this frontend. We will not do this.
         // At the moment the json works for data from the DB, if the user changes something in the json
         // it will not be handled.
-    }
+    };
 
     const handleJsonImport = (importedConfig) => {
-
         try {
-            validateJsonImport(importedConfig)
+            validateJsonImport(importedConfig);
         } catch (error) {
-            toast(
-                {
-                    title: "Import Error",
-                    description: error,
-                    variant: "destructive",
-                }
-            )
+            toast({
+                title: 'Import Error',
+                description: error,
+                variant: 'destructive',
+            });
         }
 
-
-        setLocalConfig(prevConfig => {
+        setLocalConfig((prevConfig) => {
             let updatedConfig = {...prevConfig};
 
-            log.debug("imported config: ", importedConfig);
-            log.debug("params config: ", updatedConfig.runParams);
+            log.debug('imported config: ', importedConfig);
+            log.debug('params config: ', updatedConfig.runParams);
 
             if (importedConfig) {
-                updatedConfig.runParams = updatedConfig.runParams.map(param => {
+                updatedConfig.runParams = updatedConfig.runParams.map((param) => {
                     if (importedConfig.hasOwnProperty(param.name)) {
-                        log.debug(`Updating ${param.name} from ${param.value} to ${importedConfig[param.name]}`);
+                        log.debug(
+                            `Updating ${param.name} from ${param.value} to ${importedConfig[param.name]}`
+                        );
                         return {...param, value: importedConfig[param.name]};
                     }
                     return param;
@@ -153,16 +160,21 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
             }
 
             // Update other fields that are not in runParams
-            Object.keys(importedConfig).forEach(key => {
-                if (!updatedConfig.runParams.some(param => param.name === key) && updatedConfig.hasOwnProperty(key)) {
-                    log.debug(`Updating ${key} from ${updatedConfig[key]} to ${importedConfig[key]}`);
+            Object.keys(importedConfig).forEach((key) => {
+                if (
+                    !updatedConfig.runParams.some((param) => param.name === key) &&
+                    updatedConfig.hasOwnProperty(key)
+                ) {
+                    log.debug(
+                        `Updating ${key} from ${updatedConfig[key]} to ${importedConfig[key]}`
+                    );
                     updatedConfig[key] = importedConfig[key];
                 }
             });
 
-            log.debug("Previous config:", prevConfig);
-            log.debug("Imported configuration:", importedConfig);
-            log.debug("Updated configuration:", updatedConfig);
+            log.debug('Previous config:', prevConfig);
+            log.debug('Imported configuration:', importedConfig);
+            log.debug('Updated configuration:', updatedConfig);
 
             // Force a re-render by creating a new object
             return {...updatedConfig};
@@ -170,13 +182,13 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
         // Set a timeout to log the updated localConfig after the state has been updated
         setTimeout(() => {
-            log.debug("LocalConfig after update:", localConfig);
+            log.debug('LocalConfig after update:', localConfig);
         }, 0);
 
         toast({
-            title: "Configuration imported",
-            description: "Your configuration has been successfully imported.",
-        })
+            title: 'Configuration imported',
+            description: 'Your configuration has been successfully imported.',
+        });
     };
 
     const saveToLocalStorage = () => {
@@ -184,17 +196,17 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
     };
 
     const handleInputChange = (index, field, value) => {
-        setLocalConfig(prev => {
+        setLocalConfig((prev) => {
             const updatedRunParams = [...prev.runParams];
             updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
             const newConfig = {...prev, runParams: updatedRunParams};
-            log.debug("Updated localConfig:", newConfig);
+            log.debug('Updated localConfig:', newConfig);
             return newConfig;
         });
     };
 
     const handleConfigChange = (field, value) => {
-        setLocalConfig(prev => ({
+        setLocalConfig((prev) => ({
             ...prev,
             [field]: value,
         }));
@@ -206,7 +218,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
 
     const handleClose = () => {
         saveToLocalStorage();
-        log.debug(localConfig)
+        log.debug(localConfig);
         setStrategyConfig(localConfig);
         onClose();
     };
@@ -214,18 +226,27 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
     const groupedParams = groupParams(localConfig.runParams);
 
     return (
-        <Dialog open={open} onOpenChange={(openState) => {
-            if (!openState) {
-                handleClose();
-            }
-        }}>
+        <Dialog
+            open={open}
+            onOpenChange={(openState) => {
+                if (!openState) {
+                    handleClose();
+                }
+            }}
+        >
             <DialogContent className="w-full max-w-[1100px] max-h-[80vh] overflow-hidden flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center">
-                        {showOptimiseParams ? "Optimisation Configuration" : "Strategy Configuration"}
+                        {showOptimiseParams
+                            ? 'Optimisation Configuration'
+                            : 'Strategy Configuration'}
                     </DialogTitle>
                 </DialogHeader>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow overflow-hidden">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex-grow overflow-hidden"
+                >
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="parameters">Parameters</TabsTrigger>
                         <TabsTrigger value="run-config">Run Configuration</TabsTrigger>
@@ -237,7 +258,7 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                     {Object.keys(groupedParams).map((group) => (
                                         <Button
                                             key={group}
-                                            variant={activeGroup === group ? "secondary" : "ghost"}
+                                            variant={activeGroup === group ? 'secondary' : 'ghost'}
                                             className="w-full justify-start"
                                             onClick={() => setActiveGroup(group)}
                                         >
@@ -272,13 +293,22 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                             <TooltipProvider>
                                                                 <Tooltip>
                                                                     <TooltipTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 p-0"
+                                                                        >
                                                                             <InfoIcon className="h-4 w-4"/>
-                                                                            <span className="sr-only">Info</span>
+                                                                            <span className="sr-only">
+                                                                                Info
+                                                                            </span>
                                                                         </Button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        <p>{param.description || 'No description available'}</p>
+                                                                        <p>
+                                                                            {param.description ||
+                                                                                'No description available'}
+                                                                        </p>
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
@@ -287,7 +317,15 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                     <TableCell>
                                                         <Input
                                                             value={param.value}
-                                                            onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'value', e.target.value)}
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    localConfig.runParams.indexOf(
+                                                                        param
+                                                                    ),
+                                                                    'value',
+                                                                    e.target.value
+                                                                )
+                                                            }
                                                             autoComplete="off"
                                                         />
                                                     </TableCell>
@@ -296,28 +334,62 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                             <TableCell>
                                                                 <Input
                                                                     value={param.start || ''}
-                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'start', e.target.value)}
+                                                                    onChange={(e) =>
+                                                                        handleInputChange(
+                                                                            localConfig.runParams.indexOf(
+                                                                                param
+                                                                            ),
+                                                                            'start',
+                                                                            e.target.value
+                                                                        )
+                                                                    }
                                                                     autoComplete="off"
                                                                 />
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Input
                                                                     value={param.stop || ''}
-                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'stop', e.target.value)}
+                                                                    onChange={(e) =>
+                                                                        handleInputChange(
+                                                                            localConfig.runParams.indexOf(
+                                                                                param
+                                                                            ),
+                                                                            'stop',
+                                                                            e.target.value
+                                                                        )
+                                                                    }
                                                                     autoComplete="off"
                                                                 />
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Input
                                                                     value={param.step || ''}
-                                                                    onChange={(e) => handleInputChange(localConfig.runParams.indexOf(param), 'step', e.target.value)}
+                                                                    onChange={(e) =>
+                                                                        handleInputChange(
+                                                                            localConfig.runParams.indexOf(
+                                                                                param
+                                                                            ),
+                                                                            'step',
+                                                                            e.target.value
+                                                                        )
+                                                                    }
                                                                     autoComplete="off"
                                                                 />
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Checkbox
-                                                                    checked={param.selected || false}
-                                                                    onCheckedChange={(checked) => handleInputChange(localConfig.runParams.indexOf(param), 'selected', checked)}
+                                                                    checked={
+                                                                        param.selected || false
+                                                                    }
+                                                                    onCheckedChange={(checked) =>
+                                                                        handleInputChange(
+                                                                            localConfig.runParams.indexOf(
+                                                                                param
+                                                                            ),
+                                                                            'selected',
+                                                                            checked
+                                                                        )
+                                                                    }
                                                                 />
                                                             </TableCell>
                                                         </>
@@ -338,7 +410,10 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                     <Input
                                         id="initial-cash"
                                         value={localConfig.initialCash}
-                                        onChange={(e) => handleConfigChange('initialCash', e.target.value)}
+                                        onChange={(e) =>
+                                            handleConfigChange('initialCash', e.target.value)
+                                        }
+                                        type="number"
                                     />
                                 </div>
 
@@ -347,15 +422,21 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                         <Label htmlFor="speed">Speed</Label>
                                         <Select
                                             value={localConfig.speed}
-                                            onValueChange={(value) => handleConfigChange('speed', value)}
+                                            onValueChange={(value) =>
+                                                handleConfigChange('speed', value)
+                                            }
                                         >
                                             <SelectTrigger id="speed">
                                                 <SelectValue placeholder="Select speed"/>
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="SLOW">Slow (Visual)</SelectItem>
-                                                <SelectItem value="NORMAL">Normal (Visual)</SelectItem>
-                                                <SelectItem value="INSTANT">Instant (Async)</SelectItem>
+                                                <SelectItem value="NORMAL">
+                                                    Normal (Visual)
+                                                </SelectItem>
+                                                <SelectItem value="INSTANT">
+                                                    Instant (Async)
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -365,7 +446,9 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                     <Label htmlFor="spread">Spread</Label>
                                     <Select
                                         value={localConfig.spread}
-                                        onValueChange={(value) => handleConfigChange('spread', value)}
+                                        onValueChange={(value) =>
+                                            handleConfigChange('spread', value)
+                                        }
                                     >
                                         <SelectTrigger id="spread">
                                             <SelectValue placeholder="Select spread"/>
@@ -385,8 +468,13 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                     <Select
                                         value={localConfig.instrumentData.internalSymbol || ''}
                                         onValueChange={(value) => {
-                                            const selectedInstrument = instruments.find(i => i.internalSymbol === value)
-                                            handleConfigChange('instrumentData', selectedInstrument)
+                                            const selectedInstrument = instruments.find(
+                                                (i) => i.internalSymbol === value
+                                            );
+                                            handleConfigChange(
+                                                'instrumentData',
+                                                selectedInstrument
+                                            );
                                         }}
                                     >
                                         <SelectTrigger id="instrument">
@@ -395,12 +483,17 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                         <SelectContent>
                                             {instruments.length > 0 ? (
                                                 instruments.map((instrument, index) => (
-                                                    <SelectItem key={index} value={instrument.internalSymbol}>
+                                                    <SelectItem
+                                                        key={index}
+                                                        value={instrument.internalSymbol}
+                                                    >
                                                         {instrument.internalSymbol}
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <SelectItem value="" disabled>No Instruments available</SelectItem>
+                                                <SelectItem value="" disabled>
+                                                    No Instruments available
+                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -410,7 +503,9 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                     <Label htmlFor="period">Period</Label>
                                     <Select
                                         value={localConfig.period}
-                                        onValueChange={(value) => handleConfigChange('period', value)}
+                                        onValueChange={(value) =>
+                                            handleConfigChange('period', value)
+                                        }
                                     >
                                         <SelectTrigger id="period">
                                             <SelectValue placeholder="Select period"/>
@@ -437,13 +532,24 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                 id="from-date"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4"/>
-                                                {localConfig.timeframe.from ? format(parseISO(localConfig.timeframe.from), 'PPP') : <span>Pick a date</span>}
+                                                {localConfig.timeframe.from ? (
+                                                    format(
+                                                        parseISO(localConfig.timeframe.from),
+                                                        'PPP'
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={localConfig.timeframe.from ? parseISO(localConfig.timeframe.from) : undefined}
+                                                selected={
+                                                    localConfig.timeframe.from
+                                                        ? parseISO(localConfig.timeframe.from)
+                                                        : undefined
+                                                }
                                                 onSelect={(date) => handleDateChange('from', date)}
                                                 initialFocus
                                             />
@@ -461,13 +567,24 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                                                 id="to-date"
                                             >
                                                 <CalendarIcon className="mr-2 h-4 w-4"/>
-                                                {localConfig.timeframe.to ? format(parseISO(localConfig.timeframe.to), 'PPP') : <span>Pick a date</span>}
+                                                {localConfig.timeframe.to ? (
+                                                    format(
+                                                        parseISO(localConfig.timeframe.to),
+                                                        'PPP'
+                                                    )
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={localConfig.timeframe.to ? parseISO(localConfig.timeframe.to) : undefined}
+                                                selected={
+                                                    localConfig.timeframe.to
+                                                        ? parseISO(localConfig.timeframe.to)
+                                                        : undefined
+                                                }
                                                 onSelect={(date) => handleDateChange('to', date)}
                                                 initialFocus
                                             />
@@ -480,9 +597,13 @@ const ConfigModal = ({open, onClose, strategyConfig, setStrategyConfig, strategy
                 </Tabs>
                 <DialogFooter>
                     {!showOptimiseParams && (
-                        <Button variant="outline" onClick={() => setIsJsonImportOpen(true)}>Import JSON</Button>
+                        <Button variant="outline" onClick={() => setIsJsonImportOpen(true)}>
+                            Import JSON
+                        </Button>
                     )}
-                    <Button variant="outline" onClick={handleReset}>Reset</Button>
+                    <Button variant="outline" onClick={handleReset}>
+                        Reset
+                    </Button>
                     <Button onClick={handleClose}>Close</Button>
                 </DialogFooter>
             </DialogContent>

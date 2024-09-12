@@ -81,6 +81,8 @@ public class LiveStrategyConfig {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class RunParameter {
         private String name;
         private String value;

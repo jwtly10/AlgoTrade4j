@@ -9,9 +9,10 @@ const isDev = import.meta.env.MODE === 'development';
 //     : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
+const LIVE_API_BASE_URL = 'http://localhost:8081/api/v1';
 const WS_BASE_URL = 'ws://localhost:8080/ws/v1';
 
-const axiosInstance = axios.create({
+const mainInstance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
@@ -19,8 +20,16 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
+const liveInstance = axios.create({
+    baseURL: LIVE_API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
+});
+
 // Crude implementation to sign users out of these endpoints fail auth
-axiosInstance.interceptors.response.use(
+mainInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response && error.response.status === 403) {
@@ -56,7 +65,7 @@ export const systemClient = {
     monitor: async () => {
         const url = '/system/monitor';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -65,7 +74,101 @@ export const systemClient = {
     version: async () => {
         const url = '/system/version';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+};
+
+export const strategyClient = {
+    getLiveStrategies: async () => {
+        const url = '/live/strategies';
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    createStrategy: async (strategy) => {
+        const url = '/live/strategies';
+        try {
+            const response = await liveInstance.post(url, strategy);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    toggleStrategy: async (strategyId) => {
+        const url = `/live/strategies/${strategyId}/toggle`;
+        try {
+            const response = await liveInstance.post(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    deleteStrategy: async (strategyId) => {
+        const url = `/live/strategies/${strategyId}`;
+        try {
+            const response = await liveInstance.delete(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+};
+
+export const accountClient = {
+    getBrokers: async () => {
+        const url = '/accounts/brokers';
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    getAccounts: async () => {
+        const url = '/accounts';
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    createBrokerAccount: async (account) => {
+        const url = '/accounts';
+        try {
+            const response = await liveInstance.post(url, account);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    updateBrokerAccount: async (accountId, account) => {
+        const url = `/accounts/${accountId}`;
+        try {
+            const response = await liveInstance.put(url, account);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
+    deleteBrokerAccount: async (accountId) => {
+        const url = `/accounts/${accountId}`;
+        try {
+            const response = await liveInstance.delete(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -77,7 +180,7 @@ export const authClient = {
     login: async (username, password) => {
         const url = '/auth/signin';
         try {
-            const response = await axiosInstance.post(url, {username, password});
+            const response = await mainInstance.post(url, {username, password});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -87,7 +190,7 @@ export const authClient = {
     signup: async (signupData) => {
         const url = '/auth/signup';
         try {
-            const response = await axiosInstance.post(url, signupData);
+            const response = await mainInstance.post(url, signupData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -97,7 +200,7 @@ export const authClient = {
     verifyToken: async () => {
         const url = '/auth/verify';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -107,7 +210,7 @@ export const authClient = {
     logout: async () => {
         const url = '/auth/logout';
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -119,7 +222,7 @@ export const adminClient = {
     createUser: async (userData) => {
         const url = '/admin/users';
         try {
-            const response = await axiosInstance.post(url, userData);
+            const response = await mainInstance.post(url, userData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -129,7 +232,7 @@ export const adminClient = {
     getUsers: async () => {
         const url = '/admin/users';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -139,7 +242,7 @@ export const adminClient = {
     updateUser: async (userId, userData) => {
         const url = `/admin/users/${userId}`;
         try {
-            const response = await axiosInstance.put(url, userData);
+            const response = await mainInstance.put(url, userData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -149,7 +252,7 @@ export const adminClient = {
     changeUserPassword: async (userId, newPassword) => {
         const url = `/admin/users/${userId}/change-password`;
         try {
-            const response = await axiosInstance.post(url, {newPassword});
+            const response = await mainInstance.post(url, {newPassword});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -159,7 +262,7 @@ export const adminClient = {
     deleteUser: async (userId) => {
         const url = `/admin/users/${userId}`;
         try {
-            const response = await axiosInstance.delete(url);
+            const response = await mainInstance.delete(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -169,7 +272,7 @@ export const adminClient = {
     getRoles: async () => {
         const url = '/admin/roles';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -185,7 +288,7 @@ export const apiClient = {
         }
         const url = `/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -195,7 +298,7 @@ export const apiClient = {
     stopStrategy: async (strategyId) => {
         const url = `/strategies/${strategyId}/stop`;
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -205,7 +308,7 @@ export const apiClient = {
     generateId: async (config) => {
         const url = '/strategies/generate-id';
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -215,7 +318,7 @@ export const apiClient = {
     getParams: async (strategyId) => {
         const url = `/strategies/${strategyId}/params`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -225,7 +328,7 @@ export const apiClient = {
     getStrategies: async () => {
         const url = '/strategies';
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -234,7 +337,7 @@ export const apiClient = {
 
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
-            const socket = new WebSocket(`${WS_BASE_URL.replace("8080", "8081")}/strategy-events`);
+            const socket = new WebSocket(`${WS_BASE_URL.replace('8080', '8081')}/strategy-events`);
             socket.binaryType = 'arraybuffer';
 
             socket.onopen = () => {
@@ -275,7 +378,7 @@ export const apiClient = {
     queueOptimisation: async (config) => {
         const url = `/optimisation/queue`;
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -285,7 +388,7 @@ export const apiClient = {
     getOptimisationTasks: async () => {
         const url = `/optimisation/tasks`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -293,9 +396,9 @@ export const apiClient = {
     },
 
     shareTask: async (taskId, shareWithUserId) => {
-        const url = `/optimisation/share/${taskId}/${shareWithUserId}`
+        const url = `/optimisation/share/${taskId}/${shareWithUserId}`;
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -303,9 +406,9 @@ export const apiClient = {
     },
 
     deleteTask: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}`
+        const url = `/optimisation/tasks/${taskId}`;
         try {
-            const response = await axiosInstance.delete(url);
+            const response = await mainInstance.delete(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -313,9 +416,9 @@ export const apiClient = {
     },
 
     getTaskResults: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}/results`
+        const url = `/optimisation/tasks/${taskId}/results`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -325,7 +428,7 @@ export const apiClient = {
     getInstruments: async () => {
         const url = `/instruments`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);

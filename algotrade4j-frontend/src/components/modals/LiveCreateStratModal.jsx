@@ -1,54 +1,89 @@
 import React, {useEffect, useState} from 'react';
-import {Button} from "@/components/ui/button";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
-import {ScrollArea} from "@/components/ui/scroll-area";
+import {Button} from '@/components/ui/button';
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
+import {ScrollArea} from '@/components/ui/scroll-area';
 import {InfoIcon} from 'lucide-react';
+import {accountClient, strategyClient} from '@/api/liveClient.js';
 import {apiClient} from '@/api/apiClient.js';
+import {toast} from '@/hooks/use-toast';
 
-const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
+const LiveCreateStratModal = ({open, onClose, strategies}) => {
     const [activeTab, setActiveTab] = useState('parameters');
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
     const [selectedStrategy, setSelectedStrategy] = useState('');
+    const [brokers, setBrokers] = useState([]);
+    const [accounts, setAccounts] = useState([]);
     const [config, setConfig] = useState({
         strategyName: '',
-        config: {
-            period: 'M15',
-            instrumentData: {internalSymbol: ''},
-            initialCash: 10000,
-            strategyClass: '',
-            runParams: []
+        brokerAccount: {
+            brokerName: '',
+            brokerType: '',
+            accountId: '',
+            initialBalance: '',
         },
-        brokerConfig: {
-            broker: 'OANDA',
-            account_id: '',
-            type: 'DEMO'
-        }
+        config: {
+            strategyClass: '',
+            initialCash: '',
+            instrumentData: {internalSymbol: ''},
+            period: '',
+            runParams: [],
+        },
     });
 
+    const handleSave = async () => {
+        try {
+            // Prepare the LiveStrategy object
+            const liveStrategy = {
+                strategyName: config.strategyName,
+                brokerAccount: config.brokerAccount,
+                config: config.config,
+            };
+
+            await strategyClient.createStrategy(liveStrategy);
+
+            toast({
+                title: 'Strategy Created',
+                description: 'Your live strategy has been successfully created.',
+            });
+            onClose();
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: `Error initialising a new Live Strategy: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
     useEffect(() => {
-        if (!open) {
+        if (open) {
+            fetchInstruments();
+            fetchBrokers();
+            fetchAccounts();
+        } else {
             setSelectedStrategy('');
             setConfig({
                 strategyName: '',
-                config: {
-                    period: 'M15',
-                    instrumentData: {internalSymbol: ''},
-                    initialCash: 10000,
-                    strategyClass: '',
-                    runParams: []
+                brokerAccount: {
+                    brokerName: '',
+                    brokerType: '',
+                    accountId: '',
+                    initialBalance: '',
                 },
-                brokerConfig: {
-                    broker: 'OANDA',
-                    account_id: '',
-                    type: 'DEMO'
-                }
+                config: {
+                    strategyClass: '',
+                    initialCash: '',
+                    instrumentData: {internalSymbol: ''},
+                    period: '',
+                    runParams: [],
+                },
             });
             setActiveTab('parameters');
             setActiveGroup('');
@@ -56,30 +91,16 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
     }, [open]);
 
     useEffect(() => {
-        const fetchInstruments = async () => {
-            try {
-                const inst = await apiClient.getInstruments();
-                setInstruments(inst);
-            } catch (e) {
-                console.error("Failed to fetch instruments", e);
-            }
-        };
-
-        fetchInstruments();
-    }, []);
-
-    useEffect(() => {
         if (selectedStrategy) {
             // Fetch strategy parameters and update config
-            apiClient.getParams(selectedStrategy).then(params => {
-                setConfig(prevConfig => ({
+            apiClient.getParams(selectedStrategy).then((params) => {
+                setConfig((prevConfig) => ({
                     ...prevConfig,
-                    strategyName: selectedStrategy,
                     config: {
                         ...prevConfig.config,
                         strategyClass: selectedStrategy,
-                        runParams: params
-                    }
+                        runParams: params,
+                    },
                 }));
                 const groups = Object.keys(groupParams(params));
                 setActiveGroup(groups[0] || '');
@@ -96,37 +117,77 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
         }, {});
     };
 
+    const fetchInstruments = async () => {
+        try {
+            const inst = await apiClient.getInstruments();
+            setInstruments(inst);
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: `Failed to fetch instruments: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const fetchBrokers = async () => {
+        try {
+            const brokers = await accountClient.getBrokers();
+            setBrokers(brokers);
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: `Failed to fetch brokers: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const fetchAccounts = async () => {
+        try {
+            const accounts = await accountClient.getAccounts();
+            setAccounts(accounts);
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: `Failed to fetch accounts: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
     const handleInputChange = (index, field, value) => {
-        setConfig(prevConfig => {
+        setConfig((prevConfig) => {
             const updatedRunParams = [...prevConfig.config.runParams];
             updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
             return {
                 ...prevConfig,
                 config: {
                     ...prevConfig.config,
-                    runParams: updatedRunParams
-                }
+                    runParams: updatedRunParams,
+                },
             };
         });
     };
 
     const handleConfigChange = (field, value) => {
-        setConfig(prevConfig => ({
+        setConfig((prevConfig) => ({
             ...prevConfig,
             config: {
                 ...prevConfig.config,
                 [field]: value,
-            }
+            },
         }));
     };
 
     const handleBrokerConfigChange = (field, value) => {
-        setConfig(prevConfig => ({
+        setConfig((prevConfig) => ({
             ...prevConfig,
-            brokerConfig: {
-                ...prevConfig.brokerConfig,
-                [field]: value,
-            }
+            config: {
+                ...prevConfig.config,
+                initialCash: value.initialBalance,
+            },
+            brokerAccount: value,
         }));
     };
 
@@ -136,25 +197,35 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
         // Check if a strategy is selected
         if (!selectedStrategy) return false;
 
-        // Check if all run configuration fields are set
-        if (!config.config.initialCash ||
-            !config.config.instrumentData.internalSymbol ||
-            !config.config.period) return false;
+        // Check base config values are set
+        if (!config.strategyName) return false;
 
-        // Check if all broker configuration fields are set
-        if (!config.brokerConfig.broker ||
-            !config.brokerConfig.account_id ||
-            !config.brokerConfig.type) return false;
+        // Check broker account
+        if (
+            !config.brokerAccount.brokerName ||
+            !config.brokerAccount.accountId ||
+            !config.brokerAccount.brokerType ||
+            !config.brokerAccount.initialBalance
+        )
+            return false;
+
+        // Check if all strategy configuration fields are set
+        if (
+            !config.config.initialCash ||
+            !config.config.instrumentData.internalSymbol ||
+            !config.config.period
+        )
+            return false;
 
         // Check if all required parameters have values
-        const allParamsSet = config.config.runParams.every(param =>
-            param.value !== undefined && param.value !== '');
+        const allParamsSet = config.config.runParams.every(
+            (param) => param.value !== undefined && param.value !== ''
+        );
 
         if (!allParamsSet) return false;
 
-        // If all checks pass, return true
         return true;
-    }
+    };
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -177,7 +248,11 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                     </Select>
                 </DialogHeader>
                 {selectedStrategy && (
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow overflow-hidden">
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="flex-grow overflow-hidden"
+                    >
                         <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="parameters">Parameters</TabsTrigger>
                             <TabsTrigger value="run-config">Run Configuration</TabsTrigger>
@@ -190,7 +265,9 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                         {Object.keys(groupedParams).map((group) => (
                                             <Button
                                                 key={group}
-                                                variant={activeGroup === group ? "secondary" : "ghost"}
+                                                variant={
+                                                    activeGroup === group ? 'secondary' : 'ghost'
+                                                }
                                                 className="w-full justify-start"
                                                 onClick={() => setActiveGroup(group)}
                                             >
@@ -217,13 +294,22 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                                                 <TooltipProvider>
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 p-0"
+                                                                            >
                                                                                 <InfoIcon className="h-4 w-4"/>
-                                                                                <span className="sr-only">Info</span>
+                                                                                <span className="sr-only">
+                                                                                    Info
+                                                                                </span>
                                                                             </Button>
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>
-                                                                            <p>{param.description || 'No description available'}</p>
+                                                                            <p>
+                                                                                {param.description ||
+                                                                                    'No description available'}
+                                                                            </p>
                                                                         </TooltipContent>
                                                                     </Tooltip>
                                                                 </TooltipProvider>
@@ -232,7 +318,13 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                                         <TableCell>
                                                             <Input
                                                                 value={param.value}
-                                                                onChange={(e) => handleInputChange(index, 'value', e.target.value)}
+                                                                onChange={(e) =>
+                                                                    handleInputChange(
+                                                                        index,
+                                                                        'value',
+                                                                        e.target.value
+                                                                    )
+                                                                }
                                                                 autoComplete="off"
                                                             />
                                                         </TableCell>
@@ -251,28 +343,31 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                     <Input
                                         id="custom-name"
                                         value={config.strategyName}
-                                        onChange={(e) => setConfig(prev => ({...prev, strategyName: e.target.value}))}
+                                        onChange={(e) =>
+                                            setConfig((prev) => ({
+                                                ...prev,
+                                                strategyName: e.target.value,
+                                            }))
+                                        }
                                         placeholder="Enter a custom name for your strategy"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="initial-cash">Initial Cash</Label>
-                                        <Input
-                                            id="initial-cash"
-                                            value={config.config.initialCash}
-                                            onChange={(e) => handleConfigChange('initialCash', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
                                         <Label htmlFor="instrument">Instrument</Label>
                                         <Select
-                                            value={config.config.instrumentData.internalSymbol || ''}
+                                            value={
+                                                config.config.instrumentData.internalSymbol || ''
+                                            }
                                             onValueChange={(value) => {
-                                                const selectedInstrument = instruments.find(i => i.internalSymbol === value)
-                                                handleConfigChange('instrumentData', selectedInstrument)
+                                                const selectedInstrument = instruments.find(
+                                                    (i) => i.internalSymbol === value
+                                                );
+                                                handleConfigChange(
+                                                    'instrumentData',
+                                                    selectedInstrument
+                                                );
                                             }}
                                         >
                                             <SelectTrigger id="instrument">
@@ -281,12 +376,17 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                             <SelectContent>
                                                 {instruments.length > 0 ? (
                                                     instruments.map((instrument) => (
-                                                        <SelectItem key={instrument.internalSymbol} value={instrument.internalSymbol}>
+                                                        <SelectItem
+                                                            key={instrument.internalSymbol}
+                                                            value={instrument.internalSymbol}
+                                                        >
                                                             {instrument.internalSymbol}
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <SelectItem value="" disabled>No Instruments available</SelectItem>
+                                                    <SelectItem value="" disabled>
+                                                        No Instruments available
+                                                    </SelectItem>
                                                 )}
                                             </SelectContent>
                                         </Select>
@@ -296,7 +396,9 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                                         <Label htmlFor="period">Period</Label>
                                         <Select
                                             value={config.config.period}
-                                            onValueChange={(value) => handleConfigChange('period', value)}
+                                            onValueChange={(value) =>
+                                                handleConfigChange('period', value)
+                                            }
                                         >
                                             <SelectTrigger id="period">
                                                 <SelectValue placeholder="Select period"/>
@@ -318,62 +420,102 @@ const LiveCreateStratModal = ({open, onClose, onSave, strategies}) => {
                         <TabsContent value="broker-config" className="flex-grow overflow-hidden">
                             <ScrollArea className="h-full pr-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <Label htmlFor="broker">Broker</Label>
                                         <Select
-                                            value={config.brokerConfig.broker}
-                                            onValueChange={(value) => handleBrokerConfigChange('broker', value)}
+                                            value={config.brokerAccount.brokerName}
+                                            onValueChange={(value) =>
+                                                handleBrokerConfigChange('brokerName', value)
+                                            }
                                         >
                                             <SelectTrigger id="broker">
-                                                <SelectValue placeholder="Select broker"/>
+                                                <SelectValue placeholder="Select broker" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="OANDA">OANDA</SelectItem>
-                                                {/* Add more brokers as needed */}
+                                                {brokers.map((broker, index) => (
+                                                    <SelectItem key={index} value={broker}>
+                                                        {broker}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
-                                    </div>
+                                    </div> */}
 
                                     <div className="space-y-2">
                                         <Label htmlFor="account-id">Account ID</Label>
-                                        <Input
-                                            id="account-id"
-                                            value={config.brokerConfig.account_id}
-                                            onChange={(e) => handleBrokerConfigChange('account_id', e.target.value)}
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="account-type">Account Type</Label>
                                         <Select
-                                            value={config.brokerConfig.type}
-                                            onValueChange={(value) => handleBrokerConfigChange('type', value)}
+                                            value={config.brokerAccount.accountId}
+                                            onValueChange={(value) => {
+                                                const selectedAccount = accounts.find(
+                                                    (account) => account.accountId === value
+                                                );
+                                                handleBrokerConfigChange(
+                                                    'accountId',
+                                                    selectedAccount
+                                                );
+                                            }}
                                         >
-                                            <SelectTrigger id="account-type">
-                                                <SelectValue placeholder="Select account type"/>
+                                            <SelectTrigger id="account">
+                                                <SelectValue placeholder="Select account"/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="DEMO">Demo</SelectItem>
-                                                <SelectItem value="LIVE">Live</SelectItem>
+                                                {accounts.map((account) => (
+                                                    <SelectItem
+                                                        key={account.id}
+                                                        value={account.accountId}
+                                                    >
+                                                        {`${account.brokerName} - ${account.brokerType} - ${account.initialBalance} - ${account.accountId}`}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
+
+                                    {/* <div className="space-y-2">
+                                        <Label htmlFor="account-type">Account Type</Label>
+                                        <Select
+                                            value={config.brokerAccount.brokerType}
+                                            onValueChange={(value) =>
+                                                handleBrokerConfigChange('brokerType', value)
+                                            }
+                                        >
+                                            <SelectTrigger id="account-type">
+                                                <SelectValue placeholder="Select account type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="DEMO">DEMO</SelectItem>
+                                                <SelectItem value="LIVE">LIVE</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="initial-cash">Initial Cash</Label>
+                                        <Input
+                                            id="initial-cash"
+                                            value={config.brokerAccount.initialBalance}
+                                            onChange={(e) => {
+                                                handleBrokerConfigChange(
+                                                    'initialBalance',
+                                                    e.target.value
+                                                );
+                                                handleConfigChange('initialCash', e.target.value);
+                                            }}
+                                            type="number"
+                                        />
+                                    </div> */}
                                 </div>
                             </ScrollArea>
                         </TabsContent>
                     </Tabs>
-
                 )}
                 <DialogFooter className="space-x-2">
-                    <Button
-                        variant="outline"
-                        onClick={onClose}
-                    >
+                    <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button
                         variant="default"
-                        onClick={() => onSave(config)}
+                        onClick={() => handleSave(config)}
                         disabled={!valid()}
                     >
                         Create Strategy

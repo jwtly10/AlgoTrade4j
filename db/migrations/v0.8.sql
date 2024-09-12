@@ -33,15 +33,29 @@ WHERE config ->> 'spread' IS NOT NULL
 
 -- Live trading service SQL
 
+CREATE TABLE broker_accounts_tb
+(
+    id              BIGSERIAL PRIMARY KEY,
+    broker_name     VARCHAR(255) NOT NULL,
+    broker_type     VARCHAR(10)  NOT NULL, -- LIVE/DEMO
+    account_id      VARCHAR(255) NOT NULL UNIQUE,
+    initial_balance INTEGER      NOT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE live_strategies_tb
 (
-    id            BIGSERIAL PRIMARY KEY,
-    strategy_name VARCHAR(255) NOT NULL,
-    broker_config JSON         NOT NULL,
-    config        JSON         NOT NULL,
-    stats         JSON,
-    is_active     BOOLEAN   DEFAULT false,
-    is_hidden     BOOLEAN   DEFAULT false,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                BIGSERIAL PRIMARY KEY,
+    strategy_name     VARCHAR(255) NOT NULL UNIQUE,
+    broker_account_id BIGINT       NOT NULL,
+    config            JSON         NOT NULL,
+    stats             JSON,
+    is_active         BOOLEAN   DEFAULT FALSE,
+    is_hidden         BOOLEAN   DEFAULT FALSE,
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (broker_account_id) REFERENCES broker_accounts_tb (id)
 );
+
+CREATE INDEX idx_broker_account_id ON broker_accounts_tb (account_id);
