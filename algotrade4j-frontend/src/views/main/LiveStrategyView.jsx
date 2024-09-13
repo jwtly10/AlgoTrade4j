@@ -10,7 +10,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx
 import {Button} from '@/components/ui/button.jsx';
 import {Edit2, Eye, Plus} from 'lucide-react';
 import {useLive} from '@/hooks/use-live.js';
-import LiveConfigModal from '@/components/modals/LiveConfigModal.jsx';
+import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
 import LiveBrokerModal from '@/components/modals/LiveBrokersModal.jsx';
 import log from '@/logger.js';
@@ -83,23 +83,19 @@ const LiveStrategyView = () => {
         setIsCreateModalOpen(true);
     };
 
-    const handleConfigSave = () => {
-        console.log('Saving strategy config');
-        // Here we will need to call the backend API to save the strategy config
-        // we will need validation on this
-        // And there will be some logic that either restarts the app or puts the strategy back into pending state.
-        // So we will need to recall the api to get the list of live strategies in the system
-        setIsModalOpen(false);
-    };
-
     const handleAccountManagement = () => {
         setIsAccountModalOpen(true);
     };
 
-    const handleCreateStratModalClose = () => {
+    const handleCreateStratModalClose = async () => {
         setIsCreateModalOpen(false);
-        fetchLiveStrategies();
+        await fetchLiveStrategies();
     };
+
+    const handleConfigEditClose = async () => {
+        setIsModalOpen(false);
+        await fetchLiveStrategies();
+    }
 
     return (
         <div className="flex flex-col h-[calc(100vh-32px-68px)] w-screen overflow-hidden p-4">
@@ -291,10 +287,9 @@ const LiveStrategyView = () => {
             </div>
 
             {/* Modals */}
-            <LiveConfigModal
+            <LiveConfigEditModal
                 open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleConfigSave}
+                onClose={handleConfigEditClose}
                 strategyConfig={pickedLiveStrategy}
             />
             <LiveCreateStratModal

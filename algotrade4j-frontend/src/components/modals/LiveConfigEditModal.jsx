@@ -11,8 +11,10 @@ import {ScrollArea} from '@/components/ui/scroll-area';
 import {InfoIcon} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
 import isEqual from 'lodash/isEqual';
+import {strategyClient} from "@/api/liveClient.js";
+import {toast} from "@/hooks/use-toast.js";
 
-const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
+const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
     if (!strategyConfig) {
         return null; // or return a loading indicator
     }
@@ -52,6 +54,7 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
             return groups;
         }, {});
     };
+
     const handleInputChange = (index, field, value) => {
         setLocalConfig((prevConfig) => {
             const updatedRunParams = [...prevConfig.config.runParams];
@@ -68,6 +71,17 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
         });
     };
 
+    const handleStrategyNameChange = (value) => {
+        setLocalConfig((prevConfig) => {
+            const newConfig = {
+                ...prevConfig,
+                strategyName: value,
+            };
+            setHasChanges(!isEqual(newConfig, strategyConfig));
+            return newConfig;
+        });
+    }
+
     const handleConfigChange = (field, value) => {
         setLocalConfig((prevConfig) => {
             const newConfig = {
@@ -81,6 +95,24 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
             return newConfig;
         });
     };
+
+    const handleConfigSave = async (config) => {
+        try {
+            await strategyClient.updateStrategy(config);
+
+            toast({
+                title: 'Strategy updated',
+                description: `Live Strategy ${config.strategyName} has been updated successfully`,
+            });
+            onClose();
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: `Error updating live strategy ${config.strategyName}: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    }
 
     const groupedParams = groupParams(localConfig.config.runParams);
 
@@ -178,18 +210,17 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
                     <TabsContent value="run-config" className="flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="initial-cash">Initial Cash</Label>
+                                <div className="space-y-2 col-span-2 mb-3">
+                                    <Label htmlFor="custom-name">Custom Strategy Name</Label>
                                     <Input
-                                        id="initial-cash"
-                                        value={localConfig.config.initialCash}
+                                        id="custom-name"
+                                        value={localConfig.strategyName}
                                         onChange={(e) =>
-                                            handleConfigChange('initialCash', e.target.value)
+                                            handleStrategyNameChange(e.target.value)
                                         }
-                                        type="number"
+                                        placeholder="Enter a custom name for your strategy"
                                     />
                                 </div>
-
                                 <div className="space-y-2">
                                     <Label htmlFor="instrument">Instrument</Label>
                                     <Select
@@ -260,7 +291,7 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
                     </Button>
                     <Button
                         variant="default"
-                        onClick={() => onSave(localConfig)}
+                        onClick={() => handleConfigSave(localConfig)}
                         disabled={!hasChanges}
                     >
                         Save changes
@@ -271,4 +302,4 @@ const LiveConfigModal = ({open, onClose, strategyConfig, onSave}) => {
     );
 };
 
-export default LiveConfigModal;
+export default LiveConfigEditModal;

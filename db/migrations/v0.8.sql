@@ -43,11 +43,12 @@ CREATE TABLE broker_accounts_tb
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_broker_account_id ON broker_accounts_tb (account_id);
 
 CREATE TABLE live_strategies_tb
 (
     id                BIGSERIAL PRIMARY KEY,
-    strategy_name     VARCHAR(255) NOT NULL UNIQUE,
+    strategy_name VARCHAR(255) NOT NULL,
     broker_account_id BIGINT       NOT NULL,
     config            JSON         NOT NULL,
     stats             JSON,
@@ -57,5 +58,3 @@ CREATE TABLE live_strategies_tb
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (broker_account_id) REFERENCES broker_accounts_tb (id)
 );
-
-CREATE INDEX idx_broker_account_id ON broker_accounts_tb (account_id);

@@ -103,6 +103,16 @@ export const strategyClient = {
         }
     },
 
+    updateStrategy: async (strategy) => {
+        const url = `/live/strategies/${strategy.id}`;
+        try {
+            const response = await liveInstance.put(url, strategy);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+
     toggleStrategy: async (strategyId) => {
         const url = `/live/strategies/${strategyId}/toggle`;
         try {

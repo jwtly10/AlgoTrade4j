@@ -30,6 +30,15 @@ public class LiveStrategyController {
         return ResponseEntity.ok(newLiveStrategy);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<LiveStrategy> updateLiveStrategy(
+            @RequestBody LiveStrategy strategySetup,
+            @PathVariable("id") Long id
+    ) {
+        LiveStrategy updatedLiveStrategy = liveStrategyService.updateLiveStrategy(id, strategySetup);
+        return ResponseEntity.ok(updatedLiveStrategy);
+    }
+
     @PostMapping("/{id}/toggle")
     public ResponseEntity<LiveStrategy> toggleLiveStrategy(@PathVariable Long id) {
         LiveStrategy activatedLiveStrategy = liveStrategyService.toggleStrategy(id);

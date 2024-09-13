@@ -47,8 +47,6 @@ public class LiveStrategyService {
         log.info("Creating live strategy: {}", strategy.getStrategyName());
         // Validate live strategy configuration
 
-        // Validate live strategy name must be unique
-
         // Validate broker config
         BrokerAccount brokerAccount = brokerAccountService.getBrokerAccount(strategy.getBrokerAccount().getAccountId());
         strategy.setBrokerAccount(brokerAccount);
@@ -82,5 +80,23 @@ public class LiveStrategyService {
         liveStrategy.setHidden(true);
 
         liveStrategyRepository.save(liveStrategy);
+    }
+
+    public LiveStrategy updateLiveStrategy(Long id, LiveStrategy strategySetup) {
+        log.info("Updating live strategy: {}", strategySetup.getStrategyName());
+
+        // Find the strategy in the database
+        LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+
+        // TODO: Validate live strategy configuration especially the parameter setup
+
+        // Update the possible values that we allow for updating
+        liveStrategy.setStrategyName(strategySetup.getStrategyName());
+        liveStrategy.setConfig(strategySetup.getConfig());
+        liveStrategy.setActive(false); // If we make updated, we should deactivate the strategy
+
+        // Save the strategy to the database
+        return liveStrategyRepository.save(strategySetup);
     }
 }
