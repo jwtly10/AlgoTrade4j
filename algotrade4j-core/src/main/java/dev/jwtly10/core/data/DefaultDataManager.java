@@ -120,6 +120,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             // There are no more listeners here
             log.warn("No more listeners. Stopping data manager.");
             stop();
+            return;
         }
 
         log.trace("Received tick: {}", tick);
