@@ -108,9 +108,29 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
         } catch (error) {
             toast({
                 title: 'Error',
-                description: `Error updating live strategy ${config.strategyName}: ${error.message}`,
+                description: `Error updating live strategy '${config.strategyName}': ${error.message}`,
                 variant: 'destructive',
             });
+        }
+    }
+
+    const handleDelete = async (localConfig) => {
+        if (window.confirm('Are you sure you want to delete this live strategy?')) {
+            try {
+
+                await strategyClient.deleteStrategy(localConfig.id);
+                toast({
+                    title: 'Strategy deleted',
+                    description: `Live Strategy '${localConfig.strategyName}' has been deleted successfully`,
+                });
+                onClose();
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: `Error deleting live strategy '${localConfig.strategyName}': ${error.message}`,
+                    variant: 'destructive',
+                });
+            }
         }
     }
 
@@ -286,6 +306,9 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     </TabsContent>
                 </Tabs>
                 <DialogFooter className="space-x-2">
+                    <Button variant="destructive" onClick={() => handleDelete(localConfig)}>
+                        Delete
+                    </Button>
                     <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>

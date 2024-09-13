@@ -40,13 +40,13 @@ public class LiveStrategyController {
     }
 
     @PostMapping("/{id}/toggle")
-    public ResponseEntity<LiveStrategy> toggleLiveStrategy(@PathVariable Long id) {
+    public ResponseEntity<LiveStrategy> toggleLiveStrategy(@PathVariable("id") Long id) {
         LiveStrategy activatedLiveStrategy = liveStrategyService.toggleStrategy(id);
         return ResponseEntity.ok(activatedLiveStrategy);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLiveStrategy(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteLiveStrategy(@PathVariable("id") Long id) {
         liveStrategyService.deleteStrategy(id);
         return ResponseEntity.ok().build();
     }
