@@ -18,7 +18,6 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
     const [selectedStrategy, setSelectedStrategy] = useState('');
-    const [brokers, setBrokers] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const [config, setConfig] = useState({
         strategyName: '',
@@ -65,7 +64,6 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
     useEffect(() => {
         if (open) {
             fetchInstruments();
-            fetchBrokers();
             fetchAccounts();
         } else {
             setSelectedStrategy('');
@@ -130,19 +128,6 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
         }
     };
 
-    const fetchBrokers = async () => {
-        try {
-            const brokers = await accountClient.getBrokers();
-            setBrokers(brokers);
-        } catch (error) {
-            toast({
-                title: 'Error',
-                description: `Failed to fetch brokers: ${error.message}`,
-                variant: 'destructive',
-            });
-        }
-    };
-
     const fetchAccounts = async () => {
         try {
             const accounts = await accountClient.getAccounts();
@@ -156,10 +141,11 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
         }
     };
 
-    const handleInputChange = (index, field, value) => {
+    const handleInputChange = (paramName, value) => {
         setConfig((prevConfig) => {
-            const updatedRunParams = [...prevConfig.config.runParams];
-            updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
+            const updatedRunParams = prevConfig.config.runParams.map(param =>
+                param.name === paramName ? {...param, value} : param
+            );
             return {
                 ...prevConfig,
                 config: {
@@ -320,8 +306,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                                                 value={param.value}
                                                                 onChange={(e) =>
                                                                     handleInputChange(
-                                                                        index,
-                                                                        'value',
+                                                                        param.name,
                                                                         e.target.value
                                                                     )
                                                                 }
@@ -420,27 +405,6 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                         <TabsContent value="broker-config" className="flex-grow overflow-hidden">
                             <ScrollArea className="h-full pr-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                    {/* <div className="space-y-2">
-                                        <Label htmlFor="broker">Broker</Label>
-                                        <Select
-                                            value={config.brokerAccount.brokerName}
-                                            onValueChange={(value) =>
-                                                handleBrokerConfigChange('brokerName', value)
-                                            }
-                                        >
-                                            <SelectTrigger id="broker">
-                                                <SelectValue placeholder="Select broker" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {brokers.map((broker, index) => (
-                                                    <SelectItem key={index} value={broker}>
-                                                        {broker}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div> */}
-
                                     <div className="space-y-2">
                                         <Label htmlFor="account-id">Account ID</Label>
                                         <Select
@@ -471,39 +435,6 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                         </Select>
                                     </div>
 
-                                    {/* <div className="space-y-2">
-                                        <Label htmlFor="account-type">Account Type</Label>
-                                        <Select
-                                            value={config.brokerAccount.brokerType}
-                                            onValueChange={(value) =>
-                                                handleBrokerConfigChange('brokerType', value)
-                                            }
-                                        >
-                                            <SelectTrigger id="account-type">
-                                                <SelectValue placeholder="Select account type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="DEMO">DEMO</SelectItem>
-                                                <SelectItem value="LIVE">LIVE</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="initial-cash">Initial Cash</Label>
-                                        <Input
-                                            id="initial-cash"
-                                            value={config.brokerAccount.initialBalance}
-                                            onChange={(e) => {
-                                                handleBrokerConfigChange(
-                                                    'initialBalance',
-                                                    e.target.value
-                                                );
-                                                handleConfigChange('initialCash', e.target.value);
-                                            }}
-                                            type="number"
-                                        />
-                                    </div> */}
                                 </div>
                             </ScrollArea>
                         </TabsContent>

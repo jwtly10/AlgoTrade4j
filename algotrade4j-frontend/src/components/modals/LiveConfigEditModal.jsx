@@ -55,10 +55,11 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
         }, {});
     };
 
-    const handleInputChange = (index, field, value) => {
+    const handleInputChange = (paramName, value) => {
         setLocalConfig((prevConfig) => {
-            const updatedRunParams = [...prevConfig.config.runParams];
-            updatedRunParams[index] = {...updatedRunParams[index], [field]: value};
+            const updatedRunParams = prevConfig.config.runParams.map(param =>
+                param.name === paramName ? {...param, value} : param
+            );
             const newConfig = {
                 ...prevConfig,
                 config: {
@@ -102,7 +103,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
 
             toast({
                 title: 'Strategy updated',
-                description: `Live Strategy ${config.strategyName} has been updated successfully`,
+                description: `Live Strategy '${config.strategyName}' has been updated successfully`,
             });
             onClose();
         } catch (error) {
@@ -211,8 +212,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                                                             value={param.value}
                                                             onChange={(e) =>
                                                                 handleInputChange(
-                                                                    index,
-                                                                    'value',
+                                                                    param.name,
                                                                     e.target.value
                                                                 )
                                                             }
