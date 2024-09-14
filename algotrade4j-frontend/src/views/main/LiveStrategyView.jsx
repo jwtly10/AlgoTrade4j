@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import 'chartjs-adapter-date-fns';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
@@ -287,11 +287,13 @@ const LiveStrategyView = () => {
             </div>
 
             {/* Modals */}
-            <LiveConfigEditModal
-                open={isModalOpen}
-                onClose={handleConfigEditClose}
-                strategyConfig={pickedLiveStrategy}
-            />
+            {pickedLiveStrategy && (
+                <LiveConfigEditModal
+                    open={isModalOpen}
+                    onClose={handleConfigEditClose}
+                    strategyConfig={pickedLiveStrategy}
+                />
+            )}
             <LiveCreateStratModal
                 open={isCreateModalOpen}
                 onClose={handleCreateStratModalClose}

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
@@ -15,9 +15,6 @@ import {strategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
 
 const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
-    if (!strategyConfig) {
-        return null; // or return a loading indicator
-    }
     const [activeTab, setActiveTab] = useState('parameters');
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
