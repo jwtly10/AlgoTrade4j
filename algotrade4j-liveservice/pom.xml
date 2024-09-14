@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>dev.jwtly10</groupId>
-            <artifactId>algotrade4j-common</artifactId>
+            <artifactId>algotrade4j-shared</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
@@ -73,6 +73,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.10.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-jcache</artifactId>
+            <version>8.10.1</version>
         </dependency>
     </dependencies>
 

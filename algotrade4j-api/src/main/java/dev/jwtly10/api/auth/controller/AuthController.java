@@ -1,13 +1,18 @@
 package dev.jwtly10.api.auth.controller;
 
-import dev.jwtly10.api.auth.config.JwtUtils;
-import dev.jwtly10.api.auth.model.*;
-import dev.jwtly10.api.auth.repository.UserRepository;
-import dev.jwtly10.api.auth.service.UserDetailsServiceImpl;
+import dev.jwtly10.api.auth.model.LoginRequest;
+import dev.jwtly10.api.auth.model.LoginResponse;
+import dev.jwtly10.api.auth.model.MessageResponse;
+import dev.jwtly10.api.auth.model.SignupRequest;
 import dev.jwtly10.api.auth.service.UserLoginLogService;
 import dev.jwtly10.api.auth.service.UserService;
-import dev.jwtly10.common.exception.ApiException;
-import dev.jwtly10.common.exception.ErrorType;
+import dev.jwtly10.shared.auth.model.User;
+import dev.jwtly10.shared.auth.model.UserDetailsImpl;
+import dev.jwtly10.shared.auth.repository.UserRepository;
+import dev.jwtly10.shared.auth.service.UserDetailsServiceImpl;
+import dev.jwtly10.shared.auth.utils.JwtUtils;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

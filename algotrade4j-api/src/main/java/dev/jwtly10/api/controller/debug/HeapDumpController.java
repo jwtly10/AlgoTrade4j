@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
 @RestController
-@Profile("dev")  // Add this annotation
+@Profile("dev")
 public class HeapDumpController {
 
     @GetMapping("/generate-heapdump")

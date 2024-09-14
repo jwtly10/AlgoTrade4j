@@ -1,9 +1,9 @@
 package dev.jwtly10.api.auth.service;
 
-import dev.jwtly10.api.auth.model.Role;
-import dev.jwtly10.api.auth.model.User;
-import dev.jwtly10.api.auth.model.dto.UserDTO;
-import dev.jwtly10.api.auth.repository.UserRepository;
+import dev.jwtly10.shared.auth.model.Role;
+import dev.jwtly10.shared.auth.model.User;
+import dev.jwtly10.shared.auth.model.dto.UserDTO;
+import dev.jwtly10.shared.auth.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,6 @@
 package dev.jwtly10.api.auth.utils;
 
-import dev.jwtly10.api.auth.model.UserDetailsImpl;
+import dev.jwtly10.shared.auth.model.UserDetailsImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package dev.jwtly10.api.model.optimisation;
 
-import dev.jwtly10.api.auth.model.User;
+import dev.jwtly10.shared.auth.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,13 +1,15 @@
 package dev.jwtly10.api.config;
 
-import dev.jwtly10.api.auth.config.JwtUtils;
-import dev.jwtly10.api.auth.config.WebSocketAuthHandshakeInterceptor;
-import dev.jwtly10.api.auth.service.UserDetailsServiceImpl;
 import dev.jwtly10.api.service.websocket.StrategyWebSocketHandler;
+import dev.jwtly10.shared.auth.filter.WebSocketAuthHandshakeInterceptor;
+import dev.jwtly10.shared.auth.service.UserDetailsServiceImpl;
+import dev.jwtly10.shared.auth.utils.JwtUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+
+import static dev.jwtly10.shared.config.AllowedOrigins.ALLOWED_ORIGINS;
 
 @Configuration
 @EnableWebSocket
@@ -28,8 +30,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(strategyWebSocketHandler, "/ws/v1/strategy-events")
                 .addInterceptors(new WebSocketAuthHandshakeInterceptor(jwtUtils, userDetailsService))
-                .setAllowedOrigins("http://localhost:5173",
-                        "https://algotrade4j.trade",
-                        "https://www.algotrade4j.trade");
+                .setAllowedOrigins(ALLOWED_ORIGINS);
     }
 }

@@ -1,14 +1,14 @@
 package dev.jwtly10.api.controller;
 
 import dev.jwtly10.api.auth.model.LoginResponse;
-import dev.jwtly10.api.auth.model.Role;
 import dev.jwtly10.api.auth.model.SignupRequest;
-import dev.jwtly10.api.auth.model.User;
-import dev.jwtly10.api.auth.model.dto.UserDTO;
 import dev.jwtly10.api.auth.service.UserService;
-import dev.jwtly10.api.config.ratelimit.RateLimit;
-import dev.jwtly10.common.exception.ApiException;
-import dev.jwtly10.common.exception.ErrorType;
+import dev.jwtly10.shared.auth.model.Role;
+import dev.jwtly10.shared.auth.model.User;
+import dev.jwtly10.shared.auth.model.dto.UserDTO;
+import dev.jwtly10.shared.config.ratelimit.RateLimit;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

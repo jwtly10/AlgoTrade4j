@@ -2,7 +2,6 @@ package dev.jwtly10.api.service.strategy;
 
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;
-import dev.jwtly10.common.exception.ErrorType;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
@@ -22,6 +21,7 @@ import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
+import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.springframework.stereotype.Service;

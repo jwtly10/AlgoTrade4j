@@ -2,6 +2,7 @@ package dev.jwtly10.liveservice.controller;
 
 import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.service.strategy.LiveStrategyService;
+import dev.jwtly10.shared.config.ratelimit.RateLimit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class LiveStrategyController {
     }
 
     @PostMapping
+    @RateLimit(limit = 3)
     public ResponseEntity<LiveStrategy> createLiveStrategy(
             @RequestBody LiveStrategy strategySetup) {
         LiveStrategy newLiveStrategy = liveStrategyService.createLiveStrategy(strategySetup);
@@ -31,6 +33,7 @@ public class LiveStrategyController {
     }
 
     @PutMapping("/{id}")
+    @RateLimit(limit = 3)
     public ResponseEntity<LiveStrategy> updateLiveStrategy(
             @RequestBody LiveStrategy strategySetup,
             @PathVariable("id") Long id
@@ -40,12 +43,14 @@ public class LiveStrategyController {
     }
 
     @PostMapping("/{id}/toggle")
+    @RateLimit(limit = 5)
     public ResponseEntity<LiveStrategy> toggleLiveStrategy(@PathVariable("id") Long id) {
         LiveStrategy activatedLiveStrategy = liveStrategyService.toggleStrategy(id);
         return ResponseEntity.ok(activatedLiveStrategy);
     }
 
     @DeleteMapping("/{id}")
+    @RateLimit(limit = 5)
     public ResponseEntity<Void> deleteLiveStrategy(@PathVariable("id") Long id) {
         liveStrategyService.deleteStrategy(id);
         return ResponseEntity.ok().build();

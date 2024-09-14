@@ -13,7 +13,7 @@
         <module>algotrade4j-api</module>
         <module>algotrade4j-market-data</module>
         <module>algotrade4j-liveservice</module>
-        <module>algotrade4j-common</module>
+        <module>algotrade4j-shared</module>
     </modules>
 
     <properties>

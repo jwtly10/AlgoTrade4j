@@ -2,13 +2,13 @@ package dev.jwtly10.api.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.jwtly10.api.auth.utils.SecurityUtils;
-import dev.jwtly10.api.config.ratelimit.RateLimit;
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;
 import dev.jwtly10.api.model.optimisation.OptimisationResultDTO;
 import dev.jwtly10.api.model.optimisation.OptimisationTask;
 import dev.jwtly10.api.service.optimisation.OptimisationService;
-import dev.jwtly10.common.exception.ErrorType;
+import dev.jwtly10.shared.config.ratelimit.RateLimit;
+import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -347,7 +347,7 @@ export const apiClient = {
 
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
-            const socket = new WebSocket(`${WS_BASE_URL.replace('8080', '8081')}/strategy-events`);
+            const socket = new WebSocket(`${WS_BASE_URL.replace('8080', '8081')}/live-strategy-events`);
             socket.binaryType = 'arraybuffer';
 
             socket.onopen = () => {
