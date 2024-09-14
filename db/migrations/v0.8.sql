@@ -38,7 +38,8 @@ CREATE TABLE broker_accounts_tb
     id              BIGSERIAL PRIMARY KEY,
     broker_name     VARCHAR(255) NOT NULL,
     broker_type     VARCHAR(10)  NOT NULL, -- LIVE/DEMO
-    account_id      VARCHAR(255) NOT NULL UNIQUE,
+    account_id VARCHAR(255) NOT NULL,
+    active     BOOLEAN DEFAULT TRUE,
     initial_balance INTEGER      NOT NULL,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -58,3 +59,7 @@ CREATE TABLE live_strategies_tb
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (broker_account_id) REFERENCES broker_accounts_tb (id)
 );
+
+drop table live_strategies_tb;
+
+drop table broker_accounts_tb;

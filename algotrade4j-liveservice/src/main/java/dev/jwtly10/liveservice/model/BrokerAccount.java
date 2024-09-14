@@ -31,6 +31,9 @@ public class BrokerAccount {
     @Column(name = "account_id", nullable = false)
     private String accountId;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active;
+
     @Column(name = "initial_balance", nullable = false)
     private Integer initialBalance;
 

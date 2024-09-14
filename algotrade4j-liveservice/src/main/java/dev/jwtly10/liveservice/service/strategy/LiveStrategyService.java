@@ -3,8 +3,8 @@ package dev.jwtly10.liveservice.service.strategy;
 import dev.jwtly10.liveservice.model.BrokerAccount;
 import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.Stats;
+import dev.jwtly10.liveservice.repository.BrokerAccountRepository;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
-import dev.jwtly10.liveservice.service.broker.BrokerAccountService;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +16,11 @@ import java.util.List;
 @Slf4j
 public class LiveStrategyService {
     private final LiveStrategyRepository liveStrategyRepository;
-    private final BrokerAccountService brokerAccountService;
+    private final BrokerAccountRepository brokerAccountRepository;
 
-    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository, BrokerAccountService brokerAccountService) {
+    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository, BrokerAccountRepository brokerAccountRepository) {
         this.liveStrategyRepository = liveStrategyRepository;
-        this.brokerAccountService = brokerAccountService;
+        this.brokerAccountRepository = brokerAccountRepository;
     }
 
     public List<LiveStrategy> getNonHiddenLiveStrategies() {
@@ -49,7 +49,8 @@ public class LiveStrategyService {
         // Validate live strategy configuration
 
         // Validate broker config
-        BrokerAccount brokerAccount = brokerAccountService.getBrokerAccount(strategy.getBrokerAccount().getAccountId());
+        BrokerAccount brokerAccount = brokerAccountRepository.findById(strategy.getBrokerAccount().getId())
+                .orElseThrow(() -> new ApiException("Broker account not found", ErrorType.NOT_FOUND));
         strategy.setBrokerAccount(brokerAccount);
 
         // Save the strategy to the database
@@ -99,5 +100,9 @@ public class LiveStrategyService {
 
         // Save the strategy to the database
         return liveStrategyRepository.save(strategySetup);
+    }
+
+    public List<LiveStrategy> findByBrokerAccount(BrokerAccount brokerAccount) {
+        return liveStrategyRepository.findLiveStrategiesByBrokerAccountAndHiddenIsFalse(brokerAccount);
     }
 }
