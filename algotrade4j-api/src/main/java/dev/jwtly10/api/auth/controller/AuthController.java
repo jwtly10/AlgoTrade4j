@@ -11,8 +11,11 @@ import dev.jwtly10.shared.auth.model.UserDetailsImpl;
 import dev.jwtly10.shared.auth.repository.UserRepository;
 import dev.jwtly10.shared.auth.service.UserDetailsServiceImpl;
 import dev.jwtly10.shared.auth.utils.JwtUtils;
+import dev.jwtly10.shared.auth.utils.SecurityUtils;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
+import dev.jwtly10.shared.tracking.TrackingService;
+import dev.jwtly10.shared.tracking.UserAction;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,10 +51,12 @@ public class AuthController {
 
     final UserLoginLogService userLoginLogService;
 
+    private final TrackingService trackingService;
+
     @Value("${app.signup.enabled:false}")
     private boolean signupEnabled;
 
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, PasswordEncoder encoder, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService, UserLoginLogService userLoginLogService) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, UserService userService, PasswordEncoder encoder, JwtUtils jwtUtils, UserDetailsServiceImpl userDetailsService, UserLoginLogService userLoginLogService, TrackingService trackingService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.userService = userService;
@@ -59,6 +64,7 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
         this.userLoginLogService = userLoginLogService;
+        this.trackingService = trackingService;
     }
 
     @PostMapping("/signin")
@@ -91,6 +97,9 @@ public class AuthController {
             String userAgent = request.getHeader("User-Agent");
             userLoginLogService.logUserLogin(userDetails.getId(), ipAddress, userAgent);
 
+            // Track the user login
+            trackingService.track(userDetails.getId(), UserAction.LOGIN, null);
+
             // If we have found the user details. This should always be found
             User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
 
@@ -117,6 +126,8 @@ public class AuthController {
         jwtCookie.setPath("/");
 
         response.addCookie(jwtCookie);
+
+        trackingService.track(SecurityUtils.getCurrentUserId(), UserAction.LOGOUT, null);
 
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }

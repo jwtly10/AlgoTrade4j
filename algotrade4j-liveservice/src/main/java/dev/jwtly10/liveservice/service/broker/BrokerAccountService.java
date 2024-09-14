@@ -5,19 +5,26 @@ import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.repository.BrokerAccountRepository;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
 import dev.jwtly10.marketdata.common.Broker;
+import dev.jwtly10.shared.auth.utils.SecurityUtils;
+import dev.jwtly10.shared.tracking.TrackingService;
+import dev.jwtly10.shared.tracking.UserAction;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BrokerAccountService {
+
+    private final TrackingService trackingService;
 
     private final BrokerAccountRepository brokerAccountRepository;
     private final LiveStrategyRepository liveStrategyRepository;
 
 
-    public BrokerAccountService(BrokerAccountRepository brokerAccountRepository, LiveStrategyRepository liveStrategyRepository) {
+    public BrokerAccountService(TrackingService trackingService, BrokerAccountRepository brokerAccountRepository, LiveStrategyRepository liveStrategyRepository) {
+        this.trackingService = trackingService;
         this.brokerAccountRepository = brokerAccountRepository;
         this.liveStrategyRepository = liveStrategyRepository;
     }
@@ -37,6 +44,14 @@ public class BrokerAccountService {
     }
 
     public BrokerAccount createBrokerAccount(BrokerAccount broker) {
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.BROKER_ACCOUNT_CREATE,
+                Map.of(
+                        "broker", broker
+                )
+        );
+
         BrokerAccount existingAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(broker.getAccountId())
                 .orElse(null);
 
@@ -50,6 +65,14 @@ public class BrokerAccountService {
     }
 
     public BrokerAccount updateBrokerAccount(String accountId, BrokerAccount broker) {
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.BROKER_ACCOUNT_EDIT,
+                Map.of(
+                        "broker", broker
+                )
+        );
+
         BrokerAccount foundAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
                 .orElseThrow(() -> new RuntimeException("Account ID '" + accountId + "' not found"));
 
@@ -70,6 +93,12 @@ public class BrokerAccountService {
 
     @Transactional
     public void deleteBrokerAccount(String accountId) {
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.BROKER_ACCOUNT_TOGGLE,
+                Map.of("accountId", accountId)
+        );
+
         BrokerAccount brokerAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
                 .orElseThrow(() -> new RuntimeException("Account ID '" + accountId + "' not found"));
 

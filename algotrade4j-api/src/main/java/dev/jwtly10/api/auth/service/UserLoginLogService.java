@@ -1,7 +1,7 @@
 package dev.jwtly10.api.auth.service;
 
 import dev.jwtly10.api.auth.model.UserLoginLog;
-import dev.jwtly10.api.auth.repository.UserLoginLogRepository;
+import dev.jwtly10.api.repository.logging.UserLoginLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

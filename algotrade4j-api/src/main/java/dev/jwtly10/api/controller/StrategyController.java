@@ -9,14 +9,18 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.*;
 import dev.jwtly10.core.strategy.ParameterHandler;
+import dev.jwtly10.shared.auth.utils.SecurityUtils;
 import dev.jwtly10.shared.config.ratelimit.RateLimit;
 import dev.jwtly10.shared.exception.ErrorType;
+import dev.jwtly10.shared.tracking.TrackingService;
+import dev.jwtly10.shared.tracking.UserAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -24,10 +28,13 @@ import java.util.Set;
 @Slf4j
 public class StrategyController {
 
+    private final TrackingService trackingService;
+
     private final StrategyManager strategyManager;
     private final StrategyWebSocketHandler webSocketHandler;
 
-    public StrategyController(StrategyManager strategyManager, StrategyWebSocketHandler webSocketHandler) {
+    public StrategyController(TrackingService trackingService, StrategyManager strategyManager, StrategyWebSocketHandler webSocketHandler) {
+        this.trackingService = trackingService;
         this.strategyManager = strategyManager;
         this.webSocketHandler = webSocketHandler;
     }
@@ -42,6 +49,16 @@ public class StrategyController {
     ) {
         log.info("Starting strategy: {} with config : {}", strategyId, config);
         log.info("Request params: Async: {}, showChart: {}", async, showChart);
+
+        // Track the strategy start
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.BACKTEST_RUN,
+                Map.of(
+                        "strategyId", strategyId,
+                        "strategyConfig", config
+                )
+        );
 
         // We will retry this a few seconds
         WebSocketSession session = null;

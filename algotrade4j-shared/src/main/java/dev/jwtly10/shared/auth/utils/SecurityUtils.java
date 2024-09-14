@@ -1,4 +1,4 @@
-package dev.jwtly10.api.auth.utils;
+package dev.jwtly10.shared.auth.utils;
 
 import dev.jwtly10.shared.auth.model.UserDetailsImpl;
 import org.springframework.security.core.Authentication;

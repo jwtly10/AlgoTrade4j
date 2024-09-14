@@ -5,12 +5,16 @@ import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.Stats;
 import dev.jwtly10.liveservice.repository.BrokerAccountRepository;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
+import dev.jwtly10.shared.auth.utils.SecurityUtils;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
+import dev.jwtly10.shared.tracking.TrackingService;
+import dev.jwtly10.shared.tracking.UserAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -18,9 +22,12 @@ public class LiveStrategyService {
     private final LiveStrategyRepository liveStrategyRepository;
     private final BrokerAccountRepository brokerAccountRepository;
 
-    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository, BrokerAccountRepository brokerAccountRepository) {
+    private final TrackingService trackingService;
+
+    public LiveStrategyService(LiveStrategyRepository liveStrategyRepository, BrokerAccountRepository brokerAccountRepository, TrackingService trackingService) {
         this.liveStrategyRepository = liveStrategyRepository;
         this.brokerAccountRepository = brokerAccountRepository;
+        this.trackingService = trackingService;
     }
 
     public List<LiveStrategy> getNonHiddenLiveStrategies() {
@@ -46,6 +53,16 @@ public class LiveStrategyService {
 
     public LiveStrategy createLiveStrategy(LiveStrategy strategy) {
         log.info("Creating live strategy: {}", strategy.getStrategyName());
+
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_CREATE,
+                Map.of(
+                        "strategyName", strategy.getStrategyName(),
+                        "config", strategy.getConfig()
+                )
+        );
+
         // Validate live strategy configuration
 
         // Validate broker config
@@ -61,6 +78,12 @@ public class LiveStrategyService {
     public LiveStrategy toggleStrategy(Long id) {
         log.info("Toggling live strategy: {}", id);
 
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_TOGGLE,
+                Map.of("strategyId", id)
+        );
+
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
@@ -71,8 +94,14 @@ public class LiveStrategyService {
     }
 
     public void deleteStrategy(Long id) {
-        log.info("Deleting live strategy: {}", id);
         // We dont actually delete the strategy, we just deactivate it and set hidden
+        log.info("Deleting live strategy: {}", id);
+
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_DELETE,
+                Map.of("strategyId", id)
+        );
 
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
@@ -86,6 +115,16 @@ public class LiveStrategyService {
 
     public LiveStrategy updateLiveStrategy(Long id, LiveStrategy strategySetup) {
         log.info("Updating live strategy: {}", strategySetup.getStrategyName());
+
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_EDIT,
+                Map.of(
+                        "strategyId", id,
+                        "strategyName", strategySetup.getStrategyName(),
+                        "config", strategySetup.getConfig()
+                )
+        );
 
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)

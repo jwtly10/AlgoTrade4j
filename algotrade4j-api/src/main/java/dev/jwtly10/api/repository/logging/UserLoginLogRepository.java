@@ -1,4 +1,4 @@
-package dev.jwtly10.api.auth.repository;
+package dev.jwtly10.api.repository.logging;
 
 import dev.jwtly10.api.auth.model.UserLoginLog;
 import org.springframework.data.jpa.repository.JpaRepository;

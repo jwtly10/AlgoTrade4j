@@ -70,9 +70,8 @@ CREATE TABLE user_action_log_tb
     id        BIGSERIAL PRIMARY KEY,
     user_id   BIGINT                   NOT NULL,
     action    VARCHAR(255)             NOT NULL,
-    path      VARCHAR(255)             NOT NULL,
-    method    VARCHAR(10)              NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    meta_data JSON,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user_action
         FOREIGN KEY (user_id)
             REFERENCES users_tb (id)
