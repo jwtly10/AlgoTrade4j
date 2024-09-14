@@ -4,7 +4,7 @@ import Navbar from './components/layout/Navbar';
 import BacktestView from './views/main/BacktestView.jsx';
 import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
-import UserManagementView from './views/UserManagementView';
+import UserManagementView from './views/users/UserManagementView.jsx';
 import NotFoundView from "./views/NotFoundView.jsx";
 import VersionBanner from "./components/layout/VersionBanner.jsx";
 import HomeView from "./views/main/HomeView.jsx";

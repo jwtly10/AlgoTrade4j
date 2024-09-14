@@ -1,16 +1,18 @@
 import React, {useEffect, useState} from 'react';
-import {adminClient} from '../api/apiClient';
-import {useToast} from "../hooks/use-toast";
+import {adminClient} from '../../api/apiClient.js';
+import {useToast} from "../../hooks/use-toast.js";
 import {Edit, Lock, Trash, UserPlus} from "lucide-react";
-import {Button} from "../components/ui/button";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "../components/ui/dialog";
-import {Input} from "../components/ui/input";
-import {Label} from "../components/ui/label";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../components/ui/select";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../components/ui/table";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../components/ui/tooltip";
-import CreateUserForm from "../components/user/CreateUserForm";
-import log from '../logger.js';
+import {Button} from "../../components/ui/button.jsx";
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "../../components/ui/dialog.jsx";
+import {Input} from "../../components/ui/input.jsx";
+import {Label} from "../../components/ui/label.jsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../../components/ui/select.jsx";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../../components/ui/table.jsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../../components/ui/tooltip.jsx";
+import MetadataViewer from "@/components/user/MetadataViewer.jsx";
+import CreateUserForm from "../../components/user/CreateUserForm.jsx";
+import {USER_ACTIONS} from './userActions';
+import log from '../../logger.js';
 
 const UserManagementView = ({loggedInUser}) => {
     const [users, setUsers] = useState([]);
@@ -20,6 +22,14 @@ const UserManagementView = ({loggedInUser}) => {
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [newPassword, setNewPassword] = useState('');
+
+    const [expandedUser, setExpandedUser] = useState(null);
+    const [userLogs, setUserLogs] = useState([]);
+    const [actionFilter, setActionFilter] = useState('ALL');
+    const [sortOrder, setSortOrder] = useState('desc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [logsPerPage] = useState(10);
+
     const {toast} = useToast();
 
     useEffect(() => {
@@ -169,6 +179,72 @@ const UserManagementView = ({loggedInUser}) => {
         return date.toLocaleString();
     };
 
+    const formatTimestamp = (timestamp) => {
+        const date = new Date(timestamp * 1000); // Convert to milliseconds
+        return date.toLocaleString('en-GB', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Europe/London',
+            timeZoneName: 'short',
+            hour12: false
+        });
+    };
+
+    const handleUserClick = async (userId) => {
+        if (expandedUser === userId) {
+            // If the clicked user is already expanded, collapse it
+            setExpandedUser(null);
+        } else {
+            // If a different user is clicked, collapse the current one and expand the new one
+            setExpandedUser(userId);
+            if (!userLogs[userId]) {
+                try {
+                    const logs = await adminClient.getTrackingForUser(userId);
+                    setUserLogs(prev => ({...prev, [userId]: logs}));
+                } catch (error) {
+                    log.error('Failed to fetch user logs:', error);
+                    toast({
+                        title: "Error",
+                        description: "Failed to fetch user logs: " + error.message,
+                        variant: "destructive",
+                    });
+                }
+            }
+        }
+    };
+
+    const getFilteredAndSortedLogs = (userId) => {
+        const filteredLogs = (userLogs[userId] || [])
+            .filter(log => actionFilter === "ALL" || log.action === actionFilter)
+            .sort((a, b) => {
+                const dateA = new Date(a.timestamp);
+                const dateB = new Date(b.timestamp);
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+        // Calculate pagination
+        const indexOfLastLog = currentPage * logsPerPage;
+        const indexOfFirstLog = indexOfLastLog - logsPerPage;
+        const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+
+        return {
+            logs: currentLogs,
+            totalPages: Math.ceil(filteredLogs.length / logsPerPage)
+        };
+    };
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const toggleSortOrder = () => {
+        setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
@@ -178,25 +254,26 @@ const UserManagementView = ({loggedInUser}) => {
                     Create User
                 </Button>
             </div>
-            <div className="hadow-md rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Username</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Created</TableHead>
-                                <TableHead>Last Updated</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {users.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell>{`${user.firstName} ${user.lastName}`}</TableCell>
-                                    <TableCell className="font-medium">{user.username}</TableCell>
+
+            <div className="shadow-md rounded-lg overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Username</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Created</TableHead>
+                            <TableHead>Last Updated</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {users.map((user) => (
+                            <React.Fragment key={user.id}>
+                                <TableRow className="hover:bg-gray-100 cursor-pointer" onClick={() => handleUserClick(user.id)}>
+                                    <TableCell className="font-medium">{`${user.firstName} ${user.lastName}`}</TableCell>
+                                    <TableCell>{user.username}</TableCell>
                                     <TableCell>{user.email}</TableCell>
                                     <TableCell>{user.role}</TableCell>
                                     <TableCell>{formatDate(user.createdAt)}</TableCell>
@@ -205,7 +282,10 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                    <Button variant="ghost" size="sm" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditUser(user);
+                                                    }}>
                                                         <Edit className="h-4 w-4"/>
                                                     </Button>
                                                 </TooltipTrigger>
@@ -217,7 +297,8 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={() => {
+                                                    <Button variant="ghost" size="sm" onClick={(e) => {
+                                                        e.stopPropagation();
                                                         setSelectedUser(user);
                                                         setIsPasswordDialogOpen(true);
                                                     }}>
@@ -232,7 +313,10 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user.id)}>
+                                                    <Button variant="ghost" size="sm" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteUser(user.id);
+                                                    }}>
                                                         <Trash className="h-4 w-4"/>
                                                     </Button>
                                                 </TooltipTrigger>
@@ -243,11 +327,69 @@ const UserManagementView = ({loggedInUser}) => {
                                         </TooltipProvider>
                                     </TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                                {expandedUser === user.id && userLogs[user.id] && (
+                                    <TableRow>
+                                        <TableCell colSpan={7}>
+                                            <div className="p-4">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <h3 className="text-lg font-semibold">User Action Log</h3>
+                                                    <div className="flex gap-2">
+                                                        <Select
+                                                            value={actionFilter}
+                                                            onValueChange={(value) => setActionFilter(value)}
+                                                        >
+                                                            <SelectTrigger className="w-[200px]">
+                                                                <SelectValue placeholder="Filter by action"/>
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="ALL">All Actions</SelectItem>
+                                                                {USER_ACTIONS.map((action) => (
+                                                                    <SelectItem key={action} value={action}>{action}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <Button onClick={toggleSortOrder} variant="outline">
+                                                            Sort {sortOrder === 'desc' ? 'Ascending' : 'Descending'}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <Table>
+                                                    <TableHeader>
+                                                        <TableRow>
+                                                            <TableHead>Action</TableHead>
+                                                            <TableHead>Timestamp</TableHead>
+                                                            <TableHead>Metadata</TableHead>
+                                                        </TableRow>
+                                                    </TableHeader>
+                                                    <TableBody>
+                                                        {getFilteredAndSortedLogs(user.id).logs.map((log) => (
+                                                            <TableRow key={log.id}>
+                                                                <TableCell>{log.action}</TableCell>
+                                                                <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
+                                                                <TableCell>
+                                                                    <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </TableBody>
+                                                </Table>
+                                                <div className="mt-4 flex justify-center">
+                                                    <Pagination
+                                                        currentPage={currentPage}
+                                                        totalPages={getFilteredAndSortedLogs(user.id).totalPages}
+                                                        onPageChange={handlePageChange}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </React.Fragment>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
+
 
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent>
@@ -371,5 +513,30 @@ const UserManagementView = ({loggedInUser}) => {
         </div>
     );
 };
+
+const Pagination = ({currentPage, totalPages, onPageChange}) => {
+    return (
+        <div className="flex items-center space-x-2">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+            >
+                Previous
+            </Button>
+            <span>{`Page ${currentPage} of ${totalPages}`}</span>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+            >
+                Next
+            </Button>
+        </div>
+    );
+};
+
 
 export default UserManagementView;

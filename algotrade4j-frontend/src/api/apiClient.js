@@ -174,6 +174,16 @@ export const adminClient = {
             return handleError(error, url);
         }
     },
+
+    getTrackingForUser: async (userId) => {
+        const url = `/admin/tracking/${userId}`;
+        try {
+            const response = await axiosInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    }
 };
 
 export const apiClient = {
