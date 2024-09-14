@@ -1,4 +1,4 @@
-package dev.jwtly10.liveservice.service;
+package dev.jwtly10.api.service.websocket;
 
 import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.event.ErrorEvent;
@@ -41,7 +41,22 @@ public class WebSocketEventListener implements EventListener {
             try {
                 if (session.isOpen()) {
                     String jsonMessage = event.toJson();
-                    sendBinaryMessage(jsonMessage);
+                    byte[] messageBytes = jsonMessage.getBytes(StandardCharsets.UTF_8);
+
+                    ByteBuffer buffer;
+                    if (messageBytes.length > COMPRESSION_THRESHOLD) {
+                        // Compress large messages
+                        byte[] compressedMessage = compressMessage(jsonMessage);
+                        buffer = ByteBuffer.allocate(compressedMessage.length + 1);
+                        buffer.put((byte) 1); // Flag for compressed message
+                        buffer.put(compressedMessage);
+                    } else {
+                        buffer = ByteBuffer.allocate(messageBytes.length + 1);
+                        buffer.put((byte) 0); // Flag for uncompressed message
+                        buffer.put(messageBytes);
+                    }
+                    buffer.flip();
+                    session.sendMessage(new BinaryMessage(buffer));
                 }
             } catch (IllegalStateException e) {
                 log.debug("Session already closed, unable to send event: {}", event);
@@ -103,24 +118,5 @@ public class WebSocketEventListener implements EventListener {
         }
 
         return sb.toString();
-    }
-
-    public void sendBinaryMessage(String jsonMessage) throws IOException {
-        byte[] messageBytes = jsonMessage.getBytes(StandardCharsets.UTF_8);
-
-        ByteBuffer buffer;
-        if (messageBytes.length > COMPRESSION_THRESHOLD) {
-            // Compress large messages
-            byte[] compressedMessage = compressMessage(jsonMessage);
-            buffer = ByteBuffer.allocate(compressedMessage.length + 1);
-            buffer.put((byte) 1); // Flag for compressed message
-            buffer.put(compressedMessage);
-        } else {
-            buffer = ByteBuffer.allocate(messageBytes.length + 1);
-            buffer.put((byte) 0); // Flag for uncompressed message
-            buffer.put(messageBytes);
-        }
-        buffer.flip();
-        session.sendMessage(new BinaryMessage(buffer));
     }
 }

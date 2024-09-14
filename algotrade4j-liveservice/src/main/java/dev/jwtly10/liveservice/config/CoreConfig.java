@@ -8,7 +8,7 @@ import dev.jwtly10.core.execution.DefaultExecutorFactory;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
-import dev.jwtly10.liveservice.repository.RunnerRepository;
+import dev.jwtly10.liveservice.repository.InMemoryExecutorRepository;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,8 +44,8 @@ public class CoreConfig {
     }
 
     @Bean
-    public RunnerRepository runnerRepository() {
-        return new RunnerRepository();
+    public InMemoryExecutorRepository executorRepository() {
+        return new InMemoryExecutorRepository();
     }
 
     @Bean

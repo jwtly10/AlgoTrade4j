@@ -1,7 +1,7 @@
 package dev.jwtly10.liveservice.controller;
 
 import dev.jwtly10.liveservice.model.LiveStrategy;
-import dev.jwtly10.liveservice.service.biz.LiveStrategyService;
+import dev.jwtly10.liveservice.service.strategy.LiveStrategyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

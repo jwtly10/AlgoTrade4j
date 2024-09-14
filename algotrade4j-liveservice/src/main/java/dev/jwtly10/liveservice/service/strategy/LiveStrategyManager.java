@@ -1,4 +1,4 @@
-package dev.jwtly10.liveservice.service;
+package dev.jwtly10.liveservice.service.strategy;
 
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
@@ -17,8 +17,7 @@ import dev.jwtly10.liveservice.executor.LiveStateManager;
 import dev.jwtly10.liveservice.executor.LiveTradeManager;
 import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.LiveStrategyConfig;
-import dev.jwtly10.liveservice.repository.RunnerRepository;
-import dev.jwtly10.liveservice.service.biz.LiveStrategyService;
+import dev.jwtly10.liveservice.repository.InMemoryExecutorRepository;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
@@ -39,13 +38,13 @@ import java.util.stream.Collectors;
 public class LiveStrategyManager {
     private final EventPublisher eventPublisher;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    private final RunnerRepository runnerRepository;
+    private final InMemoryExecutorRepository inMemoryExecutorRepository;
     private final OandaClient oandaClient;
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, RunnerRepository runnerRepository, OandaClient oandaClient, LiveStrategyService liveStrategyService) {
-        this.runnerRepository = runnerRepository;
+    public LiveStrategyManager(EventPublisher eventPublisher, InMemoryExecutorRepository inMemoryExecutorRepository, OandaClient oandaClient, LiveStrategyService liveStrategyService) {
+        this.inMemoryExecutorRepository = inMemoryExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.liveStrategyService = liveStrategyService;
@@ -65,7 +64,7 @@ public class LiveStrategyManager {
         }
 
         strategies.forEach(strategy -> {
-            if (runnerRepository.getStrategy(strategy.getStrategyName()) == null) {
+            if (inMemoryExecutorRepository.getStrategy(strategy.getStrategyName()) == null) {
                 try {
                     start(strategy, strategy.getStrategyName());
                 } catch (Exception e) {
@@ -124,17 +123,17 @@ public class LiveStrategyManager {
                 dataManager.start();
             } catch (Exception e) {
                 log.error("Error running strategy", e);
-                runnerRepository.removeStrategy(strategy.getStrategyId());
+                inMemoryExecutorRepository.removeStrategy(strategy.getStrategyId());
                 eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
             }
         });
 
-        runnerRepository.addStrategy(strategy.getStrategyId(), executor);
+        inMemoryExecutorRepository.addStrategy(strategy.getStrategyId(), executor);
     }
 
     // TODO: Review, how do we handle stops? Do we?
     public boolean stopStrategy(String id) {
-        LiveExecutor executor = runnerRepository.getStrategy(id);
+        LiveExecutor executor = inMemoryExecutorRepository.getStrategy(id);
         if (executor != null) {
             executor.onStop();
             return true;

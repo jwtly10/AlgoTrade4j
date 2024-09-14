@@ -1,4 +1,4 @@
-package dev.jwtly10.liveservice.service.biz;
+package dev.jwtly10.liveservice.service.broker;
 
 import dev.jwtly10.liveservice.model.BrokerAccount;
 import dev.jwtly10.liveservice.repository.BrokerAccountRepository;

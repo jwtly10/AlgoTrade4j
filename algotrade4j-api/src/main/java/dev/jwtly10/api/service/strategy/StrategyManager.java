@@ -1,4 +1,4 @@
-package dev.jwtly10.api.service;
+package dev.jwtly10.api.service.strategy;
 
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;

@@ -1,11 +1,11 @@
-package dev.jwtly10.liveservice.service;
+package dev.jwtly10.liveservice.service.websocket;
 
 import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.event.async.AsyncTradesEvent;
 import dev.jwtly10.liveservice.executor.LiveExecutor;
-import dev.jwtly10.liveservice.repository.RunnerRepository;
+import dev.jwtly10.liveservice.repository.InMemoryExecutorRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -24,11 +24,11 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
     private final EventPublisher eventPublisher;
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
-    private final RunnerRepository runnerRepository;
+    private final InMemoryExecutorRepository inMemoryExecutorRepository;
 
-    public LiveStrategyWSHandler(EventPublisher eventPublisher, RunnerRepository runnerRepository) {
+    public LiveStrategyWSHandler(EventPublisher eventPublisher, InMemoryExecutorRepository inMemoryExecutorRepository) {
         this.eventPublisher = eventPublisher;
-        this.runnerRepository = runnerRepository;
+        this.inMemoryExecutorRepository = inMemoryExecutorRepository;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         if (payload.startsWith("STRATEGY:")) {
             String strategyId = payload.substring(9);
             log.info("Strategy id: {} ", strategyId);
-            LiveExecutor executor = runnerRepository.getStrategy(strategyId);
+            LiveExecutor executor = inMemoryExecutorRepository.getStrategy(strategyId);
             if (executor != null) {
                 WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);
                 listeners.put(session, listener);

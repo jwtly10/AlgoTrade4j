@@ -3,7 +3,7 @@ package dev.jwtly10.api.config;
 import dev.jwtly10.api.auth.config.JwtUtils;
 import dev.jwtly10.api.auth.config.WebSocketAuthHandshakeInterceptor;
 import dev.jwtly10.api.auth.service.UserDetailsServiceImpl;
-import dev.jwtly10.api.service.StrategyWebSocketHandler;
+import dev.jwtly10.api.service.websocket.StrategyWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;

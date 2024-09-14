@@ -5,7 +5,7 @@ import dev.jwtly10.liveservice.executor.LiveExecutor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RunnerRepository {
+public class InMemoryExecutorRepository {
     private final Map<String, LiveExecutor> runningStrategies = new ConcurrentHashMap<>();
 
     public void addStrategy(String strategyName, LiveExecutor executor) {

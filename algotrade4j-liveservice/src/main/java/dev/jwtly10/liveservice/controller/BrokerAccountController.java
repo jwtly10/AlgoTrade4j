@@ -1,7 +1,7 @@
 package dev.jwtly10.liveservice.controller;
 
 import dev.jwtly10.liveservice.model.BrokerAccount;
-import dev.jwtly10.liveservice.service.biz.BrokerAccountService;
+import dev.jwtly10.liveservice.service.broker.BrokerAccountService;
 import dev.jwtly10.marketdata.common.Broker;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

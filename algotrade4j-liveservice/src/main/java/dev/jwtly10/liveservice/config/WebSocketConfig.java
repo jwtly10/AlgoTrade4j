@@ -1,6 +1,6 @@
 package dev.jwtly10.liveservice.config;
 
-import dev.jwtly10.liveservice.service.LiveStrategyWSHandler;
+import dev.jwtly10.liveservice.service.websocket.LiveStrategyWSHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
