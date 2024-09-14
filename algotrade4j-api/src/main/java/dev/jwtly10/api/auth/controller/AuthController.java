@@ -87,8 +87,9 @@ public class AuthController {
             response.addCookie(jwtCookie);
 
             // Log the user login IP
-            String ipAddress = request.getRemoteAddr();
-            userLoginLogService.logUserLogin(userDetails.getId(), ipAddress);
+            String ipAddress = getClientIpAddress(request);
+            String userAgent = request.getHeader("User-Agent");
+            userLoginLogService.logUserLogin(userDetails.getId(), ipAddress, userAgent);
 
             // If we have found the user details. This should always be found
             User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow();
@@ -181,5 +182,25 @@ public class AuthController {
                 signUpRequest.getLastName());
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String ip = request.getHeader("CF-Connecting-IP");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Forwarded-For");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+
+        // If it's an IPv6 address, keep only the first part
+        if (ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+
+        return ip;
     }
 }

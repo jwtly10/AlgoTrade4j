@@ -19,10 +19,11 @@ public class UserLoginLogService {
     }
 
     @Transactional
-    public UserLoginLog logUserLogin(Long userId, String ipAddress) {
+    public UserLoginLog logUserLogin(Long userId, String ipAddress, String userAgent) {
         UserLoginLog log = new UserLoginLog();
         log.setUserId(userId);
         log.setIpAddress(ipAddress);
+        log.setUserAgent(userAgent);
         log.setLoginTime(LocalDateTime.now());
         return userLoginLogRepository.save(log);
     }

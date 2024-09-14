@@ -63,3 +63,25 @@ CREATE TABLE live_strategies_tb
 drop table live_strategies_tb;
 
 drop table broker_accounts_tb;
+
+-- Better user action logging
+CREATE TABLE user_action_log_tb
+(
+    id        BIGSERIAL PRIMARY KEY,
+    user_id   BIGINT                   NOT NULL,
+    action    VARCHAR(255)             NOT NULL,
+    path      VARCHAR(255)             NOT NULL,
+    method    VARCHAR(10)              NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_user_action
+        FOREIGN KEY (user_id)
+            REFERENCES users_tb (id)
+            ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_action_log_user_id ON user_action_log_tb (user_id);
+CREATE INDEX idx_user_action_log_timestamp ON user_action_log_tb (timestamp);
+
+-- Add some more tracking data to the login log
+ALTER TABLE user_login_log_tb
+    ADD COLUMN user_agent VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN';
