@@ -57,7 +57,7 @@ public class LiveStrategyService {
     }
 
     public LiveStrategy toggleStrategy(Long id) {
-        log.info("Activating live strategy: {}", id);
+        log.info("Toggling live strategy: {}", id);
 
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
