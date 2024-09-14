@@ -5,7 +5,7 @@ import LogsTable from '../../components/backtesting/LogsTable.jsx';
 import TradingViewChart from '../../components/backtesting/TradingViewChart.jsx';
 import EmptyChart from '../../components/backtesting/EmptyChart.jsx';
 
-import {Card} from '@/components/ui/card.jsx';
+import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx';
 import {Button} from '@/components/ui/button.jsx';
 import {Edit2, Eye, Plus} from 'lucide-react';
@@ -14,7 +14,9 @@ import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
 import LiveBrokerModal from '@/components/modals/LiveBrokersModal.jsx';
 import log from '@/logger.js';
+import {Badge} from "@/components/ui/badge"
 import {strategyClient} from '@/api/liveClient.js';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 
 const LiveStrategyView = () => {
     const {
@@ -191,99 +193,89 @@ const LiveStrategyView = () => {
                             {[...liveStrategies]
                                 .sort((a, b) => b.id - a.id)
                                 .map((strategy) => (
-                                    <Card key={strategy.id} className="p-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="text-lg font-semibold">
-                                                {strategy.strategyName}
-                                            </h3>
-                                            <div className="flex items-center space-x-2">
-                                                <button
-                                                    onClick={() => handleToggle(strategy.id)}
-                                                    className={`px-2 py-1 rounded text-sm ${strategy.active ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-700'}`}
-                                                >
-                                                    {strategy.active ? 'Active' : 'Inactive'}
-                                                </button>
-                                                <span
-                                                    className={`px-2 py-1 rounded text-sm ${strategy.brokerAccount.brokerType === 'LIVE' ? 'bg-blue-500 text-white' : 'bg-yellow-500 text-white'}`}
-                                                >
-                                                {strategy.brokerAccount.brokerType}
-                                            </span>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 mb-3">
+                                    <Card key={strategy.id} className="w-full">
+                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                             <div>
-                                                <p className="text-sm text-muted-foreground">Broker</p>
-                                                <p className="font-semibold">
-                                                    {strategy.brokerAccount.brokerName}
-                                                </p>
+                                                <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
+                                                <p className="text-sm text-muted-foreground">{strategy.config.strategyClass}</p>
                                             </div>
-                                            <div>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Account ID
-                                                </p>
-                                                <p className="font-semibold">
-                                                    {strategy.brokerAccount.accountId}
-                                                </p>
+                                            <div className="flex space-x-2">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger>
+                                                            <Badge
+                                                                variant={strategy.active ? "default" : "secondary"}
+                                                                className="cursor-pointer"
+                                                                onClick={() => handleToggle(strategy.id)}
+                                                            >
+                                                                {strategy.active ? 'Active' : 'Inactive'}
+                                                            </Badge>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Click to toggle strategy status</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <Badge variant={strategy.brokerAccount.brokerType === 'LIVE' ? "destructive" : "default"}>
+                                                    {strategy.brokerAccount.brokerType}
+                                                </Badge>
                                             </div>
-                                            {strategy.stats ? (
-                                                <>
-                                                    <div>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Total Trades
-                                                        </p>
-                                                        <p className="font-semibold">
-                                                            {strategy.stats.totalTrades}
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Win Rate
-                                                        </p>
-                                                        <p className="font-semibold">
-                                                            {strategy.stats.winRate}%
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Profit Factor
-                                                        </p>
-                                                        <p className="font-semibold">
-                                                            {strategy.stats.profitFactor}
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Sharpe Ratio
-                                                        </p>
-                                                        <p className="font-semibold">
-                                                            {strategy.stats.sharpeRatio}
-                                                        </p>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="col-span-2">
-                                                    <p className="text-sm text-muted-foreground text-start">
-                                                        No stats available
-                                                    </p>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-muted-foreground">Broker</span>
+                                                    <span className="font-semibold">{strategy.brokerAccount.brokerName}</span>
                                                 </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-medium text-muted-foreground">Account ID</span>
+                                                    <span className="font-semibold">{strategy.brokerAccount.accountId}</span>
+                                                </div>
+                                            </div>
+
+                                            {strategy.stats ? (
+                                                <div className="mt-4 grid grid-cols-2 gap-4">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Activity className="h-4 w-4 text-muted-foreground"/>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-muted-foreground">Total Trades</span>
+                                                            <span className="font-semibold">{strategy.stats.totalTrades}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Percent className="h-4 w-4 text-muted-foreground"/>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-muted-foreground">Win Rate</span>
+                                                            <span className="font-semibold">{strategy.stats.winRate}%</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-muted-foreground">Profit Factor</span>
+                                                            <span className="font-semibold">{strategy.stats.profitFactor}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <TrendingUp className="h-4 w-4 text-muted-foreground"/>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-muted-foreground">Sharpe Ratio</span>
+                                                            <span className="font-semibold">{strategy.stats.sharpeRatio}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="mt-4 text-sm text-muted-foreground">No stats available</p>
                                             )}
-                                        </div>
-                                        <div className="flex justify-end space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleViewStrategy(strategy)}
-                                            >
-                                                <Eye className="w-4 h-4 mr-1"/> View
+                                        </CardContent>
+                                        <CardFooter className="flex justify-end space-x-2">
+                                            <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
+                                                <Eye className="w-4 h-4 mr-2"/> View
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEditStrategy(strategy)}
-                                            >
-                                                <Edit2 className="w-4 h-4 mr-1"/> Edit
+                                            <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy)}>
+                                                <Edit2 className="w-4 h-4 mr-2"/> Edit
                                             </Button>
-                                        </div>
+                                        </CardFooter>
                                     </Card>
                                 ))}
                         </div>
