@@ -1,9 +1,10 @@
+version: '3.8'
+
 services:
   api:
-    build: .
+    image: joshwatley/algotrade4j-api:latest
     ports:
       - "8080:8080"
-      - "9010:9010"  # JMX port
     environment:
       - JAVA_OPTS=-XX:+UseG1GC -XX:+UseStringDeduplication
       - SPRING_PROFILES_ACTIVE=prod
@@ -16,12 +17,16 @@ services:
       - DD_TAGS=env:prod
       - OANDA_API_URL=${OANDA_API_URL}
       - OANDA_API_KEY=${OANDA_API_KEY}
-      - OANDA_ACCOUNT_ID=${OANDA_ACCOUNT_ID}
       - JWT_SECRET=${JWT_SECRET}
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        order: stop-first
     entrypoint: >
       sh -c "java
       -javaagent:/app/dd-java-agent.jar 
@@ -40,21 +45,65 @@ services:
       -Dcom.sun.management.jmxremote.ssl=false 
       -jar /app/algotrade4j-api.jar"
 
+  liveservice:
+    image: joshwatley/algotrade4j-liveservice:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - JAVA_OPTS=-XX:+UseG1GC -XX:+UseStringDeduplication
+      - SPRING_PROFILES_ACTIVE=prod
+      - DD_AGENT_HOST=datadog-agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_LOGS_INJECTION=true
+      - DD_PROFILING_ENABLED=true
+      - DD_SERVICE=algotrade4j-liveservice-prod
+      - DD_ENV=prod
+      - DD_TAGS=env:prod
+      - OANDA_API_URL=${OANDA_API_URL}
+      - OANDA_API_KEY=${OANDA_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        order: stop-first
+    entrypoint: >
+      sh -c "java
+      -javaagent:/app/dd-java-agent.jar 
+      -XX:+UseG1GC 
+      -XX:+UseStringDeduplication
+      -Ddd.service=algotrade4j-liveservice-prod
+      -Ddd.env=prod 
+      -Ddd.tags=env:prod 
+      -Ddd.profiling-enabled=true
+      -Ddd.logs.injection=true
+      -Dcom.sun.management.jmxremote.debug=true 
+      -Djava.rmi.server.hostname=0.0.0.0
+      -Dcom.sun.management.jmxremote 
+      -Dcom.sun.management.jmxremote.port=9011 
+      -Dcom.sun.management.jmxremote.authenticate=false 
+      -Dcom.sun.management.jmxremote.ssl=false 
+      -jar /app/algotrade4j-liveservice.jar"
+
   frontend:
-    build:
-      context: .
-      dockerfile: algotrade4j-frontend/Dockerfile
+    image: joshwatley/algotrade4j-frontend:latest
     ports:
       - "3000:80"
-    volumes:
-      - ./infra-config/frontend-nginx.conf:/etc/nginx/conf.d/default.conf
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        order: stop-first
     environment:
       - VITE_NODE_ENV=${VITE_NODE_ENV:-prod}
       - VITE_ENABLE_DEBUG_LOGS=${VITE_ENABLE_DEBUG_LOGS:-false}
-      - VITE_API_URL=/api
       - VITE_ENABLE_SIGNUP=${VITE_ENABLE_SIGNUP:-false}
-    depends_on:
-      - api
+      - VITE_MAIN_API_HOST=${VITE_MAIN_API_HOST:-api}
+      - VITE_LIVE_API_HOST=${VITE_LIVE_API_HOST:-liveservice}
 
   datadog-agent:
     image: gcr.io/datadoghq/agent:latest
@@ -73,4 +122,13 @@ services:
       - /etc/passwd:/etc/passwd:ro
     ports:
       - "8126:8126"
-    profiles: [ "prod" ]
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.role == manager ]
+      - VITE_MAIN_API_HOST=${VITE_MAIN_API_HOST:-api.algotrade4j.trade}
+      - VITE_LIVE_API_HOST=${VITE_LIVE_API_HOST:-live.algotrade4j.trade}
+
+networks:
+  default:
+    driver: overlay
