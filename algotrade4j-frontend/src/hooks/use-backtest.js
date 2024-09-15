@@ -63,7 +63,26 @@ export const useBacktest = () => {
     });
 
     useEffect(() => {
-        const loadSavedChartData = () => {
+        const initialize = async () => {
+            // Fetch strategies
+            try {
+                const res = await apiClient.getStrategies();
+                setStrategies(res);
+
+                const lastStrat = localStorage.getItem('LAST_STRAT');
+
+                for (const strat of res) {
+                    if (strat === lastStrat) {
+                        await handleChangeStrategy(lastStrat);
+                        break;
+                    }
+                }
+            } catch (error) {
+                log.error('Failed to get strategies:', error);
+                return; // Exit if fetching strategies fails
+            }
+
+            // Load saved chart data
             const chartData = localStorage.getItem('chartData');
             const analysisData = localStorage.getItem('analysisData');
             const tradeData = localStorage.getItem('tradeData');
@@ -84,28 +103,7 @@ export const useBacktest = () => {
             }
         };
 
-        loadSavedChartData();
-    }, []);
-
-    useEffect(() => {
-        const fetchStrategies = async () => {
-            try {
-                const res = await apiClient.getStrategies();
-                setStrategies(res);
-
-                const lastStrat = localStorage.getItem('LAST_STRAT');
-
-                res.forEach((strat) => {
-                    if (strat === lastStrat) {
-                        handleChangeStrategy(lastStrat);
-                    }
-                });
-            } catch (error) {
-                log.error('Failed to get strategies:', error);
-            }
-        };
-
-        fetchStrategies();
+        initialize();
 
         return () => {
             if (socketRef.current) {
@@ -113,6 +111,7 @@ export const useBacktest = () => {
             }
         };
     }, []);
+    ;
 
     // Here we check local storage and update the config with the values from local storage
     // if there are any, else we use the defaults from the strategy
@@ -196,28 +195,13 @@ export const useBacktest = () => {
         }
     };
 
-    const startStrategy = async () => {
-        if (strategyClass === '') {
-            log.error('Strategy class is required');
-            toast({
-                title: 'Strategy Required',
-                description: 'Please select a strategy',
-                variant: 'warning',
-            });
-            return;
-        }
-
-        const hackConfig = {
-            ...strategyConfig,
-            strategyClass: strategyClass,
-        };
-
+    const cleanChartData = () => {
+        // Clean previous data
         setAccount({
             initialBalance: Number(strategyConfig.initialCash ? strategyConfig.initialCash : 0),
             balance: 0,
             equity: 0,
         });
-        // Clean previous data
         setChartData([]);
         localStorage.removeItem('chartData');
         localStorage.removeItem('tradeData');
@@ -232,6 +216,26 @@ export const useBacktest = () => {
         setIndicators({});
         setAsync(false);
         setLogs([]);
+    }
+
+    const startStrategy = async () => {
+        if (strategyClass === '') {
+            log.error('Strategy class is required');
+            toast({
+                title: 'Strategy Required',
+                description: 'Please select a strategy',
+                variant: 'warning',
+            });
+            return;
+        }
+
+        cleanChartData();
+
+        const hackConfig = {
+            ...strategyConfig,
+            strategyClass: strategyClass,
+        };
+
         log.debug('Starting strategy...');
 
         try {
@@ -595,6 +599,17 @@ export const useBacktest = () => {
     };
 
     const handleChangeStrategy = async (valueOrEvent) => {
+        setChartData([]);
+        setTrades([]);
+        setAccount({
+            initialBalance: 0,
+            balance: 0,
+            equity: 0,
+        });
+        setIndicators({});
+        setAnalysisData(null);
+        setEquityHistory([]);
+
         // Get the class of the strategy
         let stratClass;
         // Hack to use this function in other places
