@@ -5,9 +5,14 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.model.InstrumentData;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
+import dev.jwtly10.core.strategy.ParameterHandler;
+import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,7 +26,7 @@ public class StrategyConfig {
     private Timeframe timeframe;
     private List<RunParameter> runParams;
 
-    public void validate() throws IllegalStateException {
+    public void validate() throws Exception {
         if (strategyClass == null || strategyClass.isEmpty()) {
             throw new IllegalStateException("Strategy class must be specified");
         }
@@ -43,11 +48,15 @@ public class StrategyConfig {
         } else {
             validateTimeframe(timeframe);
         }
-        if (runParams == null || runParams.isEmpty()) {
-            throw new IllegalStateException("At least one run parameter must be specified");
-        } else {
-            validateRunParameters(runParams);
-        }
+
+        validateRunParams();
+    }
+
+    private void validateRunParams() throws Exception {
+        Strategy strategy = StrategyReflectionUtils.getStrategyFromClassName(strategyClass, null);
+        Map<String, String> runParams = this.runParams.stream().collect(
+                Collectors.toMap(RunParameter::getName, RunParameter::getValue));
+        ParameterHandler.validateRunParameters(strategy, runParams);
     }
 
     private void validateTimeframe(Timeframe timeframe) {

@@ -52,7 +52,11 @@ public class StrategyManager {
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
-        config.validate();
+        try {
+            config.validate();
+        } catch (Exception e) {
+            throw new StrategyManagerException("Error validating strategy config: " + e.getMessage(), ErrorType.BAD_REQUEST);
+        }
 
         Duration period = config.getPeriod().getDuration();
         int spread = config.getSpread();
