@@ -63,6 +63,8 @@ public class LiveStrategyManager {
             log.debug("Found {} active strategies to run", strategies.size());
         }
 
+        // TODO: Add message field to strategy to show errors ?
+
         strategies.forEach(strategy -> {
             if (inMemoryExecutorRepository.getStrategy(strategy.getStrategyName()) == null) {
                 try {
@@ -80,6 +82,7 @@ public class LiveStrategyManager {
         OandaBrokerClient client = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
 
         LiveStrategyConfig config = liveStrategy.getConfig();
+        config.validate();
         // TODO: Validate config against the current strategy version. Need to notify if this is invalid
         Strategy strategy = strategyFactory.createStrategy(config.getStrategyClass(), strategyName);
 
@@ -116,6 +119,7 @@ public class LiveStrategyManager {
 
         executor.initialise();
         dataManager.addDataListener(executor);
+        inMemoryExecutorRepository.addStrategy(strategy.getStrategyId(), executor);
 
         executorService.submit(() -> {
             Thread.currentThread().setName("LiveStrategyExecutor-" + strategy.getStrategyId());
@@ -127,8 +131,6 @@ public class LiveStrategyManager {
                 eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
             }
         });
-
-        inMemoryExecutorRepository.addStrategy(strategy.getStrategyId(), executor);
     }
 
     // TODO: Review, how do we handle stops? Do we?

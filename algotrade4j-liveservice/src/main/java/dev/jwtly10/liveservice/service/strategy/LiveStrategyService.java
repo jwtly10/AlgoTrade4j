@@ -64,6 +64,16 @@ public class LiveStrategyService {
         );
 
         // Validate live strategy configuration
+        LiveStrategy existingStrategy = liveStrategyRepository.findByStrategyName(strategy.getStrategyName()).orElse(null);
+        if (existingStrategy != null) {
+            throw new ApiException("Strategy with the same name already exists", ErrorType.BAD_REQUEST);
+        }
+
+        try {
+            strategy.getConfig().validate();
+        } catch (Exception e) {
+            throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
+        }
 
         // Validate broker config
         BrokerAccount brokerAccount = brokerAccountRepository.findById(strategy.getBrokerAccount().getId())
@@ -130,7 +140,11 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
-        // TODO: Validate live strategy configuration especially the parameter setup
+        try {
+            strategySetup.getConfig().validate();
+        } catch (Exception e) {
+            throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
+        }
 
         // Update the possible values that we allow for updating
         liveStrategy.setStrategyName(strategySetup.getStrategyName());

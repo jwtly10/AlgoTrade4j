@@ -5,6 +5,7 @@ import dev.jwtly10.core.model.Tick;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +18,49 @@ class ParameterHandlerTest {
     @BeforeEach
     void setUp() {
         testStrategy = new TestStrategy("test");
+    }
+
+    @Test
+    void testValidateRunParameters() {
+        TestStrategy testStrategy = new TestStrategy("test");
+
+        // Test with valid parameters
+        Map<String, String> validParams = new HashMap<>();
+        validParams.put("intParam", "20");
+        validParams.put("doubleParam", "6.28");
+        validParams.put("stringParam", "newValue");
+        validParams.put("enumParam", "VALUE3");
+        validParams.put("booleanParam", "false");
+
+        assertDoesNotThrow(() -> ParameterHandler.validateRunParameters(testStrategy, validParams));
+
+        // Test with missing parameter
+        Map<String, String> missingParams = new HashMap<>(validParams);
+        missingParams.remove("intParam");
+        Exception missingEx = assertThrows(IllegalArgumentException.class,
+                () -> ParameterHandler.validateRunParameters(testStrategy, missingParams));
+        assertTrue(missingEx.getMessage().contains("Missing required parameter: intParam"));
+
+        // Test with extra parameter
+        Map<String, String> extraParams = new HashMap<>(validParams);
+        extraParams.put("extraParam", "extra");
+        Exception extraEx = assertThrows(IllegalArgumentException.class,
+                () -> ParameterHandler.validateRunParameters(testStrategy, extraParams));
+        assertTrue(extraEx.getMessage().contains("Unexpected parameter: extraParam"));
+
+        // Test with invalid type
+        Map<String, String> invalidTypeParams = new HashMap<>(validParams);
+        invalidTypeParams.put("intParam", "notAnInteger");
+        Exception invalidTypeEx = assertThrows(IllegalArgumentException.class,
+                () -> ParameterHandler.validateRunParameters(testStrategy, invalidTypeParams));
+        assertTrue(invalidTypeEx.getMessage().contains("Invalid value for parameter intParam"));
+
+        // Test with invalid enum value
+        Map<String, String> invalidEnumParams = new HashMap<>(validParams);
+        invalidEnumParams.put("enumParam", "INVALID_VALUE");
+        Exception invalidEnumEx = assertThrows(IllegalArgumentException.class,
+                () -> ParameterHandler.validateRunParameters(testStrategy, invalidEnumParams));
+        assertTrue(invalidEnumEx.getMessage().contains("Invalid value for parameter enumParam"));
     }
 
     @Test
@@ -204,7 +248,7 @@ class ParameterHandlerTest {
         @Parameter(name = "stringParam", description = "String parameter", value = "default")
         private String stringParam;
 
-        @Parameter(name = "enumParam", description = "Enum parameter", value = "VALUE2")
+        @Parameter(name = "enumParam", description = "Enum parameter", value = "VALUE2", enumClass = TestEnum.class)
         private TestEnum enumParam;
 
         @Parameter(name = "booleanParam", description = "Boolean parameter", value = "true")

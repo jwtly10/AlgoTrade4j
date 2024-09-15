@@ -47,7 +47,7 @@ export const liveStrategyClient = {
     },
 
     updateStrategy: async (strategy) => {
-        const url = `${V1}/live/strategies${strategy.id}`;
+        const url = `${V1}/live/strategies/${strategy.id}`;
         try {
             const response = await liveInstance.put(url, strategy);
             return handleResponse(response, url);
@@ -57,7 +57,7 @@ export const liveStrategyClient = {
     },
 
     toggleStrategy: async (strategyId) => {
-        const url = `${V1}/live/strategies${strategyId}/toggle`;
+        const url = `${V1}/live/strategies/${strategyId}/toggle`;
         try {
             const response = await liveInstance.post(url);
             return handleResponse(response, url);
@@ -67,7 +67,7 @@ export const liveStrategyClient = {
     },
 
     deleteStrategy: async (strategyId) => {
-        const url = `${V1}/live/strategies${strategyId}`;
+        const url = `${V1}/live/strategies/${strategyId}`;
         try {
             const response = await liveInstance.delete(url);
             return handleResponse(response, url);

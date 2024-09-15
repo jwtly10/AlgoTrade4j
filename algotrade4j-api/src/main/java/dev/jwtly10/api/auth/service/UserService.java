@@ -4,6 +4,8 @@ import dev.jwtly10.shared.auth.model.Role;
 import dev.jwtly10.shared.auth.model.User;
 import dev.jwtly10.shared.auth.model.dto.UserDTO;
 import dev.jwtly10.shared.auth.repository.UserRepository;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,17 +45,17 @@ public class UserService {
         // Check username exists
         User userWithUsername = userRepository.findByUsername(updatedUser.getUsername()).orElse(null);
         if (userWithUsername != null && !userWithUsername.getId().equals(userId)) {
-            throw new RuntimeException("Username is already taken!");
+            throw new ApiException("Username is already taken!", ErrorType.BAD_REQUEST);
         }
 
         // Check email exists
         User userWithEmail = userRepository.findByEmail(updatedUser.getEmail()).orElse(null);
         if (userWithEmail != null && !userWithEmail.getId().equals(userId)) {
-            throw new RuntimeException("Email is already taken!");
+            throw new ApiException("Email is already taken!", ErrorType.BAD_REQUEST);
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ApiException("User not found", ErrorType.NOT_FOUND));
         user.setUsername(updatedUser.getUsername());
         user.setEmail(updatedUser.getEmail());
         user.setFirstName(updatedUser.getFirstName());
@@ -64,6 +66,9 @@ public class UserService {
     }
 
     public void deleteUser(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("User not found", ErrorType.NOT_FOUND));
+
         userRepository.deleteById(userId);
     }
 
@@ -81,13 +86,13 @@ public class UserService {
         // Check username exists
         User userWithUsername = userRepository.findByUsername(user.getUsername()).orElse(null);
         if (userWithUsername != null) {
-            throw new RuntimeException("Username is already taken!");
+            throw new ApiException("Username is already taken!", ErrorType.BAD_REQUEST);
         }
 
         // Check email exists
         User userWithEmail = userRepository.findByEmail(user.getEmail()).orElse(null);
         if (userWithEmail != null) {
-            throw new RuntimeException("Email is already taken!");
+            throw new ApiException("Email is already taken!", ErrorType.BAD_REQUEST);
         }
 
         return userRepository.save(user);
@@ -95,7 +100,7 @@ public class UserService {
 
     public User changeUserPassword(Long userId, String newPassword) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ApiException("User not found", ErrorType.NOT_FOUND));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(LocalDateTime.now());
         return userRepository.save(user);

@@ -6,6 +6,8 @@ import dev.jwtly10.liveservice.repository.BrokerAccountRepository;
 import dev.jwtly10.liveservice.repository.LiveStrategyRepository;
 import dev.jwtly10.marketdata.common.Broker;
 import dev.jwtly10.shared.auth.utils.SecurityUtils;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import dev.jwtly10.shared.tracking.TrackingService;
 import dev.jwtly10.shared.tracking.UserAction;
 import jakarta.transaction.Transactional;
@@ -56,7 +58,7 @@ public class BrokerAccountService {
                 .orElse(null);
 
         if (existingAccount != null) {
-            throw new RuntimeException("Account ID '" + broker.getAccountId() + "' already exists");
+            throw new ApiException("Account ID '" + broker.getAccountId() + "' already exists", ErrorType.BAD_REQUEST);
         }
 
         broker.setActive(true);
@@ -74,7 +76,7 @@ public class BrokerAccountService {
         );
 
         BrokerAccount foundAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
-                .orElseThrow(() -> new RuntimeException("Account ID '" + accountId + "' not found"));
+                .orElseThrow(() -> new ApiException("Account ID '" + accountId + "' not found", ErrorType.NOT_FOUND));
 
         // TODO: Validate the account id passed in by making external API call if possible
         foundAccount.setAccountId(broker.getAccountId());
@@ -100,7 +102,7 @@ public class BrokerAccountService {
         );
 
         BrokerAccount brokerAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
-                .orElseThrow(() -> new RuntimeException("Account ID '" + accountId + "' not found"));
+                .orElseThrow(() -> new ApiException("Account ID '" + accountId + "' not found", ErrorType.NOT_FOUND));
 
         List<LiveStrategy> stratsInUse = liveStrategyRepository.findLiveStrategiesByBrokerAccountAndHiddenIsFalse(brokerAccount);
 
@@ -109,7 +111,7 @@ public class BrokerAccountService {
                     .map(LiveStrategy::getStrategyName)
                     .toList();
 
-            throw new RuntimeException("Account ID '" + accountId + "' is still in use by the following strategies: " + strategyNames);
+            throw new ApiException("Account ID '" + accountId + "' is still in use by the following strategies: " + strategyNames, ErrorType.BAD_REQUEST);
         }
 
         brokerAccount.setActive(false);
