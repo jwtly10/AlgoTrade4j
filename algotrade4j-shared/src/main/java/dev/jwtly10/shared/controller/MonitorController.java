@@ -1,6 +1,5 @@
-package dev.jwtly10.api.controller;
+package dev.jwtly10.shared.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,26 +12,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/system")
-public class SystemInfoController {
-    private final Map<String, String> versionInfo;
+@RequestMapping("/api/v1/")
+public class MonitorController {
     private final Environment environment;
+    private final ApplicationInfo applicationInfo;
     private final Date startTime;
 
-
-    @Autowired
-    public SystemInfoController(Map<String, String> versionInfo, Environment environment) {
-        this.versionInfo = versionInfo;
+    public MonitorController(Environment environment, ApplicationInfo applicationInfo) {
         this.environment = environment;
+        this.applicationInfo = applicationInfo;
         this.startTime = new Date();
-    }
-
-    @GetMapping("/version")
-    public Map<String, String> getVersion() {
-        Map<String, String> info = new HashMap<>(versionInfo);
-        info.put("environment", getEnvironment());
-        info.put("startTime", formatDateTime(startTime));
-        return info;
     }
 
     @GetMapping("/monitor")
@@ -44,9 +33,8 @@ public class SystemInfoController {
         long usedMemory = totalMemory - freeMemory;
         long usedMaxMemory = maxMemory - freeMemory;
 
-        Map<String, Object> info = new HashMap<>(versionInfo);
-        info.putAll(Map.of(
-                "javaVersion", System.getProperty("java.version"),
+        Map<String, Object> info = new HashMap<>(Map.of(
+                "version", applicationInfo.getVersion(),
                 "timestamp", new Date().toString(),
                 "environment", getEnvironment(),
                 "startTime", formatDateTime(startTime),
@@ -98,4 +86,5 @@ public class SystemInfoController {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(date);
     }
+
 }

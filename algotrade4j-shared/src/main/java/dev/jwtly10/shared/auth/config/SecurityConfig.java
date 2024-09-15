@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> {
                     auth
+                            .requestMatchers("/health").permitAll()
                             .requestMatchers("/api/v1/auth/**").permitAll();
                     if (env.acceptsProfiles(Profiles.of("dev"))) {
                         // This allows us to easily make heap dumps on local

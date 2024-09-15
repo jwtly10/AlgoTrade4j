@@ -53,16 +53,7 @@ export const systemClient = {
         }
     },
     monitor: async () => {
-        const url = '/system/monitor';
-        try {
-            const response = await axiosInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-    version: async () => {
-        const url = '/system/version';
+        const url = '/monitor';
         try {
             const response = await axiosInstance.get(url);
             return handleResponse(response, url);

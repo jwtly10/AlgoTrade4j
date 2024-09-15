@@ -1,4 +1,4 @@
-package dev.jwtly10.api.controller;
+package dev.jwtly10.api.controller.backtest;
 
 import dev.jwtly10.api.exception.StrategyManagerException;
 import dev.jwtly10.api.model.StrategyConfig;

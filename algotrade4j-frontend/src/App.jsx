@@ -6,7 +6,6 @@ import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/users/UserManagementView.jsx';
 import NotFoundView from "./views/NotFoundView.jsx";
-import VersionBanner from "./components/layout/VersionBanner.jsx";
 import HomeView from "./views/main/HomeView.jsx";
 import OptimisationView from "./views/main/OptimisationView.jsx";
 import log from './logger.js';
@@ -59,7 +58,6 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <Router>
                 <div className="min-h-screen bg-background text-foreground">
-                    {user && (<VersionBanner user={user}/>)}
                     {user && (<Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>)}
                     <Routes>
                         <Route

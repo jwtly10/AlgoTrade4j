@@ -1,4 +1,4 @@
-package dev.jwtly10.api.controller;
+package dev.jwtly10.api.controller.optimisation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dev.jwtly10.api.exception.StrategyManagerException;

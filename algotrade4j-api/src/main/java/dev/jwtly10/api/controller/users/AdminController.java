@@ -1,4 +1,4 @@
-package dev.jwtly10.api.controller;
+package dev.jwtly10.api.controller.users;
 
 import dev.jwtly10.api.auth.model.LoginResponse;
 import dev.jwtly10.api.auth.model.SignupRequest;

@@ -49,32 +49,10 @@ mainInstance.interceptors.response.use(
 );
 
 export const systemClient = {
-    /**
-     * This is a utility method to dump the java heap from the frontend
-     * it will only work when running locally hence hardcoding localhost:8080
-     **/
-    dumpHeap: async () => {
-        const url = 'http://localhost:8080/generate-heapdump';
-        try {
-            const res = await axios.get(url);
-            log.debug(res);
-        } catch (error) {
-            log.debug(error);
-        }
-    },
     monitor: async () => {
-        const url = '/system/monitor';
+        const url = '/monitor';
         try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-    version: async () => {
-        const url = '/system/version';
-        try {
-            const response = await mainInstance.get(url);
+            const response = await liveInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);

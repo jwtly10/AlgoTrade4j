@@ -1,4 +1,4 @@
-package dev.jwtly10.api.controller;
+package dev.jwtly10.api.controller.instrument;
 
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.InstrumentData;
