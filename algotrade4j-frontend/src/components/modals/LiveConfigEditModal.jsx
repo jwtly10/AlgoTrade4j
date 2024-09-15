@@ -11,7 +11,7 @@ import {ScrollArea} from '@/components/ui/scroll-area';
 import {InfoIcon} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
 import isEqual from 'lodash/isEqual';
-import {strategyClient} from "@/api/liveClient.js";
+import {liveStrategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
 
 const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
@@ -96,7 +96,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
 
     const handleConfigSave = async (config) => {
         try {
-            await strategyClient.updateStrategy(config);
+            await liveStrategyClient.updateStrategy(config);
 
             toast({
                 title: 'Strategy updated',
@@ -116,7 +116,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
         if (window.confirm('Are you sure you want to delete this live strategy?')) {
             try {
 
-                await strategyClient.deleteStrategy(localConfig.id);
+                await liveStrategyClient.deleteStrategy(localConfig.id);
                 toast({
                     title: 'Strategy deleted',
                     description: `Live Strategy '${localConfig.strategyName}' has been deleted successfully`,

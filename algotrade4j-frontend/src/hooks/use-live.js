@@ -1,20 +1,14 @@
 // hooks/useBacktest.js
 
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {apiClient} from '../api/liveClient.js';
+import {liveWSClient} from '@/api/liveClient.js';
+import {apiClient} from '@/api/apiClient.js';
 import {useToast} from '@/hooks/use-toast';
 import log from '../logger.js';
 
 export const useLive = () => {
     const socketRef = useRef(null);
     const {toast} = useToast();
-
-    const [isStrategyRunning, setIsStrategyRunning] = useState(false);
-    const [account, setAccount] = useState({
-        initialBalance: 0,
-        balance: 0,
-        equity: 0,
-    });
 
     // Charting state
     const [trades, setTrades] = useState([]);
@@ -23,87 +17,20 @@ export const useLive = () => {
     const [tradeIdMap, setTradeIdMap] = useState(new Map());
     const tradeCounterRef = useRef(1);
 
-    // Analysis state
-    const [analysisData, setAnalysisData] = useState(null);
-    const [equityHistory, setEquityHistory] = useState([]);
-
     // Log state
     const [logs, setLogs] = useState([]);
 
     // UI State
     const [tabValue, setTabValue] = useState('trades');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [strategies, setStrategies] = useState([]);
-    const [strategyClass, setStrategyClass] = useState('');
-
-    const [isAsync, setAsync] = useState(false);
-    const [progressData, setProgressData] = useState(null);
-    const [showChart, setShowChart] = useState(true);
-    const [startTime, setStartTime] = useState(null);
 
     const [isConnected, setIsConnected] = useState(false);
-
-    const [strategyConfig, setStrategyConfig] = useState({
-        strategyClass: '',
-        initialCash: '10000',
-        instrumentData: {
-            internalSymbol: 'NAS100USD',
-            oandaSymbol: 'NAS100_USD',
-            decimalPlaces: 2,
-            minimumMove: 1,
-            instrument: 'NAS100USD',
-        },
-        spread: '30',
-        speed: 'INSTANT',
-        period: 'M30',
-        timeframe: {
-            from: '',
-            to: '',
-        },
-        runParams: [],
-    });
-
-    useEffect(() => {
-        // const loadSavedChartData = () => {
-        //     const chartData = localStorage.getItem('chartData');
-        //     const analysisData = localStorage.getItem('analysisData');
-        //     const tradeData = localStorage.getItem('tradeData');
-        //     const accountData = localStorage.getItem('accountData');
-        //     const indicatorData = localStorage.getItem('indicatorData');
-        //
-        //     if (chartData && analysisData && tradeData && accountData && indicatorData) {
-        //         try {
-        //             setChartData(JSON.parse(chartData));
-        //             setTrades(JSON.parse(tradeData));
-        //             setAccount(JSON.parse(accountData));
-        //             setIndicators(JSON.parse(indicatorData));
-        //             setAnalysisData(JSON.parse(analysisData));
-        //             setEquityHistory(JSON.parse(analysisData).equityHistory);
-        //         } catch (error) {
-        //             log.error('Failed to parse saved chart data:', error);
-        //         }
-        //     }
-        // };
-        // loadSavedChartData();
-    }, []);
-
-    const checkStrategy = async () => {
-    };
 
     useEffect(() => {
         const fetchStrategies = async () => {
             try {
                 const res = await apiClient.getStrategies();
                 setStrategies(res);
-
-                const lastStrat = localStorage.getItem('LAST_STRAT');
-
-                res.forEach((strat) => {
-                    if (strat === lastStrat) {
-                        handleChangeStrategy(lastStrat);
-                    }
-                });
             } catch (error) {
                 log.error('Failed to get strategies:', error);
             }
@@ -118,148 +45,27 @@ export const useLive = () => {
         };
     }, []);
 
-    // Here we check local storage and update the config with the values from local storage
-    // if there are any, else we use the defaults from the strategy
-    const loadConfigFromLocalStorage = (runParams, stratClass) => {
-        const storedConfig = JSON.parse(localStorage.getItem(`strategyConfig_${stratClass}`)) || {};
-
-        // Check storedConfig for runParams, if we have them, we need to update the values!!!!! in the run params
-        const updatedRunParams = runParams.map((param) => {
-            const storedParam = storedConfig.runParams?.find((p) => p.name === param.name);
-
-            // Only update if theres data to update
-            if (storedParam) {
-                return {
-                    ...param,
-                    value: storedParam.value !== undefined ? storedParam.value : param.value,
-                    start: storedParam.start !== undefined ? storedParam.start : param.start,
-                    stop: storedParam.stop !== undefined ? storedParam.stop : param.stop,
-                    step: storedParam.step !== undefined ? storedParam.step : param.step,
-                    selected:
-                        storedParam.selected !== undefined ? storedParam.selected : param.selected,
-                };
-            } else {
-                return param; // Keep the original parameter if no stored version is found
-            }
-        });
-
-        // Setting some defaults in case we don't have any values in local storage
-        const today = new Date().toISOString().split('T')[0] + 'T00:00:00Z';
-        const lastMonth =
-            new Date(Date.now() - 86400000 * 30).toISOString().split('T')[0] + 'T00:00:00Z';
-
-        const updatedConfig = {
-            ...strategyConfig,
-            initialCash: storedConfig.initialCash || strategyConfig.initialCash,
-            instrumentData: storedConfig.instrumentData || strategyConfig.instrumentData,
-            spread: storedConfig.spread || strategyConfig.spread,
-            period: storedConfig.period || strategyConfig.period,
-            speed: storedConfig.speed || strategyConfig.speed,
-            timeframe: {
-                from: storedConfig.timeframe?.from || lastMonth,
-                to: storedConfig.timeframe?.to || today,
-            },
-            runParams: updatedRunParams,
-            strategyClass: stratClass,
-        };
-
-        // Now we can update the state with the updated values
-        setStrategyConfig(updatedConfig);
-    };
-
-    const startOptimisation = async () => {
-        if (strategyClass === '') {
-            log.error('Strategy class is required');
-            toast({
-                title: 'Warning',
-                description: 'Please select a strategy before starting optimisation.',
-                variant: 'warning',
-            });
-            return;
-        }
-
-        const hackConfig = {
-            ...strategyConfig,
-            strategyClass: strategyClass,
-        };
-
-        try {
-            await apiClient.queueOptimisation(hackConfig);
-            log.debug('Optimisation queued');
-            toast({
-                title: 'Success',
-                description: 'Optimisation queued successfully. The page will refresh shortly.',
-            });
-        } catch (error) {
-            log.error('Failed to queue optimisation:', error);
-            toast({
-                title: 'Error',
-                description: `Failed to queue optimisation: ${error.message}`,
-                variant: 'destructive',
-            });
-        }
-    };
-
-    const startStrategy = async () => {
-        const hackConfig = {
-            ...strategyConfig,
-            strategyClass: strategyClass,
-        };
-        setAccount({
-            initialBalance: Number(strategyConfig.initialCash ? strategyConfig.initialCash : 0),
-            balance: 0,
-            equity: 0,
-        });
+    const viewStrategy = async (strategyId) => {
         // Clean previous data
         setChartData([]);
-        localStorage.removeItem('chartData');
-        localStorage.removeItem('tradeData');
-        localStorage.removeItem('accountData');
-        localStorage.removeItem('indicatorData');
-        localStorage.removeItem('analysisData');
-        setAnalysisData(null);
-        setEquityHistory([]);
         setTrades([]);
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
         setIndicators({});
-        setAsync(false);
         setLogs([]);
-        log.debug('Starting strategy...');
 
         try {
-            log.debug('Starting strategy with config:', strategyConfig);
-            socketRef.current = await apiClient.connectWebSocket('testing', handleWebSocketMessage);
+            log.debug('Viewing strategy:', strategyId);
+            socketRef.current = await liveWSClient.connectWebSocket(strategyId, handleWebSocketMessage);
             setIsConnected(true);
-            setStartTime(Date.now());
         } catch (error) {
-            log.error('Failed to start strategy:', error);
+            log.error('Failed to view strategy:', error);
             toast({
-                title: 'Strategy Start Failed',
-                description: `Failed to start strategy: ${error.message}`,
+                title: 'Strategy View Failed',
+                description: `Failed to view strategy: ${error.message}`,
                 variant: 'destructive',
             });
-            setIsStrategyRunning(false);
             setIsConnected(false);
-        }
-    };
-
-    const stopStrategy = async () => {
-        try {
-            if (strategyClass !== '') {
-                // We can stop strategy by just closing ws connection
-                setIsStrategyRunning(false);
-                setAccount({
-                    initialBalance: 0,
-                    balance: 0,
-                    equity: 0,
-                });
-                if (socketRef.current) {
-                    socketRef.current.close();
-                }
-            }
-        } catch (error) {
-            log.error('Failed to stop strategy:', error);
         }
     };
 
@@ -272,13 +78,11 @@ export const useLive = () => {
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
         } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
-            updateAccount(data);
+            log.error("This shouldn't happen in live")
         } else if (data.type === 'STRATEGY_STOP') {
             log.info('Strategy stop event');
-            setIsStrategyRunning(false);
-            setAsync(false);
         } else if (data.type === 'ANALYSIS') {
-            setAnalysis(data);
+            log.error("Will we do this?")
         } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
             updateTrades(data);
         } else if (data.type === 'LOG') {
@@ -292,7 +96,7 @@ export const useLive = () => {
             log.info('All indicator event');
             setAllIndicators(data);
         } else if (data.type === 'PROGRESS') {
-            updateAsyncProgress(data);
+            log.error("This shouldn't happen in live")
         } else if (data.type === 'ERROR') {
             toast({
                 title: 'Error',
@@ -302,10 +106,6 @@ export const useLive = () => {
         } else {
             log.debug('WHAT OTHER EVENT WAS SENT?' + data);
         }
-    };
-
-    const updateAsyncProgress = (data) => {
-        setProgressData(data);
     };
 
     const updateLogs = (data) => {
@@ -328,12 +128,6 @@ export const useLive = () => {
                 ...prevLogs,
             ];
         });
-    };
-
-    const setAnalysis = (data) => {
-        setAnalysisData(data);
-        setEquityHistory(data.equityHistory);
-        saveAnalysisDataToLocalStorage(data);
     };
 
     const updateTrades = (data) => {
@@ -380,19 +174,8 @@ export const useLive = () => {
                         value: indicator.value,
                     }));
             });
-            saveIndicatorDataToLocalStorage(newIndicators);
             return newIndicators;
         });
-    };
-
-    const updateAccount = (data) => {
-        const accountData = {
-            initialBalance: data.account.initialBalance,
-            balance: data.account.balance.toFixed(2),
-            equity: data.account.equity.toFixed(2),
-        };
-        setAccount(accountData);
-        saveAccountDataToLocalStorage(accountData);
     };
 
     const updateTradingViewChart = useCallback(
@@ -492,10 +275,6 @@ export const useLive = () => {
                     return prevMap;
                 });
             } else if (data.type === 'BAR_SERIES') {
-                if (!showChart) {
-                    // If no chart. Dont load the chart
-                    return;
-                }
                 const barSeries = data.barSeries.bars;
                 setChartData(() => {
                     // Convert the bar series to the format expected by the chart
@@ -510,7 +289,6 @@ export const useLive = () => {
 
                     // Sort the data by time to ensure correct order
                     newChartData.sort((a, b) => new Date(a.time) - new Date(b.time));
-                    saveChartDataToLocalStorage(newChartData);
                     return newChartData;
                 });
             } else if (data.type === 'ALL_TRADES') {
@@ -537,8 +315,6 @@ export const useLive = () => {
 
                     // Sort trades by openTime
                     newTrades.sort((a, b) => new Date(a.openTime) - new Date(b.openTime));
-
-                    saveTradeDataToLocalStorage(newTrades);
                     return newTrades;
                 });
 
@@ -549,152 +325,15 @@ export const useLive = () => {
         },
         [tradeIdMap]
     );
-
-    const handleOpenParams = () => {
-        setIsModalOpen(true);
-    };
-
-    const getParams = async (stratClass) => {
-        try {
-            return await apiClient.getParams(stratClass);
-        } catch (error) {
-            log.error('Failed to get strategy params:', error);
-            toast({
-                title: 'Params Fetch Failed',
-                description: `Failed to get strategy params: ${error.message}`,
-                variant: 'destructive',
-            });
-        }
-    };
-
-    const handleConfigSave = (config) => {
-        log.debug('Saving params:', config);
-        setIsModalOpen(false);
-    };
-
-    const handleChangeStrategy = async (valueOrEvent) => {
-        // Get the class of the strategy
-        let stratClass;
-        // Hack to use this function in other places
-        if (typeof valueOrEvent === 'string') {
-            // If a string is passed directly
-            stratClass = valueOrEvent;
-        } else if (valueOrEvent && valueOrEvent.target) {
-            // If an event object is passed (from onChange)
-            stratClass = valueOrEvent.target.value;
-        } else {
-            log.error('Invalid input to handleChangeStrategy');
-            return;
-        }
-        localStorage.setItem('LAST_STRAT', stratClass);
-        setStrategyClass(stratClass);
-
-        // Update config with class
-        setStrategyConfig({
-            ...strategyConfig,
-            strategyClass: stratClass,
-        });
-
-        // Now, we know what params have come from the strategy defaults. So we should set these are the run params for now.
-        const params = await getParams(stratClass);
-        log.debug('Params', params);
-
-        let runParams = [];
-        params.forEach((param) => {
-            runParams.push({
-                name: param.name,
-                // Default from server
-                value: param.value,
-                // Defaults
-                defaultValue: param.value,
-                description: param.description,
-                group: param.group,
-                start: '1',
-                stop: '1',
-                step: '1',
-                selected: false,
-            });
-        });
-
-        log.debug('Run Params', runParams);
-
-        setStrategyConfig({
-            ...strategyConfig,
-            runParams: runParams,
-        });
-
-        // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
-        loadConfigFromLocalStorage(runParams, stratClass);
-    };
-
-    const saveChartDataToLocalStorage = (data) => {
-        try {
-            localStorage.setItem('chartData', JSON.stringify(data));
-        } catch (error) {
-            log.error('Failed to save chart data to localStorage:', error);
-        }
-    };
-
-    const saveTradeDataToLocalStorage = (data) => {
-        try {
-            localStorage.setItem('tradeData', JSON.stringify(data));
-        } catch (error) {
-            log.error('Failed to save trade data to localStorage:', error);
-        }
-    };
-
-    const saveAccountDataToLocalStorage = (data) => {
-        try {
-            localStorage.setItem('accountData', JSON.stringify(data));
-        } catch (error) {
-            log.error('Failed to save account data to localStorage:', error);
-        }
-    };
-
-    const saveIndicatorDataToLocalStorage = (data) => {
-        try {
-            localStorage.setItem('indicatorData', JSON.stringify(data));
-        } catch (error) {
-            log.error('Failed to save indicator data to localStorage:', error);
-        }
-    };
-
-    const saveAnalysisDataToLocalStorage = (data) => {
-        try {
-            localStorage.setItem('analysisData', JSON.stringify(data));
-        } catch (error) {
-            log.error('Failed to save analysis data to localStorage:', error);
-        }
-    };
-
     return {
         isConnected,
-        isStrategyRunning,
-        account,
         trades,
         indicators,
         chartData,
-        analysisData,
-        equityHistory,
         logs,
         tabValue,
         setTabValue,
-        isModalOpen,
-        setIsModalOpen,
         strategies,
-        strategyClass,
-        isAsync,
-        progressData,
-        showChart,
-        startTime,
-        strategyConfig,
-        setStrategyConfig,
-        startOptimisation,
-        startStrategy,
-        stopStrategy,
-        handleOpenParams,
-        handleConfigSave,
-        handleChangeStrategy,
-        updateTradingViewChart,
+        viewStrategy,
     };
 };

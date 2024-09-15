@@ -1,56 +1,21 @@
 import axios from 'axios';
-import log from '../logger.js';
-import pako from 'pako';
+import {getWebSocketUrl, handleError, handleResponse, handleWSMessage} from "@/api/utils.js";
 
-const isDev = import.meta.env.MODE === 'development';
-// const API_BASE_URL = isDev ? 'http://localhost:8081/api/v1' : '/api/v1';
-// const WS_BASE_URL = isDev
-//     ? `${'http://localhost:8081'.replace('http', 'ws')}/ws/v1`
-//     : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
-
-const API_BASE_URL = 'http://localhost:8080/api/v1';
-const LIVE_API_BASE_URL = 'http://localhost:8081/api/v1';
-const WS_BASE_URL = 'ws://localhost:8080/ws/v1';
-
-const mainInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    withCredentials: true,
-});
+const LIVE_API_HOST = import.meta.env.VITE_LIVE_API_HOST || 'http://localhost:8081';
+const WS_BASE_URL = getWebSocketUrl(LIVE_API_HOST);
+const V1 = '/api/v1';
 
 const liveInstance = axios.create({
-    baseURL: LIVE_API_BASE_URL,
+    baseURL: LIVE_API_HOST,
     headers: {
         'Content-Type': 'application/json',
     },
     withCredentials: true,
 });
 
-// Crude implementation to sign users out of these endpoints fail auth
-mainInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        if (error.response && error.response.status === 403) {
-            // Token has expired
-            try {
-                // Logout properly to clean http only cookie
-                await authClient.logout();
-            } catch (logoutError) {
-                log.error('Error during logout:', logoutError);
-            }
-
-            // Redirect to login page, forcing page reload
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
-    }
-);
-
-export const systemClient = {
+export const liveMonitorClient = {
     monitor: async () => {
-        const url = '/monitor';
+        const url = `${V1}/monitor`;
         try {
             const response = await liveInstance.get(url);
             return handleResponse(response, url);
@@ -60,9 +25,9 @@ export const systemClient = {
     },
 };
 
-export const strategyClient = {
+export const liveStrategyClient = {
     getLiveStrategies: async () => {
-        const url = '/live/strategies';
+        const url = `${V1}/live/strategies`;
         try {
             const response = await liveInstance.get(url);
             return handleResponse(response, url);
@@ -72,7 +37,7 @@ export const strategyClient = {
     },
 
     createStrategy: async (strategy) => {
-        const url = '/live/strategies';
+        const url = `${V1}/live/strategies`;
         try {
             const response = await liveInstance.post(url, strategy);
             return handleResponse(response, url);
@@ -82,7 +47,7 @@ export const strategyClient = {
     },
 
     updateStrategy: async (strategy) => {
-        const url = `/live/strategies/${strategy.id}`;
+        const url = `${V1}/live/strategies${strategy.id}`;
         try {
             const response = await liveInstance.put(url, strategy);
             return handleResponse(response, url);
@@ -92,7 +57,7 @@ export const strategyClient = {
     },
 
     toggleStrategy: async (strategyId) => {
-        const url = `/live/strategies/${strategyId}/toggle`;
+        const url = `${V1}/live/strategies${strategyId}/toggle`;
         try {
             const response = await liveInstance.post(url);
             return handleResponse(response, url);
@@ -102,7 +67,7 @@ export const strategyClient = {
     },
 
     deleteStrategy: async (strategyId) => {
-        const url = `/live/strategies/${strategyId}`;
+        const url = `${V1}/live/strategies${strategyId}`;
         try {
             const response = await liveInstance.delete(url);
             return handleResponse(response, url);
@@ -112,9 +77,9 @@ export const strategyClient = {
     },
 };
 
-export const accountClient = {
+export const liveAccountClient = {
     getBrokers: async () => {
-        const url = '/accounts/brokers';
+        const url = `${V1}/accounts/brokers`;
         try {
             const response = await liveInstance.get(url);
             return handleResponse(response, url);
@@ -124,7 +89,7 @@ export const accountClient = {
     },
 
     getAccounts: async () => {
-        const url = '/accounts';
+        const url = `${V1}/accounts`;
         try {
             const response = await liveInstance.get(url);
             return handleResponse(response, url);
@@ -134,7 +99,7 @@ export const accountClient = {
     },
 
     createBrokerAccount: async (account) => {
-        const url = '/accounts';
+        const url = `${V1}/accounts`;
         try {
             const response = await liveInstance.post(url, account);
             return handleResponse(response, url);
@@ -144,7 +109,7 @@ export const accountClient = {
     },
 
     updateBrokerAccount: async (accountId, account) => {
-        const url = `/accounts/${accountId}`;
+        const url = `${V1}/accounts/${accountId}`;
         try {
             const response = await liveInstance.put(url, account);
             return handleResponse(response, url);
@@ -154,7 +119,7 @@ export const accountClient = {
     },
 
     deleteBrokerAccount: async (accountId) => {
-        const url = `/accounts/${accountId}`;
+        const url = `${V1}/accounts/${accountId}`;
         try {
             const response = await liveInstance.delete(url);
             return handleResponse(response, url);
@@ -164,290 +129,11 @@ export const accountClient = {
     },
 };
 
-export const authClient = {
-    login: async (username, password) => {
-        const url = '/auth/signin';
-        try {
-            const response = await mainInstance.post(url, {username, password});
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    signup: async (signupData) => {
-        const url = '/auth/signup';
-        try {
-            const response = await mainInstance.post(url, signupData);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    verifyToken: async () => {
-        const url = '/auth/verify';
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    logout: async () => {
-        const url = '/auth/logout';
-        try {
-            const response = await mainInstance.post(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-};
-
-export const adminClient = {
-    createUser: async (userData) => {
-        const url = '/admin/users';
-        try {
-            const response = await mainInstance.post(url, userData);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getUsers: async () => {
-        const url = '/admin/users';
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    updateUser: async (userId, userData) => {
-        const url = `/admin/users/${userId}`;
-        try {
-            const response = await mainInstance.put(url, userData);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    changeUserPassword: async (userId, newPassword) => {
-        const url = `/admin/users/${userId}/change-password`;
-        try {
-            const response = await mainInstance.post(url, {newPassword});
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    deleteUser: async (userId) => {
-        const url = `/admin/users/${userId}`;
-        try {
-            const response = await mainInstance.delete(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getRoles: async () => {
-        const url = '/admin/roles';
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-};
-
-export const apiClient = {
-    startStrategy: async (config, strategyId, showChart) => {
-        let runAsync = false;
-        if (config.speed === 'INSTANT') {
-            runAsync = true;
-        }
-        const url = `/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
-        try {
-            const response = await mainInstance.post(url, config);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    stopStrategy: async (strategyId) => {
-        const url = `/strategies/${strategyId}/stop`;
-        try {
-            const response = await mainInstance.post(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    generateId: async (config) => {
-        const url = '/strategies/generate-id';
-        try {
-            const response = await mainInstance.post(url, config);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getParams: async (strategyId) => {
-        const url = `/strategies/${strategyId}/params`;
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getStrategies: async () => {
-        const url = '/strategies';
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
+export const liveWSClient = {
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
-            const socket = new WebSocket(`${WS_BASE_URL.replace('8080', '8081')}/live-strategy-events`);
-            socket.binaryType = 'arraybuffer';
-
-            socket.onopen = () => {
-                socket.send(`STRATEGY:${strategyId}`);
-                resolve(socket);
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const buffer = new Uint8Array(event.data);
-                    const isCompressed = buffer[0] === 1;
-                    const messageData = buffer.slice(1);
-
-                    let jsonData;
-                    if (isCompressed) {
-                        const decompressedData = pako.inflate(messageData, {to: 'string'});
-                        jsonData = JSON.parse(decompressedData);
-                    } else {
-                        jsonData = JSON.parse(new TextDecoder().decode(messageData));
-                    }
-                    onMessage(jsonData);
-                } catch (error) {
-                    log.error('Error processing WebSocket message:', error);
-                }
-            };
-
-            socket.onerror = (error) => {
-                log.error('WebSocket error:', error);
-                reject(error);
-            };
-
-            socket.onclose = () => {
-                log.debug('WebSocket disconnected');
-            };
+            const socket = new WebSocket(`${WS_BASE_URL}/live-strategy-events`);
+            handleWSMessage(socket, onMessage, strategyId, resolve, reject);
         });
     },
-
-    queueOptimisation: async (config) => {
-        const url = `/optimisation/queue`;
-        try {
-            const response = await mainInstance.post(url, config);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getOptimisationTasks: async () => {
-        const url = `/optimisation/tasks`;
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    shareTask: async (taskId, shareWithUserId) => {
-        const url = `/optimisation/share/${taskId}/${shareWithUserId}`;
-        try {
-            const response = await mainInstance.post(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    deleteTask: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}`;
-        try {
-            const response = await mainInstance.delete(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getTaskResults: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}/results`;
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-
-    getInstruments: async () => {
-        const url = `/instruments`;
-        try {
-            const response = await mainInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-};
-
-const handleResponse = (response, url) => {
-    log.debug(`Request Response (${url}): `, response.data);
-    return response.data;
-};
-
-const handleError = (error, url) => {
-    log.error(`API call failed (${url}): `, error);
-
-    let errorMessage;
-
-    if (error.response && error.response.data && error.response.data.message) {
-        // Case 1: Nice error from the backend
-        errorMessage = error.response.data.message;
-    } else if (error.message) {
-        // Case 2: Error with a message property
-        errorMessage = error.message;
-    } else {
-        // Case 3: Unexpected error format
-        errorMessage = 'An unexpected error occurred';
-    }
-
-    // Create a custom error object with the extracted message
-    const customError = new Error(errorMessage);
-    customError.originalError = error;
-
-    throw customError;
 };

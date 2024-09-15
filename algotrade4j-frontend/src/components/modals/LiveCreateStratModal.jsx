@@ -9,7 +9,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {InfoIcon} from 'lucide-react';
-import {accountClient, strategyClient} from '@/api/liveClient.js';
+import {liveAccountClient, liveStrategyClient} from '@/api/liveClient.js';
 import {apiClient} from '@/api/apiClient.js';
 import {toast} from '@/hooks/use-toast';
 
@@ -45,7 +45,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                 config: config.config,
             };
 
-            await strategyClient.createStrategy(liveStrategy);
+            await liveStrategyClient.createStrategy(liveStrategy);
 
             toast({
                 title: 'Strategy Created',
@@ -130,7 +130,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
 
     const fetchAccounts = async () => {
         try {
-            const accounts = await accountClient.getAccounts();
+            const accounts = await liveAccountClient.getAccounts();
             setAccounts(accounts);
         } catch (error) {
             toast({

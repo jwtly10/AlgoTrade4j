@@ -15,36 +15,20 @@ import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
 import LiveBrokerModal from '@/components/modals/LiveBrokersModal.jsx';
 import log from '@/logger.js';
 import {Badge} from "@/components/ui/badge"
-import {strategyClient} from '@/api/liveClient.js';
+import {liveStrategyClient} from '@/api/liveClient.js';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 
 const LiveStrategyView = () => {
     const {
         isConnected,
-        isStrategyRunning,
-        account,
         trades,
         indicators,
         chartData,
-        analysisData,
-        equityHistory,
         logs,
         tabValue,
         setTabValue,
-        // isModalOpen,
-        // setIsModalOpen,
         strategies,
-        isAsync,
-        progressData,
-        showChart,
-        startTime,
-        strategyConfig,
-        setStrategyConfig,
-        startStrategy,
-        stopStrategy,
-        // handleOpenParams,
-        // handleConfigSave,
-        handleChangeStrategy,
+        viewStrategy,
     } = useLive();
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
@@ -52,6 +36,7 @@ const LiveStrategyView = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
     const [liveStrategies, setLiveStrategies] = useState([]);
+    const [viewingStrategy, setViewingStrategy] = useState(null);
 
     useEffect(() => {
         fetchLiveStrategies();
@@ -59,7 +44,7 @@ const LiveStrategyView = () => {
 
     const fetchLiveStrategies = async () => {
         try {
-            const res = await strategyClient.getLiveStrategies();
+            const res = await liveStrategyClient.getLiveStrategies();
             setLiveStrategies(res);
         } catch (error) {
             log.error('Error getting live strategies from db', error);
@@ -71,9 +56,10 @@ const LiveStrategyView = () => {
         }
     };
 
-    const handleViewStrategy = async (strategyId) => {
-        log.debug('Viewing strategy:', strategyId);
-        startStrategy();
+    const handleViewStrategy = async (strategy) => {
+        log.debug('Viewing strategy:', strategy.id);
+        setViewingStrategy(strategy);
+        await viewStrategy();
     };
 
     const handleEditStrategy = (pickedLiveStrat) => {
@@ -101,7 +87,7 @@ const LiveStrategyView = () => {
 
     const handleToggle = async (strategyId) => {
         try {
-            const res = await strategyClient.toggleStrategy(strategyId);
+            const res = await liveStrategyClient.toggleStrategy(strategyId);
             log.debug('Toggled strategy:', res);
             await fetchLiveStrategies();
         } catch (error) {
@@ -127,14 +113,14 @@ const LiveStrategyView = () => {
                                 <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
                                     {chartData && chartData.length > 0 ? (
                                         <TradingViewChart
-                                            showChart={showChart}
-                                            strategyConfig={strategyConfig}
+                                            showChart={true}
+                                            strategyConfig={viewingStrategy.config}
                                             chartData={chartData}
                                             trades={trades}
                                             indicators={indicators}
                                         />
                                     ) : (
-                                        <EmptyChart trades={trades} showChart={showChart}/>
+                                        <EmptyChart/>
                                     )}
                                 </div>
 

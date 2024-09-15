@@ -6,7 +6,7 @@ import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
 import {ScrollArea} from '@/components/ui/scroll-area';
-import {accountClient} from '@/api/liveClient.js';
+import {liveAccountClient} from '@/api/liveClient.js';
 import {useToast} from '@/hooks/use-toast';
 
 const LiveBrokerModal = ({open, onClose}) => {
@@ -38,7 +38,7 @@ const LiveBrokerModal = ({open, onClose}) => {
 
     const fetchAccounts = async () => {
         try {
-            const res = await accountClient.getAccounts();
+            const res = await liveAccountClient.getAccounts();
             setAccounts(res);
         } catch (error) {
             console.error('Failed to fetch accounts', error);
@@ -52,7 +52,7 @@ const LiveBrokerModal = ({open, onClose}) => {
 
     const fetchBrokers = async () => {
         try {
-            const res = await accountClient.getBrokers();
+            const res = await liveAccountClient.getBrokers();
             setBrokers(res);
         } catch (error) {
             console.error('Failed to fetch brokers', error);
@@ -87,7 +87,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             var updatedAccount;
             var savedAccount;
             if (mode === 'edit') {
-                updatedAccount = await accountClient.updateBrokerAccount(
+                updatedAccount = await liveAccountClient.updateBrokerAccount(
                     editingAccount.accountId,
                     editingAccount
                 );
@@ -96,7 +96,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                 );
                 setAccounts(updatedAccounts);
             } else if (mode === 'new') {
-                savedAccount = await accountClient.createBrokerAccount(newAccount);
+                savedAccount = await liveAccountClient.createBrokerAccount(newAccount);
                 setAccounts([...accounts, {...newAccount, id: Date.now()}]);
             }
             setMode('list');
@@ -123,7 +123,7 @@ const LiveBrokerModal = ({open, onClose}) => {
 
     const handleDelete = async (accountId) => {
         try {
-            await accountClient.deleteBrokerAccount(accountId);
+            await liveAccountClient.deleteBrokerAccount(accountId);
             setAccounts(accounts.filter((account) => account.accountId !== accountId));
             toast({
                 title: 'Success',

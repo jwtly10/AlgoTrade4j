@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {systemClient as MainSystem} from '../api/apiClient';
-import {systemClient as LiveSystem} from '../api/liveClient.js';
+import {liveMonitorClient as LiveSystem} from '../api/liveClient.js';
 import log from '../logger.js';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Activity, Clock, Coffee, MemoryStick, RefreshCw, Server} from 'lucide-react';
