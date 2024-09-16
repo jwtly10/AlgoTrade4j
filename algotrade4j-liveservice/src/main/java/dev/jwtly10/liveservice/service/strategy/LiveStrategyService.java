@@ -40,6 +40,13 @@ public class LiveStrategyService {
         return liveStrategyRepository.findLiveStrategiesByHiddenIsFalseAndActiveIsTrue();
     }
 
+    public void setErrorMessage(LiveStrategy liveStrategy, String errorMessage) {
+        log.info("Setting error message for live strategy: {}", liveStrategy.getId());
+
+        liveStrategy.setLastErrorMsg(errorMessage);
+        liveStrategyRepository.save(liveStrategy);
+    }
+
     public LiveStrategy updateStrategyStats(Long liveStrategyId, Stats stats) {
         log.info("Updating live strategy stats for strategy ID: {}", liveStrategyId);
 
@@ -48,6 +55,17 @@ public class LiveStrategyService {
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
         liveStrategy.setStats(stats);
+        return liveStrategyRepository.save(liveStrategy);
+    }
+
+    public LiveStrategy deactivateStrategy(String strategyName) {
+        log.info("Force deactivating live strategy: {}", strategyName);
+
+        // Find the strategy in the database
+        LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(strategyName)
+                .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+
+        liveStrategy.setActive(false);
         return liveStrategyRepository.save(liveStrategy);
     }
 

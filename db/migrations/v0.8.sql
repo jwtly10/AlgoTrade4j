@@ -86,3 +86,7 @@ CREATE INDEX idx_user_action_log_timestamp ON user_action_log_tb (timestamp);
 -- Add some more tracking data to the login log
 ALTER TABLE user_login_log_tb
     ADD COLUMN user_agent VARCHAR(255) NOT NULL DEFAULT 'UNKNOWN';
+
+-- Add last_error_message to the live strategies table
+ALTER TABLE live_strategies_tb
+    ADD COLUMN last_error_msg VARCHAR(255);

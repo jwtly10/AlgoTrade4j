@@ -34,6 +34,7 @@ public class LiveExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final AccountManager accountManager;
     private final EventPublisher eventPublisher;
+    @Getter
     private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;

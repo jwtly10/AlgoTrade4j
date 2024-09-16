@@ -5,7 +5,7 @@ import dev.jwtly10.core.event.async.AsyncBarSeriesEvent;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.event.async.AsyncTradesEvent;
 import dev.jwtly10.liveservice.executor.LiveExecutor;
-import dev.jwtly10.liveservice.repository.InMemoryExecutorRepository;
+import dev.jwtly10.liveservice.repository.LiveExecutorRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -24,11 +24,11 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
     private final EventPublisher eventPublisher;
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
-    private final InMemoryExecutorRepository inMemoryExecutorRepository;
+    private final LiveExecutorRepository liveExecutorRepository;
 
-    public LiveStrategyWSHandler(EventPublisher eventPublisher, InMemoryExecutorRepository inMemoryExecutorRepository) {
+    public LiveStrategyWSHandler(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository) {
         this.eventPublisher = eventPublisher;
-        this.inMemoryExecutorRepository = inMemoryExecutorRepository;
+        this.liveExecutorRepository = liveExecutorRepository;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         if (payload.startsWith("STRATEGY:")) {
             String strategyId = payload.substring(9);
             log.info("Strategy id: {} ", strategyId);
-            LiveExecutor executor = inMemoryExecutorRepository.getStrategy(strategyId);
+            LiveExecutor executor = liveExecutorRepository.getStrategy(strategyId);
             if (executor != null) {
                 WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);
                 listeners.put(session, listener);

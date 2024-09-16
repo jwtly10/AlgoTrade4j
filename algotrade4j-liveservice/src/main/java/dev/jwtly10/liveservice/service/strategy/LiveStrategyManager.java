@@ -17,13 +17,13 @@ import dev.jwtly10.liveservice.executor.LiveStateManager;
 import dev.jwtly10.liveservice.executor.LiveTradeManager;
 import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.LiveStrategyConfig;
-import dev.jwtly10.liveservice.repository.InMemoryExecutorRepository;
+import dev.jwtly10.liveservice.repository.LiveExecutorRepository;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -38,78 +38,143 @@ import java.util.stream.Collectors;
 public class LiveStrategyManager {
     private final EventPublisher eventPublisher;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
-    private final InMemoryExecutorRepository inMemoryExecutorRepository;
+    private final LiveExecutorRepository liveExecutorRepository;
     private final OandaClient oandaClient;
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, InMemoryExecutorRepository inMemoryExecutorRepository, OandaClient oandaClient, LiveStrategyService liveStrategyService) {
-        this.inMemoryExecutorRepository = inMemoryExecutorRepository;
+    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, LiveStrategyService liveStrategyService) {
+        this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.liveStrategyService = liveStrategyService;
     }
 
-    @Scheduled(fixedDelayString = "3600000") // One hour for now (TODO: Make this configurable, and refactor to NOT use a job in this way)
-    public void processPendingOptimisationTasks() {
-        log.debug("Running strategy live job");
-
+    /**
+     * Load all active strategies on application startup
+     * <p>
+     * This is to ensure that all active strategies are loaded into memory on application startup
+     * and are ready to run.
+     * This helps to ensure that the strategies are running even if the application is restarted (e.g. after a crash or deployment).
+     * </p>
+     */
+    @PostConstruct
+    public void initActiveStrategies() {
         List<LiveStrategy> strategies = liveStrategyService.getActiveLiveStrategies();
+        log.info("Found {} active live strategies to run on application init", strategies.size());
 
-        if (strategies.isEmpty()) {
-            log.debug("No active strategies to run");
-            return;
-        } else {
-            log.debug("Found {} active strategies to run", strategies.size());
-        }
-
-        // TODO: Add message field to strategy to show errors ?
-
-        strategies.forEach(strategy -> {
-            if (inMemoryExecutorRepository.getStrategy(strategy.getStrategyName()) == null) {
-                try {
-                    start(strategy, strategy.getStrategyName());
-                } catch (Exception e) {
-                    log.error("Error starting strategy", e);
-                }
+        for (LiveStrategy strategy : strategies) {
+            try {
+                startStrategy(strategy);
+            } catch (Exception e) {
+                log.error("Error starting strategy", e);
+                liveStrategyService.setErrorMessage(strategy, e.getMessage());
+                liveStrategyService.deactivateStrategy(strategy.getStrategyName());
             }
-        });
-
+        }
     }
 
-    public void start(LiveStrategy liveStrategy, String strategyName) throws Exception {
-        StrategyFactory strategyFactory = new DefaultStrategyFactory();
-        OandaBrokerClient client = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
+    /**
+     * Start a live strategy
+     *
+     * @param strategy The strategy to start
+     * @throws Exception error starting the strategy
+     */
+    public void startStrategy(LiveStrategy strategy) throws Exception {
+        if (liveExecutorRepository.containsStrategy(strategy.getStrategyName())) {
+            log.warn("Strategy {} is already running", strategy.getStrategyName());
+            return;
+        }
 
-        LiveStrategyConfig config = liveStrategy.getConfig();
-        config.validate();
-        // TODO: Validate config against the current strategy version. Need to notify if this is invalid
-        Strategy strategy = strategyFactory.createStrategy(config.getStrategyClass(), strategyName);
+        log.info("Starting live strategy: {}", strategy.getStrategyName());
+        // Reset error msg
+        liveStrategyService.setErrorMessage(strategy, null);
 
-        LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(client, config.getInstrumentData().getInstrument());
+        LiveExecutor executor = createExecutor(strategy);
+        liveExecutorRepository.addStrategy(strategy.getStrategyName(), executor);
+
+        executorService.submit(() -> {
+            Thread.currentThread().setName("LiveStrategyExecutor-" + strategy.getStrategyName());
+            try {
+                executor.getDataManager().start();
+            } catch (Exception e) {
+                log.error("Error running strategy", e);
+                liveExecutorRepository.removeStrategy(strategy.getStrategyName());
+                eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
+            }
+        });
+    }
+
+    /**
+     * Stop a live strategy
+     *
+     * @param strategyName The name of the strategy to stop
+     */
+    public void stopStrategy(String strategyName) {
+        try {
+            LiveExecutor executor = liveExecutorRepository.removeStrategy(strategyName);
+            if (executor != null) {
+                log.info("Stopping live strategy: {}", strategyName);
+                try {
+                    executor.getDataManager().stop();
+                } catch (Exception e) {
+                    log.error("Error stopping strategy", e);
+                    log.warn("Attempting to force stop strategy: {}", strategyName);
+                    executor.onStop();
+                }
+            } else {
+                log.warn("Strategy {} is not running", strategyName);
+            }
+        } catch (Exception e) {
+            log.error("Error stopping strategy - THIS SHOULD NOT HAPPEN!", e);
+        }
+    }
+
+    /**
+     * Create a new live executor for a strategy
+     *
+     * @param liveStrategy The live strategy to create the executor for
+     * @return The live executor
+     * @throws Exception error creating the executor
+     */
+    private LiveExecutor createExecutor(LiveStrategy liveStrategy) throws Exception {
+        final String strategyId = liveStrategy.getStrategyName();
+        final LiveStrategyConfig config = liveStrategy.getConfig();
+        final StrategyFactory strategyFactory = new DefaultStrategyFactory();
+        final OandaBrokerClient client = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
+
         BarSeries barSeries = new DefaultBarSeries(5000);
 
-        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(4), ZonedDateTime.now(), config.getPeriod().getDuration());
-        preCandles.forEach(barSeries::addBar);
-        barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyName, config.getInstrumentData().getInstrument(), bar)));
+        // Validates the strategy configuration against the parameters of the strategy class
+        config.validate();
 
-        DefaultDataManager dataManager = new DefaultDataManager(strategyName, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
+        // Create strategy instance
+        Strategy strategyInstance = strategyFactory.createStrategy(config.getStrategyClass(), strategyId);
+        LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(client, config.getInstrumentData().getInstrument());
+
+        // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
+        // TODO: This should be based on either indicators or period size (eg we dont need a week of data for 1m period)
+        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(7), ZonedDateTime.now(), config.getPeriod().getDuration());
+        preCandles.forEach(barSeries::addBar);
+        barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyId, config.getInstrumentData().getInstrument(), bar)));
+
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
         dataManager.initialise(barSeries.getLastBar(), barSeries.getLastBar().getOpenTime().plus(config.getPeriod().getDuration()));
 
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
 
-        // Empty account for now
+        // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
         TradeManager tradeManager = new LiveTradeManager(client);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
-        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyName, config.getInstrumentData().getInstrument());
+        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument());
 
-        strategy.setParameters(runParams);
+        strategyInstance.setParameters(runParams);
 
         LiveExecutor executor = new LiveExecutor(
-                strategy,
+                strategyInstance,
                 tradeManager,
                 accountManager,
                 dataManager,
@@ -119,27 +184,8 @@ public class LiveStrategyManager {
 
         executor.initialise();
         dataManager.addDataListener(executor);
-        inMemoryExecutorRepository.addStrategy(strategy.getStrategyId(), executor);
 
-        executorService.submit(() -> {
-            Thread.currentThread().setName("LiveStrategyExecutor-" + strategy.getStrategyId());
-            try {
-                dataManager.start();
-            } catch (Exception e) {
-                log.error("Error running strategy", e);
-                inMemoryExecutorRepository.removeStrategy(strategy.getStrategyId());
-                eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
-            }
-        });
+        return executor;
     }
 
-    // TODO: Review, how do we handle stops? Do we?
-    public boolean stopStrategy(String id) {
-        LiveExecutor executor = inMemoryExecutorRepository.getStrategy(id);
-        if (executor != null) {
-            executor.onStop();
-            return true;
-        }
-        return false;
-    }
 }

@@ -47,6 +47,9 @@ public class LiveStrategy {
     @Column(name = "is_hidden", nullable = false)
     private boolean hidden;
 
+    @Column(name = "last_error_msg")
+    private String lastErrorMsg;
+
     @Column(name = "created_at")
     @CreationTimestamp
     private LocalDateTime createdAt;

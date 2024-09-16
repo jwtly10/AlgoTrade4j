@@ -8,15 +8,17 @@ import EmptyChart from '../../components/backtesting/EmptyChart.jsx';
 import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx';
 import {Button} from '@/components/ui/button.jsx';
-import {Edit2, Eye, Plus} from 'lucide-react';
+import {Bell, Edit2, Eye, Plus} from 'lucide-react';
 import {useLive} from '@/hooks/use-live.js';
 import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
 import LiveBrokerModal from '@/components/modals/LiveBrokersModal.jsx';
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import log from '@/logger.js';
 import {Badge} from "@/components/ui/badge"
 import {liveStrategyClient} from '@/api/liveClient.js';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
+import {useToast} from "@/hooks/use-toast.js";
 
 const LiveStrategyView = () => {
     const {
@@ -30,6 +32,8 @@ const LiveStrategyView = () => {
         strategies,
         viewStrategy,
     } = useLive();
+
+    const {toast} = useToast();
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,15 +93,15 @@ const LiveStrategyView = () => {
         try {
             const res = await liveStrategyClient.toggleStrategy(strategyId);
             log.debug('Toggled strategy:', res);
-            await fetchLiveStrategies();
         } catch (error) {
             log.error('Error toggling strategy:', error);
             toast({
                 title: 'Error',
-                description: `Error toggling strategy: ${error.message}`,
+                description: `${error.message}`,
                 variant: 'destructive',
             });
         }
+        await fetchLiveStrategies();
     }
 
     return (
@@ -185,7 +189,26 @@ const LiveStrategyView = () => {
                                                 <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
                                                 <p className="text-sm text-muted-foreground">{strategy.config.strategyClass}</p>
                                             </div>
-                                            <div className="flex space-x-2">
+                                            <div className="flex space-x-2 items-center">
+                                                {strategy.lastErrorMsg && (
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                                                                <Bell className="h-4 w-4 text-destructive"/>
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-80">
+                                                            <div className="grid gap-4">
+                                                                <div className="space-y-2">
+                                                                    <h4 className="font-medium leading-none">Live Alert</h4>
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {strategy.lastErrorMsg}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                )}
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger>
@@ -255,9 +278,11 @@ const LiveStrategyView = () => {
                                             )}
                                         </CardContent>
                                         <CardFooter className="flex justify-end space-x-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
-                                                <Eye className="w-4 h-4 mr-2"/> View
-                                            </Button>
+                                            {strategy.active && (
+                                                <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
+                                                    <Eye className="w-4 h-4 mr-2"/> View
+                                                </Button>
+                                            )}
                                             <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy)}>
                                                 <Edit2 className="w-4 h-4 mr-2"/> Edit
                                             </Button>

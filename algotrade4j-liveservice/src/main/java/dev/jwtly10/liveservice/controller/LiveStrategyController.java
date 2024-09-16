@@ -1,8 +1,11 @@
 package dev.jwtly10.liveservice.controller;
 
 import dev.jwtly10.liveservice.model.LiveStrategy;
+import dev.jwtly10.liveservice.service.strategy.LiveStrategyManager;
 import dev.jwtly10.liveservice.service.strategy.LiveStrategyService;
 import dev.jwtly10.shared.config.ratelimit.RateLimit;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +17,11 @@ public class LiveStrategyController {
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyController(LiveStrategyService liveStrategyService) {
+    private final LiveStrategyManager liveStrategyManager;
+
+    public LiveStrategyController(LiveStrategyService liveStrategyService, LiveStrategyManager liveStrategyManager) {
         this.liveStrategyService = liveStrategyService;
+        this.liveStrategyManager = liveStrategyManager;
     }
 
     @GetMapping
@@ -46,6 +52,21 @@ public class LiveStrategyController {
     @RateLimit(limit = 5)
     public ResponseEntity<LiveStrategy> toggleLiveStrategy(@PathVariable("id") Long id) {
         LiveStrategy activatedLiveStrategy = liveStrategyService.toggleStrategy(id);
+
+        // If the strategy is now active. Try to run it.
+        try {
+            if (activatedLiveStrategy.isActive()) {
+                liveStrategyManager.startStrategy(activatedLiveStrategy);
+            } else {
+                liveStrategyManager.stopStrategy(activatedLiveStrategy.getStrategyName());
+            }
+        } catch (Exception e) {
+            // If there is an error starting the strategy, set the error message and force deactivate the strategy
+            liveStrategyService.setErrorMessage(activatedLiveStrategy, e.getMessage());
+            liveStrategyService.deactivateStrategy(activatedLiveStrategy.getStrategyName());
+            throw new ApiException("Error starting strategy. See strategy Live Alert for reason.", ErrorType.INTERNAL_ERROR);
+        }
+
         return ResponseEntity.ok(activatedLiveStrategy);
     }
 

@@ -64,6 +64,21 @@ class ParameterHandlerTest {
     }
 
     @Test
+    void testValidateRunParametersEdgeCases() {
+        // Test with strategy that has no parameters configured
+        TestStrategyEdgeCase testStrategy = new TestStrategyEdgeCase("test");
+
+        // Test with no parameters
+        assertDoesNotThrow(() -> ParameterHandler.validateRunParameters(testStrategy, Map.of()));
+
+        // Test with parameters
+        Map<String, String> params = Map.of("param1", "value1", "param2", "value2");
+        Exception ex = assertThrows(IllegalArgumentException.class,
+                () -> ParameterHandler.validateRunParameters(testStrategy, params));
+        assertTrue(ex.getMessage().contains("Unexpected parameter: param")); // It's a map, it can be either 1 or 2, so we cant validate the number
+    }
+
+    @Test
     void testGetParameters() throws IllegalAccessException {
         ParameterHandler.initialize(testStrategy);
         List<ParameterHandler.ParameterInfo> params = ParameterHandler.getParameters(testStrategy);
@@ -255,6 +270,21 @@ class ParameterHandlerTest {
         private boolean booleanParam;
 
         public TestStrategy(String strategyId) {
+            super(strategyId);
+        }
+
+        @Override
+        public void onBarClose(Bar bar) {
+            // Not used for this test
+        }
+
+        public void onTick(Tick tick, Bar currentBar) {
+            // Not used for this test
+        }
+    }
+
+    static class TestStrategyEdgeCase extends BaseStrategy {
+        public TestStrategyEdgeCase(String strategyId) {
             super(strategyId);
         }
 

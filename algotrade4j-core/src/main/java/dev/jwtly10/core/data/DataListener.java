@@ -17,6 +17,13 @@ public interface DataListener {
     void initialise();
 
     /**
+     * Get the data manager
+     *
+     * @return the data manager
+     */
+    DataManager getDataManager();
+
+    /**
      * Called when a new tick is received.
      *
      * @param tick       the new tick data
