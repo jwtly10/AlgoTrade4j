@@ -116,6 +116,12 @@
             <artifactId>hibernate-core</artifactId>
             <version>7.0.0.Beta1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.github.loki4j/loki-logback-appender -->
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>1.6.0-m1</version>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>

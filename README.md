@@ -12,7 +12,6 @@ https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 
 ## Key Features:
 
-- Extensive server side APM integration with DataDog, for monitoring and optimisation
 - Asynchronous event-driven architecture for responsive strategy execution
 - Aggressively optimised for performance
 - /generate-heapdump endpoint for on quick memory profiling
@@ -26,15 +25,17 @@ https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 - Dynamic strategy parameter annotation system for flexible configuration
 - Advanced optimization tools for efficient backtesting
 - Robust authentication and authorization system
+- Separate live service for live trading, and independent scaling
 
 ## Architecture
 
-The framework consists of 4 main components:
+The framework consists of 5 main components:
 
 1. Core Module: Contains the main trading logic, event system and implemented defaults
 2. API Module: A Spring-based REST API for handling external requests and WebSocket connections
-3. Market Data Module: Manages the integration with external market data providers.
-4. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
+3. Live Service Module: A separate service for live trading, with independent scaling
+4. Market Data Module: Manages the integration with external market data providers.
+5. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
 
 The system utilizes an event-driven architecture with a global event publisher for external communications.
 
@@ -97,7 +98,7 @@ To create a Postgres DB:
 docker run --name algotrade4j-postgres -e POSTGRES_DB=algotrade4j-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=dev -p 5432:5432 -d postgres
 ```
 
-Ensure the SQL in ./algotrade4j-api/db has been run on the Database in schema algotrade4j.
+Ensure the SQL in ./algotrade4j-api/db has been run on the Database in schema algotrade4j, and all migration patches have been run.
 
 Intellij Setup:
 
@@ -106,21 +107,8 @@ Intellij Setup:
 - Environment Vars:
     - OANDA_API_URL=https://api-fxpractice.oanda.com;
     - OANDA_API_KEY=<your_api_key>;
-    - OANDA_ACCOUNT_ID=<your_account_id>
 
 Other application properties can be found here: ./algotrade4j-api/src/main/resources/application*.properties
-
-If you have a DataDog instance & agent running on your local machine and want to see metrics. You can enable this and JMX metrics by including:
-
-- VMOptions:
-  -javaagent:/Path/to/dd-java-agent.jar
-  -Ddd.service=algotrade4j-api-dev
-  -Ddd.env=local
-  -Dcom.sun.management.jmxremote
-  -Dcom.sun.management.jmxremote.port=9010
-  -Dcom.sun.management.jmxremote.authenticate=false
-  -Dcom.sun.management.jmxremote.ssl=false
-  -Ddd.tags=env:local
 
 *Frontend*
 
@@ -142,5 +130,5 @@ The frontend application should now be running at localhost:5173, with the api r
 
 Some basic steps for running the API application on an Ubuntu VM
 
-1. Install Docker/DockerCompose/Nginx
+1. Install Docker/Docker Compose/Nginx
 2. See ./.github/workflows/main-ci.yml for example deploy steps, these steps can be used on any clean ubuntu environment to deploy the application
