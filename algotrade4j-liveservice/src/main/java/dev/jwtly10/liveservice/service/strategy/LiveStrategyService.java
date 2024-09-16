@@ -78,6 +78,14 @@ public class LiveStrategyService {
         // Validate broker config
         BrokerAccount brokerAccount = brokerAccountRepository.findById(strategy.getBrokerAccount().getId())
                 .orElseThrow(() -> new ApiException("Broker account not found", ErrorType.NOT_FOUND));
+
+
+        // Validate broker not in use
+        List<LiveStrategy> liveStrategies = liveStrategyRepository.findLiveStrategiesByBrokerAccountAndHiddenIsFalse(brokerAccount);
+        if (!liveStrategies.isEmpty()) {
+            throw new ApiException("Broker account is already in use", ErrorType.BAD_REQUEST);
+        }
+
         strategy.setBrokerAccount(brokerAccount);
 
         // Save the strategy to the database
