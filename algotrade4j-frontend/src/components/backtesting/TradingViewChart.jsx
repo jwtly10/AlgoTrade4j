@@ -14,6 +14,9 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
         }
 
         const instrument = strategyConfig.instrumentData
+        const period = strategyConfig.period;
+        const startDate = strategyConfig.timeframe.from
+        const endDate = strategyConfig.timeframe.to
         const pricePrecision = instrument.decimalPlaces || 2;
         const minMove = instrument.minimumMove || 0.01;
 
@@ -69,7 +72,8 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
             watermark: {
                 color: 'rgba(255, 255, 255, 0.1)',
                 visible: true,
-                text: chartData.length > 0 ? chartData[0].instrument : '',
+                text: chartData.length > 0 ?
+                    `${instrument.internalSymbol}, ${period}` : '',
                 fontSize: 80,
                 horzAlign: 'center',
                 vertAlign: 'center',

@@ -30,6 +30,8 @@ export const useBacktest = () => {
     // Log state
     const [logs, setLogs] = useState([]);
 
+    const [backtestErrorMsg, setBacktestErrorMsg] = useState('');
+
     // UI State
     const [tabValue, setTabValue] = useState('trades');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -210,6 +212,7 @@ export const useBacktest = () => {
         localStorage.removeItem('analysisData');
         setAnalysisData(null);
         setEquityHistory([]);
+        setBacktestErrorMsg("")
         setTrades([]);
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
@@ -320,9 +323,11 @@ export const useBacktest = () => {
         } else if (data.type === 'PROGRESS') {
             updateAsyncProgress(data);
         } else if (data.type === 'ERROR') {
+            setBacktestErrorMsg(data.message);
+            setIsStrategyRunning(false);
             toast({
-                title: 'Error',
-                description: data.message,
+                title: 'Backtest Run Error',
+                description: `Strategy failed to run due to : ${data.message}`,
                 variant: 'destructive',
             });
         } else {
@@ -727,6 +732,7 @@ export const useBacktest = () => {
         setStrategyConfig,
         startOptimisation,
         startStrategy,
+        backtestErrorMsg,
         stopStrategy,
         handleOpenParams,
         handleConfigSave,

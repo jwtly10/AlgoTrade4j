@@ -34,6 +34,11 @@ public class OptimisationResultListener implements EventListener {
         optimisationExecutor.onStrategyFailure(strategyId, e);
     }
 
+    @Override
+    public void onError(String strategyId, String message) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
     public Map<String, AnalysisEvent> getResults() {
         return new HashMap<>(results);
     }

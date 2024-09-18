@@ -21,6 +21,6 @@ public class ErrorEvent extends BaseEvent {
      */
     public ErrorEvent(String strategyId, String message) {
         super(strategyId, "ERROR", null);
-        this.message = "Internal Error: " + message;
+        this.message = message;
     }
 }

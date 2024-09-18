@@ -34,6 +34,7 @@ const BacktestView = () => {
         strategyClass,
         isAsync,
         progressData,
+        backtestErrorMsg,
         showChart,
         startTime,
         strategyConfig,
@@ -54,8 +55,8 @@ const BacktestView = () => {
                     <Card className="h-full flex flex-col p-6">
                         {/* Chart Section */}
                         <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
-                            {isStrategyRunning && isAsync ? (
-                                <LoadingChart progressData={progressData} startTime={startTime}/>
+                            {(isStrategyRunning || backtestErrorMsg) && isAsync ? (
+                                <LoadingChart progressData={progressData} startTime={startTime} backtestErrorMsg={backtestErrorMsg}/>
                             ) : chartData && chartData.length > 0 ? (
                                 <TradingViewChart showChart={showChart} strategyConfig={strategyConfig} chartData={chartData} trades={trades} indicators={indicators}/>
                             ) : (
@@ -131,7 +132,7 @@ const BacktestView = () => {
                                     <div key={index} className="bg-card text-card-foreground rounded p-2">
                                         <p className="text-sm text-muted-foreground">{item.label}</p>
                                         <p className="text-md font-semibold">
-                                            ${item.value}
+                                            {item.value < 0 ? `-$${Math.abs(item.value).toLocaleString()}` : `$${item.value.toLocaleString()}`}
                                             {item.diff !== undefined && account.balance !== 0 && (
                                                 <span className={`ml-2 text-sm ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     ({item.diff > 0 ? '+' : ''}{item.diff}%)

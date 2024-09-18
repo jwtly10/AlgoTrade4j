@@ -84,8 +84,9 @@ public class AsyncEventPublisher implements EventPublisher {
      * @param e          the exception
      */
     public void publishErrorEvent(String strategyId, Exception e) {
+        log.info("Publishing error event for strategy: {}", strategyId);
         for (EventListener listener : listeners) {
-            listener.onError(strategyId, e);
+            listener.onError(strategyId, e.getCause().getMessage());
         }
     }
 

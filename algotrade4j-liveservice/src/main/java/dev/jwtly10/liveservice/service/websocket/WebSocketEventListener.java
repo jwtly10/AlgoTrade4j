@@ -73,6 +73,17 @@ public class WebSocketEventListener implements EventListener {
         }
     }
 
+
+    @Override
+    public void onError(String strategyId, String message) {
+        try {
+            ErrorEvent errorEvent = new ErrorEvent(strategyId, message);
+            session.sendMessage(new TextMessage(errorEvent.toJson()));
+        } catch (IOException e) {
+            log.error("Failed to send error message to WS session", e);
+        }
+    }
+
     public void subscribe(Class<? extends BaseEvent> eventType) {
         subscribedEventTypes.add(eventType);
     }

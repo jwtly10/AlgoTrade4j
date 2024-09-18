@@ -59,11 +59,16 @@ export const handleWSMessage = (socket, onMessage, strategyId, resolve, reject) 
                 const decompressedData = pako.inflate(messageData, {to: 'string'});
                 jsonData = JSON.parse(decompressedData);
             } else {
-                jsonData = JSON.parse(new TextDecoder().decode(messageData));
+                try {
+                    jsonData = JSON.parse(new TextDecoder().decode(messageData));
+                } catch (error) {
+                    // If this fails, we should try reading the raw data
+                    jsonData = JSON.parse(event.data);
+                }
             }
             onMessage(jsonData);
         } catch (error) {
-            log.error('Error processing WebSocket message:', error);
+            log.error('Error processing WebSocket message:', error, event.data);
         }
     };
 
