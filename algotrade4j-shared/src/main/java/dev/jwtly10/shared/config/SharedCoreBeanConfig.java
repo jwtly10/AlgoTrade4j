@@ -9,6 +9,8 @@ import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
+import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +20,12 @@ public class SharedCoreBeanConfig {
 
     @Value("${oanda.api.key}")
     private String oandaApiKey;
+
     @Value("${oanda.api.url}")
     private String oandaApiUrl;
+
+    @Value("${telegram.bot.token}")
+    private String telegramBotToken;
 
     @Bean
     public EventPublisher eventPublisher() {
@@ -44,5 +50,15 @@ public class SharedCoreBeanConfig {
     @Bean
     public DataManagerFactory dataManagerFactory() {
         return new DefaultDataManagerFactory();
+    }
+
+    @Bean
+    public OkHttpClient okHttpClient() {
+        return new OkHttpClient();
+    }
+
+    @Bean
+    public TelegramNotifier telegramNotifier() {
+        return new TelegramNotifier(okHttpClient());
     }
 }
