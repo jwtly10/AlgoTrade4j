@@ -34,7 +34,7 @@ public class TickGenerator {
 
     public TickGenerator(int spread, Instrument instrument, Duration period, long seed) {
         this.ticksPerBar = mapTicksPerBarToPeriod(period);
-        log.info("For duration {}, generating {} ticks", period, ticksPerBar);
+        log.info("For duration {}, generating {} ticks with spread {}", period, ticksPerBar, spread);
         this.spread = spread;
         this.period = period;
         this.random = new Random(seed);
@@ -156,7 +156,7 @@ public class TickGenerator {
             }
         }
 
-        Number calculatedSpread = new Number(this.spread * Math.pow(10, -instrument.getDecimalPlaces()));
+        Number calculatedSpread = new Number(this.spread * instrument.getMinimumMove());
 
         Number bid = mid.subtract(calculatedSpread.divide(2));
         Number ask = mid.add(calculatedSpread.divide(2));

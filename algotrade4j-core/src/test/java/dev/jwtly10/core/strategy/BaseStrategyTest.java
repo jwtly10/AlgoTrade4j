@@ -6,10 +6,8 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
-import dev.jwtly10.core.model.IndicatorValue;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +82,93 @@ class BaseStrategyTest {
     @Test
     void testCreateIndicatorIncorrectParams() {
         assertThrows(RuntimeException.class, () -> testStrategy.createIndicator(TestIndicator.class, "Invalid int", 10.5));
+    }
+
+    @Test
+    void testGBPUSDLongStopLoss() {
+        Instrument instrument = Instrument.GBPUSD;
+        Number price = new Number("1.30000");
+        int ticks = 50;
+        boolean isLong = true;
+
+        Number expectedStopLoss = new Number("1.29950");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
+    }
+
+    /**
+     * This is a 'real' trade taken on 19th Sep 2024.
+     * If this fails. Something is wrong. This data was validated on trading view charts for OANDA.
+     */
+    @Test
+    void testGBPUSDRealLongStopLoss() {
+        Instrument instrument = Instrument.GBPUSD;
+        Number price = new Number("1.32631");
+        int ticks = 300;
+        boolean isLong = true;
+
+        Number expectedStopLoss = new Number("1.32331");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
+    }
+
+    @Test
+    void testGBPUSDShortStopLoss() {
+        Instrument instrument = Instrument.GBPUSD;
+        Number price = new Number("1.30000");
+        int ticks = 50;
+        boolean isLong = false;
+
+        Number expectedStopLoss = new Number("1.30050");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
+    }
+
+    /**
+     * This is a 'real' trade taken on 19th Sep 2024.
+     * If this fails. Something is wrong. This data was validated on trading view charts for OANDA.
+     */
+    @Test
+    void testNAS100USDRealLongStopLoss() {
+        Instrument instrument = Instrument.NAS100USD;
+        Number price = new Number("19814.2");
+        int ticks = 300;
+        boolean isLong = true;
+
+        Number expectedStopLoss = new Number("19784.2");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
+    }
+
+
+    @Test
+    void testNAS100USDLongStopLoss() {
+        Instrument instrument = Instrument.NAS100USD;
+        Number price = new Number("15000.0");
+        int ticks = 50;
+        boolean isLong = true;
+
+        Number expectedStopLoss = new Number("14995.0");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
+    }
+
+    @Test
+    void testNAS100USDShortStopLoss() {
+        Instrument instrument = Instrument.NAS100USD;
+        Number price = new Number("15000.0");
+        int ticks = 50;
+        boolean isLong = false;
+
+        Number expectedStopLoss = new Number("15005.0");
+        Number actualStopLoss = testStrategy.getStopLossGivenInstrumentPriceDir(instrument, price, ticks, isLong);
+
+        assertEquals(expectedStopLoss, actualStopLoss);
     }
 
     // Test strategy implementation

@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +67,7 @@ public class DefaultTradeManager implements TradeManager {
             entryPrice = params.isLong() ? currentTick.getAsk() : currentTick.getBid();
             log.trace("Entry price does not match current ask/bid price. Using current ask/bid price as entry price. (Wanted: {}, Got: {})", params.getEntryPrice(), entryPrice);
         }
+
         // These values won't be known by the strategy specifically, we can inject them here
         params.setEntryPrice(entryPrice);
         params.setOpenTime(currentTick.getDateTime());
@@ -118,7 +118,7 @@ public class DefaultTradeManager implements TradeManager {
         }
 
         log.trace("Closing price: {}", closingPrice);
-        trade.setClosePrice(closingPrice.setScale(2, RoundingMode.DOWN));
+        trade.setClosePrice(closingPrice);
         trade.setCloseTime(currentTick.getDateTime());
 
         Number priceDifference;

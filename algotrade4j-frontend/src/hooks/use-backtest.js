@@ -50,11 +50,11 @@ export const useBacktest = () => {
         instrumentData: {
             internalSymbol: 'NAS100USD',
             oandaSymbol: 'NAS100_USD',
-            decimalPlaces: 2,
-            minimumMove: 1,
+            decimalPlaces: 1,
+            minimumMove: 0.1,
             instrument: 'NAS100USD',
         },
-        spread: '30',
+        spread: '10',
         speed: 'INSTANT',
         period: 'M30',
         timeframe: {

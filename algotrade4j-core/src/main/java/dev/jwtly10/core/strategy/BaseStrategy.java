@@ -158,6 +158,20 @@ public abstract class BaseStrategy implements Strategy {
     }
 
     /**
+     * Utility method to get the stop loss price given the instrument, price, pips and direction.
+     *
+     * @param instrument the instrument
+     * @param price      the price
+     * @param pips       the pips
+     * @param isLong     the direction
+     * @return the stop loss price
+     */
+    public Number getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int pips, boolean isLong) {
+        Number pipValue = new Number(pips * instrument.getPipValue());
+        return isLong ? price.subtract(pipValue) : price.add(pipValue);
+    }
+
+    /**
      * Sets the parameters of the strategy.
      *
      * @param parameters the parameters

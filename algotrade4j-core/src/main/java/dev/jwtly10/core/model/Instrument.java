@@ -8,18 +8,20 @@ import lombok.Getter;
  */
 @Getter
 public enum Instrument {
-    NAS100USD("NAS100_USD", 2, 1.0),
-    EURUSD("EUR_USD", 5, 0.00001),
-    GBPUSD("GBP_USD", 5, 0.00001);
+    NAS100USD("NAS100_USD", 1, 0.1, false),
+    EURUSD("EUR_USD", 5, 0.00001, true),
+    GBPUSD("GBP_USD", 5, 0.00001, true);
 
     private final String oandaSymbol;
     private final int decimalPlaces;
     private final double minimumMove;
+    private final boolean isForex;
 
-    Instrument(String oandaSymbol, int decimalPlaces, double minimumMove) {
+    Instrument(String oandaSymbol, int decimalPlaces, double minimumMove, boolean isForex) {
         this.oandaSymbol = oandaSymbol;
         this.decimalPlaces = decimalPlaces;
         this.minimumMove = minimumMove;
+        this.isForex = isForex;
     }
 
     public static Instrument fromOandaSymbol(String oandaSymbol) {
@@ -44,5 +46,9 @@ public enum Instrument {
                 this.decimalPlaces,
                 this.minimumMove
         );
+    }
+
+    public double getPipValue() {
+        return minimumMove;
     }
 }
