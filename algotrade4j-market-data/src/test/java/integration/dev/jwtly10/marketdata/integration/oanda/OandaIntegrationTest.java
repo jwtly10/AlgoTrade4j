@@ -34,18 +34,16 @@ import static org.junit.jupiter.api.Assertions.*;
  * A collection of integration tests for the Oanda API client.
  */
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "OANDA_ACCOUNT_ID", matches = ".+")
 class OandaIntegrationTest {
 
     private OandaClient client;
     private OandaDataClient oandaClient;
     private OandaBrokerClient brokerClient;
-    private String accountId;
+    private String accountId = "";
 
     @BeforeEach
     void setUp() {
         String apiKey = System.getenv("OANDA_API_KEY");
-        this.accountId = System.getenv("OANDA_ACCOUNT_ID");
         String baseUrl = "https://api-fxpractice.oanda.com";
 
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
@@ -59,7 +57,7 @@ class OandaIntegrationTest {
     @Test
     @Timeout(value = 30)
     void testFetchCandlesSuccess() throws InterruptedException {
-        Instrument instrument = Instrument.NAS100USD;
+        Instrument instrument = Instrument.GBPUSD;
         ZonedDateTime from = ZonedDateTime.now().minusDays(7);
         ZonedDateTime to = ZonedDateTime.now();
         Duration period = Duration.ofHours(1);
