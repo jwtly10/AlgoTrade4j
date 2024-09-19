@@ -112,21 +112,30 @@ const BacktestView = () => {
                             <h3 className="text-lg font-semibold mb-3">Account Summary</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    {label: 'Initial Balance', value: account.initialBalance.toLocaleString()},
+                                    {
+                                        label: 'Initial Balance',
+                                        value: Number(account.initialBalance).toLocaleString()
+                                    },
                                     {
                                         label: 'Profit',
-                                        value: account.balance !== 0.0 ? Math.round((account.balance - account.initialBalance + Number.EPSILON) * 100) / 100 : 0,
-                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                        value: (parseFloat(account.balance) !== 0.0)
+                                            ? (Math.round((parseFloat(account.balance) - parseFloat(account.initialBalance) + Number.EPSILON) * 100) / 100).toLocaleString()
+                                            : '0',
+                                        diff: ((parseFloat(account.balance) - parseFloat(account.initialBalance)) / parseFloat(account.initialBalance) * 100).toFixed(2)
                                     },
                                     {
                                         label: 'Current Balance',
-                                        value: account.balance,
-                                        diff: ((account.balance - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                        value: parseFloat(account.balance)
+                                            ? parseFloat(account.balance).toLocaleString()
+                                            : account.balance,
+                                        diff: ((parseFloat(account.balance) - parseFloat(account.initialBalance)) / parseFloat(account.initialBalance) * 100).toFixed(2)
                                     },
                                     {
                                         label: 'Equity',
-                                        value: account.equity,
-                                        diff: ((account.equity - account.initialBalance) / account.initialBalance * 100).toFixed(2)
+                                        value: parseFloat(account.equity)
+                                            ? parseFloat(account.equity).toLocaleString()
+                                            : account.equity,
+                                        diff: ((parseFloat(account.equity) - parseFloat(account.initialBalance)) / parseFloat(account.initialBalance) * 100).toFixed(2)
                                     }
                                 ].map((item, index) => (
                                     <div key={index} className="bg-card text-card-foreground rounded p-2">
