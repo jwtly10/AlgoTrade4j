@@ -550,6 +550,11 @@ const ConfigModal = ({
                                                         ? parseISO(localConfig.timeframe.from)
                                                         : undefined
                                                 }
+                                                defaultMonth={
+                                                    localConfig.timeframe.from
+                                                        ? parseISO(localConfig.timeframe.from)
+                                                        : undefined
+                                                }
                                                 onSelect={(date) => handleDateChange('from', date)}
                                                 initialFocus
                                             />
@@ -585,6 +590,12 @@ const ConfigModal = ({
                                                         ? parseISO(localConfig.timeframe.to)
                                                         : undefined
                                                 }
+                                                defaultMonth={
+                                                    localConfig.timeframe.to
+                                                        ? parseISO(localConfig.timeframe.to)
+                                                        : undefined
+                                                }
+                                                default
                                                 onSelect={(date) => handleDateChange('to', date)}
                                                 initialFocus
                                             />
