@@ -3,6 +3,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Button} from "@/components/ui/button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import { formatUTCDate } from '@/utils/dateUtils';
 
 
 function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPerPageChange}) {
@@ -133,9 +134,9 @@ function TradesTable({trades, split = false}) {
                         .map((trade) => (
                             <TableRow key={trade.id}>
                                 <TableCell>{trade.tradeId}</TableCell>
-                                <TableCell>{new Date(trade.openTime * 1000).toLocaleString()}</TableCell>
+                                <TableCell>{formatUTCDate(trade.openTime)}</TableCell>
                                 <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
-                                <TableCell>{trade.closeTime ? new Date(trade.closeTime * 1000).toLocaleString() : ""}</TableCell>
+                                <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime): ""}</TableCell>
                                 <TableCell>{trade.quantity}</TableCell>
                                 <TableCell>{trade.instrument}</TableCell>
                                 <TableCell>{trade.entry}</TableCell>
