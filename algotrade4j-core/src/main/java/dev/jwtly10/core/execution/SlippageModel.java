@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SlippageModel {
-    private static final double NORMAL_SLIPPAGE_FACTOR = 0.2;
+    private static final double NORMAL_SLIPPAGE_FACTOR = 0.1;
     private static final double HIGH_VOLATILITY_SLIPPAGE_FACTOR = 1.0;
 
     public Number calculateExecutionPrice(boolean isLong, Number stopLoss, Number takeProfit, Number ask, Number bid, boolean isHighVolatility) {
@@ -17,8 +17,7 @@ public class SlippageModel {
                 return stopLoss.add(bid.subtract(stopLoss).multiply(new Number(slippageFactor)));
             } else if (bid.isGreaterThan(takeProfit)) {
                 // Take profit hit for long trade
-                var d = takeProfit.add(bid.subtract(takeProfit).multiply(new Number(slippageFactor)));
-                return d;
+                return takeProfit.add(bid.subtract(takeProfit).multiply(new Number(slippageFactor)));
             }
         } else {
             if (ask.isGreaterThan(stopLoss)) {

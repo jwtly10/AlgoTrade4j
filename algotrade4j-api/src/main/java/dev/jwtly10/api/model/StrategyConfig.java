@@ -8,7 +8,9 @@ import dev.jwtly10.core.model.Timeframe;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,8 @@ public class StrategyConfig {
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class RunParameter {
         private String name;
         private String value;
@@ -93,5 +97,10 @@ public class StrategyConfig {
         private String stop;
         private String step;
         private Boolean selected;
+
+        public RunParameter(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
     }
 }

@@ -55,7 +55,8 @@ public class StrategyManager {
         try {
             config.validate();
         } catch (Exception e) {
-            throw new StrategyManagerException("Error validating strategy config: " + e.getMessage(), ErrorType.BAD_REQUEST);
+            log.error("Error validating strategy config", e);
+            throw new StrategyManagerException("Error validating strategy config: " + e, ErrorType.BAD_REQUEST);
         }
 
         Duration period = config.getPeriod().getDuration();

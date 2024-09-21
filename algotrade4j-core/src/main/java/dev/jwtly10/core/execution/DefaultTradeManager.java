@@ -102,7 +102,7 @@ public class DefaultTradeManager implements TradeManager {
         // TODO: We can support different volatility levels now. We can implement this if needed
 
         Number closingPrice = null;
-        if (!manual) { // If not manual, this means this was triggered internally, potentially by stoploss/tp
+        if (!manual) { // If not manual, this means this was triggered internally, by stoploss/tp or strategy end (backtesting)
             closingPrice = slippage.calculateExecutionPrice(
                     trade.isLong(),
                     trade.getStopLoss(),
