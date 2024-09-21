@@ -39,7 +39,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(10000.0);
 
@@ -63,7 +63,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(10000);
 
@@ -91,7 +91,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
 
@@ -120,7 +120,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
 
@@ -146,7 +146,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
@@ -175,7 +175,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("8"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
@@ -203,7 +203,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
@@ -231,7 +231,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("10"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("10"));
         params.setStopLoss(new Number("12"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
@@ -290,7 +290,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         when(mockCurrentTick.getDateTime()).thenReturn(ZonedDateTime.now());
         params.setStopLoss(new Number("49999.99"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(0.0000001);
         params.setBalanceToRisk(0.01);
         params.setQuantity(-1);
@@ -313,7 +313,7 @@ class DefaultTradeManagerTest {
         when(mockCurrentTick.getBid()).thenReturn(new Number("50000"));
         when(mockCurrentTick.getAsk()).thenReturn(new Number("50000"));
         params.setStopLoss(new Number("49000"));
-        params.setRiskRatio(new Number("2"));
+        params.setRiskRatio(2);
         params.setRiskPercentage(1);
         params.setBalanceToRisk(10000);
 

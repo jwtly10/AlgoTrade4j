@@ -162,12 +162,15 @@ public abstract class BaseStrategy implements Strategy {
      *
      * @param instrument the instrument
      * @param price      the price
-     * @param pips       the pips
+     * @param ticks      the ticks
      * @param isLong     the direction
      * @return the stop loss price
      */
-    public Number getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int pips, boolean isLong) {
-        Number pipValue = new Number(pips * instrument.getPipValue());
+    public Number getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong) {
+        if (ticks < 100) {
+            log.warn("Stop loss ticks is less than 100. This may be a mistake, ticks should be x10 pips. Ticks: {}", ticks);
+        }
+        Number pipValue = new Number(ticks * instrument.getPipValue());
         return isLong ? price.subtract(pipValue) : price.add(pipValue);
     }
 

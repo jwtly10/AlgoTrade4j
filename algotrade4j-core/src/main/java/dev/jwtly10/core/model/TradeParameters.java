@@ -4,6 +4,7 @@ import dev.jwtly10.core.exception.InvalidTradeException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 /**
@@ -51,7 +52,7 @@ public class TradeParameters {
     /**
      * The risk ratio of the trade.
      */
-    private Number riskRatio;
+    private double riskRatio;
 
     /**
      * The balance to risk for the trade.
@@ -114,10 +115,10 @@ public class TradeParameters {
             log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
 
             Number takeProfit = this.takeProfit != null ? this.takeProfit :
-                    (isLong ? entryPrice.add(stopLossDistance.multiply(riskRatio.getValue())) :
-                            entryPrice.subtract(stopLossDistance.multiply(riskRatio.getValue())));
+                    (isLong ? entryPrice.add(stopLossDistance.multiply(BigDecimal.valueOf(riskRatio))) :
+                            entryPrice.subtract(stopLossDistance.multiply(BigDecimal.valueOf(riskRatio))));
             log.trace("Take profit calculation: {} {} ({} * {}) = {}",
-                    entryPrice, isLong ? "+" : "-", stopLossDistance, riskRatio.getValue(), takeProfit);
+                    entryPrice, isLong ? "+" : "-", stopLossDistance, riskRatio, takeProfit);
 
             quantity = Math.floor(quantity * 100) / 100;
             log.trace("Final quantity after rounding down to 2 decimal places: {}", quantity);

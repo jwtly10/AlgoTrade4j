@@ -65,7 +65,7 @@ class TradeParametersTest {
         tradeParameters.setEntryPrice(new Number(1.0));
         tradeParameters.setStopLoss(new Number(0.9));
         tradeParameters.setRiskPercentage(1); // 1%
-        tradeParameters.setRiskRatio(new Number(2)); // 1:2 risk:reward
+        tradeParameters.setRiskRatio(2); // 1:2 risk:reward
         tradeParameters.setBalanceToRisk(10000);
         tradeParameters.setLong(true);
         tradeParameters.setOpenTime(ZonedDateTime.now());
@@ -86,7 +86,7 @@ class TradeParametersTest {
         tradeParameters.setEntryPrice(new Number(1.0));
         tradeParameters.setStopLoss(new Number(1.1));
         tradeParameters.setRiskPercentage(1); // 1%
-        tradeParameters.setRiskRatio(new Number(2)); // 1:2 risk:reward
+        tradeParameters.setRiskRatio(2); // 1:2 risk:reward
         tradeParameters.setBalanceToRisk(10000);
         tradeParameters.setLong(false);
         tradeParameters.setOpenTime(ZonedDateTime.now());
@@ -119,7 +119,7 @@ class TradeParametersTest {
         tradeParameters.setEntryPrice(new Number(1.0));
         tradeParameters.setStopLoss(new Number(-0.1));
         tradeParameters.setRiskPercentage(1);
-        tradeParameters.setRiskRatio(new Number(2));
+        tradeParameters.setRiskRatio(2);
         tradeParameters.setBalanceToRisk(10000);
         tradeParameters.setLong(true);
         tradeParameters.setOpenTime(ZonedDateTime.now());
