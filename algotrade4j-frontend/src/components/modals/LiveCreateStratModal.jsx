@@ -428,7 +428,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                                         key={account.id}
                                                         value={account.accountId}
                                                     >
-                                                        {`${account.brokerName} - ${account.brokerType} - ${account.initialBalance} - ${account.accountId}`}
+                                                        {`${account.brokerName} - ${account.brokerType} - $${parseFloat(account.initialBalance) ? parseFloat(account.initialBalance).toLocaleString() : account.initialBalance} - ${account.accountId}`}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

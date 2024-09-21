@@ -15,8 +15,6 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
 
         const instrument = strategyConfig.instrumentData
         const period = strategyConfig.period;
-        const startDate = strategyConfig.timeframe.from
-        const endDate = strategyConfig.timeframe.to
         const pricePrecision = instrument.decimalPlaces || 2;
         const minMove = instrument.minimumMove || 0.01;
 

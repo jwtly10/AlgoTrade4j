@@ -6,8 +6,8 @@ import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
-import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.DefaultBarSeries;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
@@ -19,9 +19,11 @@ import dev.jwtly10.liveservice.model.LiveStrategy;
 import dev.jwtly10.liveservice.model.LiveStrategyConfig;
 import dev.jwtly10.liveservice.repository.LiveExecutorRepository;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -154,8 +156,30 @@ public class LiveStrategyManager {
 
         // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
         // TODO: This should be based on either indicators or period size (eg we dont need a week of data for 1m period)
-        List<DefaultBar> preCandles = client.fetchCandles(config.getInstrumentData().getInstrument(), ZonedDateTime.now().minusDays(7), ZonedDateTime.now(), config.getPeriod().getDuration());
-        preCandles.forEach(barSeries::addBar);
+        OandaDataClient oandaDataClient = new OandaDataClient(client);
+        oandaDataClient.fetchCandles(
+                config.getInstrumentData().getInstrument(),
+                ZonedDateTime.now().minus(config.getPeriod().getDuration().multipliedBy(5000)),
+                ZonedDateTime.now(),
+                config.getPeriod().getDuration(),
+                new ClientCallback() {
+                    @Override
+                    public boolean onCandle(Bar bar) {
+                        barSeries.addBar(bar);
+                        return true;
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        log.error("Error fetching preloaded candles", exception);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        log.info("Preloaded {} candles", barSeries.getBarCount());
+                    }
+                }
+        );
         barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyId, config.getInstrumentData().getInstrument(), bar)));
 
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);

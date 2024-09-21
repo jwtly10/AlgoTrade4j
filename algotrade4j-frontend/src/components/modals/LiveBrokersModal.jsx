@@ -245,7 +245,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                                         <TableRow key={account.id}>
                                             <TableCell>{account.brokerName}</TableCell>
                                             <TableCell>{account.brokerType}</TableCell>
-                                            <TableCell>{account.initialBalance}</TableCell>
+                                            <TableCell>${parseFloat(account.initialBalance) ? parseFloat(account.initialBalance).toLocaleString() : account.initialBalance}</TableCell>
                                             <TableCell>{account.accountId}</TableCell>
                                             <TableCell>
                                                 <Button

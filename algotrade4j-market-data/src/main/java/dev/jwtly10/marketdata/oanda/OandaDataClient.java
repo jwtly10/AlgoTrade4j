@@ -16,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 public class OandaDataClient implements ExternalDataClient {
-    private static final int MAX_CANDLES_PER_REQUEST = 5000; // Oanda's limit on candles you can request at a time
+    private static final int MAX_CANDLES_PER_REQUEST = 4000; // Oanda has a 5000 limit. But this ensures we are always within it
     private final OandaBrokerClient client;
 
     public OandaDataClient(OandaBrokerClient client) {
