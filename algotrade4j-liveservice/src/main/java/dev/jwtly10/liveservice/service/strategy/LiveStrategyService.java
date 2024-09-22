@@ -90,6 +90,7 @@ public class LiveStrategyService {
         try {
             strategy.getConfig().validate();
         } catch (Exception e) {
+            log.error("Invalid live strategy configuration", e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 
@@ -169,6 +170,7 @@ public class LiveStrategyService {
         try {
             strategySetup.getConfig().validate();
         } catch (Exception e) {
+            log.error("Invalid live strategy configuration", e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 

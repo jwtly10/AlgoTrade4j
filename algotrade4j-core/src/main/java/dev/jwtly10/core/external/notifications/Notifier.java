@@ -1,4 +1,4 @@
-package dev.jwtly10.shared.service.external;
+package dev.jwtly10.core.external.notifications;
 
 /**
  * Interface for external alerts
@@ -6,4 +6,6 @@ package dev.jwtly10.shared.service.external;
  */
 public interface Notifier {
     void sendNotification(String chatId, String message, boolean isHtml);
+
+    void sendErrorNotification(String chatId, String message, Exception e, boolean isHtml);
 }

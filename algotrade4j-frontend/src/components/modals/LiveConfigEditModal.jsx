@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,} from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
@@ -74,6 +74,17 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
             const newConfig = {
                 ...prevConfig,
                 strategyName: value,
+            };
+            setHasChanges(!isEqual(newConfig, strategyConfig));
+            return newConfig;
+        });
+    }
+
+    const handleTelegramChatIDChange = (value) => {
+        setLocalConfig((prevConfig) => {
+            const newConfig = {
+                ...prevConfig,
+                telegramChatId: value,
             };
             setHasChanges(!isEqual(newConfig, strategyConfig));
             return newConfig;
@@ -227,7 +238,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     <TabsContent value="run-config" className="flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2 col-span-2 mb-3">
+                                <div className="space-y-2 mb-2">
                                     <Label htmlFor="custom-name">Custom Strategy Name</Label>
                                     <Input
                                         id="custom-name"
@@ -236,8 +247,24 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                                             handleStrategyNameChange(e.target.value)
                                         }
                                         placeholder="Enter a custom name for your strategy"
+                                        autoComplete="off"
                                     />
                                 </div>
+
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="telegram-chat-id">Telegram Chat Id</Label>
+                                    <Input
+                                        id="telegram-chat-id"
+                                        value={localConfig.telegramChatId}
+                                        onChange={(e) =>
+                                            handleTelegramChatIDChange(e.target.value)
+                                        }
+                                        placeholder="Enter a Telegram Chat ID for live notifications"
+                                        autoComplete="off"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="instrument">Instrument</Label>
                                     <Select

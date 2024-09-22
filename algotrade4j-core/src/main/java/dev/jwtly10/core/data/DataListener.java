@@ -14,7 +14,7 @@ public interface DataListener {
     /**
      * Called when the data listener is initialised.
      */
-    void initialise();
+    void initialise() throws Exception;
 
     /**
      * Get the data manager

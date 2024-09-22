@@ -11,7 +11,7 @@ public interface BrokerClient {
 
     List<Trade> getOpenTrades();
 
-    List<Trade> getAllTrades();
+    List<Trade> getAllTrades() throws Exception;
 
     Trade openTrade(Trade trade);
 

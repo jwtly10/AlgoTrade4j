@@ -24,6 +24,7 @@ import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
+import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,13 +43,15 @@ public class LiveStrategyManager {
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
     private final LiveExecutorRepository liveExecutorRepository;
     private final OandaClient oandaClient;
+    private final TelegramNotifier telegramNotifier;
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, LiveStrategyService liveStrategyService) {
+    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService) {
         this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
+        this.telegramNotifier = telegramNotifier;
         this.liveStrategyService = liveStrategyService;
     }
 
@@ -92,7 +95,16 @@ public class LiveStrategyManager {
         // Reset error msg
         liveStrategyService.setErrorMessage(strategy, null);
 
-        LiveExecutor executor = createExecutor(strategy);
+        LiveExecutor executor;
+        try {
+            executor = createExecutor(strategy);
+        } catch (Exception e) {
+            // If we cannot create the executor, we should notify the user and stop the strategy
+            log.error("Error creating executor", e);
+            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy %s:", strategy.getStrategyName()), e, true);
+            // Rethrow the exception to stop the strategy from starting
+            throw e;
+        }
         liveExecutorRepository.addStrategy(strategy.getStrategyName(), executor);
 
         executorService.submit(() -> {
@@ -103,6 +115,8 @@ public class LiveStrategyManager {
                 log.error("Error running strategy", e);
                 liveExecutorRepository.removeStrategy(strategy.getStrategyName());
                 eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
+                // Here we can notify the user that the strategy has stopped
+                telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Live Strategy %s has been stopped:", strategy.getStrategyName()), e, true);
             }
         });
     }
@@ -196,6 +210,7 @@ public class LiveStrategyManager {
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument());
 
         strategyInstance.setParameters(runParams);
+        strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());
 
         LiveExecutor executor = new LiveExecutor(
                 strategyInstance,

@@ -66,18 +66,13 @@ public class OandaBrokerClient implements BrokerClient {
     }
 
     @Override
-    public List<Trade> getAllTrades() {
+    public List<Trade> getAllTrades() throws Exception {
         if (accountId == null) {
             log.error("Account ID not set. Cannot fetch all trades.");
             throw new RuntimeException("Account ID not set. Cannot fetch all trades.");
         }
-        try {
-            OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, null);
-            return res.trades().stream().map(OandaTrade::toTrade).toList();
-        } catch (Exception e) {
-            log.error("Error fetching all trades", e);
-            return null;
-        }
+        OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, null);
+        return res.trades().stream().map(OandaTrade::toTrade).toList();
     }
 
     @Override

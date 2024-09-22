@@ -90,3 +90,7 @@ ALTER TABLE user_login_log_tb
 -- Add last_error_message to the live strategies table
 ALTER TABLE live_strategies_tb
     ADD COLUMN last_error_msg VARCHAR(255);
+
+-- Add support for telegram notifications
+ALTER TABLE live_strategies_tb
+    ADD COLUMN telegram_chat_id VARCHAR(255)

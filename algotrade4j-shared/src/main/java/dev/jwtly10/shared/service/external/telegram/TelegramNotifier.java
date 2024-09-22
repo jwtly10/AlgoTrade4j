@@ -1,7 +1,7 @@
 package dev.jwtly10.shared.service.external.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.jwtly10.shared.service.external.Notifier;
+import dev.jwtly10.core.external.notifications.Notifier;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -72,6 +72,16 @@ public class TelegramNotifier implements Notifier {
         } catch (IOException e) {
             log.error("Failed to send notification", e);
         }
+    }
+
+    @Override
+    public void sendErrorNotification(String chatId, String message, Exception e, boolean isHtml) {
+        String errorDetails = NotifierUtils.formatError(e);
+        sendNotification(chatId, String.format("""
+                <b>Error:</b> %s
+                <pre>%s</pre>""", message, errorDetails
+        ), isHtml);
+
     }
 
     private String escapeMarkdown(String text) {

@@ -8,7 +8,6 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
-import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
@@ -59,7 +58,7 @@ public class LiveExecutor implements DataListener {
     }
 
     @Override
-    public void initialise() {
+    public void initialise() throws Exception {
         if (initialised) {
             log.warn("LiveExecutor for strategy {} is already initialized", strategyId);
             return;
@@ -116,6 +115,7 @@ public class LiveExecutor implements DataListener {
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
         } catch (Exception e) {
             log.error("Error processing bar close for strategy: {}", strategyId, e);
+            throw new LiveExecutorException(strategyId, "Error processing bar close", e);
         }
     }
 
@@ -128,7 +128,8 @@ public class LiveExecutor implements DataListener {
         try {
             strategy.onNewDay(newDay);
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            log.error("Error processing new day for strategy: {}", strategyId, e);
+            throw new LiveExecutorException(strategyId, "Error processing new day", e);
         }
     }
 

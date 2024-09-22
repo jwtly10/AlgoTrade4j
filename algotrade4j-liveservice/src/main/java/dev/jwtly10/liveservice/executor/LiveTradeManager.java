@@ -57,7 +57,7 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public void loadTrades() {
+    public void loadTrades() throws Exception {
         List<Trade> trades = brokerClient.getAllTrades();
         trades.forEach(trade -> allTrades.put(trade.getId(), trade));
 

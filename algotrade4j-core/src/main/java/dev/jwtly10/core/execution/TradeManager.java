@@ -51,7 +51,7 @@ public interface TradeManager {
     /**
      * Loads all trades from the trading account.
      */
-    void loadTrades();
+    void loadTrades() throws Exception;
 
     /**
      * Retrieves the details of a specific trade.

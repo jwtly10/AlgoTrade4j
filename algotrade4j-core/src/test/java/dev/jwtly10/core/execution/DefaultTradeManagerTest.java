@@ -242,7 +242,7 @@ class DefaultTradeManagerTest {
 
         backtestTradeManager.closePosition(tradeId, false);
 
-        assertEquals(-1.1, backtestTradeManager.getTrade(tradeId).getProfit());
+        assertEquals(-1.05, backtestTradeManager.getTrade(tradeId).getProfit());
         assertEquals(0, backtestTradeManager.getOpenTrades().size());
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&

@@ -21,6 +21,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
     const [accounts, setAccounts] = useState([]);
     const [config, setConfig] = useState({
         strategyName: '',
+        telegramChatId: '',
         brokerAccount: {
             brokerName: '',
             brokerType: '',
@@ -41,6 +42,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
             // Prepare the LiveStrategy object
             const liveStrategy = {
                 strategyName: config.strategyName,
+                telegramChatId: config.telegramChatId,
                 brokerAccount: config.brokerAccount,
                 config: config.config,
             };
@@ -69,6 +71,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
             setSelectedStrategy('');
             setConfig({
                 strategyName: '',
+                telegramChatId: '',
                 brokerAccount: {
                     brokerName: '',
                     brokerType: '',
@@ -323,19 +326,38 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                         </TabsContent>
                         <TabsContent value="run-config" className="flex-grow overflow-hidden">
                             <ScrollArea className="h-full pr-4">
-                                <div className="space-y-2 col-span-2 mb-3">
-                                    <Label htmlFor="custom-name">Custom Strategy Name</Label>
-                                    <Input
-                                        id="custom-name"
-                                        value={config.strategyName}
-                                        onChange={(e) =>
-                                            setConfig((prev) => ({
-                                                ...prev,
-                                                strategyName: e.target.value,
-                                            }))
-                                        }
-                                        placeholder="Enter a custom name for your strategy"
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 mb-2">
+                                        <Label htmlFor="custom-name">Custom Strategy Name</Label>
+                                        <Input
+                                            id="custom-name"
+                                            value={config.strategyName}
+                                            onChange={(e) =>
+                                                setConfig((prev) => ({
+                                                    ...prev,
+                                                    strategyName: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="Enter a custom name for your strategy"
+                                            autoComplete="off"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2 mb-2">
+                                        <Label htmlFor="telegram-chat-id">Telegram Chat Id</Label>
+                                        <Input
+                                            id="telegram-chat-id"
+                                            value={config.telegramChatId}
+                                            onChange={(e) =>
+                                                setConfig((prev) => ({
+                                                    ...prev,
+                                                    telegramChatId: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="Enter a Telegram Chat ID for live notifications"
+                                            autoComplete="off"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">

@@ -29,6 +29,9 @@ public class LiveStrategy {
     @Column(name = "strategy_name", nullable = false)
     private String strategyName;
 
+    @Column(name = "telegram_chat_id")
+    private String telegramChatId;
+
     @OneToOne
     @JoinColumn(name = "broker_account_id", nullable = false)
     private BrokerAccount brokerAccount;
