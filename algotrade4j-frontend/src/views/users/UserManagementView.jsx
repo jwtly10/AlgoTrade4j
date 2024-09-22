@@ -362,15 +362,20 @@ const UserManagementView = ({loggedInUser}) => {
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {getFilteredAndSortedLogs(user.id).logs.map((log) => (
-                                                            <TableRow key={log.id}>
-                                                                <TableCell>{log.action}</TableCell>
-                                                                <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
-                                                                <TableCell>
-                                                                    <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
+                                                        {getFilteredAndSortedLogs(user.id).logs.length > 0 ?
+                                                            getFilteredAndSortedLogs(user.id).logs.map((log) => (
+                                                                <TableRow key={log.id}>
+                                                                    <TableCell>{log.action}</TableCell>
+                                                                    <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
+                                                                    <TableCell>
+                                                                        <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )) : (
+                                                                <TableRow>
+                                                                    <TableCell colSpan={3} className="text-center">No logs found</TableCell>
+                                                                </TableRow>
+                                                            )}
                                                     </TableBody>
                                                 </Table>
                                                 <div className="mt-4 flex justify-center">
