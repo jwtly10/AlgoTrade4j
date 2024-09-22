@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import 'chartjs-adapter-date-fns';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
@@ -8,7 +8,7 @@ import EmptyChart from '../../components/backtesting/EmptyChart.jsx';
 import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx';
 import {Button} from '@/components/ui/button.jsx';
-import {Bell, Edit2, Eye, Plus} from 'lucide-react';
+import {Bell, Edit2, Eye, Loader2, Plus} from 'lucide-react';
 import {useLive} from '@/hooks/use-live.js';
 import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
@@ -42,8 +42,25 @@ const LiveStrategyView = () => {
     const [liveStrategies, setLiveStrategies] = useState([]);
     const [viewingStrategy, setViewingStrategy] = useState(null);
 
+    const [togglingStrategyId, setTogglingStrategyId] = useState(null);
+
+    const intervalRef = useRef(null);
+
     useEffect(() => {
+        // Initial fetch
         fetchLiveStrategies();
+
+        // Set up polling every 5 seconds
+        intervalRef.current = setInterval(() => {
+            fetchLiveStrategies();
+        }, 5000);
+
+        // Clean up function to clear the interval when the component unmounts
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
     }, []);
 
     const fetchLiveStrategies = async () => {
@@ -91,6 +108,7 @@ const LiveStrategyView = () => {
     }
 
     const handleToggle = async (strategyId) => {
+        setTogglingStrategyId(strategyId);
         try {
             const res = await liveStrategyClient.toggleStrategy(strategyId);
             log.debug('Toggled strategy:', res);
@@ -103,6 +121,7 @@ const LiveStrategyView = () => {
             });
         }
         await fetchLiveStrategies();
+        setTogglingStrategyId(null)
     }
 
     return (
@@ -209,10 +228,16 @@ const LiveStrategyView = () => {
                                                         <TooltipTrigger>
                                                             <Badge
                                                                 variant={strategy.active ? "default" : "secondary"}
-                                                                className="cursor-pointer"
+                                                                className={`cursor-pointer flex items-center gap-2 ${
+                                                                    strategy.active ? 'bg-green-500 hover:bg-green-600' : ''
+                                                                }`}
                                                                 onClick={() => handleToggle(strategy.id)}
                                                             >
-                                                                {strategy.active ? 'Active' : 'Inactive'}
+                                                                {togglingStrategyId === strategy.id ? (
+                                                                    <Loader2 className="h-3 w-3 animate-spin"/>
+                                                                ) : (
+                                                                    strategy.active ? 'Active' : 'Inactive'
+                                                                )}
                                                             </Badge>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
