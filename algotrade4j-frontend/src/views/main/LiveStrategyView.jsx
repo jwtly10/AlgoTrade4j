@@ -185,10 +185,10 @@ const LiveStrategyView = () => {
                                 .sort((a, b) => b.id - a.id)
                                 .map((strategy) => (
                                     <Card key={strategy.id} className="w-full">
-                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
                                             <div>
                                                 <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
-                                                <p className="text-sm text-muted-foreground">{strategy.config.strategyClass}</p>
+                                                <p className="text-xs text-muted-foreground">{strategy.config.strategyClass}</p>
                                             </div>
                                             <div className="flex space-x-2 items-center">
                                                 {strategy.lastErrorMsg && (
@@ -199,14 +199,8 @@ const LiveStrategyView = () => {
                                                             </Button>
                                                         </PopoverTrigger>
                                                         <PopoverContent className="w-80">
-                                                            <div className="grid gap-4">
-                                                                <div className="space-y-2">
-                                                                    <h4 className="font-medium leading-none">Live Alert</h4>
-                                                                    <p className="text-sm text-muted-foreground">
-                                                                        {strategy.lastErrorMsg}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
+                                                            <h4 className="font-medium leading-none mb-2">Live Alert</h4>
+                                                            <p className="text-sm text-muted-foreground">{strategy.lastErrorMsg}</p>
                                                         </PopoverContent>
                                                     </Popover>
                                                 )}
@@ -232,53 +226,54 @@ const LiveStrategyView = () => {
                                             </div>
                                         </CardHeader>
                                         <CardContent>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium text-muted-foreground">Broker</span>
-                                                    <span className="font-semibold">{strategy.brokerAccount.brokerName}</span>
+                                            <div className="space-y-4">
+                                                <div className="bg-muted p-3 rounded-md">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-muted-foreground">Broker:</span>
+                                                            <span className="font-medium">{strategy.brokerAccount.brokerName}</span>
+                                                        </div>
+                                                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                                                            <span className="text-muted-foreground pr-2">Account ID:</span>
+                                                            <span className="font-medium break-all">{strategy.brokerAccount.accountId}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-medium text-muted-foreground">Account ID</span>
-                                                    <span className="font-semibold">{strategy.brokerAccount.accountId}</span>
-                                                </div>
-                                            </div>
 
-                                            {strategy.stats ? (
-                                                <div className="mt-4 grid grid-cols-2 gap-4">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Activity className="h-4 w-4 text-muted-foreground"/>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-muted-foreground">Total Trades</span>
-                                                            <span className="font-semibold">{strategy.stats.totalTrades}</span>
+                                                {strategy.stats && (
+                                                    <div>
+                                                        <h4 className="text-sm font-semibold mb-2">Account Statistics</h4>
+                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Balance:</span>
+                                                                <span className="font-medium">${strategy.stats.accountBalance.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Profit:</span>
+                                                                <span className="font-medium">${strategy.stats.profit.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Total Trades:</span>
+                                                                <span className="font-medium">{strategy.stats.totalTrades}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Win Rate:</span>
+                                                                <span className="font-medium">{strategy.stats.winRate.toFixed(2)}%</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Profit Factor:</span>
+                                                                <span className="font-medium">{strategy.stats.profitFactor.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">Sharpe Ratio:</span>
+                                                                <span className="font-medium">{strategy.stats.sharpeRatio.toFixed(2)}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <Percent className="h-4 w-4 text-muted-foreground"/>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-muted-foreground">Win Rate</span>
-                                                            <span className="font-semibold">{strategy.stats.winRate}%</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <DollarSign className="h-4 w-4 text-muted-foreground"/>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-muted-foreground">Profit Factor</span>
-                                                            <span className="font-semibold">{strategy.stats.profitFactor}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <TrendingUp className="h-4 w-4 text-muted-foreground"/>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-medium text-muted-foreground">Sharpe Ratio</span>
-                                                            <span className="font-semibold">{strategy.stats.sharpeRatio}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <p className="mt-4 text-sm text-muted-foreground">No stats available</p>
-                                            )}
+                                                )}
+                                            </div>
                                         </CardContent>
-                                        <CardFooter className="flex justify-end space-x-2">
+                                        <CardFooter className="flex justify-end space-x-2 pt-2">
                                             {strategy.active && (
                                                 <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
                                                     <Eye className="w-4 h-4 mr-2"/> View

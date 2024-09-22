@@ -5,5 +5,9 @@ import lombok.Data;
 @Data
 public class Stats {
     private double accountBalance;
-    private double tradeWinRate;
+    private double profit;
+    private double totalTrades;
+    private double winRate;
+    private double profitFactor;
+    private double sharpeRatio;
 }

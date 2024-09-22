@@ -207,7 +207,7 @@ public class LiveStrategyManager {
         TradeManager tradeManager = new LiveTradeManager(client);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
-        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument());
+        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
 
         strategyInstance.setParameters(runParams);
         strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());

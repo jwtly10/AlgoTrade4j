@@ -47,11 +47,11 @@ public class LiveStrategyService {
         liveStrategyRepository.save(liveStrategy);
     }
 
-    public LiveStrategy updateStrategyStats(Long liveStrategyId, Stats stats) {
+    public LiveStrategy updateStrategyStats(String liveStrategyId, Stats stats) {
         log.info("Updating live strategy stats for strategy ID: {}", liveStrategyId);
 
         // Validate that the LiveStrategy exists
-        LiveStrategy liveStrategy = liveStrategyRepository.findById(liveStrategyId)
+        LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(liveStrategyId)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
         liveStrategy.setStats(stats);
