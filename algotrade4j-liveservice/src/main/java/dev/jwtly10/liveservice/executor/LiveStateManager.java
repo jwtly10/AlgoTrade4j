@@ -69,8 +69,6 @@ public class LiveStateManager {
 
             // Do stats calculations for the strategy, after everything has been updated and events fired
             runPerformanceAnalysis();
-
-
         } catch (Exception e) {
             throw new RuntimeException("Error updating state for strategy: " + strategyId, e);
         }
@@ -83,8 +81,8 @@ public class LiveStateManager {
 
         DecimalFormat df = new DecimalFormat("#.##");
         stats.setAccountBalance(Double.parseDouble(df.format(accountManager.getEquity())));
-        stats.setProfit(Double.parseDouble(df.format(performanceAnalyser.getGrossProfit())));
-        stats.setTotalTrades(Double.parseDouble(df.format(performanceAnalyser.getTotalTrades())));
+        stats.setProfit(Double.parseDouble(df.format(performanceAnalyser.getTotalNetProfit())));
+        stats.setTotalTrades(Double.parseDouble(df.format(performanceAnalyser.getTotalTradeInclOpen())));
         stats.setWinRate(Double.parseDouble(df.format((performanceAnalyser.getLongWinPercentage() + performanceAnalyser.getShortWinPercentage()) / 2)));
         stats.setProfitFactor(Double.parseDouble(df.format(performanceAnalyser.getProfitFactor())));
         stats.setSharpeRatio(Double.parseDouble(df.format(performanceAnalyser.getSharpeRatio())));

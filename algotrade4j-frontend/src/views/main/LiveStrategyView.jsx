@@ -271,11 +271,11 @@ const LiveStrategyView = () => {
                                                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                                             <div className="flex justify-between">
                                                                 <span className="text-muted-foreground">Balance:</span>
-                                                                <span className="font-medium">${strategy.stats.accountBalance.toFixed(2)}</span>
+                                                                <span className="font-medium">${parseFloat(strategy.stats.accountBalance) ? parseFloat(strategy.stats.accountBalance.toFixed(2)).toLocaleString() : strategy.stats.accountBalance}</span>
                                                             </div>
                                                             <div className="flex justify-between">
                                                                 <span className="text-muted-foreground">Profit:</span>
-                                                                <span className="font-medium">${strategy.stats.profit.toFixed(2)}</span>
+                                                                <span className="font-medium">${parseFloat(strategy.stats.profit) ? parseFloat(strategy.stats.profit.toFixed(2)).toLocaleString() : strategy.stats.profit}</span>
                                                             </div>
                                                             <div className="flex justify-between">
                                                                 <span className="text-muted-foreground">Total Trades:</span>
