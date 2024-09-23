@@ -93,7 +93,7 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
 
         try {
             DefaultTick tick = OandaUtils.mapPriceToTick(price);
-            log.trace("Received tick: {}", tick);
+            log.trace("Received stream tick: {}", tick);
             notifyListeners(tick);
         } catch (Exception e) {
             log.error("Error processing price response", e);

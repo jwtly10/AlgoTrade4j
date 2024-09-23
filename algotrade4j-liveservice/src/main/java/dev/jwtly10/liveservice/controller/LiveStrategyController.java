@@ -45,6 +45,9 @@ public class LiveStrategyController {
             @PathVariable("id") Long id
     ) {
         LiveStrategy updatedLiveStrategy = liveStrategyService.updateLiveStrategy(id, strategySetup);
+        // We should also now STOP the strategy if it is active
+        liveStrategyManager.stopStrategy(updatedLiveStrategy.getStrategyName());
+
         return ResponseEntity.ok(updatedLiveStrategy);
     }
 

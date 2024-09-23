@@ -3,7 +3,6 @@ package dev.jwtly10.liveservice.service.strategy;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.data.DefaultDataManager;
-import dev.jwtly10.core.event.BarEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
@@ -142,6 +141,8 @@ public class LiveStrategyManager {
                 log.warn("Strategy {} is not running", strategyName);
             }
         } catch (Exception e) {
+            // We have made some assumptions in the system that strategies shouldn't fail to stop
+            // If this happens, some logic will need to be refactored
             log.error("Error stopping strategy - THIS SHOULD NOT HAPPEN!", e);
         }
     }
@@ -194,10 +195,14 @@ public class LiveStrategyManager {
                     }
                 }
         );
-        barSeries.getBars().forEach(bar -> eventPublisher.publishEvent(new BarEvent(strategyId, config.getInstrumentData().getInstrument(), bar)));
 
+        // Here we need to 'hack' how we have generated the bars
+        // The last bar is the 'currentBar' which teh datamanager maintains state for seperately
+        // So we remove the last bar from the general series
+        Bar currentBar = barSeries.getBars().removeLast();
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
-        dataManager.initialise(barSeries.getLastBar(), barSeries.getLastBar().getOpenTime().plus(config.getPeriod().getDuration()));
+        // And initialise the datamanager with the current bar, so it can handle events for the current bar on tick
+        dataManager.initialise(currentBar, currentBar.getOpenTime().plus(config.getPeriod().getDuration()));
 
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));

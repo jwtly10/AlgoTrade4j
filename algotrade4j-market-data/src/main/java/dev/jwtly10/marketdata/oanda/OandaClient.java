@@ -110,7 +110,7 @@ public class OandaClient {
      * @throws Exception if an error occurs while fetching the data
      */
     public OandaTradeResponse fetchTrades(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
-        log.debug("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
+        log.trace("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
         String url = buildTradesUrl(accountId, ids, state, instrument, count);
 
         Request req = new Request.Builder()
@@ -125,7 +125,7 @@ public class OandaClient {
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            log.debug("Fetched trades: {}", response);
+            log.trace("Fetched trades: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response, OandaTradeResponse.class);
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class OandaClient {
      * @throws Exception
      */
     public OandaAccountResponse fetchAccount(String accountId) throws Exception {
-        log.debug("Fetching account details for account {}", accountId);
+        log.trace("Fetching account details for account {}", accountId);
 
         String url = apiUrl + "/v3/accounts/" + accountId;
 
@@ -157,7 +157,7 @@ public class OandaClient {
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            log.debug("Fetched account details: {}", response);
+            log.trace("Fetched account details: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response, OandaAccountResponse.class);
         } catch (Exception e) {

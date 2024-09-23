@@ -31,12 +31,12 @@ public class LiveStrategyService {
     }
 
     public List<LiveStrategy> getNonHiddenLiveStrategies() {
-        log.info("Fetching all non-hidden live strategies");
+        log.trace("Fetching all non-hidden live strategies");
         return liveStrategyRepository.findLiveStrategiesByHiddenIsFalse();
     }
 
     public List<LiveStrategy> getActiveLiveStrategies() {
-        log.info("Fetching all active live strategies");
+        log.trace("Fetching all active live strategies");
         return liveStrategyRepository.findLiveStrategiesByHiddenIsFalseAndActiveIsTrue();
     }
 
@@ -48,7 +48,7 @@ public class LiveStrategyService {
     }
 
     public LiveStrategy updateStrategyStats(String liveStrategyId, Stats stats) {
-        log.info("Updating live strategy stats for strategy ID: {}", liveStrategyId);
+        log.trace("Updating live strategy stats for strategy ID: {}", liveStrategyId);
 
         // Validate that the LiveStrategy exists
         LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(liveStrategyId)
@@ -180,10 +180,6 @@ public class LiveStrategyService {
         liveStrategy.setActive(false); // If we make updated, we should deactivate the strategy
 
         // Save the strategy to the database
-        return liveStrategyRepository.save(strategySetup);
-    }
-
-    public List<LiveStrategy> findByBrokerAccount(BrokerAccount brokerAccount) {
-        return liveStrategyRepository.findLiveStrategiesByBrokerAccountAndHiddenIsFalse(brokerAccount);
+        return liveStrategyRepository.save(liveStrategy);
     }
 }
