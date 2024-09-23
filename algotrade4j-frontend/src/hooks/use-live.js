@@ -17,6 +17,8 @@ export const useLive = () => {
     const [tradeIdMap, setTradeIdMap] = useState(new Map());
     const tradeCounterRef = useRef(1);
 
+    const [analysisData, setAnalysisData] = useState({});
+
     // Log state
     const [logs, setLogs] = useState([]);
 
@@ -53,6 +55,10 @@ export const useLive = () => {
         tradeCounterRef.current = 1;
         setIndicators({});
         setLogs([]);
+        setAnalysisData({})
+        if (socketRef.current) {
+            socketRef.current.close();
+        }
 
         try {
             log.debug('Viewing strategy:', strategyId);
@@ -78,11 +84,10 @@ export const useLive = () => {
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
         } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
-            log.error("This shouldn't happen in live")
         } else if (data.type === 'STRATEGY_STOP') {
             log.info('Strategy stop event');
         } else if (data.type === 'ANALYSIS') {
-            log.error("Will we do this?")
+            // setAnalysis(data);
         } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
             updateTrades(data);
         } else if (data.type === 'LOG') {
@@ -96,7 +101,6 @@ export const useLive = () => {
             log.info('All indicator event');
             setAllIndicators(data);
         } else if (data.type === 'PROGRESS') {
-            log.error("This shouldn't happen in live")
         } else if (data.type === 'ERROR') {
             toast({
                 title: 'Error',
@@ -106,6 +110,11 @@ export const useLive = () => {
         } else {
             log.debug('WHAT OTHER EVENT WAS SENT?' + data);
         }
+    };
+
+    const setAnalysis = (data) => {
+        console.log(data)
+        setAnalysisData(data);
     };
 
     const updateLogs = (data) => {
@@ -327,6 +336,7 @@ export const useLive = () => {
     );
     return {
         isConnected,
+        analysisData,
         trades,
         indicators,
         chartData,

@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.event.AccountEvent;
+import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.async.AsyncTradesEvent;
 import dev.jwtly10.core.exception.RiskException;
@@ -69,6 +70,8 @@ public class LiveStateManager {
 
             // Do stats calculations for the strategy, after everything has been updated and events fired
             runPerformanceAnalysis();
+
+            eventPublisher.publishEvent(new AnalysisEvent(strategyId, instrument, performanceAnalyser));
         } catch (Exception e) {
             throw new RuntimeException("Error updating state for strategy: " + strategyId, e);
         }
@@ -83,7 +86,8 @@ public class LiveStateManager {
         stats.setAccountBalance(Double.parseDouble(df.format(accountManager.getEquity())));
         stats.setOpenTradeProfit(Double.parseDouble(df.format(performanceAnalyser.getOpenTradeProfit())));
         stats.setProfit(Double.parseDouble(df.format(performanceAnalyser.getTotalNetProfit())));
-        stats.setTotalTrades(Double.parseDouble(df.format(performanceAnalyser.getTotalTradeInclOpen())));
+        stats.setTotalTrades(performanceAnalyser.getTotalTradeInclOpen());
+        stats.setOpenTrades(performanceAnalyser.getOpenTrades());
         stats.setWinRate(Double.parseDouble(df.format((performanceAnalyser.getLongWinPercentage() + performanceAnalyser.getShortWinPercentage()) / 2)));
         stats.setProfitFactor(Double.parseDouble(df.format(performanceAnalyser.getProfitFactor())));
         stats.setSharpeRatio(Double.parseDouble(df.format(performanceAnalyser.getSharpeRatio())));

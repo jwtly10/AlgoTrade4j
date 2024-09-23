@@ -6,8 +6,9 @@ import lombok.Data;
 public class Stats {
     private double accountBalance;
     private double openTradeProfit;
+    private int openTrades;
     private double profit;
-    private double totalTrades;
+    private int totalTrades;
     private double winRate;
     private double profitFactor;
     private double sharpeRatio;

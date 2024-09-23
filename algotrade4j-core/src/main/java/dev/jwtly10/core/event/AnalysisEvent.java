@@ -24,6 +24,7 @@ public class AnalysisEvent extends BaseEvent {
                 performanceAnalyser.getProfitFactor(),
                 performanceAnalyser.getExpectedPayoff(),
                 performanceAnalyser.getMaxDrawdown(),
+                performanceAnalyser.getOpenTrades(),
                 performanceAnalyser.getTotalTradeInclOpen(),
                 performanceAnalyser.getTotalClosedLongTrades(),
                 performanceAnalyser.getTotalLongWinningTrades(),

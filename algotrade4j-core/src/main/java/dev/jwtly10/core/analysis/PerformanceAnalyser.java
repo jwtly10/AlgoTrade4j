@@ -61,6 +61,7 @@ public class PerformanceAnalyser {
     private double expectedPayoff = 0;
 
     // Trade stats
+    private int openTrades = 0;
     private int totalTradeInclOpen = 0;
     private int totalClosedLongTrades = 0;
     private int totalLongWinningTrades = 0;
@@ -179,6 +180,8 @@ public class PerformanceAnalyser {
         this.openTradeProfit = openTrades.stream()
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
+
+        this.openTrades = openTrades.size();
 
         this.largestProfitableTrade = closeTrades.stream()
                 .map(Trade::getProfit)

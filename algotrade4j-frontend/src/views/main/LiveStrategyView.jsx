@@ -8,7 +8,7 @@ import EmptyChart from '../../components/backtesting/EmptyChart.jsx';
 import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx';
 import {Button} from '@/components/ui/button.jsx';
-import {Bell, Edit2, Eye, Loader2, Plus} from 'lucide-react';
+import {Bell, Edit2, Eye, Loader2, Plus, RefreshCw} from 'lucide-react';
 import {useLive} from '@/hooks/use-live.js';
 import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
@@ -24,6 +24,7 @@ const LiveStrategyView = () => {
     const {
         isConnected,
         trades,
+        analysisData,
         indicators,
         chartData,
         logs,
@@ -124,6 +125,13 @@ const LiveStrategyView = () => {
         setTogglingStrategyId(null)
     }
 
+    const StatCard = ({title, value, valueColor = 'text-foreground'}) => (
+        <div className="bg-background p-3 rounded-md shadow-sm">
+            <h4 className="text-sm font-medium text-muted-foreground mb-1">{title}</h4>
+            <p className={`text-lg font-semibold ${valueColor}`}>{value}</p>
+        </div>
+    );
+
     return (
         <div className="flex flex-col h-[calc(100vh-32px-68px)] w-screen overflow-hidden p-4">
             {/* Main content area */}
@@ -135,6 +143,7 @@ const LiveStrategyView = () => {
                             <>
                                 {/* Chart Section */}
                                 <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
+
                                     {chartData && chartData.length > 0 ? (
                                         <TradingViewChart
                                             showChart={true}
@@ -147,6 +156,22 @@ const LiveStrategyView = () => {
                                         <EmptyChart/>
                                     )}
                                 </div>
+
+                                {/* Stats Widget Section */}
+                                {/*{viewingStrategy && analysisData && (*/}
+                                {/*    <div className="mb-6 bg-card rounded-lg shadow-md p-4">*/}
+                                {/*        <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>*/}
+                                {/*        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">*/}
+                                {/*            <StatCard title="Open Trade Profit" value={`$${analysisData.stats?.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'} />*/}
+                                {/*            <StatCard title="Total Net Profit" value={`$${analysisData.stats?.totalNetProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.totalNetProfit >= 0 ? 'text-green-500' : 'text-red-500'} />*/}
+                                {/*            <StatCard title="Max Drawdown" value={`$${analysisData.stats?.maxDrawdown.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor="text-red-500" />*/}
+                                {/*            <StatCard title="Profit Factor" value={analysisData.stats?.profitFactor.toFixed(2)} />*/}
+                                {/*            <StatCard title="Sharpe Ratio" value={analysisData.stats?.sharpeRatio.toFixed(2)} />*/}
+                                {/*            <StatCard title="Total Trades" value={analysisData.stats?.totalTrades} />*/}
+                                {/*            <StatCard title="Win Rate" value={`${((analysisData.stats?.totalLongWinningTrades + analysisData.totalShortWinningTrades) / analysisData.totalTrades * 100).toFixed(2)}%`} />*/}
+                                {/*        </div>*/}
+                                {/*    </div>*/}
+                                {/*)}*/}
 
                                 {/* Tabs and Content Section */}
                                 <Tabs
@@ -203,10 +228,20 @@ const LiveStrategyView = () => {
                             {[...liveStrategies]
                                 .sort((a, b) => b.id - a.id)
                                 .map((strategy) => (
-                                    <Card key={strategy.id} className="w-full">
+                                    <Card
+                                        key={strategy.id}
+                                        className={`w-full ${viewingStrategy && viewingStrategy.id === strategy.id ? 'border-2 border-primary' : ''}`}
+                                    >
                                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                                             <div>
-                                                <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
+                                                <div className="flex items-center">
+                                                    <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
+                                                    {viewingStrategy && viewingStrategy.id === strategy.id && (
+                                                        <Badge variant="secondary" className="ml-2">
+                                                            Viewing
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <p className="text-xs text-muted-foreground">{strategy.config.strategyClass}</p>
                                             </div>
                                             <div className="flex space-x-2 items-center">
@@ -274,7 +309,11 @@ const LiveStrategyView = () => {
                                                                 <span className="font-medium">${parseFloat(strategy.stats.accountBalance) ? parseFloat(strategy.stats.accountBalance.toFixed(2)).toLocaleString() : strategy.stats.accountBalance}</span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Profit:</span>
+                                                                <span className="text-muted-foreground">Running PNL:</span>
+                                                                <span className="font-medium">${parseFloat(strategy.stats.openTradeProfit) ? parseFloat(strategy.stats.openTradeProfit.toFixed(2)).toLocaleString() : strategy.stats.openTradeProfit}</span>
+                                                            </div>
+                                                            <div className="flex justify-between">
+                                                                <span className="text-muted-foreground">PNL:</span>
                                                                 <span className="font-medium">${parseFloat(strategy.stats.profit) ? parseFloat(strategy.stats.profit.toFixed(2)).toLocaleString() : strategy.stats.profit}</span>
                                                             </div>
                                                             <div className="flex justify-between">
@@ -300,8 +339,20 @@ const LiveStrategyView = () => {
                                         </CardContent>
                                         <CardFooter className="flex justify-end space-x-2 pt-2">
                                             {strategy.active && (
-                                                <Button variant="outline" size="sm" onClick={() => handleViewStrategy(strategy)}>
-                                                    <Eye className="w-4 h-4 mr-2"/> View
+                                                <Button
+                                                    variant={viewingStrategy && viewingStrategy.id === strategy.id ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => handleViewStrategy(strategy)}
+                                                >
+                                                    {viewingStrategy && viewingStrategy.id === strategy.id ? (
+                                                        <>
+                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin"/> Refresh
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Eye className="w-4 h-4 mr-2"/> View
+                                                        </>
+                                                    )}
                                                 </Button>
                                             )}
                                             <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy)}>
