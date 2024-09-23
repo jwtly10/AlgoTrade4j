@@ -17,6 +17,7 @@ public class AnalysisEvent extends BaseEvent {
         this.equityHistory = performanceAnalyser.getEquityHistory();
         this.stats = new AnalysisStats(
                 performanceAnalyser.getInitialDeposit(),
+                performanceAnalyser.getOpenTradeProfit(),
                 performanceAnalyser.getTotalNetProfit(),
                 performanceAnalyser.getGrossProfit(),
                 performanceAnalyser.getGrossLoss(),

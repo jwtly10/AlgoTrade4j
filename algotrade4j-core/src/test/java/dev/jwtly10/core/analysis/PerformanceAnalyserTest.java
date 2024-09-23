@@ -115,6 +115,8 @@ public class PerformanceAnalyserTest {
         assertEquals((9), analyser.getProfitFactor());
         assertEquals((320), analyser.getExpectedPayoff());
 
+        assertEquals((-100), analyser.getOpenTradeProfit());
+
         // Assert trade stats
         assertEquals(6, analyser.getTotalTradeInclOpen());
         assertEquals(3, analyser.getTotalClosedLongTrades());

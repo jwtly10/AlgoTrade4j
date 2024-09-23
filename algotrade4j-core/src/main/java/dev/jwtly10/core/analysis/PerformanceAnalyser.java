@@ -53,6 +53,7 @@ public class PerformanceAnalyser {
     // Balance stats
     private double initialDeposit = 0;
     private double totalNetProfit = 0;
+    private double openTradeProfit = 0;
     private double profitFactor = 0;
     private double maxDrawdown = 0;
     private double grossProfit = 0;
@@ -108,9 +109,13 @@ public class PerformanceAnalyser {
                 .filter(trade -> trade.getClosePrice() != Number.ZERO)
                 .toList();
 
+        List<Trade> openTrades = new ArrayList<>(trades.values()).stream()
+                .filter(trade -> trade.getClosePrice() == Number.ZERO)
+                .toList();
+
         calculateBalanceStats(closedTrades);
         calculateTradeStats(closedTrades);
-        calculateTradeReturnStats(closedTrades);
+        calculateTradeReturnStats(closedTrades, openTrades);
         calculateConsecutiveStats(closedTrades);
         calculateSharpeRatio(closedTrades);
     }
@@ -170,7 +175,11 @@ public class PerformanceAnalyser {
      * Calculate the trade return statistics of the trading strategy
      * @param trades The trades executed by the strategy
      */
-    private void calculateTradeReturnStats(List<Trade> closeTrades) {
+    private void calculateTradeReturnStats(List<Trade> closeTrades, List<Trade> openTrades) {
+        this.openTradeProfit = openTrades.stream()
+                .map(Trade::getProfit)
+                .reduce(0.0, Double::sum);
+
         this.largestProfitableTrade = closeTrades.stream()
                 .map(Trade::getProfit)
                 .max(Double::compare)

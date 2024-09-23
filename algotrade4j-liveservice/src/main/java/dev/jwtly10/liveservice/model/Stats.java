@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class Stats {
     private double accountBalance;
+    private double openTradeProfit;
     private double profit;
     private double totalTrades;
     private double winRate;

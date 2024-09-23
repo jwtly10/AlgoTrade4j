@@ -81,6 +81,7 @@ public class LiveStateManager {
 
         DecimalFormat df = new DecimalFormat("#.##");
         stats.setAccountBalance(Double.parseDouble(df.format(accountManager.getEquity())));
+        stats.setOpenTradeProfit(Double.parseDouble(df.format(performanceAnalyser.getOpenTradeProfit())));
         stats.setProfit(Double.parseDouble(df.format(performanceAnalyser.getTotalNetProfit())));
         stats.setTotalTrades(Double.parseDouble(df.format(performanceAnalyser.getTotalTradeInclOpen())));
         stats.setWinRate(Double.parseDouble(df.format((performanceAnalyser.getLongWinPercentage() + performanceAnalyser.getShortWinPercentage()) / 2)));

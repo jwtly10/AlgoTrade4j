@@ -167,7 +167,7 @@ public class OandaClient {
     }
 
     public OandaOpenTradeResponse openTrade(String accountId, MarketOrderRequest orderRequest) throws Exception {
-        log.debug("Opening trade: {}", orderRequest);
+        log.info("Opening trade: {}", orderRequest);
         String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
 
         OandaOrder order = new OandaOrder(orderRequest);
@@ -175,7 +175,7 @@ public class OandaClient {
         ObjectMapper objectMapper = new ObjectMapper();
         String reqJson = objectMapper.writeValueAsString(order);
 
-        log.debug("Request JSON: {}", reqJson);
+        log.trace("Request JSON: {}", reqJson);
 
         RequestBody body = RequestBody.create(
                 MediaType.parse("application/json"), reqJson);

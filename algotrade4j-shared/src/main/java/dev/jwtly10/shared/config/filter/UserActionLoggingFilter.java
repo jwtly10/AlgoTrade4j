@@ -22,7 +22,8 @@ public class UserActionLoggingFilter extends OncePerRequestFilter {
     private final List<String> excludedPaths = Arrays.asList(
             "/api/v1/auth/verify",
             "/api/v1/monitor",
-            "/health"
+            "/health",
+            "/api/v1/live/strategies"
     );
 
     @Override
