@@ -1,4 +1,4 @@
-name: Main Branch CI - Run Tests and Deploy
+name: Main Branch CI - Test, Build, Push and Deploy
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
       - name: Run tests with Maven
         run: mvn clean test
 
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     needs: test
@@ -63,7 +63,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build Java Application
+      - name: Build Java Applications
         run: mvn clean package -DskipTests
 
       - name: Build Frontend react app
@@ -72,40 +72,50 @@ jobs:
           npm install
           npm run build
 
-      - name: Upload java artifacts to remote
-        uses: appleboy/scp-action@master
-        with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          source: "algotrade4j-api/target/*.jar"
-          target: "/opt/algotrade4j"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-      - name: Upload React build to remote
-        uses: appleboy/scp-action@master
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          source: "algotrade4j-frontend/dist/*"
-          target: "/opt/algotrade4j"
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Upload dockerfiles to remote
-        uses: appleboy/scp-action@master
+      - name: Build and push API image
+        uses: docker/build-push-action@v2
         with:
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          source: "Dockerfile, docker-compose.yml, algotrade4j-frontend/Dockerfile"
-          target: "/opt/algotrade4j"
+          context: ./algotrade4j-api
+          push: true
+          tags: joshwatley/algotrade4j-api:latest
 
-      - name: Upload Nginx configurations to remote
+      - name: Build and push LiveService image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./algotrade4j-liveservice
+          push: true
+          tags: joshwatley/algotrade4j-liveservice:latest
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./algotrade4j-frontend
+          push: true
+          tags: joshwatley/algotrade4j-frontend:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy Nginx config and docker-compose.yml to remote
         uses: appleboy/scp-action@master
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          source: "infra-config/nginx.prod.conf, infra-config/frontend-nginx.conf"
+          source: "infra-config/nginx.prod.conf,docker-compose.yml"
           target: "/opt/algotrade4j"
 
       - name: Configure and reload Nginx
@@ -120,25 +130,26 @@ jobs:
             sudo nginx -t
             sudo systemctl reload nginx
 
-      - name: Run docker-compose
+      - name: Deploy with Docker Stack
         uses: appleboy/ssh-action@v1.0.0
         with:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           script: |
-            cd /opt/algotrade4j &&
-            OANDA_API_URL=${{vars.OANDA_API_URL}} \
-            OANDA_API_KEY=${{secrets.OANDA_API_KEY}} \
-            OANDA_ACCOUNT_ID=${{secrets.OANDA_ACCOUNT_ID}} \
-            JWT_SECRET=${{secrets.JWT_SECRET}} \
-            SPRING_DATASOURCE_URL=${{secrets.SPRING_DATASOURCE_URL}} \
-            SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}} \
-            SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}} \
-            ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}} \
-            DD_API_KEY=${{secrets.DD_API_KEY}} \
-            VITE_NODE_ENV=${{vars.VITE_NODE_ENV}} \
-            VITE_ENABLE_DEBUG_LOGS=${{vars.VITE_ENABLE_DEBUG_LOGS}} \
-            VITE_API_URL=${{vars.VITE_API_URL}} \
-            VITE_ENABLE_SIGNUP=${{vars.VITE_ENABLE_SIGNUP}} \
-            docker compose --profile prod up -d --build
+            cd /opt/algotrade4j
+            export OANDA_API_URL=${{vars.OANDA_API_URL}}
+            export OANDA_API_KEY=${{secrets.OANDA_API_KEY}}
+            export JWT_SECRET=${{secrets.JWT_SECRET}}
+            export SPRING_DATASOURCE_URL=${{secrets.SPRING_DATASOURCE_URL}}
+            export SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}
+            export SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}
+            export ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}}
+            export GRAFANA_API_KEY=${{secrets.GRAFANA_API_KEY}}
+            export TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
+            export VITE_NODE_ENV=${{vars.VITE_NODE_ENV}}
+            export VITE_ENABLE_DEBUG_LOGS=${{vars.VITE_ENABLE_DEBUG_LOGS}}
+            export VITE_ENABLE_SIGNUP=${{vars.VITE_ENABLE_SIGNUP}}
+            export VITE_MAIN_API_HOST=${{vars.VITE_MAIN_API_HOST}}
+            export VITE_LIVE_API_HOST=${{vars.VITE_LIVE_API_HOST}}
+            docker stack deploy --compose-file docker-compose.yml algotrade4j
