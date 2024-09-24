@@ -42,8 +42,8 @@ public class OandaBrokerClient implements BrokerClient {
         }
         try {
             OandaAccountResponse res = client.fetchAccount(accountId);
-            // TODO: Make initial balance settable at account level
-            return new Account(100000, Double.parseDouble(res.account().balance()), Double.parseDouble(res.account().balance()));
+            // TODO: Improve this. I have just set to -999999 to make it clear if we ever try to use this value (we shouldn't)
+            return new Account(-999999, Double.parseDouble(res.account().balance()), Double.parseDouble(res.account().nAV()));
         } catch (Exception e) {
             log.error("Error fetching account info", e);
             return null;

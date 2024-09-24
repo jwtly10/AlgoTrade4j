@@ -47,6 +47,7 @@ public class DefaultAccountManager implements AccountManager {
 
     @Override
     public void updateAccountInfo(Account account) {
+        // We ignore the initial balance here, as its set at the time of account creation, so is irrelevant in future updates
         this.account.setBalance(account.getBalance());
         this.account.setEquity(account.getEquity());
     }

@@ -158,20 +158,26 @@ const LiveStrategyView = () => {
                                 </div>
 
                                 {/* Stats Widget Section */}
-                                {/*{viewingStrategy && analysisData && (*/}
-                                {/*    <div className="mb-6 bg-card rounded-lg shadow-md p-4">*/}
-                                {/*        <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>*/}
-                                {/*        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">*/}
-                                {/*            <StatCard title="Open Trade Profit" value={`$${analysisData.stats?.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'} />*/}
-                                {/*            <StatCard title="Total Net Profit" value={`$${analysisData.stats?.totalNetProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.totalNetProfit >= 0 ? 'text-green-500' : 'text-red-500'} />*/}
-                                {/*            <StatCard title="Max Drawdown" value={`$${analysisData.stats?.maxDrawdown.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor="text-red-500" />*/}
-                                {/*            <StatCard title="Profit Factor" value={analysisData.stats?.profitFactor.toFixed(2)} />*/}
-                                {/*            <StatCard title="Sharpe Ratio" value={analysisData.stats?.sharpeRatio.toFixed(2)} />*/}
-                                {/*            <StatCard title="Total Trades" value={analysisData.stats?.totalTrades} />*/}
-                                {/*            <StatCard title="Win Rate" value={`${((analysisData.stats?.totalLongWinningTrades + analysisData.totalShortWinningTrades) / analysisData.totalTrades * 100).toFixed(2)}%`} />*/}
-                                {/*        </div>*/}
-                                {/*    </div>*/}
-                                {/*)}*/}
+                                {viewingStrategy && analysisData && (
+                                    <div className="mb-6 bg-card rounded-lg shadow-md p-4">
+                                        <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>
+                                        {analysisData.stats ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <StatCard title="Balance" value={`${analysisData.stats.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`} valueColor={analysisData.balance >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Equity" value={`${analysisData.stats.equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.equity >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Running PnL" value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Win Rate" value={`${analysisData.stats.winRate.toFixed(2)}%`}/>
+                                                <StatCard title="Profit Factor" value={analysisData.stats.profitFactor.toFixed(2)}/>
+                                                <StatCard title="Sharpe Ratio" value={analysisData.stats.sharpeRatio.toFixed(2)}/>
+                                                <StatCard title="Total Trades" value={analysisData.stats.totalTrades}/>
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-center items-center h-32">
+                                                <p className="text-gray-500">Loading stats...</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Tabs and Content Section */}
                                 <Tabs

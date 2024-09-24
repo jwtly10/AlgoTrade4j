@@ -54,6 +54,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
                 listener.subscribe(StrategyStopEvent.class);
                 listener.subscribe(AccountEvent.class);
                 listener.subscribe(AnalysisEvent.class);
+                listener.subscribe(LiveAnalysisEvent.class);
                 listener.subscribe(LogEvent.class);
                 listener.subscribe(ErrorEvent.class);
                 listener.subscribe(AsyncIndicatorsEvent.class);

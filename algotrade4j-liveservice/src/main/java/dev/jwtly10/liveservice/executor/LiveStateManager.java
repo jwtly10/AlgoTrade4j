@@ -4,8 +4,8 @@ import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.event.AccountEvent;
-import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LiveAnalysisEvent;
 import dev.jwtly10.core.event.async.AsyncTradesEvent;
 import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.execution.TradeManager;
@@ -70,8 +70,7 @@ public class LiveStateManager {
 
             // Do stats calculations for the strategy, after everything has been updated and events fired
             runPerformanceAnalysis();
-
-            eventPublisher.publishEvent(new AnalysisEvent(strategyId, instrument, performanceAnalyser));
+            eventPublisher.publishEvent(new LiveAnalysisEvent(strategyId, instrument, performanceAnalyser, accountManager.getAccount()));
         } catch (Exception e) {
             throw new RuntimeException("Error updating state for strategy: " + strategyId, e);
         }
@@ -83,7 +82,7 @@ public class LiveStateManager {
         performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getAccount().getInitialBalance());
 
         DecimalFormat df = new DecimalFormat("#.##");
-        stats.setAccountBalance(Double.parseDouble(df.format(accountManager.getEquity())));
+        stats.setAccountBalance(Double.parseDouble(df.format(accountManager.getBalance())));
         stats.setOpenTradeProfit(Double.parseDouble(df.format(performanceAnalyser.getOpenTradeProfit())));
         stats.setProfit(Double.parseDouble(df.format(performanceAnalyser.getTotalNetProfit())));
         stats.setTotalTrades(performanceAnalyser.getTotalTradeInclOpen());

@@ -86,8 +86,8 @@ export const useLive = () => {
         } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
         } else if (data.type === 'STRATEGY_STOP') {
             log.info('Strategy stop event');
-        } else if (data.type === 'ANALYSIS') {
-            // setAnalysis(data);
+        } else if (data.type === 'LIVE_ANALYSIS') {
+            setAnalysis(data);
         } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
             updateTrades(data);
         } else if (data.type === 'LOG') {

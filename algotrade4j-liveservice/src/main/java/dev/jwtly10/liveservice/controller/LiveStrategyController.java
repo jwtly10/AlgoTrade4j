@@ -67,7 +67,7 @@ public class LiveStrategyController {
             // If there is an error starting the strategy, set the error message and force deactivate the strategy
             liveStrategyService.setErrorMessage(activatedLiveStrategy, e.getMessage());
             liveStrategyService.deactivateStrategy(activatedLiveStrategy.getStrategyName());
-            throw new ApiException("Error starting strategy. See strategy Live Alert for reason.", ErrorType.INTERNAL_ERROR);
+            throw new ApiException("Error starting strategy: " + e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
 
         return ResponseEntity.ok(activatedLiveStrategy);
