@@ -1,25 +1,22 @@
 import axios from 'axios';
 import log from '../logger.js';
-import pako from 'pako';
+import {getWebSocketUrl, handleError, handleResponse, handleWSMessage} from "@/api/utils.js";
 
-// In prod we are deployed on the same host.
-// Locally we run apps seperately on same host
-const isDev = import.meta.env.MODE === 'development';
-const API_BASE_URL = isDev ? 'http://localhost:8080/api/v1' : '/api/v1';
-const WS_BASE_URL = isDev
-    ? `${'http://localhost:8080'.replace('http', 'ws')}/ws/v1`
-    : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/v1`;
+const MAIN_API_HOST = import.meta.env.VITE_MAIN_API_HOST || 'http://localhost:8080';
+const WS_BASE_URL = getWebSocketUrl(MAIN_API_HOST);
+const V1 = '/api/v1';
 
-const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
+const mainInstance = axios.create({
+    baseURL: MAIN_API_HOST,
     headers: {
         'Content-Type': 'application/json',
     },
     withCredentials: true,
 });
 
+
 // Crude implementation to sign users out of these endpoints fail auth
-axiosInstance.interceptors.response.use(
+mainInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response && error.response.status === 403) {
@@ -28,7 +25,7 @@ axiosInstance.interceptors.response.use(
                 // Logout properly to clean http only cookie
                 await authClient.logout();
             } catch (logoutError) {
-                console.error('Error during logout:', logoutError);
+                log.error('Error during logout:', logoutError);
             }
 
             // Redirect to login page, forcing page reload
@@ -52,19 +49,11 @@ export const systemClient = {
             log.debug(error);
         }
     },
+
     monitor: async () => {
-        const url = '/system/monitor';
+        const url = `${V1}/monitor`;
         try {
-            const response = await axiosInstance.get(url);
-            return handleResponse(response, url);
-        } catch (error) {
-            return handleError(error, url);
-        }
-    },
-    version: async () => {
-        const url = '/system/version';
-        try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -74,9 +63,9 @@ export const systemClient = {
 
 export const authClient = {
     login: async (username, password) => {
-        const url = '/auth/signin';
+        const url = `${V1}/auth/signin`;
         try {
-            const response = await axiosInstance.post(url, {username, password});
+            const response = await mainInstance.post(url, {username, password});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -84,9 +73,9 @@ export const authClient = {
     },
 
     signup: async (signupData) => {
-        const url = '/auth/signup';
+        const url = `${V1}/auth/signup`;
         try {
-            const response = await axiosInstance.post(url, signupData);
+            const response = await mainInstance.post(url, signupData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -94,9 +83,9 @@ export const authClient = {
     },
 
     verifyToken: async () => {
-        const url = '/auth/verify';
+        const url = `${V1}/auth/verify`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -104,9 +93,9 @@ export const authClient = {
     },
 
     logout: async () => {
-        const url = '/auth/logout';
+        const url = `${V1}/auth/logout`;
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -116,9 +105,9 @@ export const authClient = {
 
 export const adminClient = {
     createUser: async (userData) => {
-        const url = '/admin/users';
+        const url = `${V1}/admin/users`;
         try {
-            const response = await axiosInstance.post(url, userData);
+            const response = await mainInstance.post(url, userData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -126,9 +115,9 @@ export const adminClient = {
     },
 
     getUsers: async () => {
-        const url = '/admin/users';
+        const url = `${V1}/admin/users`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -136,9 +125,9 @@ export const adminClient = {
     },
 
     updateUser: async (userId, userData) => {
-        const url = `/admin/users/${userId}`;
+        const url = `${V1}/admin/users/${userId}`;
         try {
-            const response = await axiosInstance.put(url, userData);
+            const response = await mainInstance.put(url, userData);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -146,9 +135,9 @@ export const adminClient = {
     },
 
     changeUserPassword: async (userId, newPassword) => {
-        const url = `/admin/users/${userId}/change-password`;
+        const url = `${V1}/admin/users/${userId}/change-password`;
         try {
-            const response = await axiosInstance.post(url, {newPassword});
+            const response = await mainInstance.post(url, {newPassword});
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -156,9 +145,9 @@ export const adminClient = {
     },
 
     deleteUser: async (userId) => {
-        const url = `/admin/users/${userId}`;
+        const url = `${V1}/admin/users/${userId}`;
         try {
-            const response = await axiosInstance.delete(url);
+            const response = await mainInstance.delete(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -166,14 +155,24 @@ export const adminClient = {
     },
 
     getRoles: async () => {
-        const url = '/admin/roles';
+        const url = `${V1}/admin/roles`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
         }
     },
+
+    getTrackingForUser: async (userId) => {
+        const url = `${V1}/admin/tracking/${userId}`;
+        try {
+            const response = await mainInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    }
 };
 
 export const apiClient = {
@@ -182,9 +181,9 @@ export const apiClient = {
         if (config.speed === 'INSTANT') {
             runAsync = true;
         }
-        const url = `/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
+        const url = `${V1}/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -192,9 +191,9 @@ export const apiClient = {
     },
 
     stopStrategy: async (strategyId) => {
-        const url = `/strategies/${strategyId}/stop`;
+        const url = `${V1}/strategies/${strategyId}/stop`;
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -202,9 +201,9 @@ export const apiClient = {
     },
 
     generateId: async (config) => {
-        const url = '/strategies/generate-id';
+        const url = `${V1}/strategies/generate-id`;
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -212,9 +211,9 @@ export const apiClient = {
     },
 
     getParams: async (strategyId) => {
-        const url = `/strategies/${strategyId}/params`;
+        const url = `${V1}/strategies/${strategyId}/params`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -222,9 +221,9 @@ export const apiClient = {
     },
 
     getStrategies: async () => {
-        const url = '/strategies';
+        const url = `${V1}/strategies`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -234,47 +233,14 @@ export const apiClient = {
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
             const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
-            socket.binaryType = 'arraybuffer';
-
-            socket.onopen = () => {
-                socket.send(`STRATEGY:${strategyId}`);
-                resolve(socket);
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const buffer = new Uint8Array(event.data);
-                    const isCompressed = buffer[0] === 1;
-                    const messageData = buffer.slice(1);
-
-                    let jsonData;
-                    if (isCompressed) {
-                        const decompressedData = pako.inflate(messageData, {to: 'string'});
-                        jsonData = JSON.parse(decompressedData);
-                    } else {
-                        jsonData = JSON.parse(new TextDecoder().decode(messageData));
-                    }
-                    onMessage(jsonData);
-                } catch (error) {
-                    log.error('Error processing WebSocket message:', error);
-                }
-            };
-
-            socket.onerror = (error) => {
-                log.error('WebSocket error:', error);
-                reject(error);
-            };
-
-            socket.onclose = () => {
-                log.debug('WebSocket disconnected');
-            };
+            handleWSMessage(socket, onMessage, strategyId, resolve, reject);
         });
     },
 
     queueOptimisation: async (config) => {
-        const url = `/optimisation/queue`;
+        const url = `${V1}/optimisation/queue`;
         try {
-            const response = await axiosInstance.post(url, config);
+            const response = await mainInstance.post(url, config);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -282,9 +248,9 @@ export const apiClient = {
     },
 
     getOptimisationTasks: async () => {
-        const url = `/optimisation/tasks`;
+        const url = `${V1}/optimisation/tasks`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -292,9 +258,9 @@ export const apiClient = {
     },
 
     shareTask: async (taskId, shareWithUserId) => {
-        const url = `/optimisation/share/${taskId}/${shareWithUserId}`
+        const url = `${V1}/optimisation/share/${taskId}/${shareWithUserId}`
         try {
-            const response = await axiosInstance.post(url);
+            const response = await mainInstance.post(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -302,9 +268,9 @@ export const apiClient = {
     },
 
     deleteTask: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}`
+        const url = `${V1}/optimisation/tasks/${taskId}`
         try {
-            const response = await axiosInstance.delete(url);
+            const response = await mainInstance.delete(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -312,9 +278,9 @@ export const apiClient = {
     },
 
     getTaskResults: async (taskId) => {
-        const url = `/optimisation/tasks/${taskId}/results`
+        const url = `${V1}/optimisation/tasks/${taskId}/results`
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
@@ -322,40 +288,12 @@ export const apiClient = {
     },
 
     getInstruments: async () => {
-        const url = `/instruments`;
+        const url = `${V1}/instruments`;
         try {
-            const response = await axiosInstance.get(url);
+            const response = await mainInstance.get(url);
             return handleResponse(response, url);
         } catch (error) {
             return handleError(error, url);
         }
     },
-};
-
-const handleResponse = (response, url) => {
-    log.debug(`Request Response (${url}): `, response.data);
-    return response.data;
-};
-
-const handleError = (error, url) => {
-    log.error(`API call failed (${url}): `, error);
-
-    let errorMessage;
-
-    if (error.response && error.response.data && error.response.data.message) {
-        // Case 1: Nice error from the backend
-        errorMessage = error.response.data.message;
-    } else if (error.message) {
-        // Case 2: Error with a message property
-        errorMessage = error.message;
-    } else {
-        // Case 3: Unexpected error format
-        errorMessage = 'An unexpected error occurred';
-    }
-
-    // Create a custom error object with the extracted message
-    const customError = new Error(errorMessage);
-    customError.originalError = error;
-
-    throw customError;
 };

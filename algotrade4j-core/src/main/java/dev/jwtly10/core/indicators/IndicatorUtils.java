@@ -13,6 +13,22 @@ import java.util.List;
 public class IndicatorUtils {
 
     /**
+     * Initializes all indicators in the given strategy with the provided list of bars.
+     *
+     * @param strategy the strategy containing the indicators to be initialized
+     * @param bars     the list of bars used to initialize the indicators
+     */
+    public static void initializeIndicators(Strategy strategy, List<Bar> bars) {
+        List<Indicator> indicators = getIndicators(strategy);
+
+        for (Indicator indicator : indicators) {
+            for (Bar bar : bars) {
+                indicator.update(bar);
+            }
+        }
+    }
+
+    /**
      * Updates all indicators in the given strategy with the provided bar data.
      *
      * @param strategy the strategy containing the indicators to be updated

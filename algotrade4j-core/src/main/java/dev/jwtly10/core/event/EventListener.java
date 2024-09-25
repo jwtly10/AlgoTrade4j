@@ -19,4 +19,12 @@ public interface EventListener {
      * @param e          the exception that occurred
      */
     void onError(String strategyId, Exception e);
+
+    /**
+     * Called when an error occurs.
+     *
+     * @param strategyId the identifier of the strategy associated with the error
+     * @param message    the error message
+     */
+    void onError(String strategyId, String message);
 }

@@ -29,8 +29,39 @@ class TickGeneratorTest {
     }
 
     @Test
+    void testSpreadIsCalculatedCorrectlyForShortPipValues() {
+        TickGenerator generator = new TickGenerator(50, Instrument.NAS100USD, Duration.ofMinutes(5), 42L);
+        List<DefaultTick> ticks = new ArrayList<>();
+        DefaultBar bar = new DefaultBar(Instrument.NAS100USD, Duration.ofMinutes(5), ZonedDateTime.now(),
+                new Number("15000"), new Number("10010"), new Number("9990"), new Number("10000"), new Number("69"));
+        generator.generateTicks(bar, DataSpeed.INSTANT, ticks::add);
+
+        assertEquals(40, ticks.size());
+
+        System.out.println(Instrument.NAS100USD + ": Bid: " + ticks.getFirst().getBid() + ", Ask: " + ticks.getFirst().getAsk() + ", Spread: " + ticks.getFirst().getAsk().subtract(ticks.getFirst().getBid()));
+
+        assertEquals(new Number("5.0000"), ticks.getFirst().getAsk().subtract(ticks.getFirst().getBid()));
+        assertEquals(new Number("14997.5000"), ticks.getFirst().getBid());
+        assertEquals(new Number("15002.5000"), ticks.getFirst().getAsk());
+
+        TickGenerator generator1 = new TickGenerator(50, Instrument.GBPUSD, Duration.ofMinutes(5), 42L);
+        List<DefaultTick> ticks1 = new ArrayList<>();
+        DefaultBar bar1 = new DefaultBar(Instrument.GBPUSD, Duration.ofMinutes(5), ZonedDateTime.now(),
+                new Number("1.2000"), new Number("1.2400"), new Number("1.1800"), new Number("1.2000"), new Number("69"));
+        generator1.generateTicks(bar1, DataSpeed.INSTANT, ticks1::add);
+
+        assertEquals(40, ticks1.size());
+
+        System.out.println(Instrument.GBPUSD + ": Bid: " + ticks1.getFirst().getBid() + ", Ask: " + ticks1.getFirst().getAsk() + ", Spread: " + ticks1.getFirst().getAsk().subtract(ticks1.getFirst().getBid()));
+        assertEquals(new Number("0.00050"), ticks1.getFirst().getAsk().subtract(ticks1.getFirst().getBid()));
+        assertEquals(new Number("1.19975"), ticks1.getFirst().getBid());
+        assertEquals(new Number("1.20025"), ticks1.getFirst().getAsk());
+    }
+
+
+    @Test
     void testConstructorWithExplicitTicksPerBar() {
-        TickGenerator generator = new TickGenerator(100, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(100, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(100, ticks.size());
     }
@@ -46,14 +77,14 @@ class TickGeneratorTest {
             "P1D, 200"
     })
     void testConstructorWithPeriodMapping(Duration period, int expectedTicks) {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, period, 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, period, 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(expectedTicks, ticks.size());
     }
 
     @Test
     void testTickGeneration() {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(40, ticks.size());
@@ -74,7 +105,7 @@ class TickGeneratorTest {
 
     @Test
     void testTimeDistribution() {
-        TickGenerator generator = new TickGenerator(new Number("0.00010"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         ZonedDateTime startTime = testBar.getOpenTime();
@@ -92,22 +123,8 @@ class TickGeneratorTest {
     }
 
     @Test
-    void testSpreadCalculation() {
-        Number spread = new Number(10);
-        TickGenerator generator = new TickGenerator(spread, instrument, Duration.ofMinutes(5), 42L);
-        List<DefaultTick> ticks = generateTicks(generator);
-
-        for (DefaultTick tick : ticks) {
-            Number calculatedSpread = tick.getAsk().subtract(tick.getBid());
-            assertEquals(spread.multiply(new Number(instrument.getMinimumMove())), calculatedSpread);
-            assertEquals(tick.getMid(), tick.getBid().add(spread.multiply(new Number(instrument.getMinimumMove())).divide(2)));
-            assertEquals(tick.getMid(), tick.getAsk().subtract(spread.multiply(new Number(instrument.getMinimumMove())).divide(2)));
-        }
-    }
-
-    @Test
     void testVolumeDistribution() {
-        TickGenerator generator = new TickGenerator(new Number("10"), instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         Number totalVolume = new Number("0");
@@ -127,7 +144,7 @@ class TickGeneratorTest {
 
     @Test
     void testMinimumTicksPerBar() {
-        TickGenerator generator = new TickGenerator(4, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(4, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(4, ticks.size());
@@ -140,7 +157,7 @@ class TickGeneratorTest {
     @Test
     void testInvalidTicksPerBar() {
         assertThrows(IllegalArgumentException.class, () ->
-                new TickGenerator(3, instrument, new Number("0.00010"), Duration.ofMinutes(5), 42L));
+                new TickGenerator(3, instrument, 10, Duration.ofMinutes(5), 42L));
     }
 
     private List<DefaultTick> generateTicks(TickGenerator generator) {

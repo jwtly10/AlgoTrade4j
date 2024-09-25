@@ -1,64 +1,82 @@
 package dev.jwtly10.marketdata.oanda;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
-import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Number;
+import dev.jwtly10.marketdata.oanda.models.OandaOrder;
+import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.oanda.response.*;
+import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Oanda API client
- * https://developer.oanda.com/rest-live-v20/introduction/
+ * <a href="https://developer.oanda.com/rest-live-v20/introduction/">Official REST API Documentation</a>
  * Oanda deals with dates in New york time
  */
 @Slf4j
 public class OandaClient {
     private final String apiKey;
-    private final String accountId;
     private final String apiUrl;
     private final OkHttpClient client;
+    private final String streamUrl;
 
-    public OandaClient(String apiUrl, String apiKey, String accountId, OkHttpClient client) {
+    public OandaClient(String apiUrl, String apiKey, OkHttpClient client) {
         this.apiKey = apiKey;
-        this.accountId = accountId;
         this.apiUrl = apiUrl;
         this.client = client;
+
+        if (apiUrl.contains("trade")) {
+//            streamUrl = "https://stream-fxtrade.oanda.com";
+            throw new IllegalArgumentException("Live trading on real account is not supported yet");
+        } else {
+            streamUrl = "https://stream-fxpractice.oanda.com";
+        }
     }
 
-    public OandaClient(String apiUrl, String apiKey, String accountId) {
-        this(apiUrl, apiKey, accountId, new OkHttpClient());
+    public OandaClient(String apiUrl, String apiKey) {
+        this(apiUrl, apiKey, new OkHttpClient());
     }
 
-    public InstrumentCandlesRequest instrumentCandles(Instrument instrument) {
-        return new InstrumentCandlesRequest(this, instrument);
-    }
-
-    List<DefaultBar> executeRequest(InstrumentCandlesRequest request) throws Exception {
+    /**
+     * Fetches candle data for the specified instrument and time period.
+     *
+     * @param instrument the instrument to fetch candles for
+     * @param period     the duration of each candle
+     * @param from       the start time for the data
+     * @param to         the end time for the data
+     * @return the OandaCandleResponse containing the candle data
+     * @throws Exception if an error occurs while fetching the data
+     */
+    public OandaCandleResponse fetchCandles(Instrument instrument, Duration period, ZonedDateTime from, ZonedDateTime to) throws Exception {
         log.debug("Fetching candles for : {} ({}) time: {} -> {}",
-                request.getInstrument(),
-                request.getPeriod(),
-                request.getFrom().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                request.getTo().withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                instrument,
+                period,
+                from.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                to.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
 
-        String endpoint = String.format("/v3/instruments/%s/candles", request.getInstrument().getOandaSymbol());
+        String endpoint = String.format("/v3/instruments/%s/candles", instrument.getOandaSymbol());
         String url = apiUrl + endpoint;
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
-        String fromParam = request.getFrom().format(formatter);
-        String toParam = request.getTo().format(formatter);
-        String granularity = convertPeriodToGranularity(request.getPeriod());
+        String fromParam = from.format(formatter);
+        String toParam = to.format(formatter);
+        String granularity = OandaUtils.convertPeriodToGranularity(period);
 
         Request req = new Request.Builder()
                 .url(url + String.format("?includeFirst=false&from=%s&to=%s&granularity=%s", fromParam, toParam, granularity))
@@ -74,8 +92,7 @@ public class OandaClient {
             }
 
             ObjectMapper objectMapper = new ObjectMapper();
-            OandaCandleResponse candleResponse = objectMapper.readValue(response, OandaCandleResponse.class);
-            return convertOandaCandles(candleResponse);
+            return objectMapper.readValue(response, OandaCandleResponse.class);
         } catch (Exception e) {
             log.error("Failed to fetch data from Oanda API", e);
             throw e;
@@ -83,71 +100,310 @@ public class OandaClient {
     }
 
     /**
-     * Convert Oanda candles to a list of DefaultBar
+     * Fetches trades from the Oanda API based on the specified parameters.
      *
-     * @param res the Oanda candle response
-     * @return a list of DefaultBar
+     * @param ids        the list of trade ids to fetch
+     * @param state      the state of the trades to fetch
+     * @param instrument the instrument to filter by
+     * @param count      the number of trades to fetch
+     * @return the OandaTradeResponse containing the trade data
+     * @throws Exception if an error occurs while fetching the data
      */
-    private List<DefaultBar> convertOandaCandles(OandaCandleResponse res) {
-        var instrument = Instrument.fromOandaSymbol(res.instrument());
-        return res.candles().stream()
-                .map(candle -> new DefaultBar(instrument,
-                        convertGranularityToDuration(res.granularity()),
-                        ZonedDateTime.parse(candle.time()),
-                        new Number(candle.mid().o()),
-                        new Number(candle.mid().h()),
-                        new Number(candle.mid().l()),
-                        new Number(candle.mid().c()),
-                        new Number(candle.volume())))
-                .toList();
+    public OandaTradeResponse fetchTrades(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
+        log.trace("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
+        String url = buildTradesUrl(accountId, ids, state, instrument, count);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to fetch trades from Oanda API: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.trace("Fetched trades: {}", response);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, OandaTradeResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to fetch trades from Oanda API", e);
+            throw e;
+        }
     }
 
     /**
-     * Convert a period to a granularity string
+     * Fetches the account details for the specified account.
      *
-     * @param period the period
-     * @return the granularity string in for the format accepted by the Oanda API
+     * @return the OandaAccountResponse containing the account details
+     * @throws Exception
      */
-    private String convertPeriodToGranularity(Duration period) {
-        if (period.toMinutes() == 1) return "M1";
-        if (period.toMinutes() == 5) return "M5";
-        if (period.toMinutes() == 15) return "M15";
-        if (period.toMinutes() == 30) return "M30";
-        if (period.toHours() == 1) return "H1";
-        if (period.toHours() == 4) return "H4";
-        if (period.toDays() == 1) return "D";
-        throw new IllegalArgumentException("Unsupported period: " + period);
+    public OandaAccountResponse fetchAccount(String accountId) throws Exception {
+        log.trace("Fetching account details for account {}", accountId);
+
+        String url = apiUrl + "/v3/accounts/" + accountId;
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to fetch Account details from Oanda API: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.trace("Fetched account details: {}", response);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, OandaAccountResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to fetch account details from Oanda API", e);
+            throw e;
+        }
+    }
+
+    public OandaOpenTradeResponse openTrade(String accountId, MarketOrderRequest orderRequest) throws Exception {
+        log.info("Opening trade: {}", orderRequest);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
+
+        OandaOrder order = new OandaOrder(orderRequest);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String reqJson = objectMapper.writeValueAsString(order);
+
+        log.trace("Request JSON: {}", reqJson);
+
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"), reqJson);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .post(body)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to open trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.debug("Opened trade: {}", response);
+            return objectMapper.readValue(response, OandaOpenTradeResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to open trade", e);
+            throw e;
+        }
+    }
+
+    public void closeTrade(String accountId, String id) throws Exception {
+        log.debug("Closing trade: {}", id);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/trades/" + id + "/close";
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .put(RequestBody.create(MediaType.parse("application/json"), ""))
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            if (!res.isSuccessful()) {
+                log.error("Failed to close trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + res.body().string());
+            }
+
+            log.debug("Closed trade: {}", id);
+        } catch (Exception e) {
+            log.error("Failed to close trade", e);
+            throw e;
+        }
+
+    }
+
+    // Streaming endpoints
+
+    /**
+     * Streams prices for the specified instruments and invokes the callback for each price update.
+     *
+     * @param instruments the list of instruments to stream prices for
+     * @param callback    the callback to be invoked for each price update
+     */
+    public void streamPrices(String accountId, List<Instrument> instruments, PriceStreamCallback callback) {
+        log.debug("Streaming prices for instruments: {}", instruments);
+        String instrumentParams = instruments.stream()
+                .map(Instrument::getOandaSymbol)
+                .collect(Collectors.joining(","));
+
+        String url = String.format("%s/v3/accounts/%s/pricing/stream?instruments=%s", streamUrl, accountId, instrumentParams);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                callback.onError(e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        log.trace("New line from stream: {}", line);
+                        if (line.contains("\"type\":\"PRICE\"")) {
+                            ObjectMapper mapper = new ObjectMapper();
+                            OandaPriceResponse priceResponse = mapper.readValue(line, OandaPriceResponse.class);
+                            callback.onPrice(priceResponse);
+                        }
+
+                        if (line.contains("error")) {
+                            throw new Exception("Error in stream: " + line);
+                        }
+                    }
+                } catch (Exception e) {
+                    callback.onError(e);
+                } finally {
+                    callback.onComplete();
+                }
+            }
+        });
     }
 
     /**
-     * Convert a granularity string to a duration
+     * Streams transactions for the account and invokes the callback for each transaction update.
      *
-     * @param granularity the granularity string
-     * @return the duration
+     * @param accountId the account id to stream transactions for
+     * @param callback  the callback to be invoked for each transaction update
      */
-    private Duration convertGranularityToDuration(String granularity) {
-        return switch (granularity) {
-            case "M1" -> Duration.ofMinutes(1);
-            case "M5" -> Duration.ofMinutes(5);
-            case "M15" -> Duration.ofMinutes(15);
-            case "M30" -> Duration.ofMinutes(30);
-            case "H1" -> Duration.ofHours(1);
-            case "H4" -> Duration.ofHours(4);
-            case "D" -> Duration.ofDays(1);
-            default -> throw new IllegalArgumentException("Unsupported granularity: " + granularity);
-        };
+    public void streamTransactions(String accountId, TransactionStreamCallback callback) {
+        log.debug("Streaming transactions for account: {}", accountId);
+        String url = String.format("%s/v3/accounts/%s/transactions/stream", streamUrl, accountId);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .build();
+
+        client.newCall(req).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                log.error("Failed to stream transactions", e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                        log.trace("New line from stream: {}", line);
+                        if (line.contains("\"type\":\"TRANSACTION\"")) {
+                            log.debug("New transaction: {}", line);
+                            ObjectMapper mapper = new ObjectMapper();
+                            OandaTransactionResponse transaction = mapper.readValue(line, OandaTransactionResponse.class);
+                            callback.onTransaction(transaction);
+                        }
+
+                        if (line.contains("error")) {
+                            throw new Exception("Error in stream: " + line);
+                        }
+                    }
+                } catch (Exception e) {
+                    callback.onError(e);
+                } finally {
+                    callback.onComplete();
+                }
+            }
+        });
     }
 
-    // Inner classes for JSON deserialization
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandleResponse(List<OandaCandle> candles, String instrument, String granularity) {
+
+    /**
+     * Builds the URL for fetching trades based on the specified parameters.
+     *
+     * @param accountId  the account id to build url for
+     * @param ids        the list of trade ids to fetch
+     * @param state      the state of the trades to fetch
+     * @param instrument the instrument to filter by
+     * @param count      the number of trades to fetch
+     * @return the URL for fetching trades
+     */
+    private String buildTradesUrl(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
+        // TODO: Haven't implemented beforeId (see Oanda API documentation)
+        StringBuilder urlBuilder = new StringBuilder(String.format("%s/v3/accounts/%s/trades", apiUrl, accountId));
+
+        List<String> queryParams = new ArrayList<>();
+
+        if (ids != null && !ids.isEmpty()) {
+            queryParams.add("ids=" + String.join(",", ids));
+        }
+        if (state != null) {
+            queryParams.add("state=" + state.name());
+        }
+        if (instrument != null) {
+            queryParams.add("instrument=" + instrument.getOandaSymbol());
+        }
+        if (count != null) {
+            queryParams.add("count=" + count);
+        }
+        if (!queryParams.isEmpty()) {
+            urlBuilder.append("?").append(String.join("&", queryParams));
+        }
+        return urlBuilder.toString();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandle(String time, OandaCandleMid mid, int volume) {
+    /**
+     * Callback interface for handling price stream updates.
+     */
+    public interface PriceStreamCallback {
+        /**
+         * Called when a new price is received.
+         *
+         * @param priceResponse the price response
+         */
+        void onPrice(OandaPriceResponse priceResponse);
+
+        /**
+         * Called when an error occurs during streaming.
+         *
+         * @param e the exception that occurred
+         */
+        void onError(Exception e);
+
+        /**
+         * Called when the streaming is complete.
+         */
+        void onComplete();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record OandaCandleMid(String o, String h, String l, String c) {
+    /**
+     * Callback interface for handling transaction stream updates.
+     */
+    public interface TransactionStreamCallback {
+        /**
+         * Called when a new transaction is received.
+         *
+         * @param transactionResponse the transaction
+         */
+        void onTransaction(OandaTransactionResponse transactionResponse);
+
+        /**
+         * Called when an error occurs during streaming.
+         *
+         * @param e the exception that occurred
+         */
+        void onError(Exception e);
+
+        /**
+         * Called when the streaming is complete.
+         */
+        void onComplete();
     }
 }

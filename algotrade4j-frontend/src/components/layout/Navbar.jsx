@@ -47,6 +47,17 @@ function Navbar({user, setUser}) {
 
                 {user ? (
                     <div className="flex items-center space-x-1">
+                        {user.role === 'ADMIN' && (
+                            <Link
+                                to="/live"
+                                className={cn(
+                                    navItemStyles,
+                                    isActive('/live') ? navItemActiveStyles : navItemInactiveStyles
+                                )}
+                            >
+                                Live
+                            </Link>
+                        )}
                         <Link
                             to="/backtest"
                             className={cn(

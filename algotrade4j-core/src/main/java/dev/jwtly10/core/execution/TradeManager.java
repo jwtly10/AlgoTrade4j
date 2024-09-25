@@ -1,8 +1,12 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.exception.InvalidTradeException;
-import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.model.TradeParameters;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,6 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
 public interface TradeManager {
+
+
+    void updateOpenTrades(List<Trade> trades);
+
+    void updateAllTrades(List<Trade> trades);
 
     /**
      * Opens a long position for the specified instrument, uses the current ask price as the entry price.
@@ -42,7 +51,7 @@ public interface TradeManager {
     /**
      * Loads all trades from the trading account.
      */
-    void loadTrades();
+    void loadTrades() throws Exception;
 
     /**
      * Retrieves the details of a specific trade.

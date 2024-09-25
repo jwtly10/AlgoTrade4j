@@ -230,6 +230,7 @@ class DefaultDataManagerTest {
     @Test
     void testGetCurrentMidPrice() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager.addDataListener(mockDataListener);
         dataManager.start();
         dataManager.onTick(new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), ZonedDateTime.now()));
         assertEquals(new Number("100.5"), dataManager.getCurrentMidPrice());

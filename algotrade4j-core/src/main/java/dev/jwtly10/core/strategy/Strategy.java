@@ -5,6 +5,7 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
@@ -89,6 +90,19 @@ public interface Strategy {
      */
     void onEnd();
 
+    /**
+     * Set the parameters for the strategy
+     *
+     * @param parameters The parameters to set
+     * @throws IllegalAccessException If the parameters are not valid
+     */
     void setParameters(Map<String, String> parameters) throws IllegalAccessException;
 
+    /**
+     * Set the notification service for the strategy
+     *
+     * @param notifier The notifier service
+     * @param chatId   The chat id to send notifications to
+     */
+    void setNotificationService(Notifier notifier, String chatId);
 }

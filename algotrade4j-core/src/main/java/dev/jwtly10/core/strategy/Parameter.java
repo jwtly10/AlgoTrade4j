@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 /**
  * Annotation to define a parameter for a trading strategy.
  * This annotation can be used to give the optimiser access to edit parameters of a strategy.
+ * Note. The parameter.name should be the same as the variable its annotation.
+ * This is used to match the parameter to the variable.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

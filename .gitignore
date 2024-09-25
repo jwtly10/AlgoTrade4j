@@ -41,3 +41,4 @@ logs/
 .env-staging
 **/.flattened-pom.xml
 heapdump*
+.run

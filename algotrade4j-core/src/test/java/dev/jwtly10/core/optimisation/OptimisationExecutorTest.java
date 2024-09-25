@@ -1,40 +1,56 @@
 package dev.jwtly10.core.optimisation;
 
+import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
+import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.execution.BacktestExecutor;
+import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
 
 class OptimisationExecutorTest {
 
     @Mock
-    private EventPublisher mockEventPublisher;
-
+    private EventPublisher eventPublisher;
     @Mock
-    private DataProvider mockDataProvider;
-
+    private DataProvider dataProvider;
     @Mock
-    private Consumer<OptimisationRunResult> mockConsumer;
-
+    private Consumer<OptimisationRunResult> resultCallback;
     @Mock
-    private Consumer<OptimisationProgress> mockProgress;
+    private Consumer<OptimisationProgress> progressCallback;
+    @Mock
+    private StrategyFactory strategyFactory;
+    @Mock
+    private ExecutorFactory executorFactory;
+    @Mock
+    private DataManagerFactory dataManagerFactory;
 
     private OptimisationExecutor optimisationExecutor;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        optimisationExecutor = new OptimisationExecutor(mockEventPublisher, mockDataProvider, mockConsumer, mockProgress);
+        optimisationExecutor = new OptimisationExecutor(
+                eventPublisher, dataProvider, resultCallback, progressCallback,
+                strategyFactory, executorFactory, dataManagerFactory
+        );
     }
 
     @Test
@@ -100,9 +116,9 @@ class OptimisationExecutorTest {
         System.out.println(combinations);
 
         assertEquals(3, combinations.size());
-        assertEquals(new Number("0.10").toString(), combinations.getFirst().get("Threshold"));
-        assertEquals(new Number("0.20").toString(), combinations.get(1).get("Threshold"));
-        assertEquals(new Number("0.30").toString(), combinations.getLast().get("Threshold"));
+        assertEquals(String.valueOf(0.10), combinations.getFirst().get("Threshold"));
+        assertEquals(String.valueOf(0.20), combinations.get(1).get("Threshold"));
+        assertEquals(String.valueOf(0.30), combinations.getLast().get("Threshold"));
     }
 
     @Test
@@ -132,25 +148,25 @@ class OptimisationExecutorTest {
 
         // First combination
         Map<String, String> firstCombination = combinations.getFirst();
-        assertEquals("10.00000", firstCombination.get("SMA1"));
-        assertEquals("20.00000", firstCombination.get("SMA2"));
-        assertEquals("30.00000", firstCombination.get("SMA3"));
-        assertEquals("40.00000", firstCombination.get("SMA4"));
-        assertEquals("50", firstCombination.get("SMA5"));  // Default value
-        assertEquals("1.00000", firstCombination.get("Threshold"));
+        assertEquals(String.valueOf(10.00000), firstCombination.get("SMA1"));
+        assertEquals(String.valueOf(20.0000), firstCombination.get("SMA2"));
+        assertEquals(String.valueOf(30.00000), firstCombination.get("SMA3"));
+        assertEquals(String.valueOf(40.00000), firstCombination.get("SMA4"));
+        assertEquals(String.valueOf(50), firstCombination.get("SMA5"));  // Default value
+        assertEquals(String.valueOf(1.00000), firstCombination.get("Threshold"));
 
         // Last combination
         Map<String, String> lastCombination = combinations.getLast();
-        assertEquals("30.00000", lastCombination.get("SMA1"));
-        assertEquals("40.00000", lastCombination.get("SMA2"));
-        assertEquals("50.00000", lastCombination.get("SMA3"));
-        assertEquals("60.00000", lastCombination.get("SMA4"));
-        assertEquals("50", lastCombination.get("SMA5"));  // Default value
-        assertEquals("2.00000", lastCombination.get("Threshold"));
+        assertEquals(String.valueOf(30.00000), lastCombination.get("SMA1"));
+        assertEquals(String.valueOf(40.00000), lastCombination.get("SMA2"));
+        assertEquals(String.valueOf(50.00000), lastCombination.get("SMA3"));
+        assertEquals(String.valueOf(60.00000), lastCombination.get("SMA4"));
+        assertEquals(String.valueOf(50), lastCombination.get("SMA5"));  // Default value
+        assertEquals(String.valueOf(2.00000), lastCombination.get("Threshold"));
 
         // SMA5 always has its default value
         for (Map<String, String> combination : combinations) {
-            assertEquals("50", combination.get("SMA5"));
+            assertEquals(String.valueOf(50), combination.get("SMA5"));
         }
     }
 
@@ -174,23 +190,84 @@ class OptimisationExecutorTest {
 
         // Check the first combination
         Map<String, String> firstCombination = combinations.getFirst();
-        assertEquals("10.00000", firstCombination.get("SMA1"));
-        assertEquals("25", firstCombination.get("SMA2"));  // Default value
-        assertEquals("30.00000", firstCombination.get("SMA3"));
+        assertEquals(String.valueOf(10.00000), firstCombination.get("SMA1"));
+        assertEquals(String.valueOf(25), firstCombination.get("SMA2"));  // Default value
+        assertEquals(String.valueOf(30.00000), firstCombination.get("SMA3"));
 
         // Check the last combination
         Map<String, String> lastCombination = combinations.getLast();
-        assertEquals("20.00000", lastCombination.get("SMA1"));
-        assertEquals("25", lastCombination.get("SMA2"));  // Default value
-        assertEquals("40.00000", lastCombination.get("SMA3"));
+        assertEquals(String.valueOf(20.00000), lastCombination.get("SMA1"));
+        assertEquals(String.valueOf(25), lastCombination.get("SMA2"));  // Default value
+        assertEquals(String.valueOf(40.00000), lastCombination.get("SMA3"));
 
         // Check that all combinations include SMA2 with its default value
         for (Map<String, String> combination : combinations) {
             assertTrue(combination.containsKey("SMA2"));
-            assertEquals("25", combination.get("SMA2"));
+            assertEquals(String.valueOf(25), combination.get("SMA2"));
         }
     }
 
+    // This test doesn't actually run any data, but ensures we are correctly starting an optimisation run. And 'completing' till the end
+    // This will be covered in our integration test
+    @Test
+    void testExecuteTask() throws Exception {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Arrays.asList(
+                new ParameterRange("val", "param1", "1", "2", "1", true)
+        ));
+        config.setInstrument(Instrument.NAS100USD);
+        config.setPeriod(Duration.ofMinutes(5));
+        config.setStrategyClass("TestStrategy");
 
-    // TODO: Add test for the execution process
+        Strategy mockStrategy = mock(Strategy.class);
+        when(strategyFactory.createStrategy(anyString(), anyString())).thenReturn(mockStrategy);
+
+        BacktestExecutor mockExecutor = mock(BacktestExecutor.class);
+        when(executorFactory.createExecutor(any(), anyString(), any(), any(), anyDouble())).thenReturn(mockExecutor);
+
+        DefaultDataManager mockDataManager = mock(DefaultDataManager.class);
+        when(dataManagerFactory.createDataManager(any(), any(), any(), any())).thenReturn(mockDataManager);
+
+        optimisationExecutor.executeTask(config);
+
+        verify(progressCallback, atLeastOnce()).accept(any(OptimisationProgress.class));
+        verify(resultCallback, atLeastOnce()).accept(any(OptimisationRunResult.class));
+        verify(mockDataManager).start();
+        verify(mockDataManager).stop();
+    }
+
+    @Test
+    void testOnStrategyFailure() {
+        String strategyId = "testStrategy";
+        Exception testException = new RuntimeException("Test error");
+
+        optimisationExecutor.onStrategyFailure(strategyId, testException);
+
+        verify(resultCallback).accept(argThat(result ->
+                result.getStrategyId().equals(strategyId) &&
+                        result.getOutput().isFailed() &&
+                        result.getOutput().getReason().equals("Test error")
+        ));
+    }
+
+    @Test
+    void testExecuteTaskWithNoParameterCombinations() {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Collections.emptyList());
+
+        assertThrows(RuntimeException.class, () -> optimisationExecutor.executeTask(config));
+    }
+
+    @Test
+    void testExecuteTaskWithTooManyParameterCombinations() {
+        OptimisationConfig config = new OptimisationConfig();
+        config.setParameterRanges(Arrays.asList(
+                new ParameterRange("val", "param1", "1", "100", "1", true),
+                new ParameterRange("val", "param2", "1", "100", "1", true)
+        ));
+
+        assertThrows(RuntimeException.class, () -> optimisationExecutor.executeTask(config));
+    }
+
+
 }

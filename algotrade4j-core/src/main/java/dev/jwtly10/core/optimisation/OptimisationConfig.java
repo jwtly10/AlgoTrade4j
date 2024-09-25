@@ -2,7 +2,6 @@ package dev.jwtly10.core.optimisation;
 
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Timeframe;
 import lombok.Data;
 
@@ -14,9 +13,9 @@ public class OptimisationConfig {
     private String strategyClass;
     private Instrument instrument;
     private Duration period;
-    private Number spread;
+    private int spread;
     private DataSpeed speed;
-    private Number initialCash;
+    private double initialCash;
     private List<ParameterRange> parameterRanges;
     private Timeframe timeframe;
 
@@ -30,13 +29,13 @@ public class OptimisationConfig {
         if (period == null || period.isNegative() || period.isZero()) {
             throw new IllegalStateException("Period must be a positive duration");
         }
-        if (spread == null || spread.doubleValue() < 0) {
+        if (spread < 0) {
             throw new IllegalStateException("Spread must be a non-negative number");
         }
         if (speed == null) {
             throw new IllegalStateException("Data speed must be specified");
         }
-        if (initialCash == null || initialCash.doubleValue() <= 0) {
+        if (initialCash <= 0) {
             throw new IllegalStateException("Initial cash must be a positive number");
         }
         if (parameterRanges == null || parameterRanges.isEmpty()) {

@@ -112,7 +112,11 @@ const OptimizationResults = ({task}) => {
 
     const renderTaskInfo = () => (
         <Card className="mb-2">
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-3">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 p-3">
+                <div className="text-center">
+                    <h3 className="text-sm font-semibold mb-2">Initial Balance</h3>
+                    <p className="text-md">${task.config.initialCash.toLocaleString()}</p>
+                </div>
                 <div className="text-center">
                     <h3 className="text-sm font-semibold mb-2">Symbol</h3>
                     <p className="text-md">{task.config.instrument}</p>
@@ -132,6 +136,20 @@ const OptimizationResults = ({task}) => {
             </CardContent>
         </Card>
     );
+
+    function convertPeriodToSelectText(period) {
+        const secondsToValue = {
+            60: "M1",
+            300: "M5",
+            900: "M15",
+            1800: "M30",
+            3600: "H1",
+            14400: "H4",
+            86400: "D"
+        };
+
+        return secondsToValue[period] || "Unknown";
+    }
 
     const renderTable = (strategies, tableColumns) => (
         <div className="rounded-lg border shadow-sm overflow-hidden">
@@ -172,7 +190,24 @@ const OptimizationResults = ({task}) => {
                                             {column.format && typeof value === 'number'
                                                 ? column.format(value, row)
                                                 : column.id === 'parameters'
-                                                    ? <PrettyJsonViewer jsonData={value}/>
+                                                    ? (() => {
+                                                        const originalJsonString = Object.values(value).join('');
+                                                        const parsedValue = JSON.parse(originalJsonString);
+                                                        const combinedData = {
+                                                            ...parsedValue,
+                                                            timeframe: task.config.timeframe,
+                                                            instrument: task.config.instrument,
+                                                            strategyClass: task.config.strategyClass,
+                                                            period: convertPeriodToSelectText(task.config.period),
+                                                            speed: "INSTANT",
+                                                            spread: (function () {
+                                                                const parsed = parseInt(task.config.spread).toFixed(0);
+                                                                return isNaN(parsed) ? 30 : parsed;
+                                                            })(),
+                                                            initialCash: task.config.initialCash
+                                                        };
+                                                        return <PrettyJsonViewer jsonData={combinedData}/>;
+                                                    })()
                                                     : value}
                                         </TableCell>
                                     );

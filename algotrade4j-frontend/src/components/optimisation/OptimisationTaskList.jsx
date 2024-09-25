@@ -1,28 +1,49 @@
-import React, {useState} from 'react';
-import {useOptimisationTasks} from '@/hooks/useOptimisationTasks.js';
-import {adminClient, apiClient} from '@/api/apiClient.js';
-import {useToast} from "@/hooks/use-toast.js";
-import {Button} from "../ui/button";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "../ui/dialog";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../ui/table";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../ui/tooltip";
-import {Card, CardContent, CardHeader, CardTitle} from "../ui/card";
-import {Badge} from "../ui/badge";
-import {Progress} from "../ui/progress";
-import {AlertCircle, BarChart2, CheckCircle, Clock, Eye, HelpCircle, Share, Trash} from "lucide-react";
-import ConfigDialog from "./ConfigDialog";
-import ShareDialog from "./ShareDialog";
-import OptimizationResults from "./OptimisationResults.jsx";
+import React, { useState } from 'react';
+import { useOptimisationTasks } from '@/hooks/useOptimisationTasks.js';
+import { adminClient, apiClient } from '@/api/apiClient.js';
+import { useToast } from '@/hooks/use-toast.js';
+import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Progress } from '../ui/progress';
+import {
+    AlertCircle,
+    BarChart2,
+    CheckCircle,
+    Clock,
+    Eye,
+    HelpCircle,
+    Share,
+    Trash,
+} from 'lucide-react';
+import ConfigDialog from './ConfigDialog';
+import ShareDialog from './ShareDialog';
+import OptimizationResults from './OptimisationResults.jsx';
 import log from '../../logger.js';
 
-const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelete}) => {
+const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDelete }) => {
     const formatDate = (dateArray) => {
         if (!Array.isArray(dateArray) || dateArray.length < 7) {
             return 'Invalid Date';
         }
         const [year, month, day, hour, minute, second, nanosecond] = dateArray;
-        const date = new Date(year, month - 1, day, hour, minute, second, nanosecond / 1000000);
-        return date.toLocaleString();
+        const date = new Date(
+            Date.UTC(year, month - 1, day, hour, minute, second, nanosecond / 1000000)
+        );
+
+        return new Intl.DateTimeFormat('default', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false, // Use 24-hour format
+            timeZoneName: 'short',
+        }).format(date);
     };
 
     const formatTime = (ms) => {
@@ -55,13 +76,13 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
     const getStateIcon = (state) => {
         switch (state) {
             case 'COMPLETED':
-                return <CheckCircle className="h-4 w-4 text-green-500"/>;
+                return <CheckCircle className="h-4 w-4 text-green-500" />;
             case 'FAILED':
-                return <AlertCircle className="h-4 w-4 text-red-500"/>;
+                return <AlertCircle className="h-4 w-4 text-red-500" />;
             case 'RUNNING':
-                return <Clock className="h-4 w-4 text-blue-500"/>;
+                return <Clock className="h-4 w-4 text-blue-500" />;
             default:
-                return <HelpCircle className="h-4 w-4 text-gray-500"/>;
+                return <HelpCircle className="h-4 w-4 text-gray-500" />;
         }
     };
 
@@ -69,36 +90,32 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
         <TableRow>
             <TableCell>{task.id}</TableCell>
             <TableCell>{task.config.strategyClass}</TableCell>
-            <TableCell>
+            <TableCell className="max-w-xs p-2">
                 <Badge variant={getStateColor(task.state)}>
                     {getStateIcon(task.state)}
                     <span className="ml-2">{task.state}</span>
                 </Badge>
                 {task.state === 'RUNNING' && task.progressInfo && (
                     <div className="mt-2">
-                        <Progress value={task.progressInfo.percentage} className="h-2 bg-blue-100"/>
+                        <Progress
+                            value={task.progressInfo.percentage}
+                            className="h-2 bg-blue-100"
+                        />
                         <div className="flex justify-between text-xs text-blue-600 mt-1">
                             <span>{`${task.progressInfo.completedTasks} / ${task.progressInfo.completedTasks + task.progressInfo.remainingTasks} params`}</span>
                             <span>
                                 {task.progressInfo.completedTasks === 0
                                     ? 'Calculating ETA...'
-                                    : `ETA: ${formatTime(task.progressInfo.estimatedTimeMs)}`
-                                }
+                                    : `ETA: ${formatTime(task.progressInfo.estimatedTimeMs)}`}
                             </span>
                         </div>
                     </div>
                 )}
                 {task.state === 'FAILED' && (
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <p className="text-sm text-red-500 mt-1 cursor-help">Click for error details</p>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-red-600">{task.errorMessage || "An error occurred"}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <p className="text-red-600 break-words">
+                        {'Error during optimization run: ' + task.errorMessage ||
+                            'An error occurred'}
+                    </p>
                 )}
             </TableCell>
             <TableCell>{formatDate(task.createdAt)}</TableCell>
@@ -108,7 +125,7 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" onClick={() => onShare(task)}>
-                                    <Share className="h-4 w-4"/>
+                                    <Share className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -119,8 +136,12 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => onViewConfig(task)}>
-                                    <Eye className="h-4 w-4"/>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onViewConfig(task)}
+                                >
+                                    <Eye className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -128,12 +149,16 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
-                    {task.state !== "RUNNING" && (
+                    {task.state !== 'RUNNING' && (
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => onDelete(task.id)}>
-                                        <Trash className="h-4 w-4"/>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onDelete(task.id)}
+                                    >
+                                        <Trash className="h-4 w-4" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -142,12 +167,16 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                             </Tooltip>
                         </TooltipProvider>
                     )}
-                    {task.state === "COMPLETED" && (
+                    {task.state === 'COMPLETED' && (
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => onGetResults(task)}>
-                                        <BarChart2 className="h-4 w-4"/>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onGetResults(task)}
+                                    >
+                                        <BarChart2 className="h-4 w-4" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -163,13 +192,14 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
 };
 
 const OptimizationTaskList = () => {
-    const {optimisationTasks, isLoading, fetchOptimisationTasks} = useOptimisationTasks(apiClient);
+    const { optimisationTasks, isLoading, fetchOptimisationTasks } =
+        useOptimisationTasks(apiClient);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [configDialogOpen, setConfigDialogOpen] = useState(false);
     const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [users, setUsers] = useState([]);
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     const handleForceRefresh = () => {
         fetchOptimisationTasks();
@@ -178,32 +208,32 @@ const OptimizationTaskList = () => {
     const handleShare = async (task) => {
         setSelectedTask(task);
         try {
-            const res = await adminClient.getUsers()
-            setUsers(res)
+            const res = await adminClient.getUsers();
+            setUsers(res);
         } catch (error) {
             toast({
-                title: "Error",
+                title: 'Error',
                 description: `Failed to get users: ${error.message}`,
-                variant: "destructive",
+                variant: 'destructive',
             });
         }
         setShareDialogOpen(true);
     };
 
     const handleDelete = async (taskId) => {
-        if (window.confirm("Are you sure you want to delete this task?")) {
+        if (window.confirm('Are you sure you want to delete this task?')) {
             try {
                 await apiClient.deleteTask(taskId);
                 toast({
-                    title: "Success",
-                    description: "Task deleted successfully",
+                    title: 'Success',
+                    description: 'Task deleted successfully',
                 });
-                handleForceRefresh()
+                handleForceRefresh();
             } catch (error) {
                 toast({
-                    title: "Error",
+                    title: 'Error',
                     description: `Error deleting run: ${error.message}`,
-                    variant: "destructive",
+                    variant: 'destructive',
                 });
             }
         }
@@ -223,17 +253,17 @@ const OptimizationTaskList = () => {
         log.debug(`Sharing task ${selectedTask.id} with user ${userId}`);
         setShareDialogOpen(false);
         try {
-            await apiClient.shareTask(selectedTask.id, userId)
+            await apiClient.shareTask(selectedTask.id, userId);
             toast({
-                title: "Success",
-                description: "Share successful",
+                title: 'Success',
+                description: 'Share successful',
             });
         } catch (error) {
-            log.debug(error)
+            log.debug(error);
             toast({
-                title: "Error",
-                description: "Error sharing with user: " + error.message,
-                variant: "destructive",
+                title: 'Error',
+                description: 'Error sharing with user: ' + error.message,
+                variant: 'destructive',
             });
         }
     };
@@ -254,8 +284,8 @@ const OptimizationTaskList = () => {
                 </CardHeader>
                 <CardContent>
                     <p className="text-center text-muted-foreground">
-                        There are currently no optimization tasks to display.
-                        New tasks will appear here when they are created.
+                        There are currently no optimization tasks to display. New tasks will appear
+                        here when they are created.
                     </p>
                 </CardContent>
             </Card>
@@ -309,7 +339,7 @@ const OptimizationTaskList = () => {
                         <DialogTitle>Optimisation Results</DialogTitle>
                     </DialogHeader>
                     <div className="flex-grow overflow-auto">
-                        <OptimizationResults task={selectedTask}/>
+                        <OptimizationResults task={selectedTask} />
                     </div>
                     <DialogFooter>
                         <Button onClick={() => setResultsDialogOpen(false)}>Close</Button>

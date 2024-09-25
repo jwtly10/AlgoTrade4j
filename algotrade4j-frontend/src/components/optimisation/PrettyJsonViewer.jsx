@@ -7,7 +7,7 @@ import {Check, Copy} from "lucide-react";
 const PrettyJsonViewer = ({jsonData}) => {
     const [isCopied, setIsCopied] = useState(false);
 
-    const prettyJson = JSON.stringify(JSON.parse(jsonData), null, 2);
+    const prettyJson = JSON.stringify(jsonData, null, 2);
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(prettyJson);

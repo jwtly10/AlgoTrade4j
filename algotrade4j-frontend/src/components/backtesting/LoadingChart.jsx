@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {Card, CardContent} from "@/components/ui/card.jsx";
 import {Progress} from "@/components/ui/progress.jsx";
 
-const LoadingChart = ({progressData, startTime}) => {
+const LoadingChart = ({progressData, startTime, backtestErrorMsg}) => {
     const {
         percentageComplete,
         currentIndex,
@@ -50,6 +50,28 @@ const LoadingChart = ({progressData, startTime}) => {
         let [integerPart, decimalPart] = number.toFixed(decimalPlaces).split('.');
         integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         return decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+    }
+
+    if (backtestErrorMsg) {
+        return (
+            <div className="w-full h-full flex items-center justify-center">
+                <Card className="p-6 max-w-[600px] w-full shadow-lg">
+                    <CardContent>
+                        <h2 className="text-2xl font-semibold text-center mb-4 text-gray-800">Backtest Execution Error</h2>
+                        <p className="text-gray-600 text-center mb-4">
+                            An unexpected issue occurred during the backtest run. Please review the error details below:
+                        </p>
+                        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                            <p className="text-red-700 font-medium mb-2">Error Details:</p>
+                            <p className="text-red-600 text-sm">{backtestErrorMsg}</p>
+                        </div>
+                        <p className="text-gray-500 text-sm mt-4 text-center">
+                            If this issue persists, please contact our support team for assistance.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
     }
 
     return (

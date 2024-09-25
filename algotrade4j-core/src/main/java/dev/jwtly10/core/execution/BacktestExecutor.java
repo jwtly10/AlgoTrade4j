@@ -52,6 +52,7 @@ public class BacktestExecutor implements DataListener {
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
 
+    @Override
     public void initialise() {
         if (initialised) {
             log.warn("BacktestExecutor for strategy {} is already initialized", strategyId);
@@ -77,7 +78,7 @@ public class BacktestExecutor implements DataListener {
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
             strategy.onTick(tick, currentBar);
             tradeStateManager.updateTradeStates(tradeManager, tick);
-            performanceAnalyser.updateOnTick(accountManager.getEquity().getValue().doubleValue());
+            performanceAnalyser.updateOnTick(accountManager.getEquity());
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }
@@ -95,7 +96,7 @@ public class BacktestExecutor implements DataListener {
             IndicatorUtils.updateIndicators(strategy, closedBar);
             strategy.onBarClose(closedBar);
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
-            performanceAnalyser.updateOnBar(accountManager.getEquity().getValue().doubleValue(), closedBar.getCloseTime());
+            performanceAnalyser.updateOnBar(accountManager.getEquity(), closedBar.getCloseTime());
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }
@@ -109,7 +110,7 @@ public class BacktestExecutor implements DataListener {
         }
         try {
             strategy.onNewDay(newDay);
-            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us
+            // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us notify frontend of progress each day
             eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
@@ -135,7 +136,7 @@ public class BacktestExecutor implements DataListener {
         tradeStateManager.updateAccountState(accountManager, tradeManager);
 
         // Run final performance analysis
-        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance().getValue().doubleValue());
+        performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
 
         // Spin down the strategy
         strategy.onDeInit();

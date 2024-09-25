@@ -2,39 +2,40 @@
 
 🏗️ Note this is a WIP project, and is not ready for production use yet. Documentation also WIP. 🏗️
 
-AlgoTrade4j is a complete, high-performance algorithmic trading platform for Java, designed to be simple yet opinionated. Originally built to port strategies from MQL (MetaTrader4) to Java, it offers robust and flexible ways to backtest and extend functionality. The platform is capable of processing 50,000 ticks per second, making it suitable for high-frequency trading strategies.
+AlgoTrade4j is a complete (strategy-dev, backtesting and live trading), high-performance algorithmic trading platform for Java, designed to be simple yet opinionated. Originally built to port strategies from MQL (MetaTrader4) to Java, it offers robust and flexible ways to backtest and extend functionality. The platform is capable of processing 50,000 ticks per second, making it suitable for relatively high-frequency trading strategies.
 
 ⚠️It is a bespoke implementation so may not be suitable for all use cases. ⚠️
 
-Here is a small video demo of the system. You can interact directly with this [demo site]() (TODO).
+Here is a small video demo of the system. 
 
 https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 
 ## Key Features:
 
-- Extensive server side APM integration with DataDog, for monitoring and optimisation
 - Asynchronous event-driven architecture for responsive strategy execution
-- Aggressively optimised for performance
-- /generate-heapdump endpoint for on quick memory profiling
-- External API integration for fetching bar data from multiple providers
-- Synthetic tick generation from acquired bar data for enhanced price movement granularity
+- Aggressively optimised & profiled for performance
+- Dev /generate-heapdump endpoint for efficient memory profiling
+- Clean interfaces for fetching bar data from multiple external providers
+- Synthetic backtest tick generation from acquired bar data for enhanced price movement granularity
 - Real-time updates via WebSockets and event publishers
 - REST APIs for seamless external integrations
 - High-performance processing (capable of handling 50,000+ ticks/second)
-- Comprehensive test coverage (80%+ in core)
+- Comprehensive test coverage
 - Integrated frontend for strategy management and execution
 - Dynamic strategy parameter annotation system for flexible configuration
 - Advanced optimization tools for efficient backtesting
 - Robust authentication and authorization system
+- Separate live service for live trading, supporting independent scaling
 
 ## Architecture
 
-The framework consists of 4 main components:
+The framework consists of 5 main components:
 
-1. Core Module: Contains the main trading logic, event system and implemented defaults
-2. API Module: A Spring-based REST API for handling external requests and WebSocket connections
-3. Market Data Module: Manages the integration with external market data providers.
-4. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
+1. core Module: Contains the main trading logic, event system and implemented defaults
+2. backtest-api Module: A Spring REST API for handling backtesting operations and core system operations
+3. live-api Module: A Spring service for live trading, and other broker related operations
+4. market-data Module: Manages the integration with external market data providers.
+5. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
 
 The system utilizes an event-driven architecture with a global event publisher for external communications.
 
@@ -60,12 +61,21 @@ private int riskRatio;
 // Indicator parameters
 @Parameter(name = "atrLength", description = "Length of ATR", value = "14", group = "indicator")
 private int atrLength;
+
+// Trade parameters
+@Parameter(name = "tradeDirection", description = "Direction to trade", value = "ANY", enumClass = TradeDir.class, group = "trade")
+private TradeDir tradeDirection;
+
+public enum TradeDir {
+    LONG, SHORT, ANY
+}
 ```
 
 These annotated parameters are exposed via an API, allowing for dynamic updates at runtime. This feature enables:
 
 - Real-time strategy adjustments without recompilation, via the frontend
 - Rapid prototyping and optimization of trading strategies
+- Real-time validation of strategy parameters and behavior
 
 You can modify strategy behavior on-the-fly, significantly reducing the development and testing cycle for new trading ideas.
 
@@ -73,7 +83,7 @@ You can modify strategy behavior on-the-fly, significantly reducing the developm
 
 To create new Indicators you must implement the `Indicator` [interface](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/indicators/Indicator.java).
 
-Note indicators in this framework are very opinionated. They only trigger on BarClose which works for the Indicators that we use internally. This will be refined in future. Some indicators have already been implemented in `dev.jwtly10.core.indicators`.
+Currently, indicators only trigger on BarClose. This will be refined in future to be supported on tick where needed. Some indicators have already been implemented in `dev.jwtly10.core.indicators`.
 [Example SMA](https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/indicators/iSMA.java)
 
 Indicator params can be paired with strategy `@Parameter`'s as mentioned above, to change Indicator settings on-the-fly.
@@ -97,30 +107,18 @@ To create a Postgres DB:
 docker run --name algotrade4j-postgres -e POSTGRES_DB=algotrade4j-db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=dev -p 5432:5432 -d postgres
 ```
 
-Ensure the SQL in ./algotrade4j-api/db has been run on the Database in schema algotrade4j.
+Ensure the SQL in ./db has been run on the Database in schema algotrade4j, and all migration patches have been run.
 
-Intellij Setup:
+Intellij Setup for both the backtest-api and live-api:
 
 - Profile:
     - dev
 - Environment Vars:
     - OANDA_API_URL=https://api-fxpractice.oanda.com;
     - OANDA_API_KEY=<your_api_key>;
-    - OANDA_ACCOUNT_ID=<your_account_id>
+    - TELEGRAM_BOT_TOKEN=7711666751:AAGDIcfDKo6NrwrEOvm-e_bdsoQTDp-7RII # This is required for live-api only
 
-Other application properties can be found here: ./algotrade4j-api/src/main/resources/application*.properties
-
-If you have a DataDog instance & agent running on your local machine and want to see metrics. You can enable this and JMX metrics by including:
-
-- VMOptions:
-  -javaagent:/Path/to/dd-java-agent.jar
-  -Ddd.service=algotrade4j-api-dev
-  -Ddd.env=local
-  -Dcom.sun.management.jmxremote
-  -Dcom.sun.management.jmxremote.port=9010
-  -Dcom.sun.management.jmxremote.authenticate=false
-  -Dcom.sun.management.jmxremote.ssl=false
-  -Ddd.tags=env:local
+Properties are defined in the respective application.properties files.
 
 *Frontend*
 
@@ -132,15 +130,13 @@ npm run dev
 
 Supported environment vars can be found here: ./algotrade4j-frontend/.env
 
-The frontend application should now be running at localhost:5173, with the api running on localhost:8080
-
-#### Docker/Staging
-
-*Not supported yet - Docker/Docker-compose files in project are used for production instances*
+The frontend application should be running at localhost:5173, with the main-api running on localhost:8080 and live-api running on localhost:8081.
 
 #### Creating new prod instances
 
-Some basic steps for running the API application on an Ubuntu VM
+THe build steps (CI/CD) are defined in the .github/workflows folder. Docker images are built and pushed to docker hub which can be used to deploy the application anywhere.
 
-1. Install Docker/DockerCompose/Nginx
-2. See ./.github/workflows/main-ci.yml for example deploy steps, these steps can be used on any clean ubuntu environment to deploy the application
+Requirements:
+- Docker
+- Docker-compose
+- Nginx

@@ -41,8 +41,8 @@ function SignUpView({setUser, onSuccess}) {
     if (!isSignUpEnabled) {
         return (
             <Card className="text-center p-6 border-0 shadow-none">
-                <p className="text-muted-foreground">
-                    Sign up is currently unavailable
+                <p className="text-muted-foreground mt-10 mb-10">
+                    Sign up is currently unavailable on this instance
                 </p>
             </Card>
         );

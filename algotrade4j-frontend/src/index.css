@@ -9,6 +9,11 @@
     flex-direction: column;
 }
 
+.break-words {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
 /* Scrollbar styles using theme variables */
 ::-webkit-scrollbar {
     width: 10px;

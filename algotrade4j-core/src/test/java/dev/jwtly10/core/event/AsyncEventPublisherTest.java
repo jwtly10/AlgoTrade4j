@@ -90,9 +90,11 @@ class AsyncEventPublisherTest {
     void testPublishErrorEvent() {
         publisher.addListener(mockListener1);
         Exception testException = new RuntimeException("Test Exception");
+        Exception cause = new RuntimeException("Test Cause");
+        testException.initCause(cause);
         publisher.publishErrorEvent("TestStrategy", testException);
 
-        verify(mockListener1, times(1)).onError("TestStrategy", testException);
+        verify(mockListener1, times(1)).onError("TestStrategy", "Test Cause");
     }
 
     @Test

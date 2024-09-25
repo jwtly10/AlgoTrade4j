@@ -28,7 +28,7 @@ public class Trade {
     /**
      * The quantity of the trade.
      */
-    private final Number quantity;
+    private final double quantity;
 
     /**
      * The entry price of the trade.
@@ -82,7 +82,7 @@ public class Trade {
      * @param takeProfit the take profit price of the trade
      * @param isLong     indicates whether the trade is a long position
      */
-    public Trade(Instrument instrument, Number quantity, Number entryPrice, ZonedDateTime openTime, Number stopLoss, Number takeProfit, boolean isLong) {
+    public Trade(Instrument instrument, double quantity, Number entryPrice, ZonedDateTime openTime, Number stopLoss, Number takeProfit, boolean isLong) {
         this.id = ++idCounter;
         this.instrument = instrument;
         this.quantity = quantity;
@@ -105,7 +105,7 @@ public class Trade {
      * @param takeProfit the take profit price of the trade
      * @param isLong     indicates whether the trade is a long position
      */
-    public Trade(int id, Instrument instrument, Number quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
+    public Trade(int id, Instrument instrument, double quantity, ZonedDateTime openTime, Number entryPrice, Number stopLoss, Number takeProfit, boolean isLong) {
         this.id = id;
         this.instrument = instrument;
         this.quantity = quantity;

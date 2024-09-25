@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * The AsyncEventPublisher class is the main vehicle responsible for managing event listeners and publishing events to them in a performant way.
@@ -18,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class AsyncEventPublisher implements EventPublisher {
     private static final int BATCH_SIZE = 200;
     private static final long MAX_BATCH_WAIT_MS = 100;
-    private final List<EventListener> listeners = new ArrayList<>();
+    private final List<EventListener> listeners = new CopyOnWriteArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     // Using a queue to batch send events rather than creating a new runnable instant for each invocation
@@ -87,8 +84,9 @@ public class AsyncEventPublisher implements EventPublisher {
      * @param e          the exception
      */
     public void publishErrorEvent(String strategyId, Exception e) {
+        log.info("Publishing error event for strategy: {}", strategyId);
         for (EventListener listener : listeners) {
-            listener.onError(strategyId, e);
+            listener.onError(strategyId, e.getCause().getMessage());
         }
     }
 

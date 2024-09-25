@@ -1,6 +1,5 @@
 package dev.jwtly10.core.account;
 
-import dev.jwtly10.core.model.Number;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,17 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DefaultAccountManagerTest {
 
     private DefaultAccountManager accountManager;
-    private Number currentBalance;
-    private Number currentEquity;
-    private Number initialBalance;
-    private Number openPositionValue;
+    private double currentBalance;
+    private double currentEquity;
+    private double initialBalance;
+    private double openPositionValue;
 
     @BeforeEach
     void setUp() {
-        initialBalance = new Number(1000.0);
-        currentBalance = new Number(1000.0);
-        currentEquity = new Number(500.0);
-        openPositionValue = new Number(-500.0); // equity - balance
+        initialBalance = 1000.0;
+        currentBalance = 1000.0;
+        currentEquity = 500.0;
+        openPositionValue = -500.0; // equity - balance
         accountManager = new DefaultAccountManager(initialBalance, currentBalance, currentEquity);
     }
 
@@ -30,7 +29,7 @@ class DefaultAccountManagerTest {
 
     @Test
     void testSetBalance() {
-        Number newBalance = new Number(1500.0);
+        double newBalance = (1500.0);
         accountManager.setBalance(newBalance);
         assertEquals(newBalance, accountManager.getBalance());
     }
@@ -42,7 +41,7 @@ class DefaultAccountManagerTest {
 
     @Test
     void testSetEquity() {
-        Number newEquity = new Number(750.0);
+        double newEquity = 750.0;
         accountManager.setEquity(newEquity);
         assertEquals(newEquity, accountManager.getEquity());
     }
@@ -59,9 +58,9 @@ class DefaultAccountManagerTest {
 
     @Test
     void testConstructor() {
-        Number balance = new Number(2000.0);
-        Number equity = new Number(1000.0);
-        Number initialBalance = new Number(2000.0);
+        double balance = (2000.0);
+        double equity = (1000.0);
+        double initialBalance = (2000.0);
         DefaultAccountManager newManager = new DefaultAccountManager(initialBalance, balance, equity);
 
         assertEquals(balance, newManager.getBalance());
@@ -71,7 +70,7 @@ class DefaultAccountManagerTest {
 
     @Test
     void testNewConstructor() {
-        Number initialBalance = new Number(2000.0);
+        double initialBalance = (2000.0);
         DefaultAccountManager newManager = new DefaultAccountManager(initialBalance);
 
         assertEquals(initialBalance, newManager.getBalance());
