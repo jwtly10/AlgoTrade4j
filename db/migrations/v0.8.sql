@@ -62,10 +62,6 @@ CREATE TABLE live_strategies_tb
 
 CREATE INDEX idx_live_strategies_strategy_name ON live_strategies_tb (strategy_name);
 
-drop table live_strategies_tb;
-
-drop table broker_accounts_tb;
-
 -- Better user action logging
 CREATE TABLE user_action_log_tb
 (

@@ -66,12 +66,6 @@ jobs:
       - name: Build Java Applications
         run: mvn clean package -DskipTests
 
-      - name: Build Frontend react app
-        run: |
-          cd algotrade4j-frontend
-          npm install
-          npm run build
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -101,6 +95,12 @@ jobs:
           context: ./algotrade4j-frontend
           push: true
           tags: joshwatley/algotrade4j-frontend:latest
+          build-args: |
+            VITE_NODE_ENV=${{ vars.VITE_NODE_ENV }}
+            VITE_ENABLE_DEBUG_LOGS=${{ vars.VITE_ENABLE_DEBUG_LOGS }}
+            VITE_ENABLE_SIGNUP=${{ vars.VITE_ENABLE_SIGNUP }}
+            VITE_MAIN_API_HOST=${{ vars.VITE_MAIN_API_HOST }}
+            VITE_LIVE_API_HOST=${{ vars.VITE_LIVE_API_HOST }}     
 
   deploy:
     needs: build-and-push
@@ -152,4 +152,5 @@ jobs:
             export VITE_ENABLE_SIGNUP=${{vars.VITE_ENABLE_SIGNUP}}
             export VITE_MAIN_API_HOST=${{vars.VITE_MAIN_API_HOST}}
             export VITE_LIVE_API_HOST=${{vars.VITE_LIVE_API_HOST}}
-            docker stack deploy --compose-file docker-compose.yml algotrade4j
+            docker network create algotrade4j_default --driver overlay || true
+            docker stack deploy --prune --with-registry-auth --compose-file docker-compose.yml algotrade4j

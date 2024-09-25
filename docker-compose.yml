@@ -62,13 +62,8 @@ services:
       update_config:
         parallelism: 1
         order: stop-first
-    environment:
-      - VITE_NODE_ENV=${VITE_NODE_ENV:-prod}
-      - VITE_ENABLE_DEBUG_LOGS=${VITE_ENABLE_DEBUG_LOGS:-false}
-      - VITE_ENABLE_SIGNUP=${VITE_ENABLE_SIGNUP:-false}
-      - VITE_MAIN_API_HOST=${VITE_MAIN_API_HOST:-api.algotrade4j.trade}
-      - VITE_LIVE_API_HOST=${VITE_LIVE_API_HOST:-live.algotrade4j.trade}
 
 networks:
   default:
-    driver: overlay
+    external: true
+    name: algotrade4j_default
