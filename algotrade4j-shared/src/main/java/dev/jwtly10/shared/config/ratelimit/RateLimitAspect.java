@@ -26,7 +26,7 @@ public class RateLimitAspect {
         this.rateLimitConfig = rateLimitConfig;
     }
 
-    @Around("execution(* dev.jwtly10.api..*Controller.*(..)) || execution(* dev.jwtly10.liveservice..*Controller.*(..))")
+    @Around("execution(* dev.jwtly10.backtestapi..*Controller.*(..)) || execution(* dev.jwtly10.liveapi..*Controller.*(..))")
     public Object limitRate(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();

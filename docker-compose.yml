@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  api:
-    image: joshwatley/algotrade4j-api:latest
+  backtest-api:
+    image: joshwatley/algotrade4j-backtest-api:latest
     ports:
       - "8080:8080"
     environment:
@@ -25,10 +25,10 @@ services:
       sh -c "java
       -XX:+UseG1GC 
       -XX:+UseStringDeduplication
-      -jar /app/algotrade4j-api.jar"
+      -jar /app/algotrade4j-backtest-api.jar"
 
-  liveservice:
-    image: joshwatley/algotrade4j-liveservice:latest
+  live-api:
+    image: joshwatley/algotrade4j-live-api:latest
     ports:
       - "8081:8081"
     environment:
@@ -51,7 +51,7 @@ services:
       sh -c "java
       -XX:+UseG1GC 
       -XX:+UseStringDeduplication
-      -jar /app/algotrade4j-liveservice.jar"
+      -jar /app/algotrade4j-live-api.jar"
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest

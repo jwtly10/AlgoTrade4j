@@ -10,10 +10,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>algotrade4j-core</module>
-        <module>algotrade4j-api</module>
-        <module>algotrade4j-market-data</module>
-        <module>algotrade4j-liveservice</module>
         <module>algotrade4j-shared</module>
+        <module>algotrade4j-market-data</module>
+        <module>algotrade4j-backtest-api</module>
+        <module>algotrade4j-live-api</module>
     </modules>
 
     <properties>
