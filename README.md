@@ -37,7 +37,17 @@ The framework consists of 5 main components:
 4. market-data Module: Manages the integration with external market data providers.
 5. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
 
-The system utilizes an event-driven architecture with a global event publisher for external communications.
+This is a high-level overview of the framework and how it handles strategies:
+
+- A data provider is initialised with the data that needs to be listened to (e.g. Broker price streams, or historical API data).
+- A data manager is wrapper around this data provider, to transform raw data into ticks & bars.
+- A data listener/executor is then created to listen callbacks from the data manager. This interface handles the data, and orchestrates other flows that are required for running a strategy:
+  - Handles updating account data (PNL, balance, etc)
+  - Handles updating trade stats (open trades, closed trades, etc)
+  - Emits events to the running strategy instance.
+- A strategy is then created, and the data listener is attached to it. The strategy is then run on the data listener, and the users strategy logic is executed on each event.
+
+Each part of the system has access to the global async event publisher to support real-time updates and external communications.
 
 ## Getting started
 

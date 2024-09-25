@@ -42,3 +42,4 @@ logs/
 **/.flattened-pom.xml
 heapdump*
 .run
+docs/

@@ -83,11 +83,21 @@ public class AuthController {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList()).get(0);
 
+            String domain = request.getHeader("Domain");
+
+            // If the domain header is not set, fall back to the req server name
+            if (domain == null || domain.isEmpty()) {
+                domain = request.getServerName();
+            }
+            String topLevelDomain = extractTopLevelDomain(domain);
+
+
             Cookie jwtCookie = new Cookie("jwt", jwt);
             jwtCookie.setHttpOnly(true);
             jwtCookie.setSecure(true);
             jwtCookie.setMaxAge(24 * 60 * 60);
             jwtCookie.setPath("/");
+            jwtCookie.setDomain(topLevelDomain); // Set the domain to the top-level domain
 
             // Add the cookie to the response
             response.addCookie(jwtCookie);
@@ -213,5 +223,13 @@ public class AuthController {
         }
 
         return ip;
+    }
+
+    private String extractTopLevelDomain(String domain) {
+        String[] parts = domain.split("\\.");
+        if (parts.length > 1) {
+            return parts[parts.length - 2] + "." + parts[parts.length - 1];
+        }
+        return domain;
     }
 }
