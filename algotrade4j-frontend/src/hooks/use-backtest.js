@@ -2,7 +2,7 @@
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {apiClient} from '../api/apiClient.js';
-import {useToast} from "@/hooks/use-toast";
+import {useToast} from '@/hooks/use-toast';
 import log from '../logger.js';
 
 export const useBacktest = () => {
@@ -30,12 +30,14 @@ export const useBacktest = () => {
     // Log state
     const [logs, setLogs] = useState([]);
 
+    const [backtestErrorMsg, setBacktestErrorMsg] = useState('');
+
     // UI State
-    const [tabValue, setTabValue] = useState("trades");
+    const [tabValue, setTabValue] = useState('trades');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const [strategies, setStrategies] = useState([]);
-    const [strategyClass, setStrategyClass] = useState("");
+    const [strategyClass, setStrategyClass] = useState('');
 
     const [isAsync, setAsync] = useState(false);
     const [progressData, setProgressData] = useState(null);
@@ -46,24 +48,43 @@ export const useBacktest = () => {
         strategyClass: '',
         initialCash: '10000',
         instrumentData: {
-            "internalSymbol": "NAS100USD",
-            "oandaSymbol": "NAS100_USD",
-            "decimalPlaces": 2,
-            "minimumMove": 1,
-            "instrument": "NAS100USD"
+            internalSymbol: 'NAS100USD',
+            oandaSymbol: 'NAS100_USD',
+            decimalPlaces: 1,
+            minimumMove: 0.1,
+            instrument: 'NAS100USD',
         },
-        spread: "30",
-        speed: "INSTANT",
-        period: "M30",
+        spread: '10',
+        speed: 'INSTANT',
+        period: 'M30',
         timeframe: {
             from: '',
             to: '',
         },
-        runParams: []
+        runParams: [],
     });
 
     useEffect(() => {
-        const loadSavedChartData = () => {
+        const initialize = async () => {
+            // Fetch strategies
+            try {
+                const res = await apiClient.getStrategies();
+                setStrategies(res);
+
+                const lastStrat = localStorage.getItem('LAST_STRAT');
+
+                for (const strat of res) {
+                    if (strat === lastStrat) {
+                        await handleChangeStrategy(lastStrat);
+                        break;
+                    }
+                }
+            } catch (error) {
+                log.error('Failed to get strategies:', error);
+                return; // Exit if fetching strategies fails
+            }
+
+            // Load saved chart data
             const chartData = localStorage.getItem('chartData');
             const analysisData = localStorage.getItem('analysisData');
             const tradeData = localStorage.getItem('tradeData');
@@ -84,28 +105,7 @@ export const useBacktest = () => {
             }
         };
 
-        loadSavedChartData();
-    }, []);
-
-    useEffect(() => {
-        const fetchStrategies = async () => {
-            try {
-                const res = await apiClient.getStrategies();
-                setStrategies(res);
-
-                const lastStrat = localStorage.getItem("LAST_STRAT");
-
-                res.forEach(strat => {
-                    if (strat === lastStrat) {
-                        handleChangeStrategy(lastStrat);
-                    }
-                });
-            } catch (error) {
-                log.error('Failed to get strategies:', error);
-            }
-        };
-
-        fetchStrategies();
+        initialize();
 
         return () => {
             if (socketRef.current) {
@@ -113,6 +113,7 @@ export const useBacktest = () => {
             }
         };
     }, []);
+    ;
 
     // Here we check local storage and update the config with the values from local storage
     // if there are any, else we use the defaults from the strategy
@@ -120,8 +121,8 @@ export const useBacktest = () => {
         const storedConfig = JSON.parse(localStorage.getItem(`strategyConfig_${stratClass}`)) || {};
 
         // Check storedConfig for runParams, if we have them, we need to update the values!!!!! in the run params
-        const updatedRunParams = runParams.map(param => {
-            const storedParam = storedConfig.runParams?.find(p => p.name === param.name);
+        const updatedRunParams = runParams.map((param) => {
+            const storedParam = storedConfig.runParams?.find((p) => p.name === param.name);
 
             // Only update if theres data to update
             if (storedParam) {
@@ -131,7 +132,8 @@ export const useBacktest = () => {
                     start: storedParam.start !== undefined ? storedParam.start : param.start,
                     stop: storedParam.stop !== undefined ? storedParam.stop : param.stop,
                     step: storedParam.step !== undefined ? storedParam.step : param.step,
-                    selected: storedParam.selected !== undefined ? storedParam.selected : param.selected,
+                    selected:
+                        storedParam.selected !== undefined ? storedParam.selected : param.selected,
                 };
             } else {
                 return param; // Keep the original parameter if no stored version is found
@@ -140,7 +142,8 @@ export const useBacktest = () => {
 
         // Setting some defaults in case we don't have any values in local storage
         const today = new Date().toISOString().split('T')[0] + 'T00:00:00Z';
-        const lastMonth = new Date(Date.now() - (86400000 * 30)).toISOString().split('T')[0] + 'T00:00:00Z';
+        const lastMonth =
+            new Date(Date.now() - 86400000 * 30).toISOString().split('T')[0] + 'T00:00:00Z';
 
         const updatedConfig = {
             ...strategyConfig,
@@ -159,15 +162,15 @@ export const useBacktest = () => {
 
         // Now we can update the state with the updated values
         setStrategyConfig(updatedConfig);
-    }
+    };
 
     const startOptimisation = async () => {
-        if (strategyClass === "") {
+        if (strategyClass === '') {
             log.error('Strategy class is required');
             toast({
-                title: "Warning",
-                description: "Please select a strategy before starting optimisation.",
-                variant: "warning",
+                title: 'Warning',
+                description: 'Please select a strategy before starting optimisation.',
+                variant: 'warning',
             });
             return;
         }
@@ -175,48 +178,32 @@ export const useBacktest = () => {
         const hackConfig = {
             ...strategyConfig,
             strategyClass: strategyClass,
-        }
+        };
 
         try {
-            await apiClient.queueOptimisation(hackConfig)
+            await apiClient.queueOptimisation(hackConfig);
             log.debug('Optimisation queued');
             toast({
-                title: "Success",
-                description: "Optimisation queued successfully. The page will refresh shortly.",
+                title: 'Success',
+                description: 'Optimisation queued successfully. The page will refresh shortly.',
             });
         } catch (error) {
             log.error('Failed to queue optimisation:', error);
             toast({
-                title: "Error",
+                title: 'Error',
                 description: `Failed to queue optimisation: ${error.message}`,
-                variant: "destructive",
+                variant: 'destructive',
             });
         }
     };
 
-    const startStrategy = async () => {
-        if (strategyClass === "") {
-            log.error('Strategy class is required');
-            toast({
-                title: "Strategy Required",
-                description: "Please select a strategy",
-                variant: "warning",
-            });
-            return;
-        }
-
-        const hackConfig = {
-            ...strategyConfig,
-            strategyClass: strategyClass,
-        }
-
-
+    const cleanChartData = () => {
+        // Clean previous data
         setAccount({
-            initialBalance: Number((strategyConfig.initialCash ? strategyConfig.initialCash : 0)),
+            initialBalance: Number(strategyConfig.initialCash ? strategyConfig.initialCash : 0),
             balance: 0,
             equity: 0,
         });
-        // Clean previous data
         setChartData([]);
         localStorage.removeItem('chartData');
         localStorage.removeItem('tradeData');
@@ -225,18 +212,39 @@ export const useBacktest = () => {
         localStorage.removeItem('analysisData');
         setAnalysisData(null);
         setEquityHistory([]);
+        setBacktestErrorMsg("")
         setTrades([]);
         setTradeIdMap(new Map());
         tradeCounterRef.current = 1;
         setIndicators({});
         setAsync(false);
-        setLogs([])
+        setLogs([]);
+    }
+
+    const startStrategy = async () => {
+        if (strategyClass === '') {
+            log.error('Strategy class is required');
+            toast({
+                title: 'Strategy Required',
+                description: 'Please select a strategy',
+                variant: 'warning',
+            });
+            return;
+        }
+
+        cleanChartData();
+
+        const hackConfig = {
+            ...strategyConfig,
+            strategyClass: strategyClass,
+        };
+
         log.debug('Starting strategy...');
 
         try {
             log.debug('Starting strategy with config:', strategyConfig);
 
-            const generatedIdForClass = await apiClient.generateId(hackConfig)
+            const generatedIdForClass = await apiClient.generateId(hackConfig);
             setIsStrategyRunning(true);
 
             socketRef.current = await apiClient.connectWebSocket(
@@ -244,11 +252,11 @@ export const useBacktest = () => {
                 handleWebSocketMessage
             );
 
-            if (hackConfig.speed === "INSTANT") {
+            if (hackConfig.speed === 'INSTANT') {
                 setAsync(true);
             } else {
                 // We only hide chart for instant runs
-                setShowChart(true)
+                setShowChart(true);
             }
 
             log.debug('WebSocket connected');
@@ -257,9 +265,9 @@ export const useBacktest = () => {
         } catch (error) {
             log.error('Failed to start strategy:', error);
             toast({
-                title: "Strategy Start Failed",
+                title: 'Strategy Start Failed',
                 description: `Failed to start strategy: ${error.message}`,
-                variant: "destructive",
+                variant: 'destructive',
             });
             setIsStrategyRunning(false);
         }
@@ -267,7 +275,7 @@ export const useBacktest = () => {
 
     const stopStrategy = async () => {
         try {
-            if (strategyClass !== "") {
+            if (strategyClass !== '') {
                 // We can stop strategy by just closing ws connection
                 setIsStrategyRunning(false);
                 setAccount({
@@ -293,10 +301,9 @@ export const useBacktest = () => {
         } else if (data.type === 'INDICATOR') {
             updateIndicator(data);
         } else if (data.type === 'ACCOUNT' || data.type === 'ASYNC_ACCOUNT') {
-            log.info(data)
             updateAccount(data);
         } else if (data.type === 'STRATEGY_STOP') {
-            log.info("Strategy stop event")
+            log.info('Strategy stop event');
             setIsStrategyRunning(false);
             setAsync(false);
         } else if (data.type === 'ANALYSIS') {
@@ -305,21 +312,23 @@ export const useBacktest = () => {
             updateTrades(data);
         } else if (data.type === 'LOG') {
             updateLogs(data);
-        } else if (data.type === "BAR_SERIES") {
-            updateTradingViewChart(data)
-        } else if (data.type === "ALL_TRADES") {
-            log.info("All trades event")
-            updateTradingViewChart(data)
-        } else if (data.type === "ALL_INDICATORS") {
-            log.info("All indicator event")
-            setAllIndicators(data)
-        } else if (data.type === "PROGRESS") {
-            updateAsyncProgress(data)
+        } else if (data.type === 'BAR_SERIES') {
+            updateTradingViewChart(data);
+        } else if (data.type === 'ALL_TRADES') {
+            log.info('All trades event');
+            updateTradingViewChart(data);
+        } else if (data.type === 'ALL_INDICATORS') {
+            log.info('All indicator event');
+            setAllIndicators(data);
+        } else if (data.type === 'PROGRESS') {
+            updateAsyncProgress(data);
         } else if (data.type === 'ERROR') {
+            setBacktestErrorMsg(data.message);
+            setIsStrategyRunning(false);
             toast({
-                title: "Error",
-                description: data.message,
-                variant: "destructive",
+                title: 'Backtest Run Error',
+                description: `Strategy failed to run due to : ${data.message}`,
+                variant: 'destructive',
             });
         } else {
             log.debug('WHAT OTHER EVENT WAS SENT?' + data);
@@ -328,22 +337,13 @@ export const useBacktest = () => {
 
     const updateAsyncProgress = (data) => {
         setProgressData(data);
-    }
+    };
 
     const updateLogs = (data) => {
         setLogs((prevLogs) => {
             return [
                 {
-                    timestamp: new Date(data.time * 1000).toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        fractionalSecondDigits: 3,
-                        hour12: false,
-                    }),
+                    timestamp: new Date(data.time * 1000).toLocaleString(),
                     type: data.logType,
                     message: data.message,
                 },
@@ -378,7 +378,7 @@ export const useBacktest = () => {
     };
 
     const updateIndicator = (data) => {
-        log.debug(data)
+        log.debug(data);
         if (data.value !== 0) {
             // Only add non-zero values
             setIndicators((prevIndicators) => ({
@@ -389,32 +389,32 @@ export const useBacktest = () => {
                 ],
             }));
         }
-    }
+    };
 
     const setAllIndicators = (data) => {
         setIndicators(() => {
             const newIndicators = {};
             Object.entries(data.indicators).forEach(([indicatorName, values]) => {
                 newIndicators[indicatorName] = values
-                    .filter(indicator => indicator.value !== 0)
-                    .map(indicator => ({
+                    .filter((indicator) => indicator.value !== 0)
+                    .map((indicator) => ({
                         time: indicator.dateTime,
-                        value: indicator.value
+                        value: indicator.value,
                     }));
             });
-            saveIndicatorDataToLocalStorage(newIndicators)
+            saveIndicatorDataToLocalStorage(newIndicators);
             return newIndicators;
         });
-    }
+    };
 
     const updateAccount = (data) => {
         const accountData = {
             initialBalance: data.account.initialBalance,
             balance: data.account.balance.toFixed(2),
             equity: data.account.equity.toFixed(2),
-        }
+        };
         setAccount(accountData);
-        saveAccountDataToLocalStorage(accountData)
+        saveAccountDataToLocalStorage(accountData);
     };
 
     const updateTradingViewChart = useCallback(
@@ -513,7 +513,7 @@ export const useBacktest = () => {
                     }
                     return prevMap;
                 });
-            } else if (data.type === "BAR_SERIES") {
+            } else if (data.type === 'BAR_SERIES') {
                 if (!showChart) {
                     // If no chart. Dont load the chart
                     return;
@@ -521,7 +521,7 @@ export const useBacktest = () => {
                 const barSeries = data.barSeries.bars;
                 setChartData(() => {
                     // Convert the bar series to the format expected by the chart
-                    const newChartData = barSeries.map(bar => ({
+                    const newChartData = barSeries.map((bar) => ({
                         time: bar.openTime,
                         open: bar.open.value,
                         high: bar.high.value,
@@ -532,10 +532,10 @@ export const useBacktest = () => {
 
                     // Sort the data by time to ensure correct order
                     newChartData.sort((a, b) => new Date(a.time) - new Date(b.time));
-                    saveChartDataToLocalStorage(newChartData)
+                    saveChartDataToLocalStorage(newChartData);
                     return newChartData;
                 });
-            } else if (data.type === "ALL_TRADES") {
+            } else if (data.type === 'ALL_TRADES') {
                 const tradesObj = data.trades;
 
                 setTrades(() => {
@@ -560,7 +560,7 @@ export const useBacktest = () => {
                     // Sort trades by openTime
                     newTrades.sort((a, b) => new Date(a.openTime) - new Date(b.openTime));
 
-                    saveTradeDataToLocalStorage(newTrades)
+                    saveTradeDataToLocalStorage(newTrades);
                     return newTrades;
                 });
 
@@ -574,7 +574,7 @@ export const useBacktest = () => {
 
     const handleOpenParams = () => {
         setIsModalOpen(true);
-    }
+    };
 
     const getParams = async (stratClass) => {
         try {
@@ -582,9 +582,9 @@ export const useBacktest = () => {
         } catch (error) {
             log.error('Failed to get strategy params:', error);
             toast({
-                title: "Params Fetch Failed",
+                title: 'Params Fetch Failed',
                 description: `Failed to get strategy params: ${error.message}`,
-                variant: "destructive",
+                variant: 'destructive',
             });
         }
     };
@@ -595,6 +595,17 @@ export const useBacktest = () => {
     };
 
     const handleChangeStrategy = async (valueOrEvent) => {
+        setChartData([]);
+        setTrades([]);
+        setAccount({
+            initialBalance: 0,
+            balance: 0,
+            equity: 0,
+        });
+        setIndicators({});
+        setAnalysisData(null);
+        setEquityHistory([]);
+
         // Get the class of the strategy
         let stratClass;
         // Hack to use this function in other places
@@ -608,7 +619,7 @@ export const useBacktest = () => {
             log.error('Invalid input to handleChangeStrategy');
             return;
         }
-        localStorage.setItem("LAST_STRAT", stratClass);
+        localStorage.setItem('LAST_STRAT', stratClass);
         setStrategyClass(stratClass);
 
         // Update config with class
@@ -618,11 +629,11 @@ export const useBacktest = () => {
         });
 
         // Now, we know what params have come from the strategy defaults. So we should set these are the run params for now.
-        const params = await getParams(stratClass)
-        log.debug("Params", params)
+        const params = await getParams(stratClass);
+        log.debug('Params', params);
 
         let runParams = [];
-        params.forEach(param => {
+        params.forEach((param) => {
             runParams.push({
                 name: param.name,
                 // Default from server
@@ -631,23 +642,23 @@ export const useBacktest = () => {
                 defaultValue: param.value,
                 description: param.description,
                 group: param.group,
-                start: "1",
-                stop: "1",
-                step: "1",
+                start: '1',
+                stop: '1',
+                step: '1',
                 selected: false,
-            })
-        })
+            });
+        });
 
-        log.debug("Run Params", runParams)
+        log.debug('Run Params', runParams);
 
         setStrategyConfig({
             ...strategyConfig,
             runParams: runParams,
-        })
+        });
 
         // Now we have the defaults, we need to make sure we have the values from local storage, in case we changed this at any point
         loadConfigFromLocalStorage(runParams, stratClass);
-    }
+    };
 
     const saveChartDataToLocalStorage = (data) => {
         try {
@@ -712,10 +723,11 @@ export const useBacktest = () => {
         setStrategyConfig,
         startOptimisation,
         startStrategy,
+        backtestErrorMsg,
         stopStrategy,
         handleOpenParams,
         handleConfigSave,
         handleChangeStrategy,
-        updateTradingViewChart
+        updateTradingViewChart,
     };
 };

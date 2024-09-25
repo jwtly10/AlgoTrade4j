@@ -54,4 +54,11 @@ public interface AccountManager {
      * @return the account instance
      */
     Account getAccount();
+
+    /**
+     * Update the account information.
+     *
+     * @param account the new account information
+     */
+    void updateAccountInfo(Account account);
 }

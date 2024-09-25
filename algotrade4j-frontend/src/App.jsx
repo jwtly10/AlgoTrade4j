@@ -1,20 +1,20 @@
 import React, {useEffect, useState} from 'react';
 import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
-import BacktestView from './views/BacktestView';
+import BacktestView from './views/main/BacktestView.jsx';
 import AuthModal from './components/modals/AuthModal';
 import {authClient} from './api/apiClient.js';
-import UserManagementView from './views/UserManagementView';
+import UserManagementView from './views/users/UserManagementView.jsx';
 import NotFoundView from "./views/NotFoundView.jsx";
-import VersionBanner from "./components/layout/VersionBanner.jsx";
-import HomeView from "./views/HomeView.jsx";
-import OptimisationView from "./views/OptimisationView.jsx";
+import HomeView from "./views/main/HomeView.jsx";
+import OptimisationView from "./views/main/OptimisationView.jsx";
 import log from './logger.js';
 import {ThemeProvider} from "./components/ThemeProvider";
 import {Toaster} from "./components/ui/toaster";
 import UnauthorizedAccessView from "@/views/UnauthorizedAccessView.jsx";
 import MonitorView from "@/views/MonitorView.jsx";
 import {useToast} from "@/hooks/use-toast.js";
+import LiveStrategyView from "@/views/main/LiveStrategyView.jsx";
 
 function App() {
     const [loading, setLoading] = useState(true);
@@ -58,13 +58,13 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <Router>
                 <div className="min-h-screen bg-background text-foreground">
-                    {user && (<VersionBanner user={user}/>)}
                     {user && (<Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>)}
                     <Routes>
                         <Route
                             path="/"
                             element={user ? <HomeView/> : <Navigate to="/login" replace/>}
                         />
+
                         <Route
                             path="/backtest"
                             element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
@@ -94,6 +94,13 @@ function App() {
                             path="/monitor"
                             element={user ? (
                                 user.role === 'ADMIN' ? <MonitorView/> : <UnauthorizedAccessView/>
+                            ) : <Navigate to="/login" replace/>}
+                        />
+
+                        <Route
+                            path="/live"
+                            element={user ? (
+                                user.role === 'ADMIN' ? <LiveStrategyView/> : <UnauthorizedAccessView/>
                             ) : <Navigate to="/login" replace/>}
                         />
 

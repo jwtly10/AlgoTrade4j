@@ -4,9 +4,13 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.common.ClientCallback;
+import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
+import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
@@ -30,29 +34,30 @@ import static org.junit.jupiter.api.Assertions.*;
  * A collection of integration tests for the Oanda API client.
  */
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
-@EnabledIfEnvironmentVariable(named = "OANDA_ACCOUNT_ID", matches = ".+")
 class OandaIntegrationTest {
 
     private OandaClient client;
     private OandaDataClient oandaClient;
+    private OandaBrokerClient brokerClient;
+    private String accountId = "";
 
     @BeforeEach
     void setUp() {
         String apiKey = System.getenv("OANDA_API_KEY");
-        String accountId = System.getenv("OANDA_ACCOUNT_ID");
         String baseUrl = "https://api-fxpractice.oanda.com";
 
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
         assertNotNull(accountId, "OANDA_ACCOUNT_ID environment variable must be set");
 
-        client = new OandaClient(baseUrl, apiKey, accountId);
-        oandaClient = new OandaDataClient(client);
+        client = new OandaClient(baseUrl, apiKey);
+        brokerClient = new OandaBrokerClient(client, null);
+        oandaClient = new OandaDataClient(brokerClient);
     }
 
     @Test
     @Timeout(value = 30)
     void testFetchCandlesSuccess() throws InterruptedException {
-        Instrument instrument = Instrument.NAS100USD;
+        Instrument instrument = Instrument.GBPUSD;
         ZonedDateTime from = ZonedDateTime.now().minusDays(7);
         ZonedDateTime to = ZonedDateTime.now();
         Duration period = Duration.ofHours(1);
@@ -190,33 +195,33 @@ class OandaIntegrationTest {
     @Test
     void testCanFetchTrades() throws Exception {
         // Test can fetch with instrument filter
-        var res = client.fetchTrades(null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
+        var res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, Instrument.NAS100USD, 10);
         System.out.println(res);
         assertNotNull(res.lastTransactionID());
 //        assertNotEquals(0, res.trades().size());
 
         // Test can fetch with no instrument filter
-        var res2 = client.fetchTrades(null, TradeStateFilter.ALL, null, 10);
+        var res2 = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, 10);
         System.out.println(res2);
         assertNotNull(res2.lastTransactionID());
 //        assertNotEquals(0, res2.trades().size());
 
         // Fetch trades with specific ids
-        var res3 = client.fetchTrades(List.of("2", "3"), TradeStateFilter.ALL, null, 10);
+        var res3 = client.fetchTrades(accountId, List.of("5", "10"), TradeStateFilter.ALL, null, 10);
         System.out.println(res3);
         assertNotNull(res3.lastTransactionID());
 //        assertEquals(2, res3.trades().size());
 
         // Fetch open trades
-        var res4 = client.fetchTrades(null, TradeStateFilter.OPEN, null, 10);
+        var res4 = client.fetchTrades(accountId, null, TradeStateFilter.OPEN, null, 10);
         System.out.println(res4);
         assertNotNull(res4.lastTransactionID());
 //        assertNotEquals(0, res4.trades().size());
     }
 
     @Test
-    void testCanFetchAccountDetails() throws Exception{
-        var res = client.fetchAccount();
+    void testCanFetchAccountDetails() throws Exception {
+        OandaAccountResponse res = client.fetchAccount(accountId);
         System.out.println(res);
     }
 
@@ -225,14 +230,14 @@ class OandaIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTicks = new AtomicInteger(0);
 
-        client.streamPrices(List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
+        client.streamPrices(accountId, List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
             @Override
             public void onPrice(OandaPriceResponse price) {
                 System.out.println(price);
                 DefaultTick tick = OandaUtils.mapPriceToTick(price);
                 System.out.println(tick);
                 receivedTicks.incrementAndGet();
-                if (receivedTicks.get() >= 5) {
+                if (receivedTicks.get() >= 15) {
                     latch.countDown();
                 }
             }
@@ -250,7 +255,7 @@ class OandaIntegrationTest {
             }
         });
 
-        boolean completed = latch.await(3, TimeUnit.SECONDS);
+        boolean completed = latch.await(10, TimeUnit.SECONDS);
 
         if (!completed) {
             System.out.println("Test timed out. Received " + receivedTicks.get() + " ticks.");
@@ -264,7 +269,7 @@ class OandaIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTrans = new AtomicInteger(0);
 
-        client.streamTransactions(new OandaClient.TransactionStreamCallback() {
+        client.streamTransactions(accountId, new OandaClient.TransactionStreamCallback() {
             @Override
             public void onTransaction(OandaTransactionResponse transaction) {
                 System.out.println(transaction);
@@ -294,5 +299,30 @@ class OandaIntegrationTest {
         }
 
         assert receivedTrans.get() > 0 : "No transactions were received";
+    }
+
+    @Test
+    void testCanOpenAndCloseTrade() throws Exception {
+        // Test opening a trade
+        MarketOrderRequest req = MarketOrderRequest.builder()
+                .type(MarketOrderRequest.OrderType.MARKET)
+                .instrument(Instrument.NAS100USD.getOandaSymbol())
+                .timeInForce(MarketOrderRequest.TimeInForce.FOK)
+                .units(2)
+                .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
+                        .price("18709")
+                        .timeInForce(MarketOrderRequest.TimeInForce.GTC)
+                        .build())
+                .stopLossOnFill(MarketOrderRequest.StopLossDetails.builder()
+                        .price("18407")
+                        .timeInForce(MarketOrderRequest.TimeInForce.GTC)
+                        .build())
+                .build();
+        OandaOpenTradeResponse trade = client.openTrade(accountId, req);
+        assertNotNull(trade);
+        System.out.println(trade);
+
+        // Test closing a trade
+        client.closeTrade(accountId, trade.orderFillTransaction().tradeOpened().tradeID());
     }
 }

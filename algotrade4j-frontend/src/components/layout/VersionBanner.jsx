@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 import {systemClient} from '@/api/apiClient.js';
 import log from '../../logger.js';
 
@@ -55,17 +54,6 @@ const VersionBanner = ({ user }) => {
         <div className={`${getBannerColor()} text-white p-1 text-center h-8 leading-8 font-bold shadow-md flex justify-center items-center`}>
             <div className="text-sm font-bold">
                 {versionInfo.environment.toUpperCase()} - v{versionInfo.version}
-                {' | '}
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger className="cursor-help">
-                            Uptime: {calculateUptime(versionInfo.startTime)}
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>App started at: {versionInfo.startTime}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
                 {showDumpHeap && (
                     <>
                         {' | '}

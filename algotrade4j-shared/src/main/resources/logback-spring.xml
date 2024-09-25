@@ -1,0 +1,57 @@
+<configuration>
+    <springProperty scope="context" name="serviceName" source="spring.application.name"/>
+    <springProperty scope="context" name="activeProfile" source="spring.profiles.active"/>
+
+    <!-- Console appender for all environments -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Loki appender - only included in prod-->
+    <springProfile name="prod">
+        <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+            <http>
+                <url>https://logs-prod-012.grafana.net/loki/api/v1/push</url>
+                <auth>
+                    <username>996615</username>
+                    <password>${GRAFANA_API_KEY}</password>
+                </auth>
+            </http>
+            <format>
+                <label>
+                    <pattern>service=${serviceName},environment=${activeProfile},Language=Java,source=SpringBoot</pattern>
+                </label>
+                <message class="com.github.loki4j.logback.JsonLayout">
+                    <timestampPattern>yyyy-MM-dd HH:mm:ss</timestampPattern>
+                    <appendLineSeparator>true</appendLineSeparator>
+                </message>
+            </format>
+        </appender>
+
+        <!-- Async appender for Loki -->
+        <appender name="ASYNC_LOKI" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="LOKI"/>
+            <queueSize>512</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <neverBlock>true</neverBlock>
+        </appender>
+    </springProfile>
+
+    <!-- Root logger configuration -->
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_LOKI"/>
+        </root>
+    </springProfile>
+
+</configuration>

@@ -6,6 +6,7 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
@@ -63,6 +64,16 @@ public abstract class BaseStrategy implements Strategy {
      * The performance analyser used by the strategy.
      */
     private PerformanceAnalyser performanceAnalyser;
+
+    /**
+     * The external notifier used by the strategy.
+     */
+    private Notifier notifier;
+
+    /**
+     * The chat ID of the notifier.
+     */
+    private String notifierChatId;
 
     /**
      * Constructs a BaseStrategy with the specified strategy ID.
@@ -158,6 +169,35 @@ public abstract class BaseStrategy implements Strategy {
     }
 
     /**
+     * Utility method to get the stop loss price given the instrument, price, pips and direction.
+     *
+     * @param instrument the instrument
+     * @param price      the price
+     * @param ticks      the ticks
+     * @param isLong     the direction
+     * @return the stop loss price
+     */
+    public Number getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong) {
+        if (ticks < 100) {
+            log.warn("Stop loss ticks is less than 100. This may be a mistake, ticks should be x10 pips. Ticks: {}", ticks);
+        }
+        Number pipValue = new Number(ticks * instrument.getPipValue());
+        return isLong ? price.subtract(pipValue) : price.add(pipValue);
+    }
+
+    /**
+     * Sends a notification message to external notifier implementation
+     * By default all notifications will use HTML mode
+     *
+     * @param message the message
+     */
+    public void sendNotification(String message) {
+        if (notifier != null && notifierChatId != null) {
+            notifier.sendNotification(notifierChatId, message, true);
+        }
+    }
+
+    /**
      * Sets the parameters of the strategy.
      *
      * @param parameters the parameters
@@ -165,6 +205,11 @@ public abstract class BaseStrategy implements Strategy {
      */
     public void setParameters(Map<String, String> parameters) throws IllegalAccessException {
         ParameterHandler.setParameters(this, parameters);
+    }
+
+    public void setNotificationService(Notifier notifier, String chatId) {
+        this.notifier = notifier;
+        this.notifierChatId = chatId;
     }
 
     /**

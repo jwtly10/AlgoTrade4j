@@ -3,14 +3,11 @@ package dev.jwtly10.marketdata.oanda;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.marketdata.oanda.models.OandaOrder;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
-import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
+import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.oanda.response.*;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
@@ -34,21 +31,25 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OandaClient {
     private final String apiKey;
-    private final String accountId;
     private final String apiUrl;
     private final OkHttpClient client;
-    @Setter
-    private String streamUrl = "https://stream-fxpractice.oanda.com";
+    private final String streamUrl;
 
-    public OandaClient(String apiUrl, String apiKey, String accountId, OkHttpClient client) {
+    public OandaClient(String apiUrl, String apiKey, OkHttpClient client) {
         this.apiKey = apiKey;
-        this.accountId = accountId;
         this.apiUrl = apiUrl;
         this.client = client;
+
+        if (apiUrl.contains("trade")) {
+//            streamUrl = "https://stream-fxtrade.oanda.com";
+            throw new IllegalArgumentException("Live trading on real account is not supported yet");
+        } else {
+            streamUrl = "https://stream-fxpractice.oanda.com";
+        }
     }
 
-    public OandaClient(String apiUrl, String apiKey, String accountId) {
-        this(apiUrl, apiKey, accountId, new OkHttpClient());
+    public OandaClient(String apiUrl, String apiKey) {
+        this(apiUrl, apiKey, new OkHttpClient());
     }
 
     /**
@@ -108,9 +109,9 @@ public class OandaClient {
      * @return the OandaTradeResponse containing the trade data
      * @throws Exception if an error occurs while fetching the data
      */
-    public OandaTradeResponse fetchTrades(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
-        log.debug("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
-        String url = buildTradesUrl(ids, state, instrument, count);
+    public OandaTradeResponse fetchTrades(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) throws Exception {
+        log.trace("Fetching trades for ids: {}, state: {}, instrument: {}, count: {}", ids, state, instrument, count);
+        String url = buildTradesUrl(accountId, ids, state, instrument, count);
 
         Request req = new Request.Builder()
                 .url(url)
@@ -124,7 +125,7 @@ public class OandaClient {
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            log.debug("Fetched trades: {}", response);
+            log.trace("Fetched trades: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response, OandaTradeResponse.class);
         } catch (Exception e) {
@@ -137,10 +138,10 @@ public class OandaClient {
      * Fetches the account details for the specified account.
      *
      * @return the OandaAccountResponse containing the account details
-     * @throws Exception 
+     * @throws Exception
      */
-    public OandaAccountResponse fetchAccount() throws Exception{
-        log.debug("Fetching account details for account {}", accountId);
+    public OandaAccountResponse fetchAccount(String accountId) throws Exception {
+        log.trace("Fetching account details for account {}", accountId);
 
         String url = apiUrl + "/v3/accounts/" + accountId;
 
@@ -149,20 +150,79 @@ public class OandaClient {
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
 
-        try (Response res = client.newCall(req).execute()){
+        try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
-            if (!res.isSuccessful()){
+            if (!res.isSuccessful()) {
                 log.error("Failed to fetch Account details from Oanda API: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            log.debug("Fetched account details: {}", response);
+            log.trace("Fetched account details: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(response, OandaAccountResponse.class);
-        } catch (Exception e ){
+        } catch (Exception e) {
             log.error("Failed to fetch account details from Oanda API", e);
             throw e;
         }
+    }
+
+    public OandaOpenTradeResponse openTrade(String accountId, MarketOrderRequest orderRequest) throws Exception {
+        log.info("Opening trade: {}", orderRequest);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
+
+        OandaOrder order = new OandaOrder(orderRequest);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String reqJson = objectMapper.writeValueAsString(order);
+
+        log.trace("Request JSON: {}", reqJson);
+
+        RequestBody body = RequestBody.create(
+                MediaType.parse("application/json"), reqJson);
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .post(body)
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            String response = res.body().string();
+            if (!res.isSuccessful()) {
+                log.error("Failed to open trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + response);
+            }
+
+            log.debug("Opened trade: {}", response);
+            return objectMapper.readValue(response, OandaOpenTradeResponse.class);
+        } catch (Exception e) {
+            log.error("Failed to open trade", e);
+            throw e;
+        }
+    }
+
+    public void closeTrade(String accountId, String id) throws Exception {
+        log.debug("Closing trade: {}", id);
+        String url = apiUrl + "/v3/accounts/" + accountId + "/trades/" + id + "/close";
+
+        Request req = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .put(RequestBody.create(MediaType.parse("application/json"), ""))
+                .build();
+
+        try (Response res = client.newCall(req).execute()) {
+            if (!res.isSuccessful()) {
+                log.error("Failed to close trade: {}", res);
+                throw new DataProviderException("Error response from Oanda API: " + res.body().string());
+            }
+
+            log.debug("Closed trade: {}", id);
+        } catch (Exception e) {
+            log.error("Failed to close trade", e);
+            throw e;
+        }
+
     }
 
     // Streaming endpoints
@@ -173,7 +233,7 @@ public class OandaClient {
      * @param instruments the list of instruments to stream prices for
      * @param callback    the callback to be invoked for each price update
      */
-    public void streamPrices(List<Instrument> instruments, PriceStreamCallback callback) {
+    public void streamPrices(String accountId, List<Instrument> instruments, PriceStreamCallback callback) {
         log.debug("Streaming prices for instruments: {}", instruments);
         String instrumentParams = instruments.stream()
                 .map(Instrument::getOandaSymbol)
@@ -220,9 +280,10 @@ public class OandaClient {
     /**
      * Streams transactions for the account and invokes the callback for each transaction update.
      *
-     * @param callback the callback to be invoked for each transaction update
+     * @param accountId the account id to stream transactions for
+     * @param callback  the callback to be invoked for each transaction update
      */
-    public void streamTransactions(TransactionStreamCallback callback) {
+    public void streamTransactions(String accountId, TransactionStreamCallback callback) {
         log.debug("Streaming transactions for account: {}", accountId);
         String url = String.format("%s/v3/accounts/%s/transactions/stream", streamUrl, accountId);
 
@@ -254,7 +315,7 @@ public class OandaClient {
                             throw new Exception("Error in stream: " + line);
                         }
                     }
-                } catch (Exception e){
+                } catch (Exception e) {
                     callback.onError(e);
                 } finally {
                     callback.onComplete();
@@ -267,13 +328,14 @@ public class OandaClient {
     /**
      * Builds the URL for fetching trades based on the specified parameters.
      *
+     * @param accountId  the account id to build url for
      * @param ids        the list of trade ids to fetch
      * @param state      the state of the trades to fetch
      * @param instrument the instrument to filter by
      * @param count      the number of trades to fetch
      * @return the URL for fetching trades
      */
-    private String buildTradesUrl(List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
+    private String buildTradesUrl(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
         // TODO: Haven't implemented beforeId (see Oanda API documentation)
         StringBuilder urlBuilder = new StringBuilder(String.format("%s/v3/accounts/%s/trades", apiUrl, accountId));
 
@@ -326,22 +388,22 @@ public class OandaClient {
      */
     public interface TransactionStreamCallback {
         /**
-        * Called when a new transaction is received.
-        * 
-        * @param transaction the transaction
-        */
+         * Called when a new transaction is received.
+         *
+         * @param transactionResponse the transaction
+         */
         void onTransaction(OandaTransactionResponse transactionResponse);
 
         /**
-        * Called when an error occurs during streaming.
-        *
-        * @param e the exception that occurred
-        */
+         * Called when an error occurs during streaming.
+         *
+         * @param e the exception that occurred
+         */
         void onError(Exception e);
 
         /**
-        * Called when the streaming is complete.
-        */
+         * Called when the streaming is complete.
+         */
         void onComplete();
     }
 }

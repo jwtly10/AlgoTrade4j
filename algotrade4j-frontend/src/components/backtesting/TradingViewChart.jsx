@@ -4,24 +4,19 @@ import log from '../../logger.js'
 
 const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicators}) => {
     const chartContainerRef = useRef();
+    const chartRef = useRef(null);
+    const candlestickSeriesRef = useRef(null);
+    const indicatorSeriesRef = useRef({});
 
     useEffect(() => {
-        if (!showChart) {
-            // If we are not displaying the chart right now. Do not load it.
+        if (!showChart || chartRef.current) {
             return;
         }
 
         const instrument = strategyConfig.instrumentData
+        const period = strategyConfig.period;
         const pricePrecision = instrument.decimalPlaces || 2;
         const minMove = instrument.minimumMove || 0.01;
-
-
-        const handleResize = () => {
-            chart.applyOptions({
-                width: chartContainerRef.current.clientWidth,
-                height: chartContainerRef.current.clientHeight,
-            });
-        };
 
         const chart = createChart(chartContainerRef.current, {
             width: chartContainerRef.current.clientWidth,
@@ -75,7 +70,8 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
             watermark: {
                 color: 'rgba(255, 255, 255, 0.1)',
                 visible: true,
-                text: chartData.length > 0 ? chartData[0].instrument : '',
+                text: chartData.length > 0 ?
+                    `${instrument.internalSymbol}, ${period}` : '',
                 fontSize: 80,
                 horzAlign: 'center',
                 vertAlign: 'center',
@@ -129,18 +125,7 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
                 fontFamily: 'Arial',
                 color: '#D9D9D9',
             },
-            rightPriceScale: {
-                borderColor: 'rgba(197, 203, 206, 0.3)',
-                borderVisible: true,
-                scaleMargins: {
-                    top: 0.1,
-                    bottom: 0.1,
-                },
-            },
         });
-
-        window.addEventListener('resize', handleResize);
-        handleResize();
 
         const candlestickSeries = chart.addCandlestickSeries({
             upColor: '#26a69a',
@@ -155,21 +140,46 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
             },
         });
 
+        chartRef.current = chart;
+        candlestickSeriesRef.current = candlestickSeries;
+
+        const handleResize = () => {
+            chart.applyOptions({
+                width: chartContainerRef.current.clientWidth,
+                height: chartContainerRef.current.clientHeight,
+            });
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            chart.remove();
+            chartRef.current = null;
+            candlestickSeriesRef.current = null;
+            indicatorSeriesRef.current = {};
+        };
+    }, [showChart, strategyConfig]);
+
+    useEffect(() => {
+        if (!chartRef.current || !candlestickSeriesRef.current) {
+            return;
+        }
+
         try {
-            candlestickSeries.setData(chartData);
+            candlestickSeriesRef.current.setData(chartData);
         } catch (e) {
             log.error('Failed to set data:', e);
             log.debug(chartData);
         }
 
-        // Add indicator series
-        const indicatorSeries = {};
+        // Update indicators
         Object.keys(indicators).forEach((indicatorName) => {
             const indicatorData = indicators[indicatorName];
             if (indicatorData && indicatorData.length > 0) {
                 if (indicatorName.startsWith('ATR_CANDLE')) {
-                    // For ATRCandle, change colors of bars
-                    const modifiedChartData = chartData.map((candle, index) => {
+                    const modifiedChartData = chartData.map((candle) => {
                         const correspondingIndicator = indicatorData.find(
                             (item) => item.time === candle.time
                         );
@@ -178,9 +188,8 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
                         }
                         return candle;
                     });
-                    candlestickSeries.setData(modifiedChartData);
+                    candlestickSeriesRef.current.setData(modifiedChartData);
                 } else {
-                    // For other indicators, draw line graph TODO: Make this cleaner
                     const validData = indicatorData
                         .filter(
                             (item) => !isNaN(item.time) && !isNaN(item.value) && item.value !== 0
@@ -189,17 +198,17 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
 
                     if (validData.length > 0) {
                         const seriesName = `SMA${indicatorName}`;
-                        indicatorSeries[seriesName] = chart.addLineSeries({
-                            color: getIndicatorColor(seriesName),
-                            lineWidth: 2,
-                        });
-                        indicatorSeries[seriesName].setData(validData);
+                        if (!indicatorSeriesRef.current[seriesName]) {
+                            indicatorSeriesRef.current[seriesName] = chartRef.current.addLineSeries({
+                                color: getIndicatorColor(seriesName),
+                                lineWidth: 2,
+                            });
+                        }
+                        indicatorSeriesRef.current[seriesName].setData(validData);
                     }
                 }
             }
         });
-
-        // addTradePriceLines(chart, candlestickSeries, trades);
 
         const openMarkers = trades.map((trade) => ({
             time: trade.openTime,
@@ -222,38 +231,19 @@ const TradingViewChart = ({showChart, strategyConfig, chartData, trades, indicat
         const allMarkers = [...openMarkers, ...closeMarkers].sort((a, b) => a.time - b.time);
 
         try {
-            candlestickSeries.setMarkers(allMarkers);
+            candlestickSeriesRef.current.setMarkers(allMarkers);
         } catch (e) {
             log.error('Failed to set trade markers:', e);
             log.debug(allMarkers);
         }
 
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            chart.remove();
-        };
-    }, [chartData, trades]);
+    }, [chartData, trades, indicators]);
 
     // Helper functions
     const getIndicatorColor = (indicatorName) => {
         const colors = ['#2196F3', '#FF9800', '#4CAF50', '#E91E63', '#9C27B0'];
         return colors[indicatorName.length % colors.length];
     };
-
-    function addTradePriceLines(chart, candlestickSeries, trades) {
-        trades.forEach((trade) => {
-            const color = trade.position === 'long' ? '#26a69a' : '#ef5350';
-            const priceLine = {
-                price: trade.entry,
-                color: color,
-                lineWidth: 2,
-                lineStyle: 2, // Dashed line
-                axisLabelVisible: true,
-                title: `#${trade.tradeId}`,
-            };
-            candlestickSeries.createPriceLine(priceLine);
-        });
-    }
 
     return <div ref={chartContainerRef} style={{width: '100%', height: '100%'}}/>;
 };

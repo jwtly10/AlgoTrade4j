@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,72 @@ import java.util.Map;
  * This class provides methods to retrieve, validate, and set parameter values for strategies.
  */
 public class ParameterHandler {
+
+    /**
+     * Validates the run parameters against the strategy's @Parameter annotations.
+     *
+     * @param strategy  The strategy instance to validate against.
+     * @param runParams A map of parameter names to their values.
+     * @throws IllegalArgumentException If validation fails.
+     */
+    public static void validateRunParameters(Strategy strategy, Map<String, String> runParams) {
+        Class<?> clazz = strategy.getClass();
+        Map<String, Parameter> annotatedParams = new HashMap<>();
+
+        // Collect all @Parameter annotations
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Parameter.class)) {
+                Parameter param = field.getAnnotation(Parameter.class);
+                annotatedParams.put(param.name(), param);
+            }
+        }
+
+        // Validate each provided run parameter
+        for (Map.Entry<String, String> entry : runParams.entrySet()) {
+            String paramName = entry.getKey();
+            String paramValue = entry.getValue();
+
+            if (!annotatedParams.containsKey(paramName)) {
+                throw new IllegalArgumentException("Unexpected parameter: " + paramName);
+            }
+
+            Parameter annotation = annotatedParams.get(paramName);
+            Field field = null;
+            try {
+                field = clazz.getDeclaredField(paramName);
+            } catch (NoSuchFieldException e) {
+                throw new IllegalArgumentException("No field found for parameter: " + paramName);
+            }
+
+            // Validate type
+            validateParameterType(field.getType(), paramValue, annotation);
+        }
+
+        // Check if all required parameters are provided
+        for (String annotatedParam : annotatedParams.keySet()) {
+            if (!runParams.containsKey(annotatedParam)) {
+                throw new IllegalArgumentException("Missing required parameter: " + annotatedParam);
+            }
+        }
+    }
+
+    private static void validateParameterType(Class<?> fieldType, String value, Parameter annotation) {
+        try {
+            if (fieldType == int.class || fieldType == Integer.class) {
+                Integer.parseInt(value);
+            } else if (fieldType == double.class || fieldType == Double.class) {
+                Double.parseDouble(value);
+            } else if (fieldType == boolean.class || fieldType == Boolean.class) {
+                Boolean.parseBoolean(value);
+            } else if (fieldType.isEnum()) {
+                Enum.valueOf((Class<Enum>) fieldType, value);
+            } else if (fieldType != String.class) {
+                throw new IllegalArgumentException("Unsupported parameter type: " + fieldType.getSimpleName());
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid value for parameter " + annotation.name() + ": " + value);
+        }
+    }
 
     /**
      * Retrieves all parameters annotated with {@link Parameter} from the given object.
@@ -38,6 +105,26 @@ public class ParameterHandler {
         }
 
         return parameters;
+    }
+
+    /**
+     * Retrieves a map of parameter names to {@link Parameter} objects from the given strategy.
+     *
+     * @param strategy The strategy to retrieve parameters from.
+     * @return A map of parameter names to {@link Parameter} objects.
+     */
+    public static Map<String, Parameter> getParameterMap(Strategy strategy) {
+        Map<String, Parameter> parameterMap = new HashMap<>();
+        Class<?> clazz = strategy.getClass();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Parameter.class)) {
+                Parameter param = field.getAnnotation(Parameter.class);
+                parameterMap.put(param.name(), param);
+            }
+        }
+
+        return parameterMap;
     }
 
     /**

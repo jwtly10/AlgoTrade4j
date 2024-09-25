@@ -7,8 +7,21 @@ import java.time.ZonedDateTime;
 
 /**
  * Interface for listening to data events such as ticks and bar closures.
+ * Mainly used for engines that facilitate trading strategies
  */
 public interface DataListener {
+
+    /**
+     * Called when the data listener is initialised.
+     */
+    void initialise() throws Exception;
+
+    /**
+     * Get the data manager
+     *
+     * @return the data manager
+     */
+    DataManager getDataManager();
 
     /**
      * Called when a new tick is received.

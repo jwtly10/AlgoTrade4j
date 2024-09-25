@@ -10,15 +10,17 @@
     <packaging>pom</packaging>
     <modules>
         <module>algotrade4j-core</module>
-        <module>algotrade4j-api</module>
+        <module>algotrade4j-shared</module>
         <module>algotrade4j-market-data</module>
+        <module>algotrade4j-backtest-api</module>
+        <module>algotrade4j-live-api</module>
     </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>0.7</revision>
+        <revision>0.8</revision>
     </properties>
 
     <dependencies>

@@ -47,7 +47,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
         // Risk management TODO: Should we move this out the trade manager?
         // We will stop running if we go below 10% of initial balance.
         if (accountManager.getEquity() < (accountManager.getInitialBalance() * 0.1)) {
-            throw new RiskException("Equity below 10%. Stopping strategy.");
+            throw new RiskException("Equity is below 10%. In order to prevent further losses, the strategy has been terminated.");
         }
     }
 
