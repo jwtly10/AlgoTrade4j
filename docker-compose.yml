@@ -16,9 +16,9 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-    entrypoint: >
-      sh -c "java
-      -jar /app/algotrade4j-backtest-api.jar"
+      - NEW_RELIC_APP_NAME=algotrade4j-backtest-api
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_LOG_FILE_NAME=STDOUT
 
   live-api:
     image: joshwatley/algotrade4j-live-api:latest
@@ -35,11 +35,29 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-    entrypoint: >
-      sh -c "java
-      -jar /app/algotrade4j-live-api.jar"
+      - NEW_RELIC_APP_NAME=algotrade4j-live-api
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+      - NEW_RELIC_LOG_FILE_NAME=STDOUT
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest
     ports:
       - "3000:80"
+
+  newrelic-infra:
+    container_name: newrelic-infra
+    build:
+      context: .
+      dockerfile: newrelic-infra.dockerfile
+    environment:
+      - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
+    cap_add:
+      - SYS_PTRACE
+    network_mode: host
+    pid: host
+    privileged: true
+    volumes:
+      - "/:/host:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./newrelic-infra.yml:/etc/newrelic-infra.yml"
+    restart: unless-stopped

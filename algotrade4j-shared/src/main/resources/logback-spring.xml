@@ -9,36 +9,21 @@
         </encoder>
     </appender>
 
-    <!-- Loki appender - only included in prod-->
-    <springProfile name="prod">
-        <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-            <http>
-                <url>https://logs-prod-012.grafana.net/loki/api/v1/push</url>
-                <auth>
-                    <username>996615</username>
-                    <password>${GRAFANA_API_KEY}</password>
-                </auth>
-            </http>
-            <format>
-                <label>
-                    <pattern>service=${serviceName},environment=${activeProfile},Language=Java,source=SpringBoot</pattern>
-                </label>
-                <message class="com.github.loki4j.logback.JsonLayout">
-                    <timestampPattern>yyyy-MM-dd HH:mm:ss</timestampPattern>
-                    <appendLineSeparator>true</appendLineSeparator>
-                </message>
-            </format>
-        </appender>
+    <!-- New Relic appender -->
+    <appender name="NEW_RELIC" class="com.newrelic.logging.logback.NewRelicAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
-        <!-- Async appender for Loki -->
-        <appender name="ASYNC_LOKI" class="ch.qos.logback.classic.AsyncAppender">
-            <appender-ref ref="LOKI"/>
-            <queueSize>512</queueSize>
-            <discardingThreshold>0</discardingThreshold>
-            <includeCallerData>false</includeCallerData>
-            <neverBlock>true</neverBlock>
-        </appender>
-    </springProfile>
+    <!-- Async appender for New Relic -->
+    <appender name="ASYNC_NEW_RELIC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="NEW_RELIC"/>
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>false</includeCallerData>
+        <neverBlock>true</neverBlock>
+    </appender>
 
     <!-- Root logger configuration -->
     <springProfile name="!prod">
@@ -50,7 +35,7 @@
     <springProfile name="prod">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="ASYNC_LOKI"/>
+            <appender-ref ref="ASYNC_NEW_RELIC"/>
         </root>
     </springProfile>
 

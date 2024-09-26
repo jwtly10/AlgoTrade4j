@@ -43,3 +43,5 @@ logs/
 heapdump*
 .run
 docs/
+# Custom libraries (agent, etc)
+lib/
