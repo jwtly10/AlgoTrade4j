@@ -16,15 +16,8 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        order: stop-first
     entrypoint: >
       sh -c "java
-      -XX:+UseG1GC 
-      -XX:+UseStringDeduplication
       -jar /app/algotrade4j-backtest-api.jar"
 
   live-api:
@@ -42,28 +35,11 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        order: stop-first
     entrypoint: >
       sh -c "java
-      -XX:+UseG1GC 
-      -XX:+UseStringDeduplication
       -jar /app/algotrade4j-live-api.jar"
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest
     ports:
       - "3000:80"
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 1
-        order: stop-first
-
-networks:
-  default:
-    external: true
-    name: algotrade4j_default
