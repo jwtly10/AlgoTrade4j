@@ -10,7 +10,7 @@ ARG VITE_NODE_ENV=prod
 ARG VITE_ENABLE_DEBUG_LOGS=false
 ARG VITE_ENABLE_SIGNUP=false
 ARG VITE_MAIN_API_HOST=https://api.algotrade4j.trade
-ARG VITE_LIVE_API_HOST=https://live.algotrade4j.trade
+ARG VITE_LIVE_API_HOST=https://live-api.algotrade4j.trade
 # Set environment variables from build arguments
 ENV VITE_NODE_ENV=${VITE_NODE_ENV}
 ENV VITE_ENABLE_DEBUG_LOGS=${VITE_ENABLE_DEBUG_LOGS}
