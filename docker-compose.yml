@@ -16,7 +16,7 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - NEW_RELIC_APP_NAME=algotrade4j-backtest-api
+      - NEW_RELIC_APP_NAME=backtest-api-prod
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_LOG_FILE_NAME=STDOUT
 
@@ -35,7 +35,7 @@ services:
       - ADDITIONAL_JAVA_OPTS=${ADDITIONAL_JAVA_OPTS}
       - GRAFANA_API_KEY=${GRAFANA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - NEW_RELIC_APP_NAME=algotrade4j-live-api
+      - NEW_RELIC_APP_NAME=live-api-prod
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_LOG_FILE_NAME=STDOUT
 
@@ -48,7 +48,7 @@ services:
     container_name: newrelic-infra
     build:
       context: .
-      dockerfile: newrelic-infra.dockerfile
+      dockerfile: infra-config/newrelic-infra.dockerfile
     environment:
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
     cap_add:
