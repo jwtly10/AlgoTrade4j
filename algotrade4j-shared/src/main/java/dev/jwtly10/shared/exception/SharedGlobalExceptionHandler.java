@@ -57,6 +57,6 @@ public class SharedGlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public void handleNoResourceFoundException(NoResourceFoundException ex) {
-        log.error("Resource not found: ", ex);
+        log.info("Handling invalid endpoint: /{}", ex.getResourcePath());
     }
 }

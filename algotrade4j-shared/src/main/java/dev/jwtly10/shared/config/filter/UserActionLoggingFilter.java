@@ -32,7 +32,10 @@ public class UserActionLoggingFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        if (!excludedPaths.contains(path)) {
+        filterChain.doFilter(request, response);
+
+        // Log after the request has been processed, so we can check the status code (to gracefully handle 404s)
+        if (!excludedPaths.contains(path) && response.getStatus() != HttpServletResponse.SC_NOT_FOUND) {
             String username = "anonymous";
             if (SecurityContextHolder.getContext().getAuthentication() != null) {
                 Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -47,8 +50,6 @@ public class UserActionLoggingFilter extends OncePerRequestFilter {
 
             log.info("User '{}' performed '{}' request on '{}'", username, method, path);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     @Override
