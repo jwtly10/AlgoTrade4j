@@ -20,6 +20,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Slf4j
 public class AuthController {
     final AuthenticationManager authenticationManager;
 
@@ -105,6 +106,7 @@ public class AuthController {
             // Log the user login IP
             String ipAddress = getClientIpAddress(request);
             String userAgent = request.getHeader("User-Agent");
+            // If successful login, log the user login to db
             userLoginLogService.logUserLogin(userDetails.getId(), ipAddress, userAgent);
 
             // Track the user login
@@ -121,8 +123,11 @@ public class AuthController {
                     userDetails.getEmail(),
                     role));
         } catch (BadCredentialsException e) {
+            log.warn("Login attempt failed for user: {}", loginRequest.getUsername());
             throw new ApiException("Invalid username or password", ErrorType.UNAUTHORIZED);
-        } catch (AuthenticationException e) {
+        } catch (Exception e) {
+            // TODO: Do we need to handle anything like this?
+            log.error("Unexpected Error - Authentication failed: {}", e.getMessage());
             throw new ApiException("Authentication failed: " + e.getMessage(), ErrorType.UNAUTHORIZED);
         }
     }
