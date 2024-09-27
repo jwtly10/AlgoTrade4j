@@ -9,6 +9,7 @@ import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.Parameter;
 import lombok.extern.slf4j.Slf4j;
 
+// Last Modified @ 27/09/2024 10:43:00:PM
 @Slf4j
 public class SMACrossoverStrategy extends BaseStrategy {
     @Parameter(name = "shortSMALength", description = "Length of short-term SMA", value = "10")
