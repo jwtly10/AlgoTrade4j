@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -64,8 +65,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 ipAddress = request.getRemoteAddr();
             }
 
-            log.warn("Unauthenticated access attempt: Method: {}, Path: {}, IP: {}, Country: {}, CF-RAY: {}, User-Agent: {}",
-                    method, path, ipAddress, country, cfRay, userAgent);
+            // We can ignore the /api/v1/auth/verify path as it is used to verify the JWT token
+            // And isn't a concern - it checks on all page loads, if someone just accesses /login, it will trigger and log, but it's not worth logging as malicious
+            if (!Objects.equals(path, "/api/v1/auth/verify")) {
+                log.warn("Unauthenticated access attempt: Method: {}, Path: {}, IP: {}, Country: {}, CF-RAY: {}, User-Agent: {}",
+                        method, path, ipAddress, country, cfRay, userAgent);
+
+            }
         }
 
         filterChain.doFilter(request, response);
