@@ -9,6 +9,8 @@ import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 @Slf4j
 public class DefaultTradeStateManager implements TradeStateManager {
     private final EventPublisher eventPublisher;
@@ -97,18 +99,24 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     private void updateAccountBalanceAndEquity(AccountManager accountManager, TradeManager tradeManager) {
-        double totalRealisedProfit = tradeManager.getAllTrades().values().stream()
-                .filter(trade -> trade.getCloseTime() != null && trade.getClosePrice() != Number.ZERO) // This calculation should only use closed trades
-                .map(Trade::getProfit)
-                .reduce(0.0, Double::sum);
+//        double totalRealisedProfit = tradeManager.getAllTrades().values().stream()
+//                .filter(trade -> trade.getCloseTime() != null && trade.getClosePrice() != Number.ZERO) // This calculation should only use closed trades
+//                .map(Trade::getProfit)
+//                .reduce(0.0, Double::sum);
+
+        double totalRealisedProfit = 0.0;
+
+        List<Trade> allTrades = tradeManager.getAllTrades().values().stream().toList();
+        for (Trade allTrade : allTrades) {
+            if (allTrade.getCloseTime() != null && allTrade.getClosePrice() != Number.ZERO) {
+                totalRealisedProfit += allTrade.getProfit();
+            }
+        }
 
         // Calculate current balance by adding total profit to initial balance
         double initialBalance = accountManager.getInitialBalance();
         double currentBalance = initialBalance + totalRealisedProfit;
-        double cjkd = accountManager.getBalance();
 
-
-        log.trace("Initial balance: {}, total realised profit: {}, current balance: {}", initialBalance, totalRealisedProfit, currentBalance);
         // Set the current balance
         accountManager.setBalance(currentBalance);
 
@@ -119,7 +127,5 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
         double equity = currentBalance + unrealisedProfit;
         accountManager.setEquity(equity);
-
-        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealisedProfit, equity);
     }
 }
