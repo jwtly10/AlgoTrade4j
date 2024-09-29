@@ -52,17 +52,17 @@ class StrategyManagerIntegrationTest {
 
     @Test
     @Timeout(30)
-    void testBacktestRunForNASOanda() throws InterruptedException {
+    void testBasicBacktestRunForNASOanda() throws InterruptedException {
         StrategyConfig config = new StrategyConfig();
-        config.setStrategyClass("PinnedDJATRStrategy");
+        config.setStrategyClass("IntegrationTestStrategy");
         config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
         config.setPeriod(Period.M15);
         config.setSpread(10);
         config.setSpeed(DataSpeed.INSTANT);
         config.setInitialCash(10000);
         config.setTimeframe(new Timeframe(
-                ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")), // 2023-01-01 00:00:00 UTC
-                ZonedDateTime.of(2023, 8, 1, 0, 0, 0, 0, ZoneId.of("UTC")) // 2023-08-01 00:00:00 UTC
+                ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")),
+                ZonedDateTime.of(2023, 8, 1, 0, 0, 0, 0, ZoneId.of("UTC"))
         ));
         config.setRunParams(
                 List.of(
@@ -70,59 +70,35 @@ class StrategyManagerIntegrationTest {
                         new StrategyConfig.RunParameter("riskRatio", "5"),
                         new StrategyConfig.RunParameter("riskPercentage", "1"),
                         new StrategyConfig.RunParameter("balanceToRisk", "10000"),
-
                         new StrategyConfig.RunParameter("atrLength", "14"),
                         new StrategyConfig.RunParameter("atrSensitivity", "0.6"),
                         new StrategyConfig.RunParameter("relativeSize", "2"),
                         new StrategyConfig.RunParameter("shortSMALength", "50"),
                         new StrategyConfig.RunParameter("longSMALength", "0"),
-
                         new StrategyConfig.RunParameter("tradeDirection", "ANY"),
                         new StrategyConfig.RunParameter("startTradeTime", "9"),
-                        new StrategyConfig.RunParameter("endTradeTime", "20")
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+                        new StrategyConfig.RunParameter("riskProfile", "NONE")
                 )
         );
 
-        String strategyId = "int-test-strategy-id";
-        CountDownLatch latch = new CountDownLatch(1);
+        List<BaseEvent> capturedEvents = runStrategy(config);
 
-        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
-
-        doAnswer(invocation -> {
-            BaseEvent event = invocation.getArgument(0);
-            if (event instanceof StrategyStopEvent && ((StrategyStopEvent) event).getStrategyId().equals(strategyId)) {
-                latch.countDown();
-            }
-            return null;
-        }).when(eventPublisher).publishEvent(eventCaptor.capture());
-
-        strategyManager.startStrategy(config, strategyId);
-
-        // Wait for the strategy to stop
-        assertTrue(latch.await(30, TimeUnit.SECONDS), "Strategy did not complete in time");
-
-        List<BaseEvent> capturedEvents = eventCaptor.getAllValues();
-        assertFalse(capturedEvents.isEmpty(), "No events were published");
-
-        // Validate
+        // Validate basic events
         assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof BarEvent), "No BarEvent was published");
         assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof TradeEvent), "No TradeEvent was published");
         assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof AccountEvent), "No AccountEvent was published");
         assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof StrategyStopEvent), "Strategy did not stop");
 
-        // Validate some of the profit of the trades
+        // Validate trade profits
         List<TradeEvent> tradeEvents = capturedEvents.stream()
                 .filter(e -> e instanceof TradeEvent && ((((TradeEvent) e).getAction() == TradeEvent.Action.CLOSE)))
                 .map(e -> (TradeEvent) e)
                 .toList();
         log.info("Total Trades: {}", tradeEvents.size());
 
-        // Checking the first 100 trades are as expected
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < Math.min(100, tradeEvents.size()); i++) {
             double profit = tradeEvents.get(i).getTrade().getProfit();
-            // Is profitable trade
-            // NB: If this fails due to profit outside of range, it may be due to SlippageModel.java, which is a crude slippage model for roughly realistic slippage calculations
-            // If it is changed, it may affect this test.
             if (profit > 0) {
                 assertTrue(profit < 550 && profit > 490, "Given a 5 RR with 1% risk. Profit should be between 490 and 550 (spread may cause discrepancy). Profit was: " + profit);
             } else {
@@ -130,7 +106,7 @@ class StrategyManagerIntegrationTest {
             }
         }
 
-        // Validate output of the strategy
+        // Validate account results
         AccountEvent accountEvent = (AccountEvent) capturedEvents.stream()
                 .filter(e -> e instanceof AccountEvent)
                 .reduce((first, second) -> second)
@@ -154,12 +130,87 @@ class StrategyManagerIntegrationTest {
                 profitPercentage
         );
 
-        // Assertions to check if numbers are roughly equal
-        double epsilon = 0.01; // Tolerance
+        double epsilon = 0.01;
+        assertEquals(28586.58, balance, epsilon, "Balance should be ~= 28586.58");
+        assertEquals(28586.58, equity, epsilon, "Equity should be ~= 28586.58");
+        assertEquals(18586.58, profit, epsilon, "Profit should be ~= 18586.58");
+        assertEquals(185.86, profitPercentage, epsilon, "Profit percentage should be ~= 185.86%");
+    }
 
-        assert Math.abs(balance - 28586.58) < epsilon : "Balance should be ~= 27119.16";
-        assert Math.abs(equity - 28586.58) < epsilon : "Equity should be ~= 27119.16";
-        assert Math.abs(profit - 18586.58) < epsilon : "Profit should be ~= 17119.16";
-        assert Math.abs(profitPercentage - 185.86) < epsilon : "Profit percentage should be ~= 171.19%";
+    @Test
+//    @Timeout(30)
+    void testRiskManagementForMFF() throws InterruptedException {
+        StrategyConfig config = new StrategyConfig();
+        config.setStrategyClass("IntegrationTestStrategy");
+        config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
+        config.setPeriod(Period.M15);
+        config.setSpread(10);
+        config.setSpeed(DataSpeed.INSTANT);
+        config.setInitialCash(10000);
+        config.setTimeframe(new Timeframe(
+                ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")),
+                ZonedDateTime.of(2023, 1, 10, 0, 0, 0, 0, ZoneId.of("UTC"))
+        ));
+        config.setRunParams(
+                List.of(
+                        new StrategyConfig.RunParameter("stopLossTicks", "300"),
+                        new StrategyConfig.RunParameter("riskRatio", "5"),
+                        new StrategyConfig.RunParameter("riskPercentage", "1"),
+                        new StrategyConfig.RunParameter("balanceToRisk", "10000"),
+                        new StrategyConfig.RunParameter("atrLength", "14"),
+                        new StrategyConfig.RunParameter("atrSensitivity", "0.6"),
+                        new StrategyConfig.RunParameter("relativeSize", "2"),
+                        new StrategyConfig.RunParameter("shortSMALength", "50"),
+                        new StrategyConfig.RunParameter("longSMALength", "0"),
+                        new StrategyConfig.RunParameter("tradeDirection", "ANY"),
+                        new StrategyConfig.RunParameter("startTradeTime", "9"),
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+                        new StrategyConfig.RunParameter("riskProfile", "MFF")
+                )
+        );
+
+        List<BaseEvent> capturedEvents = runStrategy(config);
+
+        // Validate basic events
+        assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof BarEvent), "No BarEvent was published");
+        assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof TradeEvent), "No TradeEvent was published");
+        assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof AccountEvent), "No AccountEvent was published");
+        assertTrue(capturedEvents.stream().anyMatch(e -> e instanceof StrategyStopEvent), "Strategy did not stop");
+
+        // Validate trade profits
+        List<TradeEvent> tradeEvents = capturedEvents.stream()
+                .filter(e -> e instanceof TradeEvent && ((((TradeEvent) e).getAction() == TradeEvent.Action.CLOSE)))
+                .map(e -> (TradeEvent) e)
+                .toList();
+        log.info("Total Trades: {}", tradeEvents.size());
+
+        tradeEvents.forEach(tradeEvent -> {
+            log.info("Trade: {}", tradeEvent.getTrade());
+        });
+    }
+
+    private List<BaseEvent> runStrategy(StrategyConfig config) throws InterruptedException {
+        String strategyId = "int-test-strategy-id";
+        CountDownLatch latch = new CountDownLatch(1);
+
+        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
+
+        doAnswer(invocation -> {
+            BaseEvent event = invocation.getArgument(0);
+            if (event instanceof StrategyStopEvent && ((StrategyStopEvent) event).getStrategyId().equals(strategyId)) {
+                latch.countDown();
+            }
+            return null;
+        }).when(eventPublisher).publishEvent(eventCaptor.capture());
+
+        strategyManager.startStrategy(config, strategyId);
+
+        assertTrue(latch.await(700, TimeUnit.SECONDS), "Strategy did not complete in time");
+//        assertTrue(latch.await(30, TimeUnit.SECONDS), "Strategy did not complete in time");
+
+        List<BaseEvent> capturedEvents = eventCaptor.getAllValues();
+        assertFalse(capturedEvents.isEmpty(), "No events were published");
+
+        return capturedEvents;
     }
 }

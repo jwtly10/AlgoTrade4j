@@ -22,11 +22,11 @@ class LogEventTest {
 
     @Test
     void testWarningLogEvent() {
-        LogEvent event = new LogEvent("strategy2", LogEvent.LogType.WARNING, "Warning: {} occurred", "Low memory");
+        LogEvent event = new LogEvent("strategy2", LogEvent.LogType.WARN, "Warning: {} occurred", "Low memory");
 
         assertEquals("strategy2", event.getStrategyId());
         assertEquals("LOG", event.getType());
-        assertEquals(LogEvent.LogType.WARNING, event.getLogType());
+        assertEquals(LogEvent.LogType.WARN, event.getLogType());
         assertEquals("Warning: Low memory occurred", event.getMessage());
     }
 

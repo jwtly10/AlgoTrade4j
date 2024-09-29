@@ -13,6 +13,8 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskStatus;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
@@ -34,13 +36,14 @@ public class BacktestExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
     private final PerformanceAnalyser performanceAnalyser;
+    private final RiskManager riskManager;
     @Getter
     private final String strategyId;
     @Getter
     @Setter
     private volatile boolean initialised = false;
 
-    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
+    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, RiskManager riskManager) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataManager = dataManager;
@@ -49,6 +52,7 @@ public class BacktestExecutor implements DataListener {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.performanceAnalyser = performanceAnalyser;
+        this.riskManager = riskManager;
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
 
@@ -76,11 +80,37 @@ public class BacktestExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-            strategy.onTick(tick, currentBar);
             tradeStateManager.updateTradeStates(tradeManager, tick);
+            tradeStateManager.updateAccountState(accountManager, tradeManager);
+
+            // We access risk on tick to ensure we have the latest account state
+            // Before we actually do anything with the strategy
+            RiskStatus res = riskManager.assessRisk(tick.getDateTime());
+            if (res.isRiskViolated()) {
+                // Check if we have open trades
+                if (!tradeManager.getOpenTrades().isEmpty()) {
+                    log.warn("Risk violation detected. Closing all trades: {}", res.getReason());
+//                    eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.WARN, "Risk violation detected. Closing all trades: " + res.getReason()));
+//                    log.info("All trades: ");
+//                    tradeManager.getAllTrades().forEach((tradeId, t) -> {
+//                        log.info("Trade Id: {}, Profit: {}", tradeId, t.getProfit());
+//                    });
+                    tradeManager.getOpenTrades().forEach((id, trade) -> {
+                        try {
+                            tradeManager.closePosition(id, true);
+                        } catch (Exception e) {
+                            log.error("Error closing trade: {}", trade, e);
+                        }
+                    });
+                }
+            }
+
             performanceAnalyser.updateOnTick(accountManager.getEquity());
+
+            strategy.onTick(tick, currentBar);
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error processing" + e.getMessage()));
+            throw new BacktestExecutorException(strategyId, "Error processing tick data: ", e);
         }
     }
 
@@ -91,14 +121,15 @@ public class BacktestExecutor implements DataListener {
             return;
         }
         try {
-            tradeStateManager.updateAccountState(accountManager, tradeManager);
+            // On Bar we send event with account data:
+            eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
             // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
             IndicatorUtils.updateIndicators(strategy, closedBar);
             strategy.onBarClose(closedBar);
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
             performanceAnalyser.updateOnBar(accountManager.getEquity(), closedBar.getCloseTime());
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            throw new BacktestExecutorException(strategyId, "Error processing bar close: ", e);
         }
     }
 
@@ -113,7 +144,7 @@ public class BacktestExecutor implements DataListener {
             // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us notify frontend of progress each day
             eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            throw new BacktestExecutorException(strategyId, "Error processing new day:", e);
         }
     }
 

@@ -79,6 +79,8 @@ class DefaultTradeStateManagerTest {
         when(accountManager.getEquity()).thenReturn(1000.00);
         when(accountManager.getBalance()).thenReturn(1000.00);
 
+        when(tradeManager.getAllTrades()).thenReturn(openTrades);
+
         tradeStateManager.updateAccountState(accountManager, tradeManager);
         verify(mockEventPublisher, times(1)).publishEvent(
                 any(AccountEvent.class)
@@ -129,6 +131,7 @@ class DefaultTradeStateManagerTest {
         Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
         openTrades.put(2, shortTrade);
         when(tradeManager.getOpenTrades()).thenReturn(openTrades);
+        when(tradeManager.getAllTrades()).thenReturn(openTrades);
         when(accountManager.getInitialBalance()).thenReturn(1000.0);
         when(accountManager.getEquity()).thenReturn(10.0); // 1% of equity
 

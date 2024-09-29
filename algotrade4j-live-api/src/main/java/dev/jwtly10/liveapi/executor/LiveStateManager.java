@@ -12,6 +12,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.liveapi.model.Stats;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import dev.jwtly10.marketdata.common.BrokerClient;
@@ -29,9 +30,10 @@ public class LiveStateManager {
     private final Instrument instrument;
     private final LiveStrategyService liveStrategyService;
     private final PerformanceAnalyser performanceAnalyser;
+    private final RiskManager riskManager;
 
     public LiveStateManager(BrokerClient brokerClient, AccountManager accountManager, TradeManager tradeManager,
-                            EventPublisher eventPublisher, String strategyId, Instrument instrument, LiveStrategyService liveStrategyService) {
+                            EventPublisher eventPublisher, String strategyId, Instrument instrument, LiveStrategyService liveStrategyService, RiskManager riskManager) {
         this.brokerClient = brokerClient;
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
@@ -40,6 +42,7 @@ public class LiveStateManager {
         this.strategyId = strategyId;
         this.liveStrategyService = liveStrategyService;
         this.performanceAnalyser = new PerformanceAnalyser();
+        this.riskManager = riskManager;
     }
 
     /**
@@ -56,6 +59,9 @@ public class LiveStateManager {
             List<Trade> openTrades = trades.stream().filter(trade -> trade.getClosePrice() == Number.ZERO || trade.getClosePrice() == null).collect(Collectors.toList());
             tradeManager.updateAllTrades(trades);
             tradeManager.updateOpenTrades(openTrades);
+
+            // Since we have all the trade/balance context here, we can run the risk management logic
+
 
             // Update any WS clients with latest trade results
             eventPublisher.publishEvent(new AsyncTradesEvent(strategyId, instrument, tradeManager.getAllTrades()));

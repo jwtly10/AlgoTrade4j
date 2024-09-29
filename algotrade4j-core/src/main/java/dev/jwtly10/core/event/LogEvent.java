@@ -36,7 +36,7 @@ public class LogEvent extends BaseEvent {
 
     public enum LogType {
         INFO,
-        WARNING,
+        WARN,
         ERROR
     }
 }

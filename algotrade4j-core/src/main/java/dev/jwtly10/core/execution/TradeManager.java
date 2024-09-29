@@ -7,7 +7,6 @@ import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.model.TradeParameters;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -16,10 +15,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
 public interface TradeManager {
-
-
+    /**
+     * Updates the list of open trades in the trading account.
+     * This method is called on each update (for live integrations) to keep the list of all trades up to date.
+     * The list of open trades is used to calculate the total value of open positions and to manage stop-loss and take-profit orders.
+     *
+     * @param trades The list of open trades in the trading account
+     */
     void updateOpenTrades(List<Trade> trades);
 
+    /**
+     * Updates the list of all trades in the trading account.
+     * This method is called on each update (for live integrations) to keep the list of all trades up to date.
+     *
+     * @param trades The list of all trades in the trading account
+     */
     void updateAllTrades(List<Trade> trades);
 
     /**
@@ -27,7 +37,7 @@ public interface TradeManager {
      * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
-     * @return A unique identifier for the opened trade
+     * @return A unique identifier for the opened trade. Will return null if the trade was not opened
      */
     Integer openLong(TradeParameters params) throws InvalidTradeException;
 
@@ -36,7 +46,7 @@ public interface TradeManager {
      * The quantity of the asset to purchase is calculated based on the risk ratio and the balance (configurable)
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
-     * @return A unique identifier for the opened trade
+     * @return A unique identifier for the opened trade. Will return null if the trade was not opened
      */
     Integer openShort(TradeParameters params) throws InvalidTradeException;
 
@@ -68,11 +78,33 @@ public interface TradeManager {
      */
     double getOpenPositionValue(Instrument instrument);
 
-    Map<Integer, Trade> getAllTrades();
+    /**
+     * Gets the map of all trades in the trading account.
+     *
+     * @return The map of all trades
+     */
+    ConcurrentHashMap<Integer, Trade> getAllTrades();
 
+    /**
+     * Gets the map of open trades in the trading account.
+     *
+     * @return The map of open trades
+     */
     ConcurrentHashMap<Integer, Trade> getOpenTrades();
 
+    /**
+     * Sets the current tick for the strategy.
+     *
+     * @param tick The current tick
+     */
     void setCurrentTick(Tick tick);
+
+    /**
+     * Returns the strategy ID of the current strategy.
+     *
+     * @return The strategy ID
+     */
+    String getStrategyId();
 
     enum BALANCE_TYPE {
         EQUITY,

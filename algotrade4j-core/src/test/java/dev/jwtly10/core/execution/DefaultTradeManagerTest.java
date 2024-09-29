@@ -5,6 +5,7 @@ import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,13 +23,15 @@ class DefaultTradeManagerTest {
     private EventPublisher mockEventPublisher;
     private Tick mockCurrentTick;
     private BarSeries mockBarSeries;
+    private RiskManager mockRiskManager;
 
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
         mockBarSeries = mock(DefaultBarSeries.class);
         mockCurrentTick = mock(DefaultTick.class);
-        backtestTradeManager = new DefaultTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
+        mockRiskManager = mock(RiskManager.class);
+        backtestTradeManager = new DefaultTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher, mockRiskManager);
     }
 
     @Test

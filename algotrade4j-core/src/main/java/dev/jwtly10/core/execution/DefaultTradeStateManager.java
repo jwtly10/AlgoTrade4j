@@ -1,7 +1,6 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.account.AccountManager;
-import dev.jwtly10.core.event.AccountEvent;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.exception.RiskException;
@@ -98,26 +97,29 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     private void updateAccountBalanceAndEquity(AccountManager accountManager, TradeManager tradeManager) {
-        double totalProfit = tradeManager.getAllTrades().values().stream()
+        double totalRealisedProfit = tradeManager.getAllTrades().values().stream()
+                .filter(trade -> trade.getCloseTime() != null && trade.getClosePrice() != Number.ZERO) // This calculation should only use closed trades
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
 
         // Calculate current balance by adding total profit to initial balance
         double initialBalance = accountManager.getInitialBalance();
-        double currentBalance = initialBalance + totalProfit;
+        double currentBalance = initialBalance + totalRealisedProfit;
+        double cjkd = accountManager.getBalance();
 
-        log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
+
+        log.trace("Initial balance: {}, total realised profit: {}, current balance: {}", initialBalance, totalRealisedProfit, currentBalance);
         // Set the current balance
         accountManager.setBalance(currentBalance);
 
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
-        double unrealizedProfitLoss = tradeManager.getAllTrades().values().stream()
-                .filter(trade -> trade.getClosePrice().equals(Number.ZERO)) // Filter for open trades
+        double unrealisedProfit = tradeManager.getOpenTrades().values().stream()
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
-        double equity = currentBalance + unrealizedProfitLoss;
+
+        double equity = currentBalance + unrealisedProfit;
         accountManager.setEquity(equity);
-        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
-        eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
+
+        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealisedProfit, equity);
     }
 }

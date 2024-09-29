@@ -8,6 +8,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
@@ -172,10 +173,11 @@ public class LiveStrategyManager {
         // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
         // TODO: This should be based on either indicators or period size (eg we dont need a week of data for 1m period)
         OandaDataClient oandaDataClient = new OandaDataClient(client);
+        ZonedDateTime start = ZonedDateTime.now();
         oandaDataClient.fetchCandles(
                 config.getInstrumentData().getInstrument(),
-                ZonedDateTime.now().minus(config.getPeriod().getDuration().multipliedBy(5000)),
-                ZonedDateTime.now(),
+                start.minus(config.getPeriod().getDuration().multipliedBy(5000)),
+                start,
                 config.getPeriod().getDuration(),
                 new ClientCallback() {
                     @Override
@@ -207,12 +209,15 @@ public class LiveStrategyManager {
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
 
+
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        TradeManager tradeManager = new LiveTradeManager(client);
+        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, eventPublisher, strategyId, start);
+
+        TradeManager tradeManager = new LiveTradeManager(client, riskManager, strategyInstance.getStrategyId());
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
-        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
+        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService, riskManager);
 
         strategyInstance.setParameters(runParams);
         strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());
@@ -223,7 +228,8 @@ public class LiveStrategyManager {
                 accountManager,
                 dataManager,
                 eventPublisher,
-                liveStateManager
+                liveStateManager,
+                riskManager
         );
 
         executor.initialise();

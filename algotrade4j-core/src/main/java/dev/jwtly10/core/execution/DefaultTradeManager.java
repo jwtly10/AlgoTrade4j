@@ -1,35 +1,39 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LogEvent;
 import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class DefaultTradeManager implements TradeManager {
+    @Getter
     private final String strategyId;
     @Getter
-    private final Map<Integer, Trade> allTrades;
+    private final ConcurrentHashMap<Integer, Trade> allTrades;
     @Getter
     private final ConcurrentHashMap<Integer, Trade> openTrades;
     private final EventPublisher eventPublisher;
+    private final RiskManager riskManager;
     private final BarSeries barSeries;
     @Setter
     private Tick currentTick;
 
-    public DefaultTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher) {
-        this.allTrades = new HashMap<>();
+    public DefaultTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher, RiskManager riskManager) {
+        this.allTrades = new ConcurrentHashMap<>();
         this.openTrades = new ConcurrentHashMap<>();
         this.eventPublisher = eventPublisher;
+        this.riskManager = riskManager;
         this.strategyId = strategyId;
         this.barSeries = barSeries;
         this.currentTick = currentTick;
@@ -37,12 +41,12 @@ public class DefaultTradeManager implements TradeManager {
 
     @Override
     public void updateOpenTrades(List<Trade> trades) {
-
+        // Not needed for backtest implementations where trade data is internally managed
     }
 
     @Override
     public void updateAllTrades(List<Trade> trades) {
-
+        // Not needed for backtest implementations where trade data is internally managed
     }
 
     @Override
@@ -58,6 +62,17 @@ public class DefaultTradeManager implements TradeManager {
     }
 
     private Integer openPosition(TradeParameters params) {
+        log.info("Opening trade here @ {}", currentTick.getDateTime());
+        RiskStatus res = riskManager.canTrade();
+        if (res.isRiskViolated()) {
+            log.warn("Will not open trade, risk profile violated @ {}: {}", currentTick.getDateTime(), res.getReason());
+            openTrades.values().forEach(trade -> {
+                log.info("Open trade Id: {}, Profit: {}", trade.getId(), trade.getProfit());
+            });
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.WARN, "Risk profile violated: " + res.getReason()));
+            return null;
+        }
+
         log.trace("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 params.isLong() ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
@@ -80,9 +95,10 @@ public class DefaultTradeManager implements TradeManager {
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
-        log.trace("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={} at {}",
-                trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), trade.getOpenTime());
-        return trade.getId();
+        var id = trade.getId();
+        log.info("Opened {} position: id={} instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={} at {}",
+                trade.isLong() ? "long" : "short", id, trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), trade.getOpenTime());
+        return id;
     }
 
     @Override
@@ -138,7 +154,7 @@ public class DefaultTradeManager implements TradeManager {
 
         trade.setProfit(profitLoss);
 
-        log.trace("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
+        log.info("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.CLOSE));
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));

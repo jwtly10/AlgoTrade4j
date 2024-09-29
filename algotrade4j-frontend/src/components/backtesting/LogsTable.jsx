@@ -13,7 +13,7 @@ const LogsTable = ({logs, rowsPerPage: defaultRowsPerPage = 10}) => {
         switch (type) {
             case 'INFO':
                 return <InfoIcon className="h-4 w-4 text-blue-500"/>;
-            case 'WARNING':
+            case 'WARN':
                 return <AlertTriangleIcon className="h-4 w-4 text-yellow-500"/>;
             case 'ERROR':
                 return <AlertCircleIcon className="h-4 w-4 text-red-500"/>;

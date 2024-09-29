@@ -10,6 +10,7 @@ import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.risk.RiskProfileConfig;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -105,4 +106,12 @@ public interface Strategy {
      * @param chatId   The chat id to send notifications to
      */
     void setNotificationService(Notifier notifier, String chatId);
+
+    /**
+     * Get the risk profile configuration for the strategy
+     *
+     * @return The risk profile configuration
+     */
+    RiskProfileConfig getRiskProfileConfig();
+
 }

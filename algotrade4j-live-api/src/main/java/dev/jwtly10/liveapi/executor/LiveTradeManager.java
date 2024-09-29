@@ -4,23 +4,32 @@ import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskStatus;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LiveTradeManager implements TradeManager {
-
+    private static final Logger log = LoggerFactory.getLogger(LiveTradeManager.class);
     private final BrokerClient brokerClient;
+    private final RiskManager riskManager;
+    @Getter
+    private final String strategyId;
 
     private ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Trade> allTrades = new ConcurrentHashMap<>();
 
     private Tick currentTick;
 
-    public LiveTradeManager(BrokerClient brokerClient) {
+    public LiveTradeManager(BrokerClient brokerClient, RiskManager riskManager, String strategyId) {
         this.brokerClient = brokerClient;
+        this.riskManager = riskManager;
+        this.strategyId = strategyId;
     }
 
     @Override
@@ -48,6 +57,12 @@ public class LiveTradeManager implements TradeManager {
     }
 
     private Integer openPosition(TradeParameters params) {
+        RiskStatus res = riskManager.canTrade();
+        if (res.isRiskViolated()) {
+            log.warn("Not opening trade due to risk profile violation: {}", res.getReason());
+            throw new InvalidTradeException(res.getReason());
+        }
+
         return brokerClient.openTrade(params.createTrade()).getId();
     }
 
@@ -82,7 +97,7 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public Map<Integer, Trade> getAllTrades() {
+    public ConcurrentHashMap<Integer, Trade> getAllTrades() {
         return allTrades;
     }
 
