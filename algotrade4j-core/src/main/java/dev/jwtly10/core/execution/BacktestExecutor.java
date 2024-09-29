@@ -76,9 +76,12 @@ public class BacktestExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-            strategy.onTick(tick, currentBar);
             tradeStateManager.updateTradeStates(tradeManager, tick);
             performanceAnalyser.updateOnTick(accountManager.getEquity());
+
+            // All analysis should be done before calling the strategy
+
+            strategy.onTick(tick, currentBar);
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }

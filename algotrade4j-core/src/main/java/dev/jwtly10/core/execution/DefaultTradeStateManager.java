@@ -98,26 +98,27 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     private void updateAccountBalanceAndEquity(AccountManager accountManager, TradeManager tradeManager) {
-        double totalProfit = tradeManager.getAllTrades().values().stream()
+        double realisedProfit = tradeManager.getAllTrades().values().stream()
+                .filter(trade -> trade.getClosePrice() != Number.ZERO && trade.getCloseTime() != null) //  Only closed trades
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
 
         // Calculate current balance by adding total profit to initial balance
         double initialBalance = accountManager.getInitialBalance();
-        double currentBalance = initialBalance + totalProfit;
+        double currentBalance = initialBalance + realisedProfit;
 
-        log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, totalProfit, currentBalance);
+        log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, realisedProfit, currentBalance);
         // Set the current balance
         accountManager.setBalance(currentBalance);
 
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
-        double unrealizedProfitLoss = tradeManager.getAllTrades().values().stream()
+        double unrealizedProfit = tradeManager.getAllTrades().values().stream()
                 .filter(trade -> trade.getClosePrice().equals(Number.ZERO)) // Filter for open trades
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
-        double equity = currentBalance + unrealizedProfitLoss;
+        double equity = currentBalance + unrealizedProfit;
         accountManager.setEquity(equity);
-        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfitLoss, equity);
+        log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfit, equity);
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
     }
 }
