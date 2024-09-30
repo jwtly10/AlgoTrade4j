@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class DefaultTradeManager implements TradeManager {
+public class BacktestTradeManager implements TradeManager {
     private final String strategyId;
     @Getter
     private final Map<Integer, Trade> allTrades;
@@ -26,7 +26,7 @@ public class DefaultTradeManager implements TradeManager {
     @Setter
     private Tick currentTick;
 
-    public DefaultTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher) {
+    public BacktestTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher) {
         this.allTrades = new HashMap<>();
         this.openTrades = new ConcurrentHashMap<>();
         this.eventPublisher = eventPublisher;

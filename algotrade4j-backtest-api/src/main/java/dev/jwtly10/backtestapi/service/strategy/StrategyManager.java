@@ -102,7 +102,7 @@ public class StrategyManager {
             throw new StrategyManagerException("Error setting parameters for strategy: " + strategyId, ErrorType.INTERNAL_ERROR);
         }
 
-        TradeManager tradeManager = new DefaultTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
+        TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();

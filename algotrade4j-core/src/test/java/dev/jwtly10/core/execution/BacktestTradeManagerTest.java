@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
-class DefaultTradeManagerTest {
+class BacktestTradeManagerTest {
     private final Instrument SYMBOL = NAS100USD;
-    private DefaultTradeManager backtestTradeManager;
+    private BacktestTradeManager backtestTradeManager;
     private EventPublisher mockEventPublisher;
     private Tick mockCurrentTick;
     private BarSeries mockBarSeries;
@@ -28,7 +28,7 @@ class DefaultTradeManagerTest {
         mockEventPublisher = mock(EventPublisher.class);
         mockBarSeries = mock(DefaultBarSeries.class);
         mockCurrentTick = mock(DefaultTick.class);
-        backtestTradeManager = new DefaultTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
+        backtestTradeManager = new BacktestTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
     }
 
     @Test

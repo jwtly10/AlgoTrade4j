@@ -13,7 +13,7 @@ public class DefaultExecutorFactory implements ExecutorFactory {
     @Override
     public BacktestExecutor createExecutor(Strategy strategy, String id, DataManager dataManager, EventPublisher eventPublisher, double initialCash) {
         Tick currentTick = new DefaultTick();
-        TradeManager tradeManager = new DefaultTradeManager(currentTick, dataManager.getBarSeries(), id, eventPublisher);
+        TradeManager tradeManager = new BacktestTradeManager(currentTick, dataManager.getBarSeries(), id, eventPublisher);
         AccountManager accountManager = new DefaultAccountManager(
                 initialCash,
                 initialCash,
