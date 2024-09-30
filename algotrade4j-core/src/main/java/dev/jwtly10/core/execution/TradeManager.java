@@ -9,6 +9,7 @@ import dev.jwtly10.core.model.TradeParameters;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * The TradeManager interface defines the contract for executing trades and managing trading positions.
@@ -21,6 +22,13 @@ public interface TradeManager {
     void updateOpenTrades(List<Trade> trades);
 
     void updateAllTrades(List<Trade> trades);
+
+    /**
+     * Sets the callback to be executed when a trade is closed.
+     *
+     * @param callback The callback to be executed when a trade is closed
+     */
+    void setOnTradeCloseCallback(Consumer<Trade> callback);
 
     /**
      * Opens a long position for the specified instrument, uses the current ask price as the entry price.

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @Slf4j
 public class BacktestTradeManager implements TradeManager {
@@ -23,6 +24,7 @@ public class BacktestTradeManager implements TradeManager {
     private final ConcurrentHashMap<Integer, Trade> openTrades;
     private final EventPublisher eventPublisher;
     private final BarSeries barSeries;
+    private Consumer<Trade> onTradeCloseCallback;
     @Setter
     private Tick currentTick;
 
@@ -43,6 +45,11 @@ public class BacktestTradeManager implements TradeManager {
     @Override
     public void updateAllTrades(List<Trade> trades) {
 
+    }
+
+    @Override
+    public void setOnTradeCloseCallback(Consumer<Trade> callback) {
+        this.onTradeCloseCallback = callback;
     }
 
     @Override
@@ -80,7 +87,7 @@ public class BacktestTradeManager implements TradeManager {
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
-        log.trace("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={} at {}",
+        log.debug("Opened {} position: instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={} at {}",
                 trade.isLong() ? "long" : "short", trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity(), trade.getOpenTime());
         return trade.getId();
     }
@@ -138,10 +145,16 @@ public class BacktestTradeManager implements TradeManager {
 
         trade.setProfit(profitLoss);
 
-        log.trace("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
+        log.debug("Trade {} closed at {} ({}) for {}", trade.getId(), trade.getClosePrice(), trade.getCloseTime(), trade.getProfit());
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.CLOSE));
-        eventPublisher.publishEvent(new TradeEvent(strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
+
+        // Trigger any set callback on trade close
+        if (onTradeCloseCallback != null) {
+            onTradeCloseCallback.accept(trade);
+        } else {
+            log.warn("No callback set for trade close event");
+        }
     }
 
     @Override

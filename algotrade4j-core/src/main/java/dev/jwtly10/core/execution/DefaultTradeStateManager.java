@@ -22,7 +22,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     @Override
-    public void updateTradeStates(TradeManager tradeManager, Tick tick) {
+    public void updateTradeProfitStateOnTick(TradeManager tradeManager, Tick tick) {
         if (tick == null && lastTick == null) {
             // This will handles cases when the strategy first starts and there are no ticks to process
             log.trace("Tick data is null. Skipping hack update.");
@@ -41,8 +41,17 @@ public class DefaultTradeStateManager implements TradeStateManager {
     }
 
     @Override
-    public void updateAccountState(AccountManager accountManager, TradeManager tradeManager) {
-        updateAccountBalanceAndEquity(accountManager, tradeManager);
+    public void updateBalanceOnTradeClose(Trade trade, AccountManager accountManager) {
+        double profit = trade.getProfit();
+        double balance = accountManager.getBalance();
+        double newBalance = balance + profit;
+        accountManager.setBalance(newBalance);
+        log.trace("Updating balance on trade close. Trade id: {}, Profit: {}, Balance: {}", trade.getId(), profit, newBalance);
+    }
+
+    @Override
+    public void updateAccountEquityOnTick(AccountManager accountManager, TradeManager tradeManager) {
+        updateAccountEquity(accountManager, tradeManager);
 
         // Risk management TODO: Should we move this out the trade manager?
         // We will stop running if we go below 10% of initial balance.
@@ -97,26 +106,13 @@ public class DefaultTradeStateManager implements TradeStateManager {
         }
     }
 
-    private void updateAccountBalanceAndEquity(AccountManager accountManager, TradeManager tradeManager) {
-        double realisedProfit = tradeManager.getAllTrades().values().stream()
-                .filter(trade -> trade.getClosePrice() != Number.ZERO && trade.getCloseTime() != null) //  Only closed trades
-                .map(Trade::getProfit)
-                .reduce(0.0, Double::sum);
-
-        // Calculate current balance by adding total profit to initial balance
-        double initialBalance = accountManager.getInitialBalance();
-        double currentBalance = initialBalance + realisedProfit;
-
-        log.trace("Initial balance: {}, total profit: {}, current balance: {}", initialBalance, realisedProfit, currentBalance);
-        // Set the current balance
-        accountManager.setBalance(currentBalance);
-
+    private void updateAccountEquity(AccountManager accountManager, TradeManager tradeManager) {
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
-        double unrealizedProfit = tradeManager.getAllTrades().values().stream()
-                .filter(trade -> trade.getClosePrice().equals(Number.ZERO)) // Filter for open trades
-                .map(Trade::getProfit)
-                .reduce(0.0, Double::sum);
-        double equity = currentBalance + unrealizedProfit;
+        double unrealizedProfit = tradeManager.getOpenTrades().values().parallelStream()
+                .mapToDouble(Trade::getProfit)
+                .sum();
+
+        double equity = accountManager.getBalance() + unrealizedProfit;
         accountManager.setEquity(equity);
         log.trace("Unrealized profit/loss: {}, Equity: {}", unrealizedProfit, equity);
         eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));

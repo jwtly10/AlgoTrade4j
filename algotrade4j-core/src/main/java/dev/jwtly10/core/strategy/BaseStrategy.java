@@ -263,7 +263,7 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onDeInit() {
-        log.info("Strategy {} de init-ed", strategyId);
+        log.info("Strategy run {} completed", strategyId);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
     }
 

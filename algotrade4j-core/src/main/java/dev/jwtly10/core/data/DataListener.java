@@ -2,6 +2,7 @@ package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.Trade;
 
 import java.time.ZonedDateTime;
 
@@ -47,6 +48,11 @@ public interface DataListener {
      * Called when the data listener is stopped.
      */
     void onStop();
+
+    /**
+     * Called when a trade is closed
+     */
+    void onTradeClose(Trade trade);
 
     /**
      * The id of the data listener
