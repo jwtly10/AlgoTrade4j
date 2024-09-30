@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.mockito.ArgumentCaptor;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -48,9 +47,9 @@ class StrategyManagerIntegrationTest {
 
     @Test
     @Timeout(30)
-    void testBacktestRunForNASOanda() throws InterruptedException {
+    void testBacktestRunWithNoRiskProfile() throws InterruptedException {
         StrategyConfig config = new StrategyConfig();
-        config.setStrategyClass("PinnedDJATRStrategy");
+        config.setStrategyClass("IntegrationTestStrategy");
         config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
         config.setPeriod(Period.M15);
         config.setSpread(10);
@@ -75,12 +74,13 @@ class StrategyManagerIntegrationTest {
 
                         new StrategyConfig.RunParameter("tradeDirection", "ANY"),
                         new StrategyConfig.RunParameter("startTradeTime", "9"),
-                        new StrategyConfig.RunParameter("endTradeTime", "20")
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+
+                        new StrategyConfig.RunParameter("riskProfile", "NONE")
                 )
         );
 
         String strategyId = "int-test-strategy-id";
-        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
 
         strategyManager.startStrategy(config, strategyId);
 
@@ -149,6 +149,59 @@ class StrategyManagerIntegrationTest {
         assert Math.abs(profitPercentage - 185.86) < epsilon : "Profit percentage should be ~= 171.19%";
     }
 
+    @Test
+    @Timeout(30)
+    void testBacktestRunWithMFFRiskProfile() throws InterruptedException {
+        StrategyConfig config = new StrategyConfig();
+        config.setStrategyClass("IntegrationTestStrategy");
+        config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
+        config.setPeriod(Period.M15);
+        config.setSpread(10);
+        config.setSpeed(DataSpeed.INSTANT);
+        config.setInitialCash(10000);
+        config.setTimeframe(new Timeframe(
+                ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")), // 2023-01-01 00:00:00 UTC
+                ZonedDateTime.of(2023, 1, 10, 0, 0, 0, 0, ZoneId.of("UTC")) // 2023-01-10 00:00:00 UTC
+        ));
+        config.setRunParams(
+                List.of(
+                        new StrategyConfig.RunParameter("stopLossTicks", "300"),
+                        new StrategyConfig.RunParameter("riskRatio", "5"),
+                        new StrategyConfig.RunParameter("riskPercentage", "1"),
+                        new StrategyConfig.RunParameter("balanceToRisk", "10000"),
+
+                        new StrategyConfig.RunParameter("atrLength", "14"),
+                        new StrategyConfig.RunParameter("atrSensitivity", "0.6"),
+                        new StrategyConfig.RunParameter("relativeSize", "2"),
+                        new StrategyConfig.RunParameter("shortSMALength", "50"),
+                        new StrategyConfig.RunParameter("longSMALength", "0"),
+
+                        new StrategyConfig.RunParameter("tradeDirection", "ANY"),
+                        new StrategyConfig.RunParameter("startTradeTime", "9"),
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+
+                        new StrategyConfig.RunParameter("riskProfile", "MFF")
+                )
+        );
+
+        String strategyId = "int-test-strategy-id";
+
+        strategyManager.startStrategy(config, strategyId);
+
+        // Wait for strategy to stop
+        assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");
+
+        List<BaseEvent> capturedEvents = eventPublisher.getEvents();
+        assertFalse(capturedEvents.isEmpty(), "No events were published");
+
+        // Validate some of the profit of the trades
+        List<TradeEvent> tradeEvents = capturedEvents.stream()
+                .filter(e -> e instanceof TradeEvent && ((((TradeEvent) e).getAction() == TradeEvent.Action.CLOSE)))
+                .map(e -> (TradeEvent) e)
+                .toList();
+
+        log.info("Total Trades: {}", tradeEvents.size());
+    }
 
     private class InMemoryEventPublisher implements EventPublisher {
         @Getter

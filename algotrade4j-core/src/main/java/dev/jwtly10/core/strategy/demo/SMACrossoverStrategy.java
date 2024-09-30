@@ -5,6 +5,8 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.risk.RiskProfile;
+import dev.jwtly10.core.risk.RiskProfileConfig;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.Parameter;
 import lombok.extern.slf4j.Slf4j;
@@ -109,5 +111,10 @@ public class SMACrossoverStrategy extends BaseStrategy {
     @Override
     public void onEnd() {
         log.info("SMACrossoverStrategy shutting down. Final balance: {} Final Equity: {}", getBalance(), getEquity());
+    }
+
+    @Override
+    public RiskProfileConfig getRiskProfileConfig() {
+        return RiskProfile.NONE.getConfig();
     }
 }
