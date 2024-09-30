@@ -1,12 +1,15 @@
 package dev.jwtly10.marketdata.oanda;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.oanda.models.OandaOrder;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
 import dev.jwtly10.marketdata.oanda.response.*;
+import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -30,6 +33,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class OandaClient {
+    /**
+     * ObjectMapper instance for JSON processing.
+     */
+    protected static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
     private final String apiKey;
     private final String apiUrl;
     private final OkHttpClient client;
@@ -283,8 +291,8 @@ public class OandaClient {
      * @param accountId the account id to stream transactions for
      * @param callback  the callback to be invoked for each transaction update
      */
-    public void streamTransactions(String accountId, TransactionStreamCallback callback) {
-        log.debug("Streaming transactions for account: {}", accountId);
+    public void streamTransactions(String accountId, TransactionStreamCallback callback) throws IOException {
+        log.trace("Streaming transactions for account: {}", accountId);
         String url = String.format("%s/v3/accounts/%s/transactions/stream", streamUrl, accountId);
 
         Request req = new Request.Builder()
@@ -292,36 +300,34 @@ public class OandaClient {
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
 
-        client.newCall(req).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                log.error("Failed to stream transactions", e);
-            }
+        try (Response response = client.newCall(req).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
-                        log.trace("New line from stream: {}", line);
-                        if (line.contains("\"type\":\"TRANSACTION\"")) {
-                            log.debug("New transaction: {}", line);
-                            ObjectMapper mapper = new ObjectMapper();
-                            OandaTransactionResponse transaction = mapper.readValue(line, OandaTransactionResponse.class);
-                            callback.onTransaction(transaction);
-                        }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body().byteStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null && !Thread.currentThread().isInterrupted()) {
+                    JsonNode jsonNode = objectMapper.readTree(line);
+                    if (jsonNode.has("type") && "ORDER_FILL".equals(jsonNode.get("type").asText()) &&
+                            jsonNode.has("reason") && "MARKET_ORDER_TRADE_CLOSE".equals(jsonNode.get("reason").asText())) {
 
-                        if (line.contains("error")) {
-                            throw new Exception("Error in stream: " + line);
-                        }
+                        log.trace("Received ORDER_FILL transaction with MARKET_ORDER_TRADE_CLOSE reason: {}", line);
+                        OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
+
+                        callback.onOrderFillMarketClose(transaction);
                     }
-                } catch (Exception e) {
-                    callback.onError(e);
-                } finally {
-                    callback.onComplete();
+
+                    if (line.contains("error")) {
+                        throw new IOException("Error in stream: " + line);
+                    }
                 }
             }
-        });
+        } catch (Exception e) {
+            callback.onError(e);
+            throw e;  // Re-throw to signal the stream has ended
+        } finally {
+            callback.onComplete();
+        }
+
     }
 
 
@@ -392,7 +398,7 @@ public class OandaClient {
          *
          * @param transactionResponse the transaction
          */
-        void onTransaction(OandaTransactionResponse transactionResponse);
+        void onOrderFillMarketClose(OrderFillTransaction transactionResponse);
 
         /**
          * Called when an error occurs during streaming.

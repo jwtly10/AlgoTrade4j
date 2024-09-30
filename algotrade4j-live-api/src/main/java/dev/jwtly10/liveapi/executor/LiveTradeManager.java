@@ -5,22 +5,44 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
+import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public class LiveTradeManager implements TradeManager {
+@Slf4j
+public class LiveTradeManager implements TradeManager, AutoCloseable {
+
+    private final ExecutorService executorService;
 
     private final BrokerClient brokerClient;
 
     private ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Trade> allTrades = new ConcurrentHashMap<>();
+    private Consumer<Trade> onTradeCloseCallback;
 
     private Tick currentTick;
 
+    private boolean running;
+
     public LiveTradeManager(BrokerClient brokerClient) {
         this.brokerClient = brokerClient;
+        this.running = true;
+        this.executorService = Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Override
+    public void start() {
+        // Start the transaction stream
+        startTransactionStream();
     }
 
     @Override
@@ -33,6 +55,11 @@ public class LiveTradeManager implements TradeManager {
     public void updateAllTrades(List<Trade> trades) {
         allTrades = new ConcurrentHashMap<>();
         trades.forEach(trade -> allTrades.put(trade.getId(), trade));
+    }
+
+    @Override
+    public void setOnTradeCloseCallback(Consumer<Trade> callback) {
+        this.onTradeCloseCallback = callback;
     }
 
     @Override
@@ -94,5 +121,85 @@ public class LiveTradeManager implements TradeManager {
     @Override
     public void setCurrentTick(Tick tick) {
         this.currentTick = tick;
+    }
+
+    @Override
+    public void shutdown() {
+        running = false;
+        executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executorService.shutdownNow();
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        shutdown();
+    }
+
+    private void startTransactionStream() {
+        executorService.submit(() -> {
+            while (running) {
+                try {
+                    brokerClient.streamTransactions(new OandaClient.TransactionStreamCallback() {
+                        @Override
+                        public void onOrderFillMarketClose(OrderFillTransaction transaction) {
+                            // TODO: This should be refactored to support multiple different providers.
+                            // Or we just have a live manager per implementation (which I think may be better)
+
+                            // An oanda transaction can contain multiple trade closes.
+                            // So we iterate over all of them and run the callback for each.
+                            // Generally speaking there will only be one, but this is just to handle the edge case.
+                            transaction.tradesClosed().forEach(tradeClose -> {
+                                Trade trade = allTrades.get(Integer.parseInt(tradeClose.tradeID()));
+                                if (trade != null) {
+                                    trade.setClosePrice(new Number(tradeClose.price()));
+                                    trade.setCloseTime(ZonedDateTime.parse(transaction.time()));
+                                    trade.setProfit(Double.parseDouble(tradeClose.realizedPL()));
+                                    allTrades.put(trade.getId(), trade);
+                                    openTrades.remove(trade.getId());
+                                    // Trigger any set callback on trade close
+                                    if (onTradeCloseCallback != null) {
+                                        onTradeCloseCallback.accept(trade);
+                                    } else {
+                                        log.warn("No callback set for trade close event");
+                                    }
+                                } else {
+                                    log.warn("Trade not found for order fill transaction: {}", tradeClose);
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            log.error("Error in transaction stream", e);
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            log.info("Transaction stream completed");
+                            if (running) {
+                                log.info("Restarting transaction stream...");
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    log.error("Error starting transaction stream", e);
+                    if (running) {
+                        try {
+                            TimeUnit.SECONDS.sleep(5);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
     }
 }

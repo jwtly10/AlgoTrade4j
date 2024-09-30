@@ -174,4 +174,14 @@ public class BacktestTradeManager implements TradeManager {
                 .map(Trade::getProfit)
                 .reduce(0.0, Double::sum);
     }
+
+    @Override
+    public void shutdown() {
+        // Not needed for backtesting
+    }
+
+    @Override
+    public void start() {
+        // Not needed for backtesting
+    }
 }

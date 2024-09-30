@@ -47,6 +47,11 @@ public class LiveStrategyService {
         liveStrategyRepository.save(liveStrategy);
     }
 
+    public void clearErrorMessage(LiveStrategy liveStrategy) {
+        liveStrategy.setLastErrorMsg(null);
+        liveStrategyRepository.save(liveStrategy);
+    }
+
     public LiveStrategy updateStrategyStats(String liveStrategyId, Stats stats) {
         log.trace("Updating live strategy stats for strategy ID: {}", liveStrategyId);
 

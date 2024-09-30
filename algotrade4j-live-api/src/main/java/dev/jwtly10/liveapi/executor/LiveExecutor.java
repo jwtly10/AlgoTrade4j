@@ -3,10 +3,7 @@ package dev.jwtly10.liveapi.executor;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.event.BarEvent;
-import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.LogEvent;
-import dev.jwtly10.core.event.StrategyStopEvent;
+import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
@@ -46,7 +43,8 @@ public class LiveExecutor implements DataListener {
     public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
                         DataManager dataManager,
                         EventPublisher eventPublisher,
-                        LiveStateManager liveStateManager) {
+                        LiveStateManager liveStateManager
+    ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
         this.dataManager = dataManager;
@@ -54,6 +52,7 @@ public class LiveExecutor implements DataListener {
         this.eventPublisher = eventPublisher;
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
+        tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
     }
 
@@ -69,15 +68,14 @@ public class LiveExecutor implements DataListener {
         initialised = true;
 
         //  Load all the trades from the broker into memory
+        tradeManager.start();
         tradeManager.loadTrades();
         strategy.onStart();
 
         if (!this.dataManager.getBarSeries().isEmpty()) {
             IndicatorUtils.initializeIndicators(strategy, this.dataManager.getBarSeries().getBars());
-            Map<String, List<IndicatorValue>> allIndicatorsValues = new HashMap<>();
-            for (Indicator i : strategy.getIndicators()) {
-                allIndicatorsValues.put(i.getName(), i.getValues());
-            }
+            getIndicators();
+            Map<String, List<IndicatorValue>> allIndicatorsValues = getIndicators();
             eventPublisher.publishEvent(new AsyncIndicatorsEvent(strategyId, dataManager.getInstrument(), allIndicatorsValues));
         }
 
@@ -142,9 +140,17 @@ public class LiveExecutor implements DataListener {
         cleanup();
     }
 
+    @Override
+    public void onTradeClose(Trade trade) {
+        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
+    }
+
     private void cleanup() {
         log.debug("Cleaning up strategy");
         scheduler.shutdown();
+
+        // Shutdown any processes in the trade manager
+        tradeManager.shutdown();
 
         strategy.onDeInit();
         strategy.onEnd();

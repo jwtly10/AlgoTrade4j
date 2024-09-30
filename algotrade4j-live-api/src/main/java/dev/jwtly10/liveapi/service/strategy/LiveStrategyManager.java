@@ -92,7 +92,7 @@ public class LiveStrategyManager {
 
         log.info("Starting live strategy: {}", strategy.getStrategyName());
         // Reset error msg
-        liveStrategyService.setErrorMessage(strategy, null);
+        liveStrategyService.clearErrorMessage(strategy);
 
         LiveExecutor executor;
         try {
@@ -223,7 +223,8 @@ public class LiveStrategyManager {
                 accountManager,
                 dataManager,
                 eventPublisher,
-                liveStateManager
+                liveStateManager,
+                brokerClient
         );
 
         executor.initialise();

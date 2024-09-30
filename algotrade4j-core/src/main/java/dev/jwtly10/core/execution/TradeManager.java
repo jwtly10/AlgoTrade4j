@@ -17,10 +17,18 @@ import java.util.function.Consumer;
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
 public interface TradeManager {
-
-
+    /**
+     * Updates the status of open trades
+     *
+     * @param trades The list of open trades
+     */
     void updateOpenTrades(List<Trade> trades);
 
+    /**
+     * Updates the status of all trades
+     *
+     * @param trades The list of all trades
+     */
     void updateAllTrades(List<Trade> trades);
 
     /**
@@ -76,15 +84,35 @@ public interface TradeManager {
      */
     double getOpenPositionValue(Instrument instrument);
 
+    /**
+     * Retrieves all trades.
+     *
+     * @return A map of all trades, with the trade ID as the key and the Trade object as the value
+     */
     Map<Integer, Trade> getAllTrades();
 
+    /**
+     * Retrieves all open trades.
+     *
+     * @return A map of all open trades, with the trade ID as the key and the Trade object as the value
+     */
     ConcurrentHashMap<Integer, Trade> getOpenTrades();
 
+    /**
+     * Sets the current tick for the TradeManager.
+     *
+     * @param tick the current tick
+     */
     void setCurrentTick(Tick tick);
 
-    enum BALANCE_TYPE {
-        EQUITY,
-        BALANCE,
-        INITIAL
-    }
+    /**
+     * Starts any background processes.
+     */
+    void start();
+
+    /**
+     * Shuts down any running processes and releases resources.
+     * This method should be called when the TradeManager is no longer needed.
+     */
+    void shutdown();
 }
