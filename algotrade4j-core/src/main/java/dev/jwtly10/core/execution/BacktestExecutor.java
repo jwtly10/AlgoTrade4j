@@ -10,6 +10,7 @@ import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
@@ -30,6 +31,7 @@ public class BacktestExecutor implements DataListener {
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
+    private final RiskManager riskManager;
     private final PerformanceAnalyser performanceAnalyser;
     @Getter
     private final String strategyId;
@@ -37,7 +39,7 @@ public class BacktestExecutor implements DataListener {
     @Setter
     private volatile boolean initialised = false;
 
-    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
+    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, RiskManager riskManager) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataManager = dataManager;
@@ -46,6 +48,7 @@ public class BacktestExecutor implements DataListener {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.performanceAnalyser = performanceAnalyser;
+        this.riskManager = riskManager;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
@@ -77,6 +80,8 @@ public class BacktestExecutor implements DataListener {
             tradeStateManager.updateTradeProfitStateOnTick(tradeManager, tick);
             tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager);
             performanceAnalyser.updateOnTick(accountManager.getEquity());
+
+            riskManager.check(tick, tradeManager);
 
             // All analysis should be done before calling the strategy
 

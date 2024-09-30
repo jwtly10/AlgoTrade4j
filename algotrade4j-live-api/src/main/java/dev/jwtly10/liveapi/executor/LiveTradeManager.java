@@ -1,9 +1,12 @@
 package dev.jwtly10.liveapi.executor;
 
 import dev.jwtly10.core.exception.InvalidTradeException;
+import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskStatus;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
@@ -25,6 +28,8 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
 
     private final BrokerClient brokerClient;
 
+    private final RiskManager riskManager;
+
     private ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Trade> allTrades = new ConcurrentHashMap<>();
     private Consumer<Trade> onTradeCloseCallback;
@@ -33,8 +38,9 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
 
     private boolean running;
 
-    public LiveTradeManager(BrokerClient brokerClient) {
+    public LiveTradeManager(BrokerClient brokerClient, RiskManager riskManager) {
         this.brokerClient = brokerClient;
+        this.riskManager = riskManager;
         this.running = true;
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
@@ -75,6 +81,11 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
     }
 
     private Integer openPosition(TradeParameters params) {
+        RiskStatus risk = riskManager.canTrade();
+        if (risk.isRiskViolated()) {
+            throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
+        }
+
         return brokerClient.openTrade(params.createTrade()).getId();
     }
 

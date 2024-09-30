@@ -12,6 +12,7 @@ import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
@@ -102,12 +103,15 @@ public class StrategyManager {
             throw new StrategyManagerException("Error setting parameters for strategy: " + strategyId, ErrorType.INTERNAL_ERROR);
         }
 
-        TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
+
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
+        RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
+
+        TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
         TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager);
         executor.initialise();
         dataManager.addDataListener(executor);
 

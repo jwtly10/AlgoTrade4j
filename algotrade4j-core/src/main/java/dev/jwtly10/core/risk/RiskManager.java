@@ -1,7 +1,10 @@
 package dev.jwtly10.core.risk;
 
 import dev.jwtly10.core.account.AccountManager;
+import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.model.Tick;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.time.ZonedDateTime;
 
@@ -19,13 +22,26 @@ public class RiskManager {
         this.dailyStartEquity = accountManager.getEquity();
     }
 
+
     /**
      * Assess the risk of the current account state given the risk configuration
+     * Closes all trades if the risk is violated
      *
-     * @param currentTime the current time
-     * @return the risk status
+     * @param tick         the current tick
+     * @param tradeManager the trade manager
      */
-    public RiskStatus assessRisk(ZonedDateTime currentTime) {
+    public void check(Tick tick, TradeManager tradeManager) {
+        RiskStatus riskCheck = assessRisk(tick.getDateTime());
+        if (riskCheck.isRiskViolated()) {
+            if (!tradeManager.getOpenTrades().isEmpty()) {
+                log.warn("Risk violation detected. Closing all open trades: {}", riskCheck.getReason());
+                tradeManager.getOpenTrades().values().forEach(trade -> tradeManager.closePosition(trade.getId(), false));
+            }
+        }
+    }
+
+    @VisibleForTesting
+    RiskStatus assessRisk(ZonedDateTime currentTime) {
         checkNewDay(currentTime);
         String violationReason = getRiskViolationReason();
         return new RiskStatus(violationReason != null, violationReason);
@@ -33,6 +49,7 @@ public class RiskManager {
 
     /**
      * Check if the account can trade, given the risk configuration
+     * Should run before placing a trade
      *
      * @return the risk status
      */

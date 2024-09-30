@@ -9,6 +9,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
@@ -34,6 +35,7 @@ public class LiveExecutor implements DataListener {
     private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;
+    private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     @Getter
@@ -43,7 +45,9 @@ public class LiveExecutor implements DataListener {
     public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
                         DataManager dataManager,
                         EventPublisher eventPublisher,
-                        LiveStateManager liveStateManager
+                        LiveStateManager liveStateManager,
+                        RiskManager riskManager
+
     ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
@@ -52,6 +56,7 @@ public class LiveExecutor implements DataListener {
         this.eventPublisher = eventPublisher;
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
+        this.riskManager = riskManager;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
     }
@@ -94,6 +99,8 @@ public class LiveExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
+            riskManager.check(tick, tradeManager);
+
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
             log.error("Error processing tick data", e);

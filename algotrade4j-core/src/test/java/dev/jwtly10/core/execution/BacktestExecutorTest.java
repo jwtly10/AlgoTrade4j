@@ -7,6 +7,7 @@ import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.Strategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,8 @@ class BacktestExecutorTest {
     private EventPublisher eventPublisher;
     @Mock
     private PerformanceAnalyser performanceAnalyser;
+    @Mock
+    private RiskManager riskManager;
 
     private BacktestExecutor backtestExecutor;
 
@@ -44,7 +47,7 @@ class BacktestExecutorTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(strategy.getStrategyId()).thenReturn("testStrategy");
-        backtestExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser);
+        backtestExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager);
     }
 
     @Test

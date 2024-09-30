@@ -8,6 +8,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
@@ -209,7 +210,8 @@ public class LiveStrategyManager {
 
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        TradeManager tradeManager = new LiveTradeManager(client);
+        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
+        TradeManager tradeManager = new LiveTradeManager(client, riskManager);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
@@ -224,7 +226,7 @@ public class LiveStrategyManager {
                 dataManager,
                 eventPublisher,
                 liveStateManager,
-                brokerClient
+                riskManager
         );
 
         executor.initialise();
