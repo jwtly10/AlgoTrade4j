@@ -646,6 +646,8 @@ export const useBacktest = () => {
                 stop: '1',
                 step: '1',
                 selected: false,
+                type: param.type,
+                enumValues: param.enumValues
             });
         });
 

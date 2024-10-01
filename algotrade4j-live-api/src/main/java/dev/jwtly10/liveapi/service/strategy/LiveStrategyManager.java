@@ -101,7 +101,7 @@ public class LiveStrategyManager {
         } catch (Exception e) {
             // If we cannot create the executor, we should notify the user and stop the strategy
             log.error("Error creating executor", e);
-            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy %s:", strategy.getStrategyName()), e, true);
+            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy '%s':", strategy.getStrategyName()), e, true);
             // Rethrow the exception to stop the strategy from starting
             throw e;
         }

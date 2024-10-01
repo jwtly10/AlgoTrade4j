@@ -87,6 +87,7 @@ public class StrategyConfig {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RunParameter {
         private String name;
         private String value;

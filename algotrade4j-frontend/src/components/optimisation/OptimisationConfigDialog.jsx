@@ -4,7 +4,7 @@ import {Button} from "../ui/button";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../ui/table";
 import {ScrollArea} from "../ui/scroll-area";
 
-const ConfigDialog = ({open, onOpenChange, selectedTask}) => {
+const OptimisationConfigDialog = ({open, onOpenChange, selectedTask}) => {
     const {config} = selectedTask || {};
 
     const formatDuration = (seconds) => {
@@ -105,4 +105,4 @@ const ConfigDialog = ({open, onOpenChange, selectedTask}) => {
     );
 };
 
-export default ConfigDialog;
+export default OptimisationConfigDialog;

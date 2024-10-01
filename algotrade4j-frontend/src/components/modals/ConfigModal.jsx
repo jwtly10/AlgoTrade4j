@@ -315,19 +315,41 @@ const ConfigModal = ({
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Input
-                                                            value={param.value}
-                                                            onChange={(e) =>
-                                                                handleInputChange(
-                                                                    localConfig.runParams.indexOf(
-                                                                        param
-                                                                    ),
-                                                                    'value',
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            autoComplete="off"
-                                                        />
+                                                        {param.type === 'enum' ? (
+                                                            <Select
+                                                                value={param.value}
+                                                                onValueChange={(value) =>
+                                                                    handleInputChange(
+                                                                        localConfig.runParams.indexOf(param),
+                                                                        'value',
+                                                                        value
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue placeholder="Select a value"/>
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {param.enumValues.map((enumValue) => (
+                                                                        <SelectItem key={enumValue} value={enumValue}>
+                                                                            {enumValue}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Input
+                                                                value={param.value}
+                                                                onChange={(e) =>
+                                                                    handleInputChange(
+                                                                        localConfig.runParams.indexOf(param),
+                                                                        'value',
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                autoComplete="off"
+                                                            />
+                                                        )}
                                                     </TableCell>
                                                     {showOptimiseParams && (
                                                         <>

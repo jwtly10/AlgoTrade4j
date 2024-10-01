@@ -1,30 +1,21 @@
-import React, { useState } from 'react';
-import { useOptimisationTasks } from '@/hooks/useOptimisationTasks.js';
-import { adminClient, apiClient } from '@/api/apiClient.js';
-import { useToast } from '@/hooks/use-toast.js';
-import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
-import {
-    AlertCircle,
-    BarChart2,
-    CheckCircle,
-    Clock,
-    Eye,
-    HelpCircle,
-    Share,
-    Trash,
-} from 'lucide-react';
-import ConfigDialog from './ConfigDialog';
+import React, {useState} from 'react';
+import {useOptimisationTasks} from '@/hooks/useOptimisationTasks.js';
+import {adminClient, apiClient} from '@/api/apiClient.js';
+import {useToast} from '@/hooks/use-toast.js';
+import {Button} from '../ui/button';
+import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '../ui/dialog';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../ui/table';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '../ui/tooltip';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Progress} from '../ui/progress';
+import {AlertCircle, BarChart2, CheckCircle, Clock, Eye, HelpCircle, Share, Trash,} from 'lucide-react';
+import OptimisationConfigDialog from './OptimisationConfigDialog.jsx';
 import ShareDialog from './ShareDialog';
 import OptimizationResults from './OptimisationResults.jsx';
 import log from '../../logger.js';
 
-const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDelete }) => {
+const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelete}) => {
     const formatDate = (dateArray) => {
         if (!Array.isArray(dateArray) || dateArray.length < 7) {
             return 'Invalid Date';
@@ -76,13 +67,13 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
     const getStateIcon = (state) => {
         switch (state) {
             case 'COMPLETED':
-                return <CheckCircle className="h-4 w-4 text-green-500" />;
+                return <CheckCircle className="h-4 w-4 text-green-500"/>;
             case 'FAILED':
-                return <AlertCircle className="h-4 w-4 text-red-500" />;
+                return <AlertCircle className="h-4 w-4 text-red-500"/>;
             case 'RUNNING':
-                return <Clock className="h-4 w-4 text-blue-500" />;
+                return <Clock className="h-4 w-4 text-blue-500"/>;
             default:
-                return <HelpCircle className="h-4 w-4 text-gray-500" />;
+                return <HelpCircle className="h-4 w-4 text-gray-500"/>;
         }
     };
 
@@ -125,7 +116,7 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" onClick={() => onShare(task)}>
-                                    <Share className="h-4 w-4" />
+                                    <Share className="h-4 w-4"/>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -141,7 +132,7 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
                                     size="icon"
                                     onClick={() => onViewConfig(task)}
                                 >
-                                    <Eye className="h-4 w-4" />
+                                    <Eye className="h-4 w-4"/>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -158,7 +149,7 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
                                         size="icon"
                                         onClick={() => onDelete(task.id)}
                                     >
-                                        <Trash className="h-4 w-4" />
+                                        <Trash className="h-4 w-4"/>
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -176,7 +167,7 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
                                         size="icon"
                                         onClick={() => onGetResults(task)}
                                     >
-                                        <BarChart2 className="h-4 w-4" />
+                                        <BarChart2 className="h-4 w-4"/>
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -192,14 +183,14 @@ const OptimizationTaskRow = ({ task, onShare, onViewConfig, onGetResults, onDele
 };
 
 const OptimizationTaskList = () => {
-    const { optimisationTasks, isLoading, fetchOptimisationTasks } =
+    const {optimisationTasks, isLoading, fetchOptimisationTasks} =
         useOptimisationTasks(apiClient);
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [configDialogOpen, setConfigDialogOpen] = useState(false);
     const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [users, setUsers] = useState([]);
-    const { toast } = useToast();
+    const {toast} = useToast();
 
     const handleForceRefresh = () => {
         fetchOptimisationTasks();
@@ -327,7 +318,7 @@ const OptimizationTaskList = () => {
                 handleShareWithUser={handleShareWithUser}
             />
 
-            <ConfigDialog
+            <OptimisationConfigDialog
                 open={configDialogOpen}
                 onOpenChange={setConfigDialogOpen}
                 selectedTask={selectedTask}
@@ -339,7 +330,7 @@ const OptimizationTaskList = () => {
                         <DialogTitle>Optimisation Results</DialogTitle>
                     </DialogHeader>
                     <div className="flex-grow overflow-auto">
-                        <OptimizationResults task={selectedTask} />
+                        <OptimizationResults task={selectedTask}/>
                     </div>
                     <DialogFooter>
                         <Button onClick={() => setResultsDialogOpen(false)}>Close</Button>
