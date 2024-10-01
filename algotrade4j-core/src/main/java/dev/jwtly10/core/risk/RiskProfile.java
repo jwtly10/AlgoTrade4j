@@ -34,11 +34,20 @@ public enum RiskProfile {
             .accountLossLimit(1000.0)
             .safetyBuffer(100.0)
             .profitTarget(null)
-            .profitTarget(400.0)
+            .profitTarget(2000.0)
+            .brokerTimeZone(ZoneId.of("UTC"))
+            .tradingDayStart(LocalTime.of(0, 0))
+            .build()),
+
+    INTEGRATION_TEST(RiskProfileConfig.builder()
+            .maxDailyLoss(200.0)
+            .accountLossLimit(1000.0)
+            .safetyBuffer(100.0)
+            .profitTarget(null)
+            .profitTarget(2000.0)
             .brokerTimeZone(ZoneId.of("UTC"))
             .tradingDayStart(LocalTime.of(0, 0))
             .build());
-
     private final RiskProfileConfig config;
 
     RiskProfile(RiskProfileConfig config) {
