@@ -86,7 +86,12 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
             throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
         }
 
-        return brokerClient.openTrade(params.createTrade()).getId();
+        Trade trade = brokerClient.openTrade(params.createTrade());
+
+        log.info("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
+                trade.isLong() ? "long" : "short", trade.getOpenTime(), trade.getId(), trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity());
+
+        return trade.getId();
     }
 
     @Override

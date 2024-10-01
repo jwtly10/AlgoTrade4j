@@ -95,7 +95,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             return tradeManager.openLong(params);
         } catch (RiskManagerException e) {
-            log.warn("Error opening long trade: {}", e.getMessage());
+            log.warn("{}", e.getMessage());
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return -1;
         }
@@ -114,7 +114,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             return tradeManager.openShort(params);
         } catch (RiskManagerException e) {
-            log.warn("Error opening short trade: {}", e.getMessage());
+            log.warn("{}", e.getMessage());
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return -1;
         }

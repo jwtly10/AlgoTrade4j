@@ -34,7 +34,7 @@ public class RiskManager {
         RiskStatus riskCheck = assessRisk(tick.getDateTime());
         if (riskCheck.isRiskViolated()) {
             if (!tradeManager.getOpenTrades().isEmpty()) {
-                log.warn("Risk violation detected. Closing all open trades: {}", riskCheck.getReason());
+                log.warn("Risk violation detected on {}. Closing all open trades: {}", currentTradingDay, riskCheck.getReason());
                 tradeManager.getOpenTrades().values().forEach(trade -> tradeManager.closePosition(trade.getId(), false));
             }
         }
