@@ -326,6 +326,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                                                     value={param.value}
                                                                     onChange={(e) => handleInputChange(param.name, e.target.value)}
                                                                     autoComplete="off"
+                                                                    type={param.type === 'int' || param.type === 'double' ? 'number' : 'text'}
                                                                 />
                                                             )}
                                                         </TableCell>

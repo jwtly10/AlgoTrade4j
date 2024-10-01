@@ -347,6 +347,7 @@ const ConfigModal = ({
                                                                         e.target.value
                                                                     )
                                                                 }
+                                                                type={param.type === 'int' || param.type === 'double' ? 'number' : 'text'}
                                                                 autoComplete="off"
                                                             />
                                                         )}
@@ -366,6 +367,7 @@ const ConfigModal = ({
                                                                         )
                                                                     }
                                                                     autoComplete="off"
+                                                                    type="number"
                                                                 />
                                                             </TableCell>
                                                             <TableCell>
@@ -381,6 +383,7 @@ const ConfigModal = ({
                                                                         )
                                                                     }
                                                                     autoComplete="off"
+                                                                    type="number"
                                                                 />
                                                             </TableCell>
                                                             <TableCell>
@@ -395,6 +398,7 @@ const ConfigModal = ({
                                                                             e.target.value
                                                                         )
                                                                     }
+                                                                    type="number"
                                                                     autoComplete="off"
                                                                 />
                                                             </TableCell>
