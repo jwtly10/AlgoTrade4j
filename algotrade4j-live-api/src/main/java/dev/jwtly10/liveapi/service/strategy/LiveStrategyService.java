@@ -37,13 +37,20 @@ public class LiveStrategyService {
 
 
     /**
+     * <p>
      * A utility method for the Algotrade4j Frontend that will return all live strategies
      * INCLUDING strategy config defaults for any strategies that may be missing params
      * This is used to provide an easy way for users to update 'outdated' strategies, with missing config params
+     * We also append metadata like type and enumValues, so the frontend can display the correct input field types
+     * </p>
+     * <p>
+     * Essentially, using this endpoint to get strategy data, helps to keep configuration up to date.
+     * The strategy will still fail to run, but at least by default, editing a strategy will update configuration to the latest defaults
+     * </p>
      *
      * @return List of LiveStrategies including any missing run params
      */
-    public List<LiveStrategy> getLiveStrategiesWithMissingRunParams() {
+    public List<LiveStrategy> getLiveStrategiesWithMissingRunParamsAndMetaData() {
         List<LiveStrategy> liveStrategies = getNonHiddenLiveStrategies();
 
         // For each strategy, check if the run params are missing
@@ -66,35 +73,47 @@ public class LiveStrategyService {
             }
 
             try {
-                ParameterHandler.validateRunParameters(instance, liveRunParams);
-            } catch (Exception e) {
-                // If validation fails then we need to add the missing run params to the strategy
-                try {
-                    // Required to get defaults from @Parameter annotations
-                    ParameterHandler.initialize(instance);
-                } catch (Exception ex) {
-                    log.error("Error initializing strategy parameters", ex);
-                    continue;
+                // Required to get defaults from @Parameter annotations
+                ParameterHandler.initialize(instance);
+            } catch (Exception ex) {
+                //  We can't recover if validation of the parameters fails outright - as we have already validated configuration on init & save
+                // So we just continue, and let the user re-create the strategy, if they want to update it
+                log.warn("Error initializing strategy parameters", ex.getMessage());
+                continue;
+            }
+
+            Map<String, ParameterHandler.ParameterInfo> defaultRunParams = new HashMap<>();
+            ParameterHandler.getParameters(instance).forEach(param ->
+                    defaultRunParams.put(param.getName(), param)
+            );
+
+            // If missing params, add them, else add type and enumValues to the existing params
+            for (Map.Entry<String, ParameterHandler.ParameterInfo> entry : defaultRunParams.entrySet()) {
+                // Add missing
+                if (!liveRunParams.containsKey(entry.getKey())) {
+                    liveStrategy.getConfig().getRunParams().add(
+                            LiveStrategyConfig.RunParameter.builder()
+                                    .name(entry.getKey())
+                                    .value(entry.getValue().getValue())
+                                    .description(entry.getValue().getDescription())
+                                    .group(entry.getValue().getGroup())
+                                    .type(entry.getValue().getType())
+                                    .enumValues(entry.getValue().getEnumValues())
+                                    .build()
+                    );
+                } else {
+                    // Update latest type, enumValues, group and description
+                    liveStrategy.getConfig().getRunParams().stream()
+                            .filter(param -> param.getName().equals(entry.getKey()))
+                            .findFirst()
+                            .ifPresent(param -> {
+                                param.setType(entry.getValue().getType());
+                                param.setEnumValues(entry.getValue().getEnumValues());
+                                param.setGroup(entry.getValue().getGroup());
+                                param.setDescription(entry.getValue().getDescription());
+                            });
                 }
 
-                Map<String, ParameterHandler.ParameterInfo> defaultRunParams = new HashMap<>();
-                ParameterHandler.getParameters(instance).forEach(param ->
-                        defaultRunParams.put(param.getName(), param)
-                );
-
-                // Add the missing run params to the strategy
-                for (Map.Entry<String, ParameterHandler.ParameterInfo> entry : defaultRunParams.entrySet()) {
-                    if (!liveRunParams.containsKey(entry.getKey())) {
-                        liveStrategy.getConfig().getRunParams().add(
-                                LiveStrategyConfig.RunParameter.builder()
-                                        .name(entry.getKey())
-                                        .value(entry.getValue().getValue())
-                                        .description(entry.getValue().getDescription())
-                                        .group(entry.getValue().getGroup())
-                                        .build()
-                        );
-                    }
-                }
             }
         }
 

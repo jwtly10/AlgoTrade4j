@@ -67,5 +67,7 @@ public class LiveStrategyConfig {
         private String value;
         private String description;
         private String group;
+        private String type;
+        private List<String> enumValues;
     }
 }

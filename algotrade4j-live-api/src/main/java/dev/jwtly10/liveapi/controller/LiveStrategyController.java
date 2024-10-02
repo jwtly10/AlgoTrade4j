@@ -26,7 +26,7 @@ public class LiveStrategyController {
 
     @GetMapping
     public ResponseEntity<List<LiveStrategy>> getLiveStrategies() {
-        List<LiveStrategy> liveStrategies = liveStrategyService.getLiveStrategiesWithMissingRunParams();
+        List<LiveStrategy> liveStrategies = liveStrategyService.getLiveStrategiesWithMissingRunParamsAndMetaData();
         return ResponseEntity.ok(liveStrategies);
     }
 
