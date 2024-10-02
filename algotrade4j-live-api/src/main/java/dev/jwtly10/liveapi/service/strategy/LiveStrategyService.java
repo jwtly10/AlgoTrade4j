@@ -1,7 +1,11 @@
 package dev.jwtly10.liveapi.service.strategy;
 
+import dev.jwtly10.core.strategy.ParameterHandler;
+import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import dev.jwtly10.liveapi.model.BrokerAccount;
 import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.liveapi.model.LiveStrategyConfig;
 import dev.jwtly10.liveapi.model.Stats;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
@@ -13,6 +17,7 @@ import dev.jwtly10.shared.tracking.UserAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +35,72 @@ public class LiveStrategyService {
         this.trackingService = trackingService;
     }
 
+
+    /**
+     * A utility method for the Algotrade4j Frontend that will return all live strategies
+     * INCLUDING strategy config defaults for any strategies that may be missing params
+     * This is used to provide an easy way for users to update 'outdated' strategies, with missing config params
+     *
+     * @return List of LiveStrategies including any missing run params
+     */
+    public List<LiveStrategy> getLiveStrategiesWithMissingRunParams() {
+        List<LiveStrategy> liveStrategies = getNonHiddenLiveStrategies();
+
+        // For each strategy, check if the run params are missing
+        for (LiveStrategy liveStrategy : liveStrategies) {
+            // Create a map of the run params
+            Map<String, String> liveRunParams = new HashMap<>();
+            liveStrategy.getConfig().getRunParams().forEach(param ->
+                    liveRunParams.put(param.getName(), param.getValue())
+            );
+
+            // Get the parameters for the strategy
+            Strategy instance;
+            try {
+                instance = StrategyReflectionUtils.getStrategyFromClassName(liveStrategy.getConfig().getStrategyClass(), null);
+            } catch (Exception e) {
+                // If we fail here, it's hard to recover, the user needs to regenerate the strategy
+                // But this error should be picked up by the validation job in live strategy @PostConstruct logic
+                log.error("Error getting strategy instance", e);
+                continue;
+            }
+
+            try {
+                ParameterHandler.validateRunParameters(instance, liveRunParams);
+            } catch (Exception e) {
+                // If validation fails then we need to add the missing run params to the strategy
+                try {
+                    // Required to get defaults from @Parameter annotations
+                    ParameterHandler.initialize(instance);
+                } catch (Exception ex) {
+                    log.error("Error initializing strategy parameters", ex);
+                    continue;
+                }
+
+                Map<String, ParameterHandler.ParameterInfo> defaultRunParams = new HashMap<>();
+                ParameterHandler.getParameters(instance).forEach(param ->
+                        defaultRunParams.put(param.getName(), param)
+                );
+
+                // Add the missing run params to the strategy
+                for (Map.Entry<String, ParameterHandler.ParameterInfo> entry : defaultRunParams.entrySet()) {
+                    if (!liveRunParams.containsKey(entry.getKey())) {
+                        liveStrategy.getConfig().getRunParams().add(
+                                LiveStrategyConfig.RunParameter.builder()
+                                        .name(entry.getKey())
+                                        .value(entry.getValue().getValue())
+                                        .description(entry.getValue().getDescription())
+                                        .group(entry.getValue().getGroup())
+                                        .build()
+                        );
+                    }
+                }
+            }
+        }
+
+        return liveStrategies;
+    }
+
     public List<LiveStrategy> getNonHiddenLiveStrategies() {
         log.trace("Fetching all non-hidden live strategies");
         return liveStrategyRepository.findLiveStrategiesByHiddenIsFalse();
@@ -41,8 +112,6 @@ public class LiveStrategyService {
     }
 
     public void setErrorMessage(LiveStrategy liveStrategy, String errorMessage) {
-        log.info("Setting error message for live strategy: {}", liveStrategy.getId());
-
         liveStrategy.setLastErrorMsg(errorMessage);
         liveStrategyRepository.save(liveStrategy);
     }
@@ -64,7 +133,7 @@ public class LiveStrategyService {
     }
 
     public LiveStrategy deactivateStrategy(String strategyName) {
-        log.info("Force deactivating live strategy: {}", strategyName);
+        log.info("Deactivating live strategy: {}", strategyName);
 
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(strategyName)

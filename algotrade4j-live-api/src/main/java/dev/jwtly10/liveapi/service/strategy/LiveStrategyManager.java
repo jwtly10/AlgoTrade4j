@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -56,19 +57,38 @@ public class LiveStrategyManager {
     }
 
     /**
-     * Load all active strategies on application startup
+     * Initialise live strategies
      * <p>
-     * This is to ensure that all active strategies are loaded into memory on application startup
-     * and are ready to run.
-     * This helps to ensure that the strategies are running even if the application is restarted (e.g. after a crash or deployment).
+     * On application startup, we validate that all strategies in the db are up to date.
+     * We check that the configuration stored in db is compatible with the strategy class.
+     * If not compatible, we deactivate the strategy and notify the user.
+     * </p>
+     * <p>
+     * Otherwise, we load all active strategies on application startup, and start them.
      * </p>
      */
     @PostConstruct
-    public void initActiveStrategies() {
-        List<LiveStrategy> strategies = liveStrategyService.getActiveLiveStrategies();
-        log.info("Found {} active live strategies to run on application init", strategies.size());
+    public void initLiveStrategies() {
+        log.info("Initialising live strategies on application startup");
 
-        for (LiveStrategy strategy : strategies) {
+        List<LiveStrategy> allStrategies = liveStrategyService.getNonHiddenLiveStrategies();
+        log.info("Found {} live strategies in the database to validate: {}", allStrategies.size(), allStrategies.stream().map(LiveStrategy::getStrategyName).collect(Collectors.toList()));
+        List<LiveStrategy> activeStrategies = new ArrayList<>();
+        for (LiveStrategy strategy : allStrategies) {
+            try {
+                strategy.validateConfigAgainstStrategyClass();
+                if (strategy.isActive()) {
+                    activeStrategies.add(strategy);
+                }
+            } catch (Exception e) {
+                log.warn("Strategy '{}' failed validation: {}", strategy.getStrategyName(), e.getMessage());
+                liveStrategyService.setErrorMessage(strategy, e.getMessage());
+                liveStrategyService.deactivateStrategy(strategy.getStrategyName());
+            }
+        }
+
+        log.info("Found {} active live strategies to run on application init: {}", activeStrategies.size(), activeStrategies.stream().map(LiveStrategy::getStrategyName).collect(Collectors.toList()));
+        for (LiveStrategy strategy : activeStrategies) {
             try {
                 startStrategy(strategy);
             } catch (Exception e) {
@@ -208,6 +228,8 @@ public class LiveStrategyManager {
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
 
+        strategyInstance.setParameters(runParams);
+
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
         RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
@@ -216,7 +238,6 @@ public class LiveStrategyManager {
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
 
-        strategyInstance.setParameters(runParams);
         strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());
 
         LiveExecutor executor = new LiveExecutor(

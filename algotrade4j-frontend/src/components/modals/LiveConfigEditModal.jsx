@@ -10,7 +10,6 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/compon
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {InfoIcon} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
-import isEqual from 'lodash/isEqual';
 import {liveStrategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
 
@@ -19,12 +18,10 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
-    const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
         if (open && strategyConfig) {
             setLocalConfig(strategyConfig);
-            setHasChanges(false);
             const groups = Object.keys(groupParams(strategyConfig.config.runParams));
             setActiveGroup(groups[0] || '');
         }
@@ -64,7 +61,6 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     runParams: updatedRunParams,
                 },
             };
-            setHasChanges(!isEqual(newConfig, strategyConfig));
             return newConfig;
         });
     };
@@ -75,7 +71,6 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                 ...prevConfig,
                 strategyName: value,
             };
-            setHasChanges(!isEqual(newConfig, strategyConfig));
             return newConfig;
         });
     }
@@ -86,7 +81,6 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                 ...prevConfig,
                 telegramChatId: value,
             };
-            setHasChanges(!isEqual(newConfig, strategyConfig));
             return newConfig;
         });
     }
@@ -100,7 +94,6 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     [field]: value,
                 },
             };
-            setHasChanges(!isEqual(newConfig, strategyConfig));
             return newConfig;
         });
     };
@@ -339,7 +332,6 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     <Button
                         variant="default"
                         onClick={() => handleConfigSave(localConfig)}
-                        disabled={!hasChanges}
                     >
                         Save changes
                     </Button>

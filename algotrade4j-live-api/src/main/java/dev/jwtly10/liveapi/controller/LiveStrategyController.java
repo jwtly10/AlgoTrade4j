@@ -26,7 +26,7 @@ public class LiveStrategyController {
 
     @GetMapping
     public ResponseEntity<List<LiveStrategy>> getLiveStrategies() {
-        List<LiveStrategy> liveStrategies = liveStrategyService.getNonHiddenLiveStrategies();
+        List<LiveStrategy> liveStrategies = liveStrategyService.getLiveStrategiesWithMissingRunParams();
         return ResponseEntity.ok(liveStrategies);
     }
 
@@ -47,6 +47,8 @@ public class LiveStrategyController {
         LiveStrategy updatedLiveStrategy = liveStrategyService.updateLiveStrategy(id, strategySetup);
         // We should also now STOP the strategy if it is active
         liveStrategyManager.stopStrategy(updatedLiveStrategy.getStrategyName());
+        // We clear the error message, as we can't validate the strategy until it is started again
+        liveStrategyService.clearErrorMessage(updatedLiveStrategy);
 
         return ResponseEntity.ok(updatedLiveStrategy);
     }

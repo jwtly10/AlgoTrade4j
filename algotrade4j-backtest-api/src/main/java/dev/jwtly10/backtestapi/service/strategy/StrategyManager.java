@@ -103,7 +103,6 @@ public class StrategyManager {
             throw new StrategyManagerException("Error setting parameters for strategy: " + strategyId, ErrorType.INTERNAL_ERROR);
         }
 
-
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
         RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
 

@@ -48,6 +48,7 @@ public enum RiskProfile {
             .brokerTimeZone(ZoneId.of("UTC"))
             .tradingDayStart(LocalTime.of(0, 0))
             .build());
+
     private final RiskProfileConfig config;
 
     RiskProfile(RiskProfileConfig config) {
