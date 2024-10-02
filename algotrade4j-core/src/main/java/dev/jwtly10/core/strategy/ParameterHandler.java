@@ -13,6 +13,8 @@ public class ParameterHandler {
 
     /**
      * Validates the run parameters against the strategy's @Parameter annotations.
+     * This only validates the parameter names and coercible types, not the values.
+     * So in the case of ENUMS, it wouldn't validate the value is valid
      *
      * @param strategy  The strategy instance to validate against.
      * @param runParams A map of parameter names to their values.

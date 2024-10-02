@@ -299,16 +299,11 @@ const ConfigModal = ({
                                                                             className="h-8 w-8 p-0"
                                                                         >
                                                                             <InfoIcon className="h-4 w-4"/>
-                                                                            <span className="sr-only">
-                                                                                Info
-                                                                            </span>
+                                                                            <span className="sr-only">Info</span>
                                                                         </Button>
                                                                     </TooltipTrigger>
                                                                     <TooltipContent>
-                                                                        <p>
-                                                                            {param.description ||
-                                                                                'No description available'}
-                                                                        </p>
+                                                                        <p>{param.description || 'No description available'}</p>
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
@@ -354,64 +349,88 @@ const ConfigModal = ({
                                                     </TableCell>
                                                     {showOptimiseParams && (
                                                         <>
-                                                            <TableCell>
-                                                                <Input
-                                                                    value={param.start || ''}
-                                                                    onChange={(e) =>
-                                                                        handleInputChange(
-                                                                            localConfig.runParams.indexOf(
-                                                                                param
-                                                                            ),
-                                                                            'start',
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    autoComplete="off"
-                                                                    type="number"
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Input
-                                                                    value={param.stop || ''}
-                                                                    onChange={(e) =>
-                                                                        handleInputChange(
-                                                                            localConfig.runParams.indexOf(
-                                                                                param
-                                                                            ),
-                                                                            'stop',
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    autoComplete="off"
-                                                                    type="number"
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Input
-                                                                    value={param.step || ''}
-                                                                    onChange={(e) =>
-                                                                        handleInputChange(
-                                                                            localConfig.runParams.indexOf(
-                                                                                param
-                                                                            ),
-                                                                            'step',
-                                                                            e.target.value
-                                                                        )
-                                                                    }
-                                                                    type="number"
-                                                                    autoComplete="off"
-                                                                />
-                                                            </TableCell>
+                                                            {param.type === 'enum' ? (
+                                                                <TableCell colSpan={3}>
+                                                                    <Input
+                                                                        value={param.stringList || ''}
+                                                                        onChange={(e) =>
+                                                                            handleInputChange(
+                                                                                localConfig.runParams.indexOf(param),
+                                                                                'stringList',
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        placeholder="Enter comma-separated values to optimize"
+                                                                        autoComplete="off"
+                                                                    />
+                                                                </TableCell>
+                                                            ) : param.type === 'string' ? (
+                                                                <TableCell colSpan={3}>
+                                                                    <Input
+                                                                        value={param.stringList || ''}
+                                                                        onChange={(e) =>
+                                                                            handleInputChange(
+                                                                                localConfig.runParams.indexOf(param),
+                                                                                'stringList',
+                                                                                e.target.value
+                                                                            )
+                                                                        }
+                                                                        placeholder="Enter comma-separated values to optimize"
+                                                                        autoComplete="off"
+                                                                    />
+                                                                </TableCell>
+                                                            ) : (
+                                                                <>
+                                                                    <TableCell>
+                                                                        <Input
+                                                                            value={param.start || ''}
+                                                                            onChange={(e) =>
+                                                                                handleInputChange(
+                                                                                    localConfig.runParams.indexOf(param),
+                                                                                    'start',
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            autoComplete="off"
+                                                                            type="number"
+                                                                        />
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Input
+                                                                            value={param.stop || ''}
+                                                                            onChange={(e) =>
+                                                                                handleInputChange(
+                                                                                    localConfig.runParams.indexOf(param),
+                                                                                    'stop',
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            autoComplete="off"
+                                                                            type="number"
+                                                                        />
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Input
+                                                                            value={param.step || ''}
+                                                                            onChange={(e) =>
+                                                                                handleInputChange(
+                                                                                    localConfig.runParams.indexOf(param),
+                                                                                    'step',
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            type="number"
+                                                                            autoComplete="off"
+                                                                        />
+                                                                    </TableCell>
+                                                                </>
+                                                            )}
                                                             <TableCell>
                                                                 <Checkbox
-                                                                    checked={
-                                                                        param.selected || false
-                                                                    }
+                                                                    checked={param.selected || false}
                                                                     onCheckedChange={(checked) =>
                                                                         handleInputChange(
-                                                                            localConfig.runParams.indexOf(
-                                                                                param
-                                                                            ),
+                                                                            localConfig.runParams.indexOf(param),
                                                                             'selected',
                                                                             checked
                                                                         )

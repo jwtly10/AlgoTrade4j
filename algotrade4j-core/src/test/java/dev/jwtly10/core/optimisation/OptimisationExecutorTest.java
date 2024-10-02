@@ -2,19 +2,14 @@ package dev.jwtly10.core.optimisation;
 
 import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
-import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
-import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +18,7 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 class OptimisationExecutorTest {
 
@@ -56,8 +51,8 @@ class OptimisationExecutorTest {
     @Test
     void generateParameterCombinations() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("default_value", "SMA1", "10", "60", "5", true),
-                new ParameterRange("default_value", "SMA2", "20", "30", "5", true)
+                new ParameterRange("default_value", "SMA1", "10", "60", "5", true, null),
+                new ParameterRange("default_value", "SMA2", "20", "30", "5", true, null)
         );
 
         // This will generate
@@ -82,8 +77,8 @@ class OptimisationExecutorTest {
     @Test
     void generateParameterCombinationsOneStep() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("default_value", "SMA1", "10", "10", "10", true),
-                new ParameterRange("default_value", "SMA2", "10", "10", "10", true)
+                new ParameterRange("default_value", "SMA1", "10", "10", "10", true, null),
+                new ParameterRange("default_value", "SMA2", "10", "10", "10", true, null)
         );
 
         // This will generate
@@ -95,8 +90,8 @@ class OptimisationExecutorTest {
     @Test
     void generateParameterCombinationsInvalidParameterRange() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("default_value", "SMA1", "10", "10", "10", true),
-                new ParameterRange("default_value", "SMA2", "10", "10", "10", true)
+                new ParameterRange("default_value", "SMA1", "10", "10", "10", true, null),
+                new ParameterRange("default_value", "SMA2", "10", "10", "10", true, null)
         );
 
         // This will generate
@@ -108,7 +103,7 @@ class OptimisationExecutorTest {
     @Test
     void testParameterRangeWithDecimalValues() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("default_value", "Threshold", "0.10", "0.30", "0.10", true)
+                new ParameterRange("default_value", "Threshold", "0.10", "0.30", "0.10", true, null)
         );
 
         List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
@@ -122,14 +117,21 @@ class OptimisationExecutorTest {
     }
 
     @Test
+    void testParameterRangeWithEnums() {
+        List<ParameterRange> parameterRanges = List.of(
+                new ParameterRange("default_value", "Threshold", "0.10", "0.30", "0.10", true, "0.10,0.20,0.30")
+        );
+    }
+
+    @Test
     void generateParameterCombinationsLargeSet() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("10", "SMA1", "10.00000", "30.00000", "10.00000", true),
-                new ParameterRange("20", "SMA2", "20.00000", "40.00000", "10.00000", true),
-                new ParameterRange("30", "SMA3", "30.00000", "50.00000", "10.00000", true),
-                new ParameterRange("40", "SMA4", "40.00000", "60.00000", "10.00000", true),
-                new ParameterRange("50", "SMA5", "50.00000", "70.00000", "10.00000", false),
-                new ParameterRange("1.5", "Threshold", "1.00000", "2.00000", "0.50000", true)
+                new ParameterRange("10", "SMA1", "10.00000", "30.00000", "10.00000", true, null),
+                new ParameterRange("20", "SMA2", "20.00000", "40.00000", "10.00000", true, null),
+                new ParameterRange("30", "SMA3", "30.00000", "50.00000", "10.00000", true, null),
+                new ParameterRange("40", "SMA4", "40.00000", "60.00000", "10.00000", true, null),
+                new ParameterRange("50", "SMA5", "50.00000", "70.00000", "10.00000", false, null),
+                new ParameterRange("1.5", "Threshold", "1.00000", "2.00000", "0.50000", true, null)
         );
 
         List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
@@ -173,9 +175,9 @@ class OptimisationExecutorTest {
     @Test
     void generateParameterCombinationsWithSelectedAndUnselected() {
         List<ParameterRange> parameterRanges = List.of(
-                new ParameterRange("15", "SMA1", "10", "20", "10", true),
-                new ParameterRange("25", "SMA2", "20", "30", "10", false),
-                new ParameterRange("35", "SMA3", "30", "40", "10", true)
+                new ParameterRange("15", "SMA1", "10", "20", "10", true, null),
+                new ParameterRange("25", "SMA2", "20", "30", "10", false, null),
+                new ParameterRange("35", "SMA3", "30", "40", "10", true, null)
         );
 
         // This will generate:
@@ -207,33 +209,47 @@ class OptimisationExecutorTest {
         }
     }
 
-    // This test doesn't actually run any data, but ensures we are correctly starting an optimisation run. And 'completing' till the end
-    // This will be covered in our integration test
     @Test
-    void testExecuteTask() throws Exception {
-        OptimisationConfig config = new OptimisationConfig();
-        config.setParameterRanges(Arrays.asList(
-                new ParameterRange("val", "param1", "1", "2", "1", true)
-        ));
-        config.setInstrument(Instrument.NAS100USD);
-        config.setPeriod(Duration.ofMinutes(5));
-        config.setStrategyClass("TestStrategy");
+    void generateParameterCombinationsForStringsAndEnums() {
+        List<ParameterRange> parameterRanges = List.of(
+                new ParameterRange("AGGRESSIVE", "RISK_PROFILE", "10", "30", "10", true, "AGGRESSIVE,MODERATE,CONSERVATIVE"),
+                new ParameterRange("name1", "NAME_OF_STRAT", "10", "30", "10", true, "name1, name2"),
+                new ParameterRange("josh", "NAME_OF_RUNNER", "10", "30", "10", true, "josh")
+        );
 
-        Strategy mockStrategy = mock(Strategy.class);
-        when(strategyFactory.createStrategy(anyString(), anyString())).thenReturn(mockStrategy);
+        // This will generate:
+        // RISK_PROFILE=AGGRESSIVE, NAME_OF_STRAT=name1, NAME_OF_RUNNER=josh
+        // RISK_PROFILE=AGGRESSIVE, NAME_OF_STRAT=name2, NAME_OF_RUNNER=josh
+        // RISK_PROFILE=MODERATE, NAME_OF_STRAT=name1, NAME_OF_RUNNER=josh
+        // RISK_PROFILE=MODERATE, NAME_OF_STRAT=name2, NAME_OF_RUNNER=josh
+        // RISK_PROFILE=CONSERVATIVE, NAME_OF_STRAT=name1, NAME_OF_RUNNER=josh
+        // RISK_PROFILE=CONSERVATIVE, NAME_OF_STRAT=name2, NAME_OF_RUNNER=josh
+        List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
+        // Print out the combinations
+        for (Map<String, String> combination : combinations) {
+            System.out.println(combination);
+        }
 
-        BacktestExecutor mockExecutor = mock(BacktestExecutor.class);
-        when(executorFactory.createExecutor(any(), anyString(), any(), any(), anyDouble())).thenReturn(mockExecutor);
+        assertEquals(6, combinations.size());
+    }
 
-        DefaultDataManager mockDataManager = mock(DefaultDataManager.class);
-        when(dataManagerFactory.createDataManager(any(), any(), any(), any())).thenReturn(mockDataManager);
+    @Test
+    void generateParameterCombinationsForStringsAndEnumsEdgeCase() {
+        // NB:
+        // This generation logic is impartial to types.
+        // If there is no string list defined, it will generate the range as if it were a number
+        // Then the executor will validate the values and throw accordingly
+        List<ParameterRange> parameterRanges = List.of(
+                new ParameterRange("josh", "NAME_OF_RUNNER", "10", "30", "10", true, null)
+        );
+        List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
 
-        optimisationExecutor.executeTask(config);
+        assertEquals(3, combinations.size());
 
-        verify(progressCallback, atLeastOnce()).accept(any(OptimisationProgress.class));
-        verify(resultCallback, atLeastOnce()).accept(any(OptimisationRunResult.class));
-        verify(mockDataManager).start();
-        verify(mockDataManager).stop();
+        // Print out the combinations
+        for (Map<String, String> combination : combinations) {
+            System.out.println(combination);
+        }
     }
 
     @Test
@@ -262,8 +278,8 @@ class OptimisationExecutorTest {
     void testExecuteTaskWithTooManyParameterCombinations() {
         OptimisationConfig config = new OptimisationConfig();
         config.setParameterRanges(Arrays.asList(
-                new ParameterRange("val", "param1", "1", "100", "1", true),
-                new ParameterRange("val", "param2", "1", "100", "1", true)
+                new ParameterRange("val", "param1", "1", "100", "1", true, null),
+                new ParameterRange("val", "param2", "1", "100", "1", true, null)
         ));
 
         assertThrows(RuntimeException.class, () -> optimisationExecutor.executeTask(config));

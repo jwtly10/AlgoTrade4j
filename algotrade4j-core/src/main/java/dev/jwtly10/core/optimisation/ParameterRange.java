@@ -15,7 +15,10 @@ public class ParameterRange {
     private String end;
     private String step;
     private Boolean selected;
+    // Used for enums and String parameters, comma separated list of values
+    private String stringList;
 
+    // TODO: Type validation similar to StrategyConfig (live/backtest)
     public void validate() throws IllegalArgumentException {
         // If we are not using the parameter for optimisation. We don't need to validate its values
         if (!selected) {

@@ -11,6 +11,7 @@ import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -176,12 +177,18 @@ public class OptimisationExecutor {
                 throw new Exception("Error getting strategy from " + config.getStrategyClass() + ": " + e.getClass() + " " + e.getMessage(), e);
             }
 
-            strategy.setParameters(parameterCombination);
-            BacktestExecutor executor = executorFactory.createExecutor(strategy, id, dataManager, eventPublisher, config.getInitialCash());
-            executor.initialise();
-            dataManager.addDataListener(executor);
+            try {
+                ParameterHandler.validateRunParameters(strategy, parameterCombination);
+                strategy.setParameters(parameterCombination);
+                BacktestExecutor executor = executorFactory.createExecutor(strategy, id, dataManager, eventPublisher, config.getInitialCash());
+                executor.initialise();
+                dataManager.addDataListener(executor);
 
-            batchExecutors.add(executor);
+                batchExecutors.add(executor);
+            } catch (Exception e) {
+                log.error("Failed to initialise strategy '{}'", strategy.getStrategyId(), e);
+                eventPublisher.publishErrorEvent(strategy.getStrategyId(), e);
+            }
         }
 
         if (running) {
@@ -270,7 +277,6 @@ public class OptimisationExecutor {
      * @throws IllegalArgumentException if parameters are not valid.
      */
     public List<Map<String, String>> generateParameterCombinations(List<ParameterRange> parameterRanges) throws IllegalArgumentException {
-        // TODO: Support the enum type parameters
         List<Map<String, String>> combinations = new ArrayList<>();
         generateCombinationsRecursive(parameterRanges, 0, new HashMap<>(), combinations);
         return combinations;
@@ -299,13 +305,24 @@ public class OptimisationExecutor {
                 // Use the realtime value configured, since we are not optimising for this parameter
                 currentCombination.put(range.getName(), range.getValue());
                 generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+            } else if (range.getStringList() != null) {
+                // This is an enum or string parameter, so we parse the string list and generate combinations
+                String[] values = range.getStringList().split(",");
+                for (int i = 0; i < values.length; i++) {
+                    values[i] = values[i].trim();
+                }
+
+                for (String value : values) {
+                    currentCombination.put(range.getName(), value);
+                    generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
+                }
             } else {
                 // Number is used here, as we often get rounding precision errors when using doubles directly
                 Number start = new Number(Double.parseDouble(range.getStart()));
                 Number end = new Number(Double.parseDouble(range.getEnd()));
                 Number step = new Number(Double.parseDouble(range.getStep()));
 
-                if (start == end) {
+                if (start.equals(end)) {
                     currentCombination.put(range.getName(), String.valueOf(start));
                     generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
                 } else {

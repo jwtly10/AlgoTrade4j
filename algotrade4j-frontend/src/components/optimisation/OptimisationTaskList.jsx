@@ -104,7 +104,7 @@ const OptimizationTaskRow = ({task, onShare, onViewConfig, onGetResults, onDelet
                 )}
                 {task.state === 'FAILED' && (
                     <p className="text-red-600 break-words">
-                        {'Error during optimization run: ' + task.errorMessage ||
+                        {'Run Failed: ' + task.errorMessage ||
                             'An error occurred'}
                     </p>
                 )}

@@ -98,6 +98,8 @@ public class StrategyConfig {
         private String stop;
         private String step;
         private Boolean selected;
+        // Used for enum/string types, comma separated list of values
+        private String stringList;
 
         public RunParameter(String name, String value) {
             this.name = name;
