@@ -269,6 +269,7 @@ public class LiveStrategyService {
 
         // Update the possible values that we allow for updating
         liveStrategy.setStrategyName(strategySetup.getStrategyName());
+        liveStrategy.setTelegramChatId(strategySetup.getTelegramChatId());
         liveStrategy.setConfig(strategySetup.getConfig());
         liveStrategy.setActive(false); // If we make updated, we should deactivate the strategy
 
