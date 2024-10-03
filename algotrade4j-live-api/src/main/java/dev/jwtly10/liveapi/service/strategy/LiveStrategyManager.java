@@ -208,6 +208,7 @@ public class LiveStrategyManager {
                     @Override
                     public void onError(Exception exception) {
                         log.error("Error fetching preloaded candles", exception);
+                        throw new RuntimeException("Error fetching preloaded candles", exception);
                     }
 
                     @Override
@@ -234,6 +235,8 @@ public class LiveStrategyManager {
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
         RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
         TradeManager tradeManager = new LiveTradeManager(client, riskManager);
+        // Set, so we have the ability to stop the strategy in case of background processes
+        tradeManager.setDataManager(dataManager);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);

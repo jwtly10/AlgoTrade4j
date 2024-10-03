@@ -144,11 +144,11 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public void streamTransactions(OandaClient.TransactionStreamCallback callback) throws Exception {
-        log.info("Starting transaction stream");
         if (accountId == null) {
             log.error("Account ID not set. Cannot stream transactions.");
             throw new RuntimeException("Account ID not set. Cannot stream transactions.");
         }
+        log.info("Starting transaction stream for accountId: {}", accountId);
         client.streamTransactions(accountId, callback);
     }
 }

@@ -129,7 +129,7 @@ public class OandaClient {
         try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
             if (!res.isSuccessful()) {
-                log.error("Failed to fetch trades from Oanda API: {}", res);
+                log.trace("Failed to fetch trades from Oanda API: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 

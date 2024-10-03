@@ -1,5 +1,6 @@
 package dev.jwtly10.liveapi.executor;
 
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.execution.TradeManager;
@@ -12,6 +13,7 @@ import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InterruptedIOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,8 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
     private final BrokerClient brokerClient;
 
     private final RiskManager riskManager;
+
+    private DataManager dataManager = null;
 
     private ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Trade> allTrades = new ConcurrentHashMap<>();
@@ -141,16 +145,24 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
 
     @Override
     public void shutdown() {
+        log.info("Shutting down transaction stream.");
         running = false;
-        executorService.shutdown();
+        if (dataManager != null) {
+            dataManager.stop();
+        }
         try {
-            if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(3, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             executorService.shutdownNow();
         }
+    }
+
+    @Override
+    public void setDataManager(DataManager dataManager) {
+        this.dataManager = dataManager;
     }
 
     @Override
@@ -193,26 +205,26 @@ public class LiveTradeManager implements TradeManager, AutoCloseable {
 
                         @Override
                         public void onError(Exception e) {
-                            log.error("Error in transaction stream", e);
+                            // If InterruptedException, then we are shutting down
+                            if (e instanceof InterruptedIOException) {
+                                log.info("Transaction stream interrupted. Shutting down.");
+                                return;
+                            } else {
+                                log.error("Error during transaction stream", e);
+                            }
                         }
 
                         @Override
                         public void onComplete() {
                             log.info("Transaction stream completed");
                             if (running) {
-                                log.info("Restarting transaction stream...");
+                                shutdown();
                             }
                         }
                     });
                 } catch (Exception e) {
-                    log.error("Error starting transaction stream", e);
                     if (running) {
-                        try {
-                            TimeUnit.SECONDS.sleep(5);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
+                        shutdown();
                     }
                 }
             }

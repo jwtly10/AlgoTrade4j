@@ -1,5 +1,6 @@
 package dev.jwtly10.core.execution;
 
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
@@ -115,4 +116,13 @@ public interface TradeManager {
      * This method should be called when the TradeManager is no longer needed.
      */
     void shutdown();
+
+    /**
+     * Utility to have full control when needed during a shutdown
+     *
+     * @param dataManager The dataManager to be shutdown
+     */
+    default void setDataManager(DataManager dataManager) {
+        // A data manager can be set if needed
+    }
 }
