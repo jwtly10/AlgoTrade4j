@@ -80,7 +80,6 @@ const LiveStrategyView = () => {
 
     const handleViewStrategy = async (strategy) => {
         log.debug('Viewing strategy:', strategy.id);
-        console.log(strategy)
         setViewingStrategy(strategy);
         await viewStrategy(strategy.strategyName);
     };

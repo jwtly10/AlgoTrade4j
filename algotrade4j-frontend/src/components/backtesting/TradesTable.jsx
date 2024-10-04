@@ -116,7 +116,6 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
     const handleCloseTrade = async (strategy, tradeId) => {
 
         try {
-            console.log(`Closing trade: StrategyId: ${strategy.id}, TradeId: ${tradeId}`)
             await liveStrategyClient.closeTrade(strategy.id, tradeId);
             toast({
                 title: 'Success',

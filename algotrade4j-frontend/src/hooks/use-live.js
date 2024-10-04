@@ -113,7 +113,6 @@ export const useLive = () => {
     };
 
     const setAnalysis = (data) => {
-        console.log(data)
         setAnalysisData(data);
     };
 
