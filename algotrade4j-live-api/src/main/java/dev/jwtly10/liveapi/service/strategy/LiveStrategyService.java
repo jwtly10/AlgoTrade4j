@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -34,7 +35,6 @@ public class LiveStrategyService {
         this.brokerAccountRepository = brokerAccountRepository;
         this.trackingService = trackingService;
     }
-
 
     /**
      * <p>
@@ -275,5 +275,10 @@ public class LiveStrategyService {
 
         // Save the strategy to the database
         return liveStrategyRepository.save(liveStrategy);
+    }
+
+    public Optional<LiveStrategy> getActiveStrategy(Long strategyId) {
+        log.info("Getting active live strategy with id: {}", strategyId);
+        return liveStrategyRepository.findByIdAndActiveIsTrue(strategyId);
     }
 }

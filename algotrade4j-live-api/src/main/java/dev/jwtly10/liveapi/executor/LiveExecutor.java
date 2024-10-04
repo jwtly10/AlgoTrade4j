@@ -172,6 +172,10 @@ public class LiveExecutor implements DataListener {
         return this.strategyId;
     }
 
+    public void closeTrade(String tradeId) {
+        tradeManager.closePosition(Integer.parseInt(tradeId), true);
+    }
+
     public List<Bar> getBars() {
         return dataManager.getBarSeries().getBars();
     }

@@ -194,7 +194,7 @@ const LiveStrategyView = () => {
                                             value="trades"
                                             className="h-full overflow-auto"
                                         >
-                                            <TradesTable trades={trades} split={true}/>
+                                            <TradesTable trades={trades} strategy={viewingStrategy} useLiveSplit={true}/>
                                         </TabsContent>
                                         <TabsContent value="logs" className="h-full overflow-auto">
                                             {logs.length > 0 ? (

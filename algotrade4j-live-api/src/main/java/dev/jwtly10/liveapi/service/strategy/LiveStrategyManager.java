@@ -8,6 +8,7 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
+import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
@@ -24,6 +25,8 @@ import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -259,4 +262,23 @@ public class LiveStrategyManager {
         return executor;
     }
 
+    public void closeTrade(Long strategyId, String tradeId) {
+        LiveStrategy strategy = liveStrategyService.getActiveStrategy(strategyId).orElseThrow(
+                () -> new ApiException(String.format("Live Strategy with id %s is not active or does not exist", strategyId), ErrorType.BAD_REQUEST)
+        );
+
+        LiveExecutor executor = liveExecutorRepository.getStrategy(strategy.getStrategyName());
+        if (executor == null) {
+            throw new ApiException(String.format("Could not find running executor with strategy name: %s", strategy.getStrategyName()), ErrorType.BAD_REQUEST);
+        }
+
+        Map<Integer, Trade> trades = executor.getTrades();
+
+        Trade tradeToClose = trades.getOrDefault(Integer.parseInt(tradeId), null);
+        if (tradeToClose == null) {
+            throw new ApiException(String.format("Trade with id: %s could not be found", tradeId), ErrorType.BAD_REQUEST);
+        }
+
+        executor.closeTrade(tradeId);
+    }
 }

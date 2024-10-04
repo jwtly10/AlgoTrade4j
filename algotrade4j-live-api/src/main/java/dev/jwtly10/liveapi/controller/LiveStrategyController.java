@@ -81,4 +81,10 @@ public class LiveStrategyController {
         liveStrategyService.deleteStrategy(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{id}/{tradeId}/close")
+    public ResponseEntity<String> closeTrade(@PathVariable("id") Long strategyId, @PathVariable("tradeId") String tradeId) {
+        liveStrategyManager.closeTrade(strategyId, tradeId);
+        return ResponseEntity.ok().build();
+    }
 }
