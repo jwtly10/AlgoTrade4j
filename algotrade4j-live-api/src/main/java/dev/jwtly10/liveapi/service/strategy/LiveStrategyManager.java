@@ -30,6 +30,7 @@ import dev.jwtly10.shared.exception.ErrorType;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -132,6 +133,8 @@ public class LiveStrategyManager {
 
         executorService.submit(() -> {
             Thread.currentThread().setName("LiveStrategyExecutor-" + strategy.getStrategyName());
+            MDC.put("strategyId", strategy.getStrategyName());
+            MDC.put("instrument", executor.getDataManager().getInstrument().toString());
             try {
                 executor.getDataManager().start();
             } catch (Exception e) {
@@ -140,6 +143,8 @@ public class LiveStrategyManager {
                 eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
                 // Here we can notify the user that the strategy has stopped
                 telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Live Strategy %s has been stopped:", strategy.getStrategyName()), e, true);
+            } finally {
+                MDC.clear();
             }
         });
     }

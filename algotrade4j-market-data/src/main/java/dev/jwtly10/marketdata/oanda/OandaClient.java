@@ -175,7 +175,7 @@ public class OandaClient {
     }
 
     public OandaOpenTradeResponse openTrade(String accountId, MarketOrderRequest orderRequest) throws Exception {
-        log.info("Opening trade: {}", orderRequest);
+        log.debug("Opening trade: {}", orderRequest);
         String url = apiUrl + "/v3/accounts/" + accountId + "/orders";
 
         OandaOrder order = new OandaOrder(orderRequest);
@@ -201,7 +201,7 @@ public class OandaClient {
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
-            log.debug("Opened trade: {}", response);
+            log.trace("Opened trade: {}", response);
             return objectMapper.readValue(response, OandaOpenTradeResponse.class);
         } catch (Exception e) {
             log.error("Failed to open trade", e);
@@ -225,7 +225,7 @@ public class OandaClient {
                 throw new DataProviderException("Error response from Oanda API: " + res.body().string());
             }
 
-            log.debug("Closed trade: {}", id);
+            log.trace("Closed trade: {}", id);
         } catch (Exception e) {
             log.error("Failed to close trade", e);
             throw e;

@@ -25,6 +25,7 @@ import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -116,13 +117,17 @@ public class StrategyManager {
 
         Strategy finalStrategy = strategy;
         executorService.submit(() -> {
-            Thread.currentThread().setName("StrategyExecutor-" + finalStrategy.getStrategyId());
+            Thread.currentThread().setName("BacktestExecutor-" + finalStrategy.getStrategyId());
+            MDC.put("strategyId", finalStrategy.getStrategyId());
+            MDC.put("instrument", executor.getDataManager().getInstrument().toString());
             try {
                 dataManager.start();
             } catch (Exception e) {
                 log.error("Error running strategy", e);
                 runningStrategies.remove(finalStrategy.getStrategyId());
                 eventPublisher.publishErrorEvent(finalStrategy.getStrategyId(), e);
+            } finally {
+                MDC.clear();
             }
         });
 
@@ -195,14 +200,20 @@ public class StrategyManager {
     }
 
     /**
+     * <p>
      * Generate a unique strategy ID.
      * Being unique is not necessarily being enforced here, but if multiple strategies are generated at the same time,
      * say by different clients, this way we can ensure that different clients get data specific to their strategy run.
+     * </p>
+     *
+     * <p>
+     * NB: This generation logic was built only for backtesting, for live trading, there should be unique custom names
+     * </p>
      *
      * @param strategyClass The class name of the strategy.
      * @return A unique strategy ID.
      */
-    public String generateStrategyId(String strategyClass) {
-        return strategyClass + "-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "") + "-frontend";
+    public String generateBacktestStrategyId(String strategyClass) {
+        return strategyClass + "-" + UUID.randomUUID().toString().substring(0, 8).replace("-", "") + "-backtest";
     }
 }

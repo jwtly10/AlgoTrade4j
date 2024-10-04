@@ -42,7 +42,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         if (payload.startsWith("STRATEGY:")) {
             String strategyId = payload.substring(9);
-            log.info("Strategy id: {} ", strategyId);
+            log.info("Starting WS connection for live strategy: '{}'", strategyId);
             LiveExecutor executor = liveExecutorRepository.getStrategy(strategyId);
             if (executor != null) {
                 WebSocketEventListener listener = new WebSocketEventListener(session, strategyId);

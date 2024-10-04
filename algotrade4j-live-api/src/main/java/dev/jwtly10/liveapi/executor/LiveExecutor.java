@@ -16,6 +16,7 @@ import dev.jwtly10.liveapi.exception.LiveExecutorException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -165,6 +166,8 @@ public class LiveExecutor implements DataListener {
 
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Live strategy stopped"));
         initialised = false;
+
+        MDC.clear();
     }
 
     @Override

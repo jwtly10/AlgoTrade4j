@@ -16,6 +16,7 @@ import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -175,6 +176,8 @@ public class BacktestExecutor implements DataListener {
         // This should always happen last, as there may be some logic a client needs to handle once all events are complete
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         initialised = false;
+
+        MDC.clear();
     }
 
 }
