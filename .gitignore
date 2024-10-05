@@ -42,6 +42,6 @@ logs/
 **/.flattened-pom.xml
 heapdump*
 .run
-docs/
 # Custom libraries (agent, etc)
 lib/
+site/

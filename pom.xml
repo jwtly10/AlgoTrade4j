@@ -20,7 +20,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>0.9</revision>
+        <revision>0.10</revision>
     </properties>
 
     <dependencies>
@@ -48,12 +48,6 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
             <version>8.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.datadoghq/dd-java-agent -->
-        <dependency>
-            <groupId>com.datadoghq</groupId>
-            <artifactId>dd-java-agent</artifactId>
-            <version>1.38.1</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

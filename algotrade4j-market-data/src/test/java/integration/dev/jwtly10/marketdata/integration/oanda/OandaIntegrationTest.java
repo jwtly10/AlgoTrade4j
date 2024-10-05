@@ -12,13 +12,14 @@ import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
 import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTransactionResponse;
+import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
 import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ class OandaIntegrationTest {
     private OandaClient client;
     private OandaDataClient oandaClient;
     private OandaBrokerClient brokerClient;
-    private String accountId = "";
+    private String accountId = "101-004-24749363-003";
 
     @BeforeEach
     void setUp() {
@@ -47,7 +48,6 @@ class OandaIntegrationTest {
         String baseUrl = "https://api-fxpractice.oanda.com";
 
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
-        assertNotNull(accountId, "OANDA_ACCOUNT_ID environment variable must be set");
 
         client = new OandaClient(baseUrl, apiKey);
         brokerClient = new OandaBrokerClient(client, null);
@@ -265,13 +265,13 @@ class OandaIntegrationTest {
     }
 
     @Test
-    void testCanStreamTransactions() throws InterruptedException {
+    void testCanStreamTransactions() throws InterruptedException, IOException {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTrans = new AtomicInteger(0);
 
         client.streamTransactions(accountId, new OandaClient.TransactionStreamCallback() {
             @Override
-            public void onTransaction(OandaTransactionResponse transaction) {
+            public void onOrderFillMarketClose(OrderFillTransaction transaction) {
                 System.out.println(transaction);
                 receivedTrans.incrementAndGet();
                 if (receivedTrans.get() >= 5) {
@@ -292,7 +292,7 @@ class OandaIntegrationTest {
             }
         });
 
-        boolean completed = latch.await(3, TimeUnit.SECONDS);
+        boolean completed = latch.await(15, TimeUnit.SECONDS);
 
         if (!completed) {
             System.out.println("Test timed out. Received " + receivedTrans.get() + " transactions.");

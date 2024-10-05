@@ -7,23 +7,19 @@ import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
 import dev.jwtly10.marketdata.oanda.OandaClient;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doAnswer;
 
 /**
  * This integration tests checks that a Strategy with given data, parameters and timeframe can be started and stopped
@@ -34,27 +30,26 @@ import static org.mockito.Mockito.doAnswer;
 @Slf4j
 class StrategyManagerIntegrationTest {
 
-    @Mock
-    private EventPublisher eventPublisher;
+    private InMemoryEventPublisher eventPublisher;
 
     private StrategyManager strategyManager;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         String apiKey = System.getenv("OANDA_API_KEY");
         String baseUrl = "https://api-fxpractice.oanda.com";
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
 
+        eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
         OandaClient oandaClient = new OandaClient(baseUrl, apiKey);
         strategyManager = new StrategyManager(eventPublisher, oandaClient);
     }
 
     @Test
     @Timeout(30)
-    void testBacktestRunForNASOanda() throws InterruptedException {
+    void testBacktestRunWithNoRiskProfile() throws InterruptedException {
         StrategyConfig config = new StrategyConfig();
-        config.setStrategyClass("PinnedDJATRStrategy");
+        config.setStrategyClass("IntegrationTestStrategy");
         config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
         config.setPeriod(Period.M15);
         config.setSpread(10);
@@ -79,29 +74,20 @@ class StrategyManagerIntegrationTest {
 
                         new StrategyConfig.RunParameter("tradeDirection", "ANY"),
                         new StrategyConfig.RunParameter("startTradeTime", "9"),
-                        new StrategyConfig.RunParameter("endTradeTime", "20")
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+
+                        new StrategyConfig.RunParameter("riskProfile", "NONE")
                 )
         );
 
         String strategyId = "int-test-strategy-id";
-        CountDownLatch latch = new CountDownLatch(1);
-
-        ArgumentCaptor<BaseEvent> eventCaptor = ArgumentCaptor.forClass(BaseEvent.class);
-
-        doAnswer(invocation -> {
-            BaseEvent event = invocation.getArgument(0);
-            if (event instanceof StrategyStopEvent && ((StrategyStopEvent) event).getStrategyId().equals(strategyId)) {
-                latch.countDown();
-            }
-            return null;
-        }).when(eventPublisher).publishEvent(eventCaptor.capture());
 
         strategyManager.startStrategy(config, strategyId);
 
-        // Wait for the strategy to stop
-        assertTrue(latch.await(30, TimeUnit.SECONDS), "Strategy did not complete in time");
+        // Wait for strategy to stop
+        assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");
 
-        List<BaseEvent> capturedEvents = eventCaptor.getAllValues();
+        List<BaseEvent> capturedEvents = eventPublisher.getEvents();
         assertFalse(capturedEvents.isEmpty(), "No events were published");
 
         // Validate
@@ -161,5 +147,122 @@ class StrategyManagerIntegrationTest {
         assert Math.abs(equity - 28586.58) < epsilon : "Equity should be ~= 27119.16";
         assert Math.abs(profit - 18586.58) < epsilon : "Profit should be ~= 17119.16";
         assert Math.abs(profitPercentage - 185.86) < epsilon : "Profit percentage should be ~= 171.19%";
+    }
+
+    /**
+     * A simple test to view quickly, how risk management can affect trades.
+     * This is not the best test, but allows an easy way to validate that logic has not changed.
+     * Note, any changes to the IntegrationTest risk profile will cause this to fail
+     */
+    @Test
+    @Timeout(30)
+    void testBacktestRunWithMFFRiskProfile() throws InterruptedException {
+        StrategyConfig config = new StrategyConfig();
+        config.setStrategyClass("IntegrationTestStrategy");
+        config.setInstrumentData(Instrument.NAS100USD.getInstrumentData());
+        config.setPeriod(Period.M5);
+        config.setSpread(10);
+        config.setSpeed(DataSpeed.INSTANT);
+        config.setInitialCash(10000);
+        config.setTimeframe(new Timeframe(
+                ZonedDateTime.of(2023, 1, 15, 0, 0, 0, 0, ZoneId.of("UTC")),
+                ZonedDateTime.of(2023, 1, 20, 0, 0, 0, 0, ZoneId.of("UTC"))
+        ));
+        config.setRunParams(
+                List.of(
+                        new StrategyConfig.RunParameter("stopLossTicks", "300"),
+                        new StrategyConfig.RunParameter("riskRatio", "5"),
+                        new StrategyConfig.RunParameter("riskPercentage", "1"),
+                        new StrategyConfig.RunParameter("balanceToRisk", "10000"),
+
+                        new StrategyConfig.RunParameter("atrLength", "14"),
+                        new StrategyConfig.RunParameter("atrSensitivity", "0.6"),
+                        new StrategyConfig.RunParameter("relativeSize", "2"),
+                        new StrategyConfig.RunParameter("shortSMALength", "50"),
+                        new StrategyConfig.RunParameter("longSMALength", "0"),
+
+                        new StrategyConfig.RunParameter("tradeDirection", "ANY"),
+                        new StrategyConfig.RunParameter("startTradeTime", "9"),
+                        new StrategyConfig.RunParameter("endTradeTime", "20"),
+
+                        new StrategyConfig.RunParameter("riskProfile", "INTEGRATION_TEST")
+                )
+        );
+
+        String strategyId = "int-test-strategy-id";
+
+        strategyManager.startStrategy(config, strategyId);
+
+        // Wait for strategy to stop
+        assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");
+
+        List<BaseEvent> capturedEvents = eventPublisher.getEvents();
+        assertFalse(capturedEvents.isEmpty(), "No events were published");
+
+
+        List<AccountEvent> accountEvents = capturedEvents.stream()
+                .filter(e -> e instanceof AccountEvent)
+                .map(e -> (AccountEvent) e)
+                .toList();
+
+        // get the last account event
+
+        AccountEvent accountEvent = accountEvents.getLast();
+
+        log.info("Account Balance: {}", accountEvent.getAccount().getBalance());
+
+        // A crude assert, just to ensure logic hasn't changed
+        assertEquals(9096.912700000004, accountEvent.getAccount().getBalance(), "Balance should be 9096.0");
+    }
+
+    private class InMemoryEventPublisher implements EventPublisher {
+        @Getter
+        private final List<BaseEvent> events = new ArrayList<>();
+        private final String expectedStrategyId;
+        private volatile boolean strategyStopped = false;
+
+        public InMemoryEventPublisher(String expectedStrategyId) {
+            this.expectedStrategyId = expectedStrategyId;
+        }
+
+        @Override
+        public void addListener(EventListener listener) {
+
+        }
+
+        @Override
+        public void removeListener(EventListener listener) {
+
+        }
+
+        @Override
+        public void publishEvent(BaseEvent event) {
+            events.add(event);
+            if (event instanceof StrategyStopEvent &&
+                    ((StrategyStopEvent) event).getStrategyId().equals(expectedStrategyId)) {
+                strategyStopped = true;
+            }
+        }
+
+        @Override
+        public void publishErrorEvent(String strategyId, Exception e) {
+
+        }
+
+        @Override
+        public void shutdown() {
+
+        }
+
+        public boolean awaitStrategyStop(long timeoutMillis) throws InterruptedException {
+            long startTime = System.currentTimeMillis();
+            while (!strategyStopped) {
+                if (System.currentTimeMillis() - startTime > timeoutMillis) {
+                    return false;
+                }
+                Thread.sleep(10); // Short sleep to avoid busy-waiting
+            }
+            return true;
+        }
     }
 }

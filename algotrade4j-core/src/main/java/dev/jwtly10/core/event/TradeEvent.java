@@ -4,6 +4,8 @@ import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Trade;
 import lombok.Getter;
 
+import java.time.ZonedDateTime;
+
 /**
  * Event representing a trade action in the system.
  */
@@ -29,6 +31,12 @@ public class TradeEvent extends BaseEvent {
      */
     public TradeEvent(String strategyId, Instrument instrument, Trade trade, Action action) {
         super(strategyId, "TRADE", instrument);
+        this.trade = trade;
+        this.action = action;
+    }
+
+    public TradeEvent(String strategyId, Instrument instrument, Trade trade, Action action, ZonedDateTime timestamp) {
+        super(strategyId, "TRADE", instrument, timestamp);
         this.trade = trade;
         this.action = action;
     }

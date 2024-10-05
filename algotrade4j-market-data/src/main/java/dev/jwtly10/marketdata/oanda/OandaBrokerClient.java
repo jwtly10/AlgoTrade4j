@@ -57,7 +57,7 @@ public class OandaBrokerClient implements BrokerClient {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
         try {
-            OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.OPEN, null, null);
+            OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.OPEN, null, 500);
             return res.trades().stream().map(OandaTrade::toTrade).toList();
         } catch (Exception e) {
             log.error("Error fetching open trades", e);
@@ -71,7 +71,7 @@ public class OandaBrokerClient implements BrokerClient {
             log.error("Account ID not set. Cannot fetch all trades.");
             throw new RuntimeException("Account ID not set. Cannot fetch all trades.");
         }
-        OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, null);
+        OandaTradeResponse res = client.fetchTrades(accountId, null, TradeStateFilter.ALL, null, 500);
         return res.trades().stream().map(OandaTrade::toTrade).toList();
     }
 
@@ -140,6 +140,15 @@ public class OandaBrokerClient implements BrokerClient {
         } catch (Exception e) {
             log.error("Error streaming prices", e);
         }
+    }
 
+    @Override
+    public void streamTransactions(OandaClient.TransactionStreamCallback callback) throws Exception {
+        if (accountId == null) {
+            log.error("Account ID not set. Cannot stream transactions.");
+            throw new RuntimeException("Account ID not set. Cannot stream transactions.");
+        }
+        log.info("Starting transaction stream for accountId: {}", accountId);
+        client.streamTransactions(accountId, callback);
     }
 }

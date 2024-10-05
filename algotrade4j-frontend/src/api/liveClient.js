@@ -75,6 +75,16 @@ export const liveStrategyClient = {
             return handleError(error, url);
         }
     },
+
+    closeTrade: async (strategyId, tradeId) => {
+        const url = `${V1}/live/strategies/${strategyId}/${tradeId}/close`
+        try {
+            const response = await liveInstance.post(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    }
 };
 
 export const liveAccountClient = {

@@ -305,16 +305,30 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Input
-                                                                value={param.value}
-                                                                onChange={(e) =>
-                                                                    handleInputChange(
-                                                                        param.name,
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                autoComplete="off"
-                                                            />
+                                                            {param.type === 'enum' ? (
+                                                                <Select
+                                                                    value={param.value}
+                                                                    onValueChange={(value) => handleInputChange(param.name, value)}
+                                                                >
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="Select a value"/>
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {param.enumValues.map((enumValue) => (
+                                                                            <SelectItem key={enumValue} value={enumValue}>
+                                                                                {enumValue}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            ) : (
+                                                                <Input
+                                                                    value={param.value}
+                                                                    onChange={(e) => handleInputChange(param.name, e.target.value)}
+                                                                    autoComplete="off"
+                                                                    type={param.type === 'int' || param.type === 'double' ? 'number' : 'text'}
+                                                                />
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}

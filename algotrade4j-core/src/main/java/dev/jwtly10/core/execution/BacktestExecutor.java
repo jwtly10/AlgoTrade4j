@@ -9,15 +9,14 @@ import dev.jwtly10.core.event.async.*;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.BarSeries;
-import dev.jwtly10.core.model.IndicatorValue;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ public class BacktestExecutor implements DataListener {
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
+    private final RiskManager riskManager;
     private final PerformanceAnalyser performanceAnalyser;
     @Getter
     private final String strategyId;
@@ -40,7 +40,7 @@ public class BacktestExecutor implements DataListener {
     @Setter
     private volatile boolean initialised = false;
 
-    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
+    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, RiskManager riskManager) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataManager = dataManager;
@@ -49,6 +49,8 @@ public class BacktestExecutor implements DataListener {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.performanceAnalyser = performanceAnalyser;
+        this.riskManager = riskManager;
+        tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
     }
 
@@ -76,9 +78,15 @@ public class BacktestExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-            strategy.onTick(tick, currentBar);
-            tradeStateManager.updateTradeStates(tradeManager, tick);
+            tradeStateManager.updateTradeProfitStateOnTick(tradeManager, tick);
+            tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager);
             performanceAnalyser.updateOnTick(accountManager.getEquity());
+
+            riskManager.check(tick, tradeManager);
+
+            // All analysis should be done before calling the strategy
+
+            strategy.onTick(tick, currentBar);
         } catch (Exception e) {
             throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
         }
@@ -91,7 +99,6 @@ public class BacktestExecutor implements DataListener {
             return;
         }
         try {
-            tradeStateManager.updateAccountState(accountManager, tradeManager);
             // Update indicators on bar close TODO: Some indicators may need tick data, so we may need to update them on tick as well. TBC
             IndicatorUtils.updateIndicators(strategy, closedBar);
             strategy.onBarClose(closedBar);
@@ -118,6 +125,12 @@ public class BacktestExecutor implements DataListener {
     }
 
     @Override
+    public void onTradeClose(Trade trade) {
+        log.trace("Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
+        tradeStateManager.updateBalanceOnTradeClose(trade, accountManager);
+    }
+
+    @Override
     public void onStop() {
         if (!initialised) {
             log.error("Attempt to stop uninitialized BacktestExecutor for strategy: {}", strategyId);
@@ -127,16 +140,19 @@ public class BacktestExecutor implements DataListener {
     }
 
     private void cleanup() {
-        log.debug("Cleaning up strategy");
+        log.info("Cleaning up strategy and closing any open trades");
         tradeManager.getOpenTrades().values().forEach(trade -> {
             tradeManager.closePosition(trade.getId(), false);
         });
         // Update trade states and account state
-        tradeStateManager.updateTradeStates(tradeManager, null);
-        tradeStateManager.updateAccountState(accountManager, tradeManager);
+        tradeStateManager.updateTradeProfitStateOnTick(tradeManager, null);
+        tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager);
 
         // Run final performance analysis
         performanceAnalyser.calculateStatistics(tradeManager.getAllTrades(), accountManager.getInitialBalance());
+
+        // Shutdown any processes in the trade manager
+        tradeManager.shutdown();
 
         // Spin down the strategy
         strategy.onDeInit();
@@ -160,6 +176,8 @@ public class BacktestExecutor implements DataListener {
         // This should always happen last, as there may be some logic a client needs to handle once all events are complete
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Strategy stopped"));
         initialised = false;
+
+        MDC.clear();
     }
 
 }

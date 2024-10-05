@@ -2,6 +2,7 @@ package dev.jwtly10.core.strategy;
 
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.risk.RiskProfileConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -122,6 +123,11 @@ class ParameterHandlerTest {
             @Override
             public void onTick(Tick tick, Bar currentBar) {
             }
+
+            @Override
+            public RiskProfileConfig getRiskProfileConfig() {
+                return null;
+            }
         }
 
         InvalidStrategy invalidStrategy = new InvalidStrategy("invalid");
@@ -222,6 +228,11 @@ class ParameterHandlerTest {
             @Override
             public void onTick(Tick tick, Bar currentBar) {
             }
+
+            @Override
+            public RiskProfileConfig getRiskProfileConfig() {
+                return null;
+            }
         }
 
         InvalidEnumStrategy invalidStrategy = new InvalidEnumStrategy("invalid");
@@ -281,6 +292,11 @@ class ParameterHandlerTest {
         public void onTick(Tick tick, Bar currentBar) {
             // Not used for this test
         }
+
+        @Override
+        public RiskProfileConfig getRiskProfileConfig() {
+            return null;
+        }
     }
 
     static class TestStrategyEdgeCase extends BaseStrategy {
@@ -295,6 +311,11 @@ class ParameterHandlerTest {
 
         public void onTick(Tick tick, Bar currentBar) {
             // Not used for this test
+        }
+
+        @Override
+        public RiskProfileConfig getRiskProfileConfig() {
+            return null;
         }
     }
 }

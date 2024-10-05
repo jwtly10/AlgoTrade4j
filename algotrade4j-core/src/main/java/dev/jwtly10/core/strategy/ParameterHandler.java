@@ -3,10 +3,7 @@ package dev.jwtly10.core.strategy;
 import lombok.Data;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Utility class for handling parameters annotated with {@link Parameter}.
@@ -16,6 +13,8 @@ public class ParameterHandler {
 
     /**
      * Validates the run parameters against the strategy's @Parameter annotations.
+     * This only validates the parameter names and coercible types, not the values.
+     * So in the case of ENUMS, it wouldn't validate the value is valid
      *
      * @param strategy  The strategy instance to validate against.
      * @param runParams A map of parameter names to their values.
@@ -100,31 +99,22 @@ public class ParameterHandler {
                 } catch (IllegalAccessException e) {
                     value = "N/A";
                 }
-                parameters.add(new ParameterInfo(param.name(), param.description(), value, param.group()));
+
+                String type = getTypeString(field.getType());
+                Class<? extends Enum<?>> enumClass = param.enumClass().length > 0 ? param.enumClass()[0] : null;
+
+                parameters.add(new ParameterInfo(
+                        param.name(),
+                        param.description(),
+                        value,
+                        param.group(),
+                        type,
+                        enumClass
+                ));
             }
         }
 
         return parameters;
-    }
-
-    /**
-     * Retrieves a map of parameter names to {@link Parameter} objects from the given strategy.
-     *
-     * @param strategy The strategy to retrieve parameters from.
-     * @return A map of parameter names to {@link Parameter} objects.
-     */
-    public static Map<String, Parameter> getParameterMap(Strategy strategy) {
-        Map<String, Parameter> parameterMap = new HashMap<>();
-        Class<?> clazz = strategy.getClass();
-
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Parameter.class)) {
-                Parameter param = field.getAnnotation(Parameter.class);
-                parameterMap.put(param.name(), param);
-            }
-        }
-
-        return parameterMap;
     }
 
     /**
@@ -297,6 +287,18 @@ public class ParameterHandler {
     }
 
     /**
+     * Converts a class type to a string representation.
+     */
+    private static String getTypeString(Class<?> type) {
+        if (type == int.class || type == Integer.class) return "int";
+        if (type == boolean.class || type == Boolean.class) return "boolean";
+        if (type == double.class || type == Double.class) return "double";
+        if (type == String.class) return "string";
+        if (type.isEnum()) return "enum";
+        return type.getSimpleName();
+    }
+
+    /**
      * Information about a parameter.
      * A DTO-style class to make it easier to pass parameter information around.
      */
@@ -306,12 +308,25 @@ public class ParameterHandler {
         private String description;
         private String value;
         private String group;
+        private String type;
+        private List<String> enumValues;
 
-        public ParameterInfo(String name, String description, String value, String group) {
+        public ParameterInfo(String name, String description, String value, String group, String type) {
+            this(name, description, value, group, type, null);
+        }
+
+        public ParameterInfo(String name, String description, String value, String group, String type, Class<? extends Enum<?>> enumClass) {
             this.name = name;
             this.description = description;
             this.value = value;
             this.group = group;
+            this.type = type;
+
+            if (enumClass != null) {
+                this.enumValues = Arrays.stream(enumClass.getEnumConstants())
+                        .map(Enum::name)
+                        .toList();
+            }
         }
     }
 }

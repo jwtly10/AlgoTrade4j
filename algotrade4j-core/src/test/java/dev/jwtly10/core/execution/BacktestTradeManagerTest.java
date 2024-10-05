@@ -5,6 +5,8 @@ import dev.jwtly10.core.event.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,19 +18,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
-class DefaultTradeManagerTest {
+class BacktestTradeManagerTest {
     private final Instrument SYMBOL = NAS100USD;
-    private DefaultTradeManager backtestTradeManager;
+    private BacktestTradeManager backtestTradeManager;
     private EventPublisher mockEventPublisher;
     private Tick mockCurrentTick;
     private BarSeries mockBarSeries;
+    private RiskManager mockRiskManager;
 
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
         mockBarSeries = mock(DefaultBarSeries.class);
         mockCurrentTick = mock(DefaultTick.class);
-        backtestTradeManager = new DefaultTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher);
+        mockRiskManager = mock(RiskManager.class);
+        backtestTradeManager = new BacktestTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher, mockRiskManager);
     }
 
     @Test
@@ -44,6 +48,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(10000.0);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openLong(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -70,6 +75,7 @@ class DefaultTradeManagerTest {
         ZonedDateTime openTime = ZonedDateTime.now();
         when(mockCurrentTick.getDateTime()).thenReturn(openTime);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openShort(params);
 
 
@@ -98,6 +104,7 @@ class DefaultTradeManagerTest {
         ZonedDateTime openTime = ZonedDateTime.now();
         when(mockCurrentTick.getDateTime()).thenReturn(openTime);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openLong(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -125,6 +132,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(100);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openShort(params);
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -150,6 +158,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
@@ -179,6 +188,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openLong(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
@@ -207,6 +217,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
@@ -235,6 +246,7 @@ class DefaultTradeManagerTest {
         params.setRiskPercentage(1);
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openShort(params);
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
@@ -297,6 +309,7 @@ class DefaultTradeManagerTest {
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
 
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         assertThrows(InvalidTradeException.class, () -> backtestTradeManager.openLong(params));
     }
 
@@ -318,6 +331,7 @@ class DefaultTradeManagerTest {
         params.setBalanceToRisk(10000);
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
+        when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
         int tradeId = backtestTradeManager.openLong(params);
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, null, null, new Number("10"), new Number("100"), ZonedDateTime.now()));

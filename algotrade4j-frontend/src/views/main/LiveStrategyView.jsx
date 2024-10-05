@@ -80,7 +80,6 @@ const LiveStrategyView = () => {
 
     const handleViewStrategy = async (strategy) => {
         log.debug('Viewing strategy:', strategy.id);
-        console.log(strategy)
         setViewingStrategy(strategy);
         await viewStrategy(strategy.strategyName);
     };
@@ -194,7 +193,7 @@ const LiveStrategyView = () => {
                                             value="trades"
                                             className="h-full overflow-auto"
                                         >
-                                            <TradesTable trades={trades} split={true}/>
+                                            <TradesTable trades={trades} strategy={viewingStrategy} useLiveSplit={true}/>
                                         </TabsContent>
                                         <TabsContent value="logs" className="h-full overflow-auto">
                                             {logs.length > 0 ? (

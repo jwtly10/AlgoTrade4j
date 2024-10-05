@@ -61,6 +61,27 @@ public abstract class BaseEvent {
     }
 
     /**
+     * Constructs a BaseEvent with the specified strategy ID, type, and instrument.
+     * Generates a unique event ID and sets the current timestamp.
+     *
+     * <p>
+     * We include a timestamp for this constructor to improve performance - some events will be fired essentially at the same time
+     * Thus we reduce invocations for ZonedDateTime.now() improving performance
+     * </p>
+     *
+     * @param strategyId the strategy identifier
+     * @param type       the type of the event
+     * @param instrument the instrument associated with the event
+     * @param timestamp  the timestamp of the event
+     */
+    protected BaseEvent(String strategyId, String type, Instrument instrument, ZonedDateTime timestamp) {
+        this.timestamp = timestamp;
+        this.strategyId = strategyId;
+        this.type = type;
+        this.instrument = instrument;
+    }
+
+    /**
      * Converts the event to a JSON message.
      *
      * @return JSON representation of the event

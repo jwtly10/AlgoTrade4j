@@ -3,21 +3,20 @@ package dev.jwtly10.liveapi.executor;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.event.BarEvent;
-import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.LogEvent;
-import dev.jwtly10.core.event.StrategyStopEvent;
+import dev.jwtly10.core.event.*;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -37,6 +36,7 @@ public class LiveExecutor implements DataListener {
     private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;
+    private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     @Getter
@@ -46,7 +46,10 @@ public class LiveExecutor implements DataListener {
     public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
                         DataManager dataManager,
                         EventPublisher eventPublisher,
-                        LiveStateManager liveStateManager) {
+                        LiveStateManager liveStateManager,
+                        RiskManager riskManager
+
+    ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
         this.dataManager = dataManager;
@@ -54,6 +57,8 @@ public class LiveExecutor implements DataListener {
         this.eventPublisher = eventPublisher;
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
+        this.riskManager = riskManager;
+        tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
     }
 
@@ -69,15 +74,14 @@ public class LiveExecutor implements DataListener {
         initialised = true;
 
         //  Load all the trades from the broker into memory
+        tradeManager.start();
         tradeManager.loadTrades();
         strategy.onStart();
 
         if (!this.dataManager.getBarSeries().isEmpty()) {
             IndicatorUtils.initializeIndicators(strategy, this.dataManager.getBarSeries().getBars());
-            Map<String, List<IndicatorValue>> allIndicatorsValues = new HashMap<>();
-            for (Indicator i : strategy.getIndicators()) {
-                allIndicatorsValues.put(i.getName(), i.getValues());
-            }
+            getIndicators();
+            Map<String, List<IndicatorValue>> allIndicatorsValues = getIndicators();
             eventPublisher.publishEvent(new AsyncIndicatorsEvent(strategyId, dataManager.getInstrument(), allIndicatorsValues));
         }
 
@@ -96,6 +100,8 @@ public class LiveExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
+            riskManager.check(tick, tradeManager);
+
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
             log.error("Error processing tick data", e);
@@ -142,20 +148,35 @@ public class LiveExecutor implements DataListener {
         cleanup();
     }
 
+    @Override
+    public void onTradeClose(Trade trade) {
+        log.info("Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
+        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
+    }
+
     private void cleanup() {
         log.debug("Cleaning up strategy");
         scheduler.shutdown();
+
+        // Shutdown any processes in the trade manager
+        tradeManager.shutdown();
 
         strategy.onDeInit();
         strategy.onEnd();
 
         eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Live strategy stopped"));
         initialised = false;
+
+        MDC.clear();
     }
 
     @Override
     public String getStrategyId() {
         return this.strategyId;
+    }
+
+    public void closeTrade(String tradeId) {
+        tradeManager.closePosition(Integer.parseInt(tradeId), true);
     }
 
     public List<Bar> getBars() {

@@ -5,6 +5,7 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.LogEvent;
+import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
@@ -91,17 +92,32 @@ public abstract class BaseStrategy implements Strategy {
      * @return the trade ID
      */
     public Integer openLong(TradeParameters params) {
-        return tradeManager.openLong(params);
+        try {
+            return tradeManager.openLong(params);
+        } catch (RiskManagerException e) {
+            log.warn("{}", e.getMessage());
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
+            return -1;
+        }
     }
 
     /**
      * Opens a short position with the specified trade parameters.
+     * This method will throw an exception if the risk manager does not allow the trade.
+     * The risk manager checks the risk profile of the strategy and the account balance before allowing the trade.
+     * Will return -1 if the trade is not allowed.
      *
      * @param params the trade parameters
      * @return the trade ID
      */
     public Integer openShort(TradeParameters params) {
-        return tradeManager.openShort(params);
+        try {
+            return tradeManager.openShort(params);
+        } catch (RiskManagerException e) {
+            log.warn("{}", e.getMessage());
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
+            return -1;
+        }
     }
 
     /**
@@ -263,7 +279,7 @@ public abstract class BaseStrategy implements Strategy {
      */
     @Override
     public void onDeInit() {
-        log.info("Strategy {} de init-ed", strategyId);
+        log.info("Strategy run {} completed", strategyId);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
     }
 

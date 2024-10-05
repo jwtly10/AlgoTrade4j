@@ -1,6 +1,9 @@
 package dev.jwtly10.liveapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import dev.jwtly10.core.strategy.ParameterHandler;
+import dev.jwtly10.core.strategy.Strategy;
+import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +14,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * LiveStrategy
@@ -60,4 +65,21 @@ public class LiveStrategy {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    /**
+     * Validate the live strategy configuration against the real strategy class.
+     * TODO: Do we need more validation
+     * For now we just validate run parameters, as these are the configuration items that are class specific,
+     * So will fail if we edit any of the used classes.
+     *
+     * @throws Exception if the configuration is invalid
+     */
+    public void validateConfigAgainstStrategyClass() throws Exception {
+        Map<String, String> runParams = this.config.getRunParams().stream().collect(
+                Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
+
+        Strategy stratInstance = StrategyReflectionUtils.getStrategyFromClassName(this.config.getStrategyClass(), null);
+
+        ParameterHandler.validateRunParameters(stratInstance, runParams);
+    }
 }

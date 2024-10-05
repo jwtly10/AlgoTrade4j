@@ -192,7 +192,7 @@ public class StrategyController {
 
     @PostMapping("/generate-id")
     public ResponseEntity<String> generateStrategyId(@RequestBody StrategyConfig config) {
-        String strategyId = strategyManager.generateStrategyId(config.getStrategyClass());
+        String strategyId = strategyManager.generateBacktestStrategyId(config.getStrategyClass());
         return ResponseEntity.ok(strategyId);
     }
 

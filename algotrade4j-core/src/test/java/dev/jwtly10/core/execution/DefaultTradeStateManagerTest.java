@@ -40,7 +40,7 @@ class DefaultTradeStateManagerTest {
     }
 
     @Test
-    void updateTradeStates_updatesTrades() {
+    void updateTradeProfitStateOnTick_updatesTrades() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1900"), new Number("1.2100"), true);
@@ -52,7 +52,7 @@ class DefaultTradeStateManagerTest {
         when(tick.getBid()).thenReturn(new Number("1.2050"));
         when(tick.getAsk()).thenReturn(new Number("1.3950"));
 
-        tradeStateManager.updateTradeStates(tradeManager, tick);
+        tradeStateManager.updateTradeProfitStateOnTick(tradeManager, tick);
         verify(mockEventPublisher, times(2)).publishEvent(
                 any(TradeEvent.class)
         );
@@ -79,14 +79,32 @@ class DefaultTradeStateManagerTest {
         when(accountManager.getEquity()).thenReturn(1000.00);
         when(accountManager.getBalance()).thenReturn(1000.00);
 
-        tradeStateManager.updateAccountState(accountManager, tradeManager);
+        tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager);
         verify(mockEventPublisher, times(1)).publishEvent(
                 any(AccountEvent.class)
         );
     }
 
     @Test
-    void updateTradeStates_executesStopLoss() {
+    void updateAccountEquityOnTick_updatesEquity() {
+        ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
+        var now = ZonedDateTime.now();
+        Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
+        shortTrade.setProfit(100);
+        openTrades.put(2, shortTrade);
+        when(tradeManager.getOpenTrades()).thenReturn(openTrades);
+        when(accountManager.getInitialBalance()).thenReturn(1000.0);
+        when(accountManager.getBalance()).thenReturn(1000.0);
+        when(accountManager.getEquity()).thenReturn(1000.0);
+
+        tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager);
+
+        verify(accountManager).setEquity(1100.0);
+    }
+
+
+    @Test
+    void updateTradeProfitStateOnTick_executesStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);
@@ -99,13 +117,13 @@ class DefaultTradeStateManagerTest {
         when(accountManager.getInitialBalance()).thenReturn(1000.0);
         when(accountManager.getEquity()).thenReturn(1000.0);
 
-        tradeStateManager.updateTradeStates(tradeManager, tick);
+        tradeStateManager.updateTradeProfitStateOnTick(tradeManager, tick);
 
         verify(tradeManager).closePosition(longTrade.getId(), false);
     }
 
     @Test
-    void updateTradeStates_doesNotExecuteStopLoss() {
+    void updateTradeProfitStateOnTick_doesNotExecuteStopLoss() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
@@ -119,11 +137,11 @@ class DefaultTradeStateManagerTest {
         when(accountManager.getInitialBalance()).thenReturn(1000.0);
         when(accountManager.getEquity()).thenReturn(1000.0);
 
-        tradeStateManager.updateTradeStates(tradeManager, tick);
+        tradeStateManager.updateTradeProfitStateOnTick(tradeManager, tick);
     }
 
     @Test
-    void updateAccountState_throwsWhenBelowThreshold() {
+    void updateAccountEquityOnTick_throwsWhenBelowThreshold() {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade shortTrade = new Trade(NAS100USD, 1, new Number("1.4000"), now, new Number("1.4100"), new Number("1.3900"), false);
@@ -132,6 +150,6 @@ class DefaultTradeStateManagerTest {
         when(accountManager.getInitialBalance()).thenReturn(1000.0);
         when(accountManager.getEquity()).thenReturn(10.0); // 1% of equity
 
-        assertThrows(RiskException.class, () -> tradeStateManager.updateAccountState(accountManager, tradeManager));
+        assertThrows(RiskException.class, () -> tradeStateManager.updateAccountEquityOnTick(accountManager, tradeManager));
     }
 }

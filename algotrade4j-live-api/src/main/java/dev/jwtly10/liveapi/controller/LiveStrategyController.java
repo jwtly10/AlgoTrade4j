@@ -26,7 +26,7 @@ public class LiveStrategyController {
 
     @GetMapping
     public ResponseEntity<List<LiveStrategy>> getLiveStrategies() {
-        List<LiveStrategy> liveStrategies = liveStrategyService.getNonHiddenLiveStrategies();
+        List<LiveStrategy> liveStrategies = liveStrategyService.getLiveStrategiesWithMissingRunParamsAndMetaData();
         return ResponseEntity.ok(liveStrategies);
     }
 
@@ -47,6 +47,8 @@ public class LiveStrategyController {
         LiveStrategy updatedLiveStrategy = liveStrategyService.updateLiveStrategy(id, strategySetup);
         // We should also now STOP the strategy if it is active
         liveStrategyManager.stopStrategy(updatedLiveStrategy.getStrategyName());
+        // We clear the error message, as we can't validate the strategy until it is started again
+        liveStrategyService.clearErrorMessage(updatedLiveStrategy);
 
         return ResponseEntity.ok(updatedLiveStrategy);
     }
@@ -77,6 +79,12 @@ public class LiveStrategyController {
     @RateLimit(limit = 5)
     public ResponseEntity<Void> deleteLiveStrategy(@PathVariable("id") Long id) {
         liveStrategyService.deleteStrategy(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/{tradeId}/close")
+    public ResponseEntity<String> closeTrade(@PathVariable("id") Long strategyId, @PathVariable("tradeId") String tradeId) {
+        liveStrategyManager.closeTrade(strategyId, tradeId);
         return ResponseEntity.ok().build();
     }
 }

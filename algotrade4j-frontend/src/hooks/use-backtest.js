@@ -134,6 +134,7 @@ export const useBacktest = () => {
                     step: storedParam.step !== undefined ? storedParam.step : param.step,
                     selected:
                         storedParam.selected !== undefined ? storedParam.selected : param.selected,
+                    stringList: storedParam.stringList !== undefined ? storedParam.stringList : param.stringList,
                 };
             } else {
                 return param; // Keep the original parameter if no stored version is found
@@ -646,6 +647,8 @@ export const useBacktest = () => {
                 stop: '1',
                 step: '1',
                 selected: false,
+                type: param.type,
+                enumValues: param.enumValues
             });
         });
 

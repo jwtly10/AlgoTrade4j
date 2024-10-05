@@ -17,4 +17,6 @@ public interface LiveStrategyRepository extends JpaRepository<LiveStrategy, Long
     List<LiveStrategy> findLiveStrategiesByBrokerAccountAndHiddenIsFalse(BrokerAccount brokerAccount);
 
     Optional<LiveStrategy> findByStrategyName(String strategyName);
+
+    Optional<LiveStrategy> findByIdAndActiveIsTrue(Long id);
 }

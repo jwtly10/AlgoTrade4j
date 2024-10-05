@@ -8,6 +8,8 @@ import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
+import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
@@ -23,12 +25,16 @@ import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
+import dev.jwtly10.shared.exception.ApiException;
+import dev.jwtly10.shared.exception.ErrorType;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -55,19 +61,38 @@ public class LiveStrategyManager {
     }
 
     /**
-     * Load all active strategies on application startup
+     * Initialise live strategies
      * <p>
-     * This is to ensure that all active strategies are loaded into memory on application startup
-     * and are ready to run.
-     * This helps to ensure that the strategies are running even if the application is restarted (e.g. after a crash or deployment).
+     * On application startup, we validate that all strategies in the db are up to date.
+     * We check that the configuration stored in db is compatible with the strategy class.
+     * If not compatible, we deactivate the strategy and notify the user.
+     * </p>
+     * <p>
+     * Otherwise, we load all active strategies on application startup, and start them.
      * </p>
      */
     @PostConstruct
-    public void initActiveStrategies() {
-        List<LiveStrategy> strategies = liveStrategyService.getActiveLiveStrategies();
-        log.info("Found {} active live strategies to run on application init", strategies.size());
+    public void initLiveStrategies() {
+        log.info("Initialising live strategies on application startup");
 
-        for (LiveStrategy strategy : strategies) {
+        List<LiveStrategy> allStrategies = liveStrategyService.getNonHiddenLiveStrategies();
+        log.info("Found {} live strategies in the database to validate: {}", allStrategies.size(), allStrategies.stream().map(LiveStrategy::getStrategyName).collect(Collectors.toList()));
+        List<LiveStrategy> activeStrategies = new ArrayList<>();
+        for (LiveStrategy strategy : allStrategies) {
+            try {
+                strategy.validateConfigAgainstStrategyClass();
+                if (strategy.isActive()) {
+                    activeStrategies.add(strategy);
+                }
+            } catch (Exception e) {
+                log.warn("Strategy '{}' failed validation: {}", strategy.getStrategyName(), e.getMessage());
+                liveStrategyService.setErrorMessage(strategy, e.getMessage());
+                liveStrategyService.deactivateStrategy(strategy.getStrategyName());
+            }
+        }
+
+        log.info("Found {} active live strategies to run on application init: {}", activeStrategies.size(), activeStrategies.stream().map(LiveStrategy::getStrategyName).collect(Collectors.toList()));
+        for (LiveStrategy strategy : activeStrategies) {
             try {
                 startStrategy(strategy);
             } catch (Exception e) {
@@ -92,7 +117,7 @@ public class LiveStrategyManager {
 
         log.info("Starting live strategy: {}", strategy.getStrategyName());
         // Reset error msg
-        liveStrategyService.setErrorMessage(strategy, null);
+        liveStrategyService.clearErrorMessage(strategy);
 
         LiveExecutor executor;
         try {
@@ -100,7 +125,7 @@ public class LiveStrategyManager {
         } catch (Exception e) {
             // If we cannot create the executor, we should notify the user and stop the strategy
             log.error("Error creating executor", e);
-            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy %s:", strategy.getStrategyName()), e, true);
+            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy '%s':", strategy.getStrategyName()), e, true);
             // Rethrow the exception to stop the strategy from starting
             throw e;
         }
@@ -108,6 +133,8 @@ public class LiveStrategyManager {
 
         executorService.submit(() -> {
             Thread.currentThread().setName("LiveStrategyExecutor-" + strategy.getStrategyName());
+            MDC.put("strategyId", strategy.getStrategyName());
+            MDC.put("instrument", executor.getDataManager().getInstrument().toString());
             try {
                 executor.getDataManager().start();
             } catch (Exception e) {
@@ -116,6 +143,8 @@ public class LiveStrategyManager {
                 eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
                 // Here we can notify the user that the strategy has stopped
                 telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Live Strategy %s has been stopped:", strategy.getStrategyName()), e, true);
+            } finally {
+                MDC.clear();
             }
         });
     }
@@ -187,6 +216,7 @@ public class LiveStrategyManager {
                     @Override
                     public void onError(Exception exception) {
                         log.error("Error fetching preloaded candles", exception);
+                        throw new RuntimeException("Error fetching preloaded candles", exception);
                     }
 
                     @Override
@@ -207,14 +237,18 @@ public class LiveStrategyManager {
         Map<String, String> runParams = config.getRunParams().stream()
                 .collect(Collectors.toMap(LiveStrategyConfig.RunParameter::getName, LiveStrategyConfig.RunParameter::getValue));
 
+        strategyInstance.setParameters(runParams);
+
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        TradeManager tradeManager = new LiveTradeManager(client);
+        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
+        TradeManager tradeManager = new LiveTradeManager(client, riskManager);
+        // Set, so we have the ability to stop the strategy in case of background processes
+        tradeManager.setDataManager(dataManager);
 
         BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
 
-        strategyInstance.setParameters(runParams);
         strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());
 
         LiveExecutor executor = new LiveExecutor(
@@ -223,7 +257,8 @@ public class LiveStrategyManager {
                 accountManager,
                 dataManager,
                 eventPublisher,
-                liveStateManager
+                liveStateManager,
+                riskManager
         );
 
         executor.initialise();
@@ -232,4 +267,23 @@ public class LiveStrategyManager {
         return executor;
     }
 
+    public void closeTrade(Long strategyId, String tradeId) {
+        LiveStrategy strategy = liveStrategyService.getActiveStrategy(strategyId).orElseThrow(
+                () -> new ApiException(String.format("Live Strategy with id %s is not active or does not exist", strategyId), ErrorType.BAD_REQUEST)
+        );
+
+        LiveExecutor executor = liveExecutorRepository.getStrategy(strategy.getStrategyName());
+        if (executor == null) {
+            throw new ApiException(String.format("Could not find running executor with strategy name: %s", strategy.getStrategyName()), ErrorType.BAD_REQUEST);
+        }
+
+        Map<Integer, Trade> trades = executor.getTrades();
+
+        Trade tradeToClose = trades.getOrDefault(Integer.parseInt(tradeId), null);
+        if (tradeToClose == null) {
+            throw new ApiException(String.format("Trade with id: %s could not be found", tradeId), ErrorType.BAD_REQUEST);
+        }
+
+        executor.closeTrade(tradeId);
+    }
 }

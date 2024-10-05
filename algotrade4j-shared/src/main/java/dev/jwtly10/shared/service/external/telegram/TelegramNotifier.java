@@ -63,14 +63,13 @@ public class TelegramNotifier implements Notifier {
 
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
-                    log.info("Failed to send notification: {}", response.body().string());
-                    throw new IOException("Unexpected code " + response);
+                    throw new IOException("Unexpected response code: " + response);
                 }
 
                 log.trace("Notification sent successfully: {}", message);
             }
         } catch (IOException e) {
-            log.error("Failed to send notification", e);
+            log.error("Failed to send notification: {}", e.getMessage());
         }
     }
 

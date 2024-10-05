@@ -1,5 +1,6 @@
 package dev.jwtly10.core.execution;
 
+import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
@@ -9,6 +10,7 @@ import dev.jwtly10.core.model.TradeParameters;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * The TradeManager interface defines the contract for executing trades and managing trading positions.
@@ -16,11 +18,26 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
 public interface TradeManager {
-
-
+    /**
+     * Updates the status of open trades
+     *
+     * @param trades The list of open trades
+     */
     void updateOpenTrades(List<Trade> trades);
 
+    /**
+     * Updates the status of all trades
+     *
+     * @param trades The list of all trades
+     */
     void updateAllTrades(List<Trade> trades);
+
+    /**
+     * Sets the callback to be executed when a trade is closed.
+     *
+     * @param callback The callback to be executed when a trade is closed
+     */
+    void setOnTradeCloseCallback(Consumer<Trade> callback);
 
     /**
      * Opens a long position for the specified instrument, uses the current ask price as the entry price.
@@ -68,15 +85,44 @@ public interface TradeManager {
      */
     double getOpenPositionValue(Instrument instrument);
 
+    /**
+     * Retrieves all trades.
+     *
+     * @return A map of all trades, with the trade ID as the key and the Trade object as the value
+     */
     Map<Integer, Trade> getAllTrades();
 
+    /**
+     * Retrieves all open trades.
+     *
+     * @return A map of all open trades, with the trade ID as the key and the Trade object as the value
+     */
     ConcurrentHashMap<Integer, Trade> getOpenTrades();
 
+    /**
+     * Sets the current tick for the TradeManager.
+     *
+     * @param tick the current tick
+     */
     void setCurrentTick(Tick tick);
 
-    enum BALANCE_TYPE {
-        EQUITY,
-        BALANCE,
-        INITIAL
+    /**
+     * Starts any background processes.
+     */
+    void start();
+
+    /**
+     * Shuts down any running processes and releases resources.
+     * This method should be called when the TradeManager is no longer needed.
+     */
+    void shutdown();
+
+    /**
+     * Utility to have full control when needed during a shutdown
+     *
+     * @param dataManager The dataManager to be shutdown
+     */
+    default void setDataManager(DataManager dataManager) {
+        // A data manager can be set if needed
     }
 }

@@ -3,7 +3,12 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Button} from "@/components/ui/button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import { formatUTCDate } from '@/utils/dateUtils';
+import {formatUTCDate} from '@/utils/dateUtils';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.jsx";
+import {X} from "lucide-react";
+import {liveStrategyClient} from "@/api/liveClient.js";
+import log from "@/logger.js";
+import {useToast} from "@/hooks/use-toast.js";
 
 
 function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPerPageChange}) {
@@ -73,12 +78,13 @@ function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPe
     );
 }
 
-function TradesTable({trades, split = false}) {
+function TradesTable({trades, strategy = null, useLiveSplit = false}) {
     const [openPage, setOpenPage] = useState(0);
     const [closedPage, setClosedPage] = useState(0);
     const [openRowsPerPage, setOpenRowsPerPage] = useState(10);
     const [closedRowsPerPage, setClosedRowsPerPage] = useState(10);
     const [activeTab, setActiveTab] = useState("open");
+    const {toast} = useToast();
 
     const handleChangePage = (tabType) => (event, newPage) => {
         if (tabType === 'open') {
@@ -107,10 +113,28 @@ function TradesTable({trades, split = false}) {
         );
     }
 
+    const handleCloseTrade = async (strategy, tradeId) => {
+
+        try {
+            await liveStrategyClient.closeTrade(strategy.id, tradeId);
+            toast({
+                title: 'Success',
+                description: 'Trade closed successfully',
+            });
+        } catch (error) {
+            log.error('Failed to close trade', error);
+            toast({
+                title: 'Error',
+                description: `Failed to close trade: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    }
+
     const openTrades = trades.filter(trade => !trade.closeTime && (!trade.closePrice || trade.closePrice === 0));
     const closedTrades = trades.filter(trade => trade.closeTime || (trade.closePrice && trade.closePrice !== 0));
 
-    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange) => (
+    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange, showActions = false) => (
         <div className="rounded-md border">
             <Table>
                 <TableHeader>
@@ -126,6 +150,9 @@ function TradesTable({trades, split = false}) {
                         <TableHead>S/L</TableHead>
                         <TableHead>T/P</TableHead>
                         <TableHead>Profit</TableHead>
+                        {showActions && strategy != null && (
+                            <TableHead>Actions</TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -136,7 +163,7 @@ function TradesTable({trades, split = false}) {
                                 <TableCell>{trade.tradeId}</TableCell>
                                 <TableCell>{formatUTCDate(trade.openTime)}</TableCell>
                                 <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
-                                <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime): ""}</TableCell>
+                                <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime) : ""}</TableCell>
                                 <TableCell>{trade.quantity}</TableCell>
                                 <TableCell>{trade.instrument}</TableCell>
                                 <TableCell>{trade.entry}</TableCell>
@@ -144,6 +171,24 @@ function TradesTable({trades, split = false}) {
                                 <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
                                 <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
                                 <TableCell>{trade.profit ? trade.profit : "0.00"}</TableCell>
+                                {showActions && strategy != null && (
+                                    <TableCell>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="ghost" size="sm" onClick={(e) => {
+                                                        handleCloseTrade(strategy, trade.id)
+                                                    }}>
+                                                        <X className="h-4 w-4"/>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Close trade</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                 </TableBody>
@@ -158,7 +203,7 @@ function TradesTable({trades, split = false}) {
         </div>
     );
 
-    if (split) {
+    if (useLiveSplit) {
         return (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
@@ -171,7 +216,8 @@ function TradesTable({trades, split = false}) {
                         openPage,
                         openRowsPerPage,
                         handleChangePage('open'),
-                        handleChangeRowsPerPage('open')
+                        handleChangeRowsPerPage('open'),
+                        true
                     )}
                 </TabsContent>
                 <TabsContent value="closed">
