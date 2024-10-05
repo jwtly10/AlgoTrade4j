@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../../frontend/live-trading/">
+        <link rel="prev" href="../backtesting/">
       
       
-        <link rel="next" href="../components/base-strategy/">
+        <link rel="next" href="../live-trading/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>User Guide - Algotrade4j Trading Platform</title>
+        <title>Optimisation - Algotrade4j Trading Platform</title>
       
     
     
@@ -61,11 +61,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#user-guide-creating-new-strategies" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -98,7 +93,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              User Guide
+              Optimisation
             
           </span>
         </div>
@@ -228,17 +223,19 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -252,7 +249,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Frontend
@@ -266,7 +263,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../frontend/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -287,7 +284,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../frontend/backtesting/" class="md-nav__link">
+      <a href="../backtesting/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -305,10 +302,17 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../frontend/optimisation/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -317,6 +321,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -329,7 +334,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../frontend/live-trading/" class="md-nav__link">
+      <a href="../live-trading/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -354,19 +359,17 @@
       
   
   
-    
   
   
-  
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -380,7 +383,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             Creating a Strategy
@@ -391,30 +394,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    User Guide
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../lib/user-guide/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -423,131 +406,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step-by-Step Guide
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step-by-Step Guide">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-create-a-new-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Create a New Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-define-strategy-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Define Strategy Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-initialize-indicators" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Initialize Indicators
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-implement-required-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Implement Required Methods
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-implement-strategy-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Implement Strategy Logic
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-utilize-basestrategy-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Utilize BaseStrategy Methods
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conclusion
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -595,7 +453,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../components/base-strategy/" class="md-nav__link">
+      <a href="../../lib/components/base-strategy/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -616,7 +474,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../components/lifecycle-methods/" class="md-nav__link">
+      <a href="../../lib/components/lifecycle-methods/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -637,7 +495,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../components/parameters/" class="md-nav__link">
+      <a href="../../lib/components/parameters/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -658,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../components/indicators/" class="md-nav__link">
+      <a href="../../lib/components/indicators/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -704,121 +562,6 @@
   
   
   
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-by-step-guide" class="md-nav__link">
-    <span class="md-ellipsis">
-      Step-by-Step Guide
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step-by-Step Guide">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-create-a-new-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Create a New Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-define-strategy-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Define Strategy Parameters
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-initialize-indicators" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Initialize Indicators
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-implement-required-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Implement Required Methods
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-implement-strategy-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Implement Strategy Logic
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-utilize-basestrategy-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Utilize BaseStrategy Methods
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conclusion
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Examples
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -833,105 +576,10 @@
                   
 
 
-<h1 id="user-guide-creating-new-strategies">User Guide: Creating New Strategies</h1>
-<h2 id="overview">Overview</h2>
-<p>This guide will walk you through the process of creating a new trading strategy in AlgoTrade4j. Strategies in AlgoTrade4j extend the <code>BaseStrategy</code> class, which provides a rich set of utilities and abstractions for common trading operations.</p>
-<h2 id="prerequisites">Prerequisites</h2>
-<p>Before creating a new strategy, ensure you're familiar with:</p>
-<ul>
-<li>Java programming</li>
-<li>Basic concepts of algorithmic trading</li>
-<li>AlgoTrade4j's <a href="../components/base-strategy/"><code>BaseStrategy</code></a> class and its methods</li>
-</ul>
-<h2 id="step-by-step-guide">Step-by-Step Guide</h2>
-<h3 id="1-create-a-new-class">1. Create a New Class</h3>
-<p>Start by creating a new Java class that extends <a href="../components/base-strategy/"><code>BaseStrategy</code></a>:</p>
-<pre><code class="language-java">import dev.jwtly10.core.strategy.BaseStrategy;
+  <h1>Optimisation</h1>
 
-public class MyNewStrategy extends BaseStrategy {
-    public MyNewStrategy() {
-        super(&quot;MyNewStrategyID&quot;);
-    }
-}
-</code></pre>
-<h3 id="2-define-strategy-parameters">2. Define Strategy Parameters</h3>
-<p>Use the <a href="../components/parameters/"><code>@Parameter</code></a> annotation to define configurable parameters for your strategy:</p>
-<pre><code class="language-java">import dev.jwtly10.core.strategy.Parameter;
-
-@Parameter(name = &quot;stopLossTicks&quot;, description = &quot;Tick size of the stop loss&quot;, value = &quot;300&quot;, group = &quot;Risk&quot;)
-private int stopLossTicks;
-
-@Parameter(name = &quot;riskRatio&quot;, description = &quot;Risk ratio of SL to TP&quot;, value = &quot;5&quot;, group = &quot;Risk&quot;)
-private int riskRatio;
-
-@Parameter(name = &quot;shortSMALength&quot;, description = &quot;Length of short-term SMA&quot;, value = &quot;50&quot;, group = &quot;Indicator&quot;)
-private int shortSMALength;
-</code></pre>
-<p>Parameters can be grouped for better organization. The value field sets the default value.</p>
-<h3 id="3-initialize-indicators">3. Initialize Indicators</h3>
-<p>Override the <code>initIndicators()</code> method to create and initialize your strategy's indicators:</p>
-<pre><code class="language-java">
-@Override
-protected void initIndicators() {
-    shortSMA = createIndicator(iSMA.class, shortSMALength);
-    atrIndicator = createIndicator(iATRCandle.class, atrLength, atrSensitivity, relativeSize);
-}
-</code></pre>
-<p>Use the <a href="../components/base-strategy/#createindicatorclasst-indicatorclass-object-params"><code>createIndicator()</code></a> method provided by BaseStrategy to instantiate indicators.</p>
-<h3 id="4-implement-required-methods">4. Implement Required Methods</h3>
-<p>At a minimum, you need to implement the following methods:</p>
-<pre><code class="language-java">
-@Override
-public void onTick(Tick tick, Bar currentBar) {
-// React to each new tick
-}
-
-@Override
-public void onBarClose(Bar bar) {
-// Implement your main strategy logic here
-}
-
-@Override
-public RiskProfileConfig getRiskProfileConfig() {
-    return riskProfile.getConfig();
-}
-</code></pre>
-<h3 id="5-implement-strategy-logic">5. Implement Strategy Logic</h3>
-<p>In the onBarClose/onTickMethod method, implement your strategy's core logic. This typically involves:</p>
-<ol>
-<li>Checking if indicators are ready</li>
-<li>Evaluating entry conditions</li>
-<li>Opening trades if conditions are met</li>
-</ol>
-<p>Or any other custom ideas you may have</p>
-<p>Example:</p>
-<pre><code class="language-java">
-@Override
-public void onBarClose(Bar bar) {
-    if (isReady() &amp;&amp; isTimeToTrade(bar)) {
-        if (entryCheck(bar, true)) {
-            var id = openLong(createTradeParameters(true));
-            sendNotification(String.format(&quot;Opened long trade %s @  %s&quot;, id, Ask()));
-        } else if (entryCheck(bar, false)) {
-            var id = openShort(createTradeParameters(false));
-            sendNotification(String.format(&quot;Opened short trade %s @ %s&quot;, id, Bid()));
-        }
-    }
-}
-</code></pre>
-<h3 id="6-utilize-basestrategy-methods">6. Utilize BaseStrategy Methods</h3>
-<p>Make use of the methods provided by<a href="../components/base-strategy/#methods-for-strategy-implementation"><code>BaseStrategy</code></a>:</p>
-<p>Here are a few main ones:</p>
-<ul>
-<li><a href="../components/base-strategy/#openlongtradeparameters-params"><code>openLong()</code></a> and <a href="../components/base-strategy/#openshorttradeparameters-params"><code>openShort()</code></a> for opening trades</li>
-<li><a href="../components/base-strategy/#ask"><code>Ask()</code></a> and <a href="../components/base-strategy/#bid"><code>Bid()</code></a> for current market prices</li>
-<li><a href="../components/base-strategy/#sendnotificationstring-message"><code>sendNotification()</code></a> for sending alerts</li>
-<li><a href="../components/base-strategy/#getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong"><code>getStopLossGivenInstrumentPriceDir()</code></a> for calculating stop loss prices without any manual calcs</li>
-</ul>
-<h2 id="conclusion">Conclusion</h2>
-<p>By following this guide, you should be able to create a new strategy that leverages the power of AlgoTrade4j's BaseStrategy, and its platform.</p>
-<h2 id="examples">Examples</h2>
-<p><a href="https://github.com/jwtly10/AlgoTrade4j/blob/main/algotrade4j-core/src/main/java/dev/jwtly10/core/strategy/demo/SMACrossoverStrategy.java">SMACrossoverStrategy</a></p>
+<p>(TODO) Demo coming soon.</p>
+<p><img alt="Optimisation page screenshot" src="../../images/optimisation-screenshot.png" /></p>
 
 
 
