@@ -1,14 +1,16 @@
 # AlgoTrade4j
 
-🏗️ Note this is a WIP project, and is not ready for production use yet. Documentation also WIP. 🏗️
+🏗️ Note: This project is currently a work in progress and not yet ready for production live trading use 🏗️
 
 AlgoTrade4j is a complete (strategy-dev, backtesting and live trading), high-performance algorithmic trading platform for Java, designed to be simple yet opinionated. Originally built to port strategies from MQL (MetaTrader4) to Java, it offers robust and flexible ways to backtest and extend functionality. The platform is capable of processing 50,000 ticks per second, making it suitable for relatively high-frequency trading strategies.
 
 ⚠️It is a bespoke implementation so may not be suitable for all use cases. ⚠️
 
-Here is a small video demo of the system. 
+Here is a small video demo of the system.
 
 https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
+
+The full documentation can also be found [here](documentation-link)
 
 ## Key Features:
 
@@ -42,9 +44,9 @@ This is a high-level overview of the framework and how it handles strategies:
 - A data provider is initialised with the data that needs to be listened to (e.g. Broker price streams, or historical API data).
 - A data manager is wrapper around this data provider, to transform raw data into ticks & bars.
 - A data listener/executor is then created to listen callbacks from the data manager. This interface handles the data, and orchestrates other flows that are required for running a strategy:
-  - Handles updating account data (PNL, balance, etc)
-  - Handles updating trade stats (open trades, closed trades, etc)
-  - Emits events to the running strategy instance.
+    - Handles updating account data (PNL, balance, etc)
+    - Handles updating trade stats (open trades, closed trades, etc)
+    - Emits events to the running strategy instance.
 - A strategy is then created, and the data listener is attached to it. The strategy is then run on the data listener, and the users strategy logic is executed on each event.
 
 Each part of the system has access to the global async event publisher to support real-time updates and external communications.
@@ -147,6 +149,7 @@ The frontend application should be running at localhost:5173, with the main-api 
 THe build steps (CI/CD) are defined in the .github/workflows folder. Docker images are built and pushed to docker hub which can be used to deploy the application anywhere.
 
 Requirements:
+
 - Docker
-- Docker-compose
+- Docker compose
 - Nginx

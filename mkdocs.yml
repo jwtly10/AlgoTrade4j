@@ -1,0 +1,17 @@
+site_name: Algotrade4j Trading Platform
+remote_branch: gh-pages
+nav:
+  - Welcome: index.md
+  - Limitations: limitations.md
+  - Frontend:
+      - Overview: frontend/overview.md
+      - Backtesting: frontend/backtesting.md
+      - Live Trading: frontend/live-trading.md
+  - Creating a Strategy:
+      - User Guide: lib/user-guide.md
+      - Components:
+          - Base Strategy: lib/components/base-strategy.md
+          - Lifecycle Methods: lib/components/lifecycle-methods.md
+          - Parameters: lib/components/parameters.md
+          - Indicators: lib/components/indicators.md
+theme: material
