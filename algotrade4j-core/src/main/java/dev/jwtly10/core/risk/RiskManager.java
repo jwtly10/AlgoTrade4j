@@ -67,7 +67,7 @@ public class RiskManager {
         if (!newTradingDay.equals(currentTradingDay)) {
             currentTradingDay = newTradingDay;
             dailyStartEquity = accountManager.getEquity();
-            log.info("New trading day started at {}. Daily start equity set to: {}", currentTime, dailyStartEquity);
+            log.debug("New trading day started at {}. Daily start equity set to: {}", currentTime, dailyStartEquity);
         }
     }
 
