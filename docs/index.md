@@ -39,6 +39,7 @@ To begin using AlgoTrade4j, you'll want to familiarize yourself with:
 - [Configuring Parameters](lib/components/parameters.md): Understand how to use the `@Parameter` annotation for dynamic strategy configuration.
 - [Using Indicators](lib/components/indicators.md): Explore how to create and use technical indicators in your strategies.
 - [Backtesting](frontend/backtesting.md): Learn how to test your strategies against historical data.
+- [Optimisation](frontend/optimisation.md): Learn how to optimise your strategies.
 - [Live Trading](frontend/live-trading.md): Understand how to deploy your strategies in a live trading environment.
 
 ## Development and Deployment

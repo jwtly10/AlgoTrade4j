@@ -97,7 +97,7 @@ public class BacktestTradeManager implements TradeManager {
         allTrades.put(trade.getId(), trade);
         openTrades.put(trade.getId(), trade);
 
-        log.info("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
+        log.trace("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
                 trade.isLong() ? "long" : "short", trade.getOpenTime(), trade.getId(), trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity());
 
         return trade.getId();

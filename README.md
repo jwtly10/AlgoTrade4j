@@ -6,11 +6,11 @@ AlgoTrade4j is a complete (strategy-dev, backtesting and live trading), high-per
 
 ⚠️It is a bespoke implementation so may not be suitable for all use cases. ⚠️
 
+Application documentation can be found [here](https://jwtly10.github.io/AlgoTrade4j/)
+
 Here is a small video demo of the system.
 
 https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
-
-The full documentation can also be found [here](documentation-link)
 
 ## Key Features:
 
