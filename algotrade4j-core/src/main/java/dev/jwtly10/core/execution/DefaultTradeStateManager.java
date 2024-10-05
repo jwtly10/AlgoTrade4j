@@ -10,6 +10,9 @@ import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZonedDateTime;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Slf4j
 public class DefaultTradeStateManager implements TradeStateManager {
     private final EventPublisher eventPublisher;
@@ -34,8 +37,9 @@ public class DefaultTradeStateManager implements TradeStateManager {
         log.trace("Current prices - Ask: {}, Bid: {}", tick.getAsk(), tick.getBid());
 
         Tick finalTick = tick;
+        ZonedDateTime now = ZonedDateTime.now();
         tradeManager.getOpenTrades().values().forEach(trade -> {
-            updateTradeProfitLoss(trade, finalTick);
+            updateTradeProfitLoss(trade, finalTick, now);
             checkAndExecuteStopLossTakeProfit(trade, tradeManager, finalTick);
         });
     }
@@ -60,7 +64,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
         }
     }
 
-    private void updateTradeProfitLoss(Trade trade, Tick tick) {
+    private void updateTradeProfitLoss(Trade trade, Tick tick, ZonedDateTime now) {
         Number currentPrice = trade.isLong() ? tick.getBid() : tick.getAsk();
         Number priceDifference = trade.isLong()
                 ? currentPrice.subtract(trade.getEntryPrice())
@@ -68,7 +72,7 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
         double profit = priceDifference.getValue().doubleValue() * trade.getQuantity();
         trade.setProfit(profit);
-        eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE));
+        eventPublisher.publishEvent(new TradeEvent(this.strategyId, trade.getInstrument(), trade, TradeEvent.Action.UPDATE, now));
         log.trace("Updating trade profit/loss for trade id: {}. Profit: {}", trade.getId(), trade.getProfit());
     }
 
@@ -108,9 +112,10 @@ public class DefaultTradeStateManager implements TradeStateManager {
 
     private void updateAccountEquity(AccountManager accountManager, TradeManager tradeManager) {
         // Calculate and set equity (balance + unrealized profit/loss from open trades)
-        double unrealizedProfit = tradeManager.getOpenTrades().values().parallelStream()
-                .mapToDouble(Trade::getProfit)
-                .sum();
+
+        ConcurrentHashMap<Integer, Trade> openTrades = tradeManager.getOpenTrades();
+        double unrealizedProfit = openTrades.isEmpty() ? 0.0 :
+                openTrades.reduceValues(Long.MAX_VALUE, Trade::getProfit, Double::sum);
 
         double equity = accountManager.getBalance() + unrealizedProfit;
         accountManager.setEquity(equity);

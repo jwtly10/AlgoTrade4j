@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The AsyncEventPublisher class is the main vehicle responsible for managing event listeners and publishing events to them in a performant way.
@@ -13,10 +14,12 @@ import java.util.concurrent.*;
  */
 @Slf4j
 public class AsyncEventPublisher implements EventPublisher {
-    private static final int BATCH_SIZE = 200;
+    private static final int BATCH_SIZE = 300;
     private static final long MAX_BATCH_WAIT_MS = 100;
     private final List<EventListener> listeners = new CopyOnWriteArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private final AtomicInteger eventCount = new AtomicInteger(0);
 
     // Using a queue to batch send events rather than creating a new runnable instant for each invocation
     private final Queue<BaseEvent> eventQueue = new ConcurrentLinkedQueue<>();
@@ -53,7 +56,7 @@ public class AsyncEventPublisher implements EventPublisher {
      */
     public void publishEvent(BaseEvent event) {
         eventQueue.offer(event);
-        if (eventQueue.size() >= BATCH_SIZE) {
+        if (eventCount.incrementAndGet() >= BATCH_SIZE) {
             processEvents();
         }
     }
@@ -64,8 +67,10 @@ public class AsyncEventPublisher implements EventPublisher {
     private void processEvents() {
         List<BaseEvent> batch = new ArrayList<>(BATCH_SIZE);
         BaseEvent event;
-        while ((event = eventQueue.poll()) != null && batch.size() < BATCH_SIZE) {
+        int processed = 0;
+        while ((event = eventQueue.poll()) != null && processed < BATCH_SIZE) {
             batch.add(event);
+            processed++;
         }
 
         if (!batch.isEmpty()) {
@@ -75,6 +80,8 @@ public class AsyncEventPublisher implements EventPublisher {
                 }
             }
         }
+
+        eventCount.addAndGet(-processed);
     }
 
     /**
