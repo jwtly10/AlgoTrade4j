@@ -587,7 +587,7 @@ const ConfigModal = ({
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
+                                        <PopoverContent className="w-auto p-0 pointer-events-auto">
                                             <Calendar
                                                 mode="single"
                                                 selected={
@@ -627,7 +627,7 @@ const ConfigModal = ({
                                                 )}
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
+                                        <PopoverContent className="w-auto p-0 pointer-events-auto">
                                             <Calendar
                                                 mode="single"
                                                 selected={
