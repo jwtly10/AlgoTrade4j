@@ -44,3 +44,4 @@ heapdump*
 .run
 # Custom libraries (agent, etc)
 lib/
+site/
