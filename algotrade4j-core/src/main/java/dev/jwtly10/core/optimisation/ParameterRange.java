@@ -35,7 +35,7 @@ public class ParameterRange {
         if (endNum.isGreaterThan(new Number(4000))) {
             throw new IllegalArgumentException("End value cannot be more than 4000 for parameter: " + name);
         }
-        if (startNum.isGreaterThan(new Number(100))) {
+        if (stepNum.isGreaterThan(new Number(100))) {
             throw new IllegalArgumentException("Step value cannot be more than 100 for parameter: " + name);
         }
 

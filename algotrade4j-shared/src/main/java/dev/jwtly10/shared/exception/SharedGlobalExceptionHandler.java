@@ -36,7 +36,7 @@ public class SharedGlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Uncaught internal error: ", ex);
+        log.error("Uncaught internal error", ex);
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ErrorType.INTERNAL_ERROR);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
