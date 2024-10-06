@@ -54,14 +54,14 @@ class ParameterHandlerTest {
         invalidTypeParams.put("intParam", "notAnInteger");
         Exception invalidTypeEx = assertThrows(IllegalArgumentException.class,
                 () -> ParameterHandler.validateRunParameters(testStrategy, invalidTypeParams));
-        assertTrue(invalidTypeEx.getMessage().contains("Invalid value for parameter intParam"));
+        assertTrue(invalidTypeEx.getMessage().contains("Invalid value for [int] parameter intParam"));
 
         // Test with invalid enum value
         Map<String, String> invalidEnumParams = new HashMap<>(validParams);
         invalidEnumParams.put("enumParam", "INVALID_VALUE");
         Exception invalidEnumEx = assertThrows(IllegalArgumentException.class,
                 () -> ParameterHandler.validateRunParameters(testStrategy, invalidEnumParams));
-        assertTrue(invalidEnumEx.getMessage().contains("Invalid value for parameter enumParam"));
+        assertTrue(invalidEnumEx.getMessage().contains("Invalid value for [static final enum dev.jwtly10.core.strategy.ParameterHandlerTest$TestEnum] parameter enumParam"));
     }
 
     @Test
