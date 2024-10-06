@@ -79,7 +79,7 @@ public class BrokerAccountService {
                 .orElseThrow(() -> new ApiException("Account ID '" + accountId + "' not found", ErrorType.NOT_FOUND));
 
         // TODO: Validate the account id passed in by making external API call if possible
-        foundAccount.setAccountId(broker.getAccountId());
+        foundAccount.setAccountId(broker.getAccountId().trim());
         foundAccount.setBrokerName(broker.getBrokerName());
         foundAccount.setBrokerType(broker.getBrokerType());
         foundAccount.setInitialBalance(broker.getInitialBalance());
