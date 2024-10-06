@@ -64,7 +64,21 @@ public class ParameterHandler {
     private static void validateParameterType(Class<?> fieldType, String value, Parameter annotation) {
         try {
             if (fieldType == int.class || fieldType == Integer.class) {
-                Integer.parseInt(value);
+                try {
+                    Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    // If parsing as int fails, try parsing as double and then cast to int
+                    // This fixes an issue caused by type casting to double during parameter combination generation.
+                    // But decided to leave the type casting as is as more precision can be helpful in future
+                    double doubleValue = Double.parseDouble(value);
+                    int intValue = (int) doubleValue;
+                    // Check if the cast was lossless
+                    if (intValue == doubleValue) {
+                        // Use intValue
+                    } else {
+                        throw new IllegalArgumentException("Value " + value + " cannot be represented as an integer without loss of precision");
+                    }
+                }
             } else if (fieldType == double.class || fieldType == Double.class) {
                 Double.parseDouble(value);
             } else if (fieldType == boolean.class || fieldType == Boolean.class) {
@@ -75,7 +89,7 @@ public class ParameterHandler {
                 throw new IllegalArgumentException("Unsupported parameter type: " + fieldType.getSimpleName());
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid value for parameter " + annotation.name() + ": " + value);
+            throw new IllegalArgumentException("Invalid value for [" + fieldType.toGenericString() + "] parameter " + annotation.name() + ": " + value);
         }
     }
 
