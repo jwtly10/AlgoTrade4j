@@ -54,7 +54,7 @@ const BacktestView = () => {
                 <div className="flex-grow h-full overflow-hidden">
                     <Card className="h-full flex flex-col p-6">
                         {/* Chart Section */}
-                        <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
+                        <div className="flex-shrink-0 h-[300px] sm:h-[400px] md:h-[450px] lg:h-1/2 mb-6 bg-background rounded overflow-hidden">
                             {(isStrategyRunning || backtestErrorMsg) && isAsync ? (
                                 <LoadingChart progressData={progressData} startTime={startTime} backtestErrorMsg={backtestErrorMsg}/>
                             ) : chartData && chartData.length > 0 ? (
@@ -106,7 +106,7 @@ const BacktestView = () => {
 
                 {/* Right section (1/4 width) */}
                 {/* Right section (responsive width) */}
-                <div className="w-full md:w-1/3 lg:w-1/4 min-w-[280px] p-4 bg-background shadow overflow-auto">
+                <div className="w-full md:w-1/3 lg:w-1/4 xl:w-1/5 min-w-[320px] p-4 bg-background shadow overflow-auto">
                     <div className="flex flex-col h-full space-y-6">
                         <div className="bg-background rounded-lg shadow-sm p-4">
                             <h3 className="text-lg font-semibold mb-3">Account Summary</h3>
@@ -142,12 +142,12 @@ const BacktestView = () => {
                                         <p className="text-sm text-muted-foreground">{item.label}</p>
                                         <p className="text-md font-semibold">
                                             {item.value < 0 ? `-$${Math.abs(item.value).toLocaleString()}` : `$${item.value.toLocaleString()}`}
-                                            {item.diff !== undefined && account.balance !== 0 && (
-                                                <span className={`ml-2 text-sm ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    ({item.diff > 0 ? '+' : ''}{item.diff}%)
-                </span>
-                                            )}
                                         </p>
+                                        {item.diff !== undefined && account.balance !== 0 && (
+                                            <p className={`text-xs ${parseFloat(item.diff) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                {item.diff > 0 ? '+' : ''}{item.diff}%
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>

@@ -48,8 +48,8 @@ const MonitorView = () => {
                 </Button>
             </header>
             <div className="space-y-12">
-                <SystemMonitor title="Main System" monitorInfo={mainMonitorInfo}/>
-                <SystemMonitor title="Live System" monitorInfo={liveMonitorInfo}/>
+                <SystemMonitor title="Backtest API" monitorInfo={mainMonitorInfo}/>
+                <SystemMonitor title="Live API" monitorInfo={liveMonitorInfo}/>
             </div>
         </div>
     );
