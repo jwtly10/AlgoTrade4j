@@ -141,46 +141,44 @@ const LiveStrategyView = () => {
                         {isConnected ? (
                             <>
                                 {/* Chart Section */}
-                                <div className="flex-shrink-0 h-[300px] sm:h-[400px] md:h-[450px] lg:h-1/2 mb-6 bg-background rounded overflow-hidden">
-                                    <>
-                                        {chartData && chartData.length > 0 ? (
-                                            <>
-                                                <TradingViewChart
-                                                    showChart={true}
-                                                    strategyConfig={viewingStrategy.config}
-                                                    chartData={chartData}
-                                                    trades={trades}
-                                                    indicators={indicators}
-                                                />
-                                                <>
-                                                    {/* Stats Widget Section */}
-                                                    {viewingStrategy && analysisData && (
-                                                        <div className="mb-6 bg-card rounded-lg shadow-md p-4">
-                                                            <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>
-                                                            {analysisData.stats ? (
-                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                                    <StatCard title="Balance" value={`${analysisData.stats.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`} valueColor={analysisData.balance >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                                    <StatCard title="Equity" value={`${analysisData.stats.equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.equity >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                                    <StatCard title="Running PnL" value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                                    <StatCard title="Win Rate" value={`${analysisData.stats.winRate.toFixed(2)}%`}/>
-                                                                    <StatCard title="Profit Factor" value={analysisData.stats.profitFactor.toFixed(2)}/>
-                                                                    <StatCard title="Sharpe Ratio" value={analysisData.stats.sharpeRatio.toFixed(2)}/>
-                                                                    <StatCard title="Total Trades" value={analysisData.stats.totalTrades}/>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex justify-center items-center h-32">
-                                                                    <p className="text-gray-500">Loading stats...</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </>
-                                            </>
-                                        ) : (
-                                            <EmptyChart/>
-                                        )}
-                                    </>
+                                <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
+
+                                    {chartData && chartData.length > 0 ? (
+                                        <TradingViewChart
+                                            showChart={true}
+                                            strategyConfig={viewingStrategy.config}
+                                            chartData={chartData}
+                                            trades={trades}
+                                            indicators={indicators}
+                                        />
+                                    ) : (
+                                        <EmptyChart/>
+                                    )}
                                 </div>
+
+                                {/* Stats Widget Section */}
+                                {viewingStrategy && analysisData && (
+                                    <div className="mb-6 bg-card rounded-lg shadow-md p-4">
+                                        <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>
+                                        {analysisData.stats ? (
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <StatCard title="Balance" value={`${analysisData.stats.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`} valueColor={analysisData.balance >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Equity" value={`${analysisData.stats.equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.equity >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Running PnL" value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'}/>
+                                                <StatCard title="Win Rate" value={`${analysisData.stats.winRate.toFixed(2)}%`}/>
+                                                <StatCard title="Profit Factor" value={analysisData.stats.profitFactor.toFixed(2)}/>
+                                                <StatCard title="Sharpe Ratio" value={analysisData.stats.sharpeRatio.toFixed(2)}/>
+                                                <StatCard title="Total Trades" value={analysisData.stats.totalTrades}/>
+                                            </div>
+                                        ) : (
+                                            <div className="flex justify-center items-center h-32">
+                                                <p className="text-gray-500">Loading stats...</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+
                                 {/* Tabs and Content Section */}
                                 <Tabs
                                     value={tabValue}
