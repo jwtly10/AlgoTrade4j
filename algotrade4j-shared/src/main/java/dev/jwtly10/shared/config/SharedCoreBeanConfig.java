@@ -1,11 +1,15 @@
 package dev.jwtly10.shared.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DefaultDataManagerFactory;
 import dev.jwtly10.core.event.AsyncEventPublisher;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.DefaultExecutorFactory;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.oanda.OandaClient;
@@ -33,8 +37,19 @@ public class SharedCoreBeanConfig {
     }
 
     @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Number.class, new NumberDeserializer());
+        module.addSerializer(Number.class, new NumberSerializer());
+        mapper.registerModule(module);
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
+
+    @Bean
     public OandaClient oandaClient() {
-        return new OandaClient(oandaApiUrl, oandaApiKey);
+        return new OandaClient(oandaApiUrl, oandaApiKey, objectMapper());
     }
 
     @Bean
@@ -59,6 +74,6 @@ public class SharedCoreBeanConfig {
 
     @Bean
     public TelegramNotifier telegramNotifier() {
-        return new TelegramNotifier(okHttpClient());
+        return new TelegramNotifier(okHttpClient(), telegramBotToken);
     }
 }

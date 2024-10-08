@@ -1,4 +1,4 @@
-package dev.jwtly10.backtestapi.config;
+package dev.jwtly10.shared.config;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

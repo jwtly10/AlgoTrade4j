@@ -3,7 +3,10 @@ package dev.jwtly10.liveapi.executor;
 import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.BarEvent;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.LogEvent;
+import dev.jwtly10.core.event.StrategyStopEvent;
 import dev.jwtly10.core.event.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.indicators.Indicator;
@@ -150,8 +153,8 @@ public class LiveExecutor implements DataListener {
 
     @Override
     public void onTradeClose(Trade trade) {
-        log.info("Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
-        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
+        log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
+//        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
     }
 
     private void cleanup() {

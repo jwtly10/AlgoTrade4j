@@ -2,10 +2,8 @@ package dev.jwtly10.shared.service.external.telegram;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.external.notifications.Notifier;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,12 +17,11 @@ public class TelegramNotifier implements Notifier {
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
 
-    @Setter
-    @Value("${telegram.bot.token}")
     private String botToken;
 
-    public TelegramNotifier(OkHttpClient client) {
+    public TelegramNotifier(OkHttpClient client, String botToken) {
         this.client = client;
+        this.botToken = botToken;
         this.objectMapper = new ObjectMapper();
     }
 

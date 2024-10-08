@@ -1,9 +1,12 @@
 package integration.dev.jwtly10.marketdata.integration.oanda;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.ClientCallback;
+import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
@@ -11,15 +14,12 @@ import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
 import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
 import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
+import dev.jwtly10.marketdata.oanda.stream.OandaPriceStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -40,6 +40,7 @@ class OandaIntegrationTest {
     private OandaClient client;
     private OandaDataClient oandaClient;
     private OandaBrokerClient brokerClient;
+    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private String accountId = "101-004-24749363-003";
 
     @BeforeEach
@@ -49,7 +50,7 @@ class OandaIntegrationTest {
 
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
 
-        client = new OandaClient(baseUrl, apiKey);
+        client = new OandaClient(baseUrl, apiKey, objectMapper);
         brokerClient = new OandaBrokerClient(client, null);
         oandaClient = new OandaDataClient(brokerClient);
     }
@@ -230,12 +231,12 @@ class OandaIntegrationTest {
         CountDownLatch latch = new CountDownLatch(1);
         AtomicInteger receivedTicks = new AtomicInteger(0);
 
-        client.streamPrices(accountId, List.of(Instrument.NAS100USD), new OandaClient.PriceStreamCallback() {
+        OandaPriceStream priceStream = client.streamPrices(accountId, List.of(Instrument.NAS100USD));
+
+        priceStream.start(new Stream.StreamCallback<>() {
             @Override
-            public void onPrice(OandaPriceResponse price) {
+            public void onData(Tick price) {
                 System.out.println(price);
-                DefaultTick tick = OandaUtils.mapPriceToTick(price);
-                System.out.println(tick);
                 receivedTicks.incrementAndGet();
                 if (receivedTicks.get() >= 15) {
                     latch.countDown();
@@ -265,18 +266,19 @@ class OandaIntegrationTest {
     }
 
     @Test
-    void testCanStreamTransactions() throws InterruptedException, IOException {
-        CountDownLatch latch = new CountDownLatch(1);
-        AtomicInteger receivedTrans = new AtomicInteger(0);
+    void testCanClosePriceStream() throws Exception {
+        // close stream after 2 seconds
 
-        client.streamTransactions(accountId, new OandaClient.TransactionStreamCallback() {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicInteger receivedTicks = new AtomicInteger(0);
+
+        OandaPriceStream priceStream = client.streamPrices(accountId, List.of(Instrument.NAS100USD));
+
+        priceStream.start(new Stream.StreamCallback<>() {
             @Override
-            public void onOrderFillMarketClose(OrderFillTransaction transaction) {
-                System.out.println(transaction);
-                receivedTrans.incrementAndGet();
-                if (receivedTrans.get() >= 5) {
-                    latch.countDown();
-                }
+            public void onData(Tick price) {
+                System.out.println(price);
+                receivedTicks.incrementAndGet();
             }
 
             @Override
@@ -292,14 +294,19 @@ class OandaIntegrationTest {
             }
         });
 
-        boolean completed = latch.await(15, TimeUnit.SECONDS);
+        Thread.sleep(2000);
+
+        priceStream.close();
+
+        boolean completed = latch.await(5, TimeUnit.SECONDS);
 
         if (!completed) {
-            System.out.println("Test timed out. Received " + receivedTrans.get() + " transactions.");
+            System.out.println("Test timed out. Received " + receivedTicks.get() + " ticks.");
         }
 
-        assert receivedTrans.get() > 0 : "No transactions were received";
+        assert receivedTicks.get() > 0 : "No ticks were received";
     }
+
 
     @Test
     void testCanOpenAndCloseTrade() throws Exception {
