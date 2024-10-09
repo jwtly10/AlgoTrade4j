@@ -2,6 +2,7 @@ package dev.jwtly10.marketdata.oanda.stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.RetryableStream;
 import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import java.util.List;
  * OandaTransactionStream is a stream that listens to the Oanda transaction stream and triggers a callback when a trade is closed
  */
 @Slf4j
-public class OandaTransactionStream extends RetryableStream<List<String>> {
+public class OandaTransactionStream extends RetryableStream<List<TradeDTO>> {
     public OandaTransactionStream(OkHttpClient client, String apiKey, String streamUrl, String accountId, ObjectMapper objectMapper) {
         super(client, buildRequest(apiKey, streamUrl, accountId), objectMapper);
     }
@@ -39,7 +40,7 @@ public class OandaTransactionStream extends RetryableStream<List<String>> {
      * @throws Exception if there is an error in the transaction stream
      */
     @Override
-    protected void processLine(String line, StreamCallback<List<String>> callback) throws Exception {
+    protected void processLine(String line, StreamCallback<List<TradeDTO>> callback) throws Exception {
         JsonNode jsonNode = objectMapper.readTree(line);
 
         if (jsonNode.has("type")) {
@@ -51,12 +52,12 @@ public class OandaTransactionStream extends RetryableStream<List<String>> {
                     if ("MARKET_ORDER_TRADE_CLOSE".equals(reason)) {
                         log.trace("Received ORDER_FILL transaction with MARKET_ORDER_TRADE_CLOSE reason: {}", line);
                         OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
-                        List<String> closedTrades = new ArrayList<>();
+                        List<TradeDTO> closedTrades = new ArrayList<>();
 
                         // Iterate over closed trades and build the list of Trade IDs, to check for open trades
                         transaction.tradesClosed().forEach(tradeClose -> {
                             log.debug("Trade closed: {}", tradeClose);
-                            closedTrades.add(tradeClose.tradeID());
+                            closedTrades.add(new TradeDTO(tradeClose.tradeID(), Double.parseDouble(tradeClose.realizedPL()), Double.parseDouble(tradeClose.price())));
                         });
 
                         // Trigger the callback with the list of closed trades

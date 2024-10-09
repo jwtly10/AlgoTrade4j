@@ -8,6 +8,7 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.risk.RiskStatus;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +28,7 @@ public class LiveTradeManager implements TradeManager {
     private final BrokerClient brokerClient;
     private final RiskManager riskManager;
     private DataManager dataManager = null;
-    private Stream<List<String>> transactionStream;
+    private Stream<List<TradeDTO>> transactionStream;
     private Consumer<Trade> onTradeCloseCallback;
 
     private ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
@@ -44,16 +45,16 @@ public class LiveTradeManager implements TradeManager {
     @Override
     public void start() {
         // Start the transaction stream
-        this.transactionStream = (Stream<List<String>>) brokerClient.streamTransactions();
+        this.transactionStream = (Stream<List<TradeDTO>>) brokerClient.streamTransactions();
         transactionStream.start(new Stream.StreamCallback<>() {
             @Override
-            public void onData(List<String> tradeIds) {
-                tradeIds.forEach(id -> {
-                    Trade trade = allTrades.get(Integer.parseInt(id));
+            public void onData(List<TradeDTO> closedTradeDTOs) {
+                closedTradeDTOs.forEach(t -> {
+                    Trade trade = allTrades.get(Integer.parseInt(t.tradeId()));
                     if (trade != null) {
-                        trade.setClosePrice(new Number(currentTick.getBid().doubleValue()));
+                        trade.setClosePrice(new Number(t.closePrice()));
                         trade.setCloseTime(ZonedDateTime.now());
-                        trade.setProfit(trade.getProfit() + trade.getQuantity() * (currentTick.getBid().doubleValue() - trade.getEntryPrice().doubleValue()));
+                        trade.setProfit(t.profit());
                         allTrades.put(trade.getId(), trade);
                         openTrades.remove(trade.getId());
                         // Trigger any set callback on trade close
@@ -63,7 +64,7 @@ public class LiveTradeManager implements TradeManager {
                             log.warn("No callback set for trade close event");
                         }
                     } else {
-                        log.warn("Trade not found for order fill transaction: {}", id);
+                        log.warn("Trade not found for order fill transaction: {}", t.tradeId());
                     }
                 });
             }
