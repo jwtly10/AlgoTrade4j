@@ -1,5 +1,7 @@
 package dev.jwtly10.backtestapi.service.strategy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.backtestapi.model.StrategyConfig;
 import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.event.*;
@@ -41,7 +43,8 @@ class StrategyManagerIntegrationTest {
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
 
         eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
-        OandaClient oandaClient = new OandaClient(baseUrl, apiKey);
+        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        OandaClient oandaClient = new OandaClient(baseUrl, apiKey, objectMapper);
         strategyManager = new StrategyManager(eventPublisher, oandaClient);
     }
 

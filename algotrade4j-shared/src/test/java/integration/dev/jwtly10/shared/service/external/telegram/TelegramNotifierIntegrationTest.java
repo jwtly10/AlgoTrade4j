@@ -23,8 +23,7 @@ public class TelegramNotifierIntegrationTest {
         assertNotNull(botToken, "TELEGRAM_BOT_TOKEN environment variable must be set");
         assertNotNull(testChatId, "TELEGRAM_TEST_CHAT_ID environment variable must be set");
 
-        telegramNotifier = new TelegramNotifier(new OkHttpClient());
-        telegramNotifier.setBotToken(botToken);
+        telegramNotifier = new TelegramNotifier(new OkHttpClient(), botToken);
     }
 
     @Test

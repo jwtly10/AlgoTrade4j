@@ -6,10 +6,9 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
-import dev.jwtly10.marketdata.oanda.OandaClient;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -19,8 +18,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Interfaces with an external data provider to provide live data.
+ * And trigger all listeners with each tick.
+ */
 @Slf4j
-public class LiveExternalDataProvider implements DataProvider, OandaClient.PriceStreamCallback {
+public class LiveExternalDataProvider implements DataProvider {
     @Getter
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
     private final Instrument instrument;
@@ -31,6 +34,8 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
     @Getter
     private boolean isRunning;
     private ZonedDateTime from;
+
+    private Stream<Tick> priceStream;
 
     public LiveExternalDataProvider(OandaBrokerClient oandaClient, Instrument instrument) {
         this.oandaClient = oandaClient;
@@ -45,13 +50,23 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
         from = ZonedDateTime.now();
 
         log.debug("Starting Live Data provider for instrument: {}", instrument);
+        this.priceStream = oandaClient.streamPrices(List.of(instrument));
+        priceStream.start(new Stream.StreamCallback<>() {
+            @Override
+            public void onData(Tick price) {
+                onPrice(price);
+            }
 
-        try {
-            oandaClient.streamPrices(List.of(instrument), this);
-        } catch (Exception e) {
-            log.error("Error starting live data stream", e);
-            throw new DataProviderException("Unexpected error starting live data stream.", e);
-        }
+            @Override
+            public void onError(Exception e) {
+                onPriceStreamError(e);
+            }
+
+            @Override
+            public void onComplete() {
+                onPriceStreamComplete();
+            }
+        });
     }
 
     @Override
@@ -60,6 +75,10 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
 
         log.debug("Stopping Live data provider");
         isRunning = false;
+
+        if (priceStream != null) {
+            priceStream.close();
+        }
 
         for (DataProviderListener listener : listeners) {
             listener.onStop();
@@ -87,21 +106,18 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
         }
     }
 
-    @Override
-    public void onPrice(OandaPriceResponse price) {
+    public void onPrice(Tick tick) {
         if (!isRunning) return;
 
         try {
-            DefaultTick tick = OandaUtils.mapPriceToTick(price);
             log.trace("Received stream tick: {}", tick);
-            notifyListeners(tick);
+            notifyListeners((DefaultTick) tick);
         } catch (Exception e) {
             log.error("Error processing price response", e);
         }
     }
 
-    @Override
-    public void onError(Exception e) {
+    public void onPriceStreamError(Exception e) {
         log.error("Error in price stream", e);
         for (DataProviderListener listener : listeners) {
             listener.onError(new DataProviderException(e.getMessage(), e));
@@ -109,8 +125,7 @@ public class LiveExternalDataProvider implements DataProvider, OandaClient.Price
         stop();
     }
 
-    @Override
-    public void onComplete() {
+    public void onPriceStreamComplete() {
         log.debug("Price stream complete");
         stop();
     }

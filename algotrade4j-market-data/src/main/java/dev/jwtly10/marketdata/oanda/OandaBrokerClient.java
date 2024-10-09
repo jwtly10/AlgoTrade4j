@@ -1,11 +1,10 @@
 package dev.jwtly10.marketdata.oanda;
 
 import dev.jwtly10.core.account.Account;
-import dev.jwtly10.core.model.DefaultBar;
-import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.oanda.models.OandaTrade;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
 import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
@@ -128,27 +127,24 @@ public class OandaBrokerClient implements BrokerClient {
     }
 
     @Override
-    public void streamPrices(List<Instrument> instruments, Object callback) {
+    public Stream<Tick> streamPrices(List<Instrument> instruments) {
         if (accountId == null) {
             log.error("Account ID not set. Cannot stream prices.");
             throw new RuntimeException("Account ID not set. Cannot stream prices.");
         }
-        try {
-            // Hack - we don't have any other clients so this works for now.
-            OandaClient.PriceStreamCallback c = (OandaClient.PriceStreamCallback) callback;
-            client.streamPrices(accountId, instruments, c);
-        } catch (Exception e) {
-            log.error("Error streaming prices", e);
-        }
+
+        log.info("Starting price stream for accountId: {}", accountId);
+        return client.streamPrices(accountId, instruments);
     }
 
     @Override
-    public void streamTransactions(OandaClient.TransactionStreamCallback callback) throws Exception {
+    public Stream<List<String>> streamTransactions() {
         if (accountId == null) {
             log.error("Account ID not set. Cannot stream transactions.");
             throw new RuntimeException("Account ID not set. Cannot stream transactions.");
         }
         log.info("Starting transaction stream for accountId: {}", accountId);
-        client.streamTransactions(accountId, callback);
+        return client.streamTransactions(accountId);
     }
+
 }
