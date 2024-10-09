@@ -4,6 +4,7 @@ import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.oanda.models.OandaTrade;
 import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
@@ -115,7 +116,7 @@ public class OandaBrokerClient implements BrokerClient {
     }
 
     @Override
-    public Stream<List<String>> streamTransactions() {
+    public Stream<List<TradeDTO>> streamTransactions() {
         if (accountId == null) {
             throw new RuntimeException("Account ID not set. Cannot stream transactions.");
         }
