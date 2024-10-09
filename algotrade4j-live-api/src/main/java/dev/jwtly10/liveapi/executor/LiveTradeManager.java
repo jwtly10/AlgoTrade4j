@@ -99,7 +99,7 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public Integer openLong(TradeParameters params) throws Exception {
+    public Trade openLong(TradeParameters params) throws Exception {
         params.setLong(true);
         try {
             return openPosition(params);
@@ -110,7 +110,7 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public Integer openShort(TradeParameters params) throws Exception {
+    public Trade openShort(TradeParameters params) throws Exception {
         params.setLong(false);
         try {
             return openPosition(params);
@@ -120,7 +120,7 @@ public class LiveTradeManager implements TradeManager {
         }
     }
 
-    private Integer openPosition(TradeParameters params) throws Exception {
+    private Trade openPosition(TradeParameters params) throws Exception {
         RiskStatus risk = riskManager.canTrade();
         if (risk.isRiskViolated()) {
             throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
@@ -131,7 +131,7 @@ public class LiveTradeManager implements TradeManager {
         log.info("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
                 trade.isLong() ? "long" : "short", trade.getOpenTime(), trade.getId(), trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity());
 
-        return trade.getId();
+        return trade;
     }
 
     @Override

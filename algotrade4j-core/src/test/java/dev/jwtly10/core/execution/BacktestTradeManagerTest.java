@@ -49,7 +49,7 @@ class BacktestTradeManagerTest {
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params).getId();
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -76,7 +76,7 @@ class BacktestTradeManagerTest {
         when(mockCurrentTick.getDateTime()).thenReturn(openTime);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params).getId();
 
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
@@ -105,7 +105,7 @@ class BacktestTradeManagerTest {
         when(mockCurrentTick.getDateTime()).thenReturn(openTime);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), openTime, new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params).getId();
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -133,7 +133,7 @@ class BacktestTradeManagerTest {
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params).getId();
 
         verify(mockEventPublisher, times(1)).publishEvent(argThat(event ->
                 event instanceof TradeEvent &&
@@ -159,7 +159,7 @@ class BacktestTradeManagerTest {
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params).getId();
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("14"), new Number("12"), new Number("10"), new Number("100"), ZonedDateTime.now()));
@@ -189,7 +189,7 @@ class BacktestTradeManagerTest {
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params).getId();
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("8"), new Number("7"), new Number("9"), new Number("100"), ZonedDateTime.now()));
@@ -218,7 +218,7 @@ class BacktestTradeManagerTest {
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params).getId();
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("6"), new Number("5"), new Number("7"), new Number("100"), ZonedDateTime.now()));
@@ -247,7 +247,7 @@ class BacktestTradeManagerTest {
         params.setBalanceToRisk(100);
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openShort(params);
+        int tradeId = backtestTradeManager.openShort(params).getId();
         assertEquals(1, backtestTradeManager.getOpenTrades().size());
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, new Number("12"), new Number("11"), new Number("13"), new Number("100"), ZonedDateTime.now()));
@@ -332,7 +332,7 @@ class BacktestTradeManagerTest {
 
         when(mockBarSeries.getLastBar()).thenReturn(new DefaultBar(NAS100USD, Duration.ofDays(1), ZonedDateTime.now(), new Number("100"), new Number("100"), new Number("100"), new Number("100"), new Number("100")));
         when(mockRiskManager.canTrade()).thenReturn(new RiskStatus(false, null));
-        int tradeId = backtestTradeManager.openLong(params);
+        int tradeId = backtestTradeManager.openLong(params).getId();
 
         backtestTradeManager.setCurrentTick(new DefaultTick(SYMBOL, null, null, new Number("10"), new Number("100"), ZonedDateTime.now()));
 

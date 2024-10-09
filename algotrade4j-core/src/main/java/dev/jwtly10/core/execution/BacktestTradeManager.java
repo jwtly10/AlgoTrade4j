@@ -58,18 +58,18 @@ public class BacktestTradeManager implements TradeManager {
     }
 
     @Override
-    public Integer openLong(TradeParameters params) {
+    public Trade openLong(TradeParameters params) {
         params.setLong(true);
         return openPosition(params);
     }
 
     @Override
-    public Integer openShort(TradeParameters params) {
+    public Trade openShort(TradeParameters params) {
         params.setLong(false);
         return openPosition(params);
     }
 
-    private Integer openPosition(TradeParameters params) {
+    private Trade openPosition(TradeParameters params) {
         log.trace("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 params.isLong() ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
@@ -100,7 +100,7 @@ public class BacktestTradeManager implements TradeManager {
         log.debug("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
                 trade.isLong() ? "long" : "short", trade.getOpenTime(), trade.getId(), trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity());
 
-        return trade.getId();
+        return trade;
     }
 
     @Override

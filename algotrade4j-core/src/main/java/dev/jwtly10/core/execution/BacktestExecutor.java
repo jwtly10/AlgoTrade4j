@@ -128,6 +128,7 @@ public class BacktestExecutor implements DataListener {
     public void onTradeClose(Trade trade) {
         log.trace("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
         tradeStateManager.updateBalanceOnTradeClose(trade, accountManager);
+        strategy.onTradeClose(trade);
     }
 
     @Override

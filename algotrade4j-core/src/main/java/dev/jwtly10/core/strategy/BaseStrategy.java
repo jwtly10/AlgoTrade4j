@@ -16,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Abstract base class for trading strategies.
@@ -70,6 +67,8 @@ public abstract class BaseStrategy implements Strategy {
      */
     private Notifier notifier;
 
+    private boolean useSystemNotifications = false;
+
     /**
      * The chat ID of the notifier.
      */
@@ -88,17 +87,18 @@ public abstract class BaseStrategy implements Strategy {
      * Opens a long position with the specified trade parameters.
      * This method will throw an exception if the risk manager does not allow the trade.
      * The risk manager checks the risk profile of the strategy and the account balance before allowing the trade.
-     * Will return -1 if the trade open failed
      *
      * @param params the trade parameters
-     * @return the trade ID
+     * @return Optional of the trade
      */
-    public Integer openLong(TradeParameters params) {
+    public Optional<Trade> openLong(TradeParameters params) {
         try {
-            return tradeManager.openLong(params);
+            Trade openedTrade = tradeManager.openLong(params);
+            sendOpenTradeNotification(openedTrade);
+            return Optional.of(openedTrade);
         } catch (Exception e) {
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
-            return -1;
+            return Optional.empty();
         }
     }
 
@@ -109,15 +109,25 @@ public abstract class BaseStrategy implements Strategy {
      * Will return -1 if the trade open failed
      *
      * @param params the trade parameters
-     * @return the trade ID
+     * @return Optional of the trade
      */
-    public Integer openShort(TradeParameters params) {
+    public Optional<Trade> openShort(TradeParameters params) {
         try {
-            return tradeManager.openShort(params);
+            Trade openedTrade = tradeManager.openShort(params);
+            sendOpenTradeNotification(openedTrade);
+            return Optional.of(openedTrade);
         } catch (Exception e) {
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
-            return -1;
+            return Optional.empty();
         }
+    }
+
+    /**
+     * Turns on the use of system notifications for a strategy
+     * System notifications include automated trade open/close notifications
+     */
+    public void useSystemNotifications() {
+        this.useSystemNotifications = true;
     }
 
     /**
@@ -308,6 +318,11 @@ public abstract class BaseStrategy implements Strategy {
         // Strategy developers can override this method to add custom logic on new day event
     }
 
+    @Override
+    public void onTradeClose(Trade trade) {
+        sendCloseTradeNotification(trade);
+    }
+
     /**
      * Strategy developers can override this method to initialize new indicators using the createIndicator method.
      */
@@ -445,4 +460,55 @@ public abstract class BaseStrategy implements Strategy {
         return (ctorParamType.isPrimitive() && getPrimitiveType(paramType) == ctorParamType) ||
                 (paramType.isPrimitive() && getPrimitiveType(ctorParamType) == paramType);
     }
+
+    /**
+     * Wrapper for trade open notifications
+     */
+    private void sendOpenTradeNotification(Trade trade) {
+        if (useSystemNotifications) {
+            String tradeType = trade.isLong() ? "Long" : "Short";
+            String message = String.format(
+                    "🚀 <b>New %s trade opened for '%s' !</b>\n" +
+                            "<b>Trade ID:</b> #%d\n" +
+                            "<b>Instrument:</b> %s\n" +
+                            "<b>Entry Price:</b> %.2f\n",
+                    tradeType,
+                    strategyId,
+                    trade.getId(),
+                    trade.getInstrument(),
+                    trade.getEntryPrice().doubleValue()
+            );
+
+            sendNotification(message);
+        }
+    }
+
+    /**
+     * Wrapper for trade close notifications
+     */
+    private void sendCloseTradeNotification(Trade trade) {
+        if (useSystemNotifications) {
+            String tradeType = trade.isLong() ? "Long" : "Short";
+            String profitStatus = trade.getProfit() >= 0 ? "Profit" : "Loss";
+            String message = String.format(
+                    "🔔 <b>%s Trade Closed for '%s' !</b>\n" +
+                            "<b>Trade ID:</b> #%d\n" +
+                            "<b>Instrument:</b> %s\n" +
+                            "<b>Entry Price:</b> %.2f\n" +
+                            "<b>Close Price:</b> %.2f\n" +
+                            "<b>Profit/Loss:</b> $%.2f %s\n",
+                    tradeType,
+                    strategyId,
+                    trade.getId(),
+                    trade.getInstrument(),
+                    trade.getEntryPrice().doubleValue(),
+                    trade.getClosePrice().doubleValue(),
+                    Math.abs(trade.getProfit()),
+                    profitStatus
+            );
+
+            sendNotification(message);
+        }
+    }
+
 }

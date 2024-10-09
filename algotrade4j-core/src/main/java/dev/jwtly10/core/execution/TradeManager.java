@@ -46,7 +46,7 @@ public interface TradeManager {
      * @return A unique identifier for the opened trade
      * @throws Exception If an error occurs while opening the trade
      */
-    Integer openLong(TradeParameters params) throws Exception;
+    Trade openLong(TradeParameters params) throws Exception;
 
     /**
      * Opens a short position for the specified instrument, uses the current bid price as the entry price.
@@ -56,7 +56,7 @@ public interface TradeManager {
      * @return A unique identifier for the opened trade
      * @throws Exception If an error occurs while opening the trade
      */
-    Integer openShort(TradeParameters params) throws Exception;
+    Trade openShort(TradeParameters params) throws Exception;
 
     /**
      * Closes an existing position identified by the trade ID.
