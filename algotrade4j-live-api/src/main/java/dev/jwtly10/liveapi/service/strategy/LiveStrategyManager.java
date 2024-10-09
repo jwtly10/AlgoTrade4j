@@ -267,7 +267,7 @@ public class LiveStrategyManager {
         return executor;
     }
 
-    public void closeTrade(Long strategyId, String tradeId) {
+    public void closeTrade(Long strategyId, String tradeId) throws Exception {
         LiveStrategy strategy = liveStrategyService.getActiveStrategy(strategyId).orElseThrow(
                 () -> new ApiException(String.format("Live Strategy with id %s is not active or does not exist", strategyId), ErrorType.BAD_REQUEST)
         );

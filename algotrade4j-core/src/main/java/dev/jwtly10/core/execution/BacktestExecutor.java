@@ -142,7 +142,11 @@ public class BacktestExecutor implements DataListener {
     private void cleanup() {
         log.info("Cleaning up strategy and closing any open trades");
         tradeManager.getOpenTrades().values().forEach(trade -> {
-            tradeManager.closePosition(trade.getId(), false);
+            try {
+                tradeManager.closePosition(trade.getId(), false);
+            } catch (Exception e) {
+                log.error("Error closing trade during backtest strategy shutdown: {}", trade, e);
+            }
         });
         // Update trade states and account state
         tradeStateManager.updateTradeProfitStateOnTick(tradeManager, null);

@@ -84,7 +84,11 @@ public class LiveStrategyController {
 
     @PostMapping("/{id}/{tradeId}/close")
     public ResponseEntity<String> closeTrade(@PathVariable("id") Long strategyId, @PathVariable("tradeId") String tradeId) {
-        liveStrategyManager.closeTrade(strategyId, tradeId);
-        return ResponseEntity.ok().build();
+        try {
+            liveStrategyManager.closeTrade(strategyId, tradeId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            throw new ApiException("Error closing trade: " + e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
     }
 }

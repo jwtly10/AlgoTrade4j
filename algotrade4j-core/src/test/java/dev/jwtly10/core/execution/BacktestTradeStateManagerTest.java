@@ -20,7 +20,7 @@ import static dev.jwtly10.core.model.Instrument.NAS100USD;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-class DefaultTradeStateManagerTest {
+class BacktestTradeStateManagerTest {
 
     @Mock
     private EventPublisher mockEventPublisher;
@@ -31,12 +31,12 @@ class DefaultTradeStateManagerTest {
     @Mock
     private Tick tick;
 
-    private DefaultTradeStateManager tradeStateManager;
+    private BacktestTradeStateManager tradeStateManager;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        tradeStateManager = new DefaultTradeStateManager("Test", mockEventPublisher);
+        tradeStateManager = new BacktestTradeStateManager("Test", mockEventPublisher);
     }
 
     @Test
@@ -104,7 +104,7 @@ class DefaultTradeStateManagerTest {
 
 
     @Test
-    void updateTradeProfitStateOnTick_executesStopLoss() {
+    void updateTradeProfitStateOnTick_executesStopLoss() throws Exception {
         ConcurrentHashMap<Integer, Trade> openTrades = new ConcurrentHashMap<>();
         var now = ZonedDateTime.now();
         Trade longTrade = new Trade(NAS100USD, 1, new Number("1.2000"), now, new Number("1.1950"), new Number("1.2100"), true);

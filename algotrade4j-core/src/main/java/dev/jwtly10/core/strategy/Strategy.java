@@ -56,6 +56,8 @@ public interface Strategy {
     /**
      * Called on each bar close (the bar is completed)
      * This method can be used to perform strategy logic based on the most recent bar of completed market data.
+     * This method should ideally NOT throw.
+     * Any exceptions should be caught and logged within the method.
      *
      * @param bar The most recent bar of market data.
      */
@@ -64,6 +66,8 @@ public interface Strategy {
     /**
      * Called on each tick of market data.
      * This method can be used to perform additional processing on each tick.
+     * This method should ideally NOT throw.
+     * Any exceptions should be caught and logged within the method.
      *
      * @param tick       The most recent tick of market data.
      * @param currentBar The current bar of market data (may be incomplete)
@@ -73,6 +77,8 @@ public interface Strategy {
     /**
      * Called on each new day of market data.
      * This method can be used to perform additional processing on each day or trigger some logic.
+     * This method should ideally NOT throw.
+     * Any exceptions should be caught and logged within the method.
      *
      * @param newDay The datetime of the first tick data that triggered a new day
      */

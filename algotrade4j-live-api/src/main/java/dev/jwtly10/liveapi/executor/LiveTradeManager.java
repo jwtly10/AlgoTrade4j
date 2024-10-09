@@ -1,7 +1,6 @@
 package dev.jwtly10.liveapi.executor;
 
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Number;
@@ -100,18 +99,28 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public Integer openLong(TradeParameters params) throws InvalidTradeException {
+    public Integer openLong(TradeParameters params) throws Exception {
         params.setLong(true);
-        return openPosition(params);
+        try {
+            return openPosition(params);
+        } catch (Exception e) {
+            log.error("Error opening long trade", e);
+            throw e;
+        }
     }
 
     @Override
-    public Integer openShort(TradeParameters params) throws InvalidTradeException {
+    public Integer openShort(TradeParameters params) throws Exception {
         params.setLong(false);
-        return openPosition(params);
+        try {
+            return openPosition(params);
+        } catch (Exception e) {
+            log.error("Error opening short trade", e);
+            throw e;
+        }
     }
 
-    private Integer openPosition(TradeParameters params) {
+    private Integer openPosition(TradeParameters params) throws Exception {
         RiskStatus risk = riskManager.canTrade();
         if (risk.isRiskViolated()) {
             throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
@@ -126,7 +135,7 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
-    public void closePosition(Integer tradeId, boolean manual) throws InvalidTradeException {
+    public void closePosition(Integer tradeId, boolean manual) throws Exception {
         brokerClient.closeTrade(tradeId);
     }
 
