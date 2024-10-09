@@ -106,9 +106,6 @@ public class OandaClient {
             }
 
             return objectMapper.readValue(response, OandaCandleResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to fetch data from Oanda API", e);
-            throw e;
         }
     }
 
@@ -134,16 +131,12 @@ public class OandaClient {
         try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
             if (!res.isSuccessful()) {
-                log.trace("Failed to fetch trades from Oanda API: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
             log.trace("Fetched trades: {}", response);
 
             return objectMapper.readValue(response, OandaTradeResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to fetch trades from Oanda API", e);
-            throw e;
         }
     }
 
@@ -166,15 +159,11 @@ public class OandaClient {
         try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
             if (!res.isSuccessful()) {
-                log.error("Failed to fetch Account details from Oanda API: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
             log.trace("Fetched account details: {}", response);
             return objectMapper.readValue(response, OandaAccountResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to fetch account details from Oanda API", e);
-            throw e;
         }
     }
 
@@ -207,17 +196,21 @@ public class OandaClient {
         try (Response res = client.newCall(req).execute()) {
             String response = res.body().string();
             if (!res.isSuccessful()) {
-                log.error("Failed to open trade: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + response);
             }
 
             log.trace("Opened trade: {}", response);
             return objectMapper.readValue(response, OandaOpenTradeResponse.class);
-        } catch (Exception e) {
-            log.error("Failed to open trade", e);
-            throw e;
         }
     }
+
+    /**
+     * Closes a trade based on the specified trade id.
+     *
+     * @param accountId the account id to close the trade for
+     * @param id        the trade id to close
+     * @throws Exception if an error occurs while closing the trade
+     */
 
     public void closeTrade(String accountId, String id) throws Exception {
         log.trace("Closing trade: {}", id);
@@ -231,16 +224,11 @@ public class OandaClient {
 
         try (Response res = client.newCall(req).execute()) {
             if (!res.isSuccessful()) {
-                log.error("Failed to close trade: {}", res);
                 throw new DataProviderException("Error response from Oanda API: " + res.body().string());
             }
 
             log.trace("Closed trade: {}", id);
-        } catch (Exception e) {
-            log.error("Failed to close trade", e);
-            throw e;
         }
-
     }
 
     // Streaming endpoints

@@ -178,7 +178,7 @@ public class LiveExecutor implements DataListener {
         return this.strategyId;
     }
 
-    public void closeTrade(String tradeId) {
+    public void closeTrade(String tradeId) throws Exception {
         tradeManager.closePosition(Integer.parseInt(tradeId), true);
     }
 

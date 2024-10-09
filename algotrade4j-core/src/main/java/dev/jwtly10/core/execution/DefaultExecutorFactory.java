@@ -22,7 +22,7 @@ public class DefaultExecutorFactory implements ExecutorFactory {
         RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, dataManager.getFrom());
 
         TradeManager tradeManager = new BacktestTradeManager(currentTick, dataManager.getBarSeries(), id, eventPublisher, riskManager);
-        TradeStateManager tradeStateManager = new DefaultTradeStateManager(id, eventPublisher);
+        TradeStateManager tradeStateManager = new BacktestTradeStateManager(id, eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
         return new BacktestExecutor(

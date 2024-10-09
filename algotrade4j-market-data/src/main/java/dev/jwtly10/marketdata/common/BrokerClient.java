@@ -17,15 +17,17 @@ public interface BrokerClient {
      * Retrieves account information.
      *
      * @return The account information.
+     * @throws Exception should account information not be available
      */
-    Account getAccountInfo();
+    Account getAccountInfo() throws Exception;
 
     /**
      * Retrieves a list of open trades.
      *
      * @return A list of open trades.
+     * @throws Exception If an error occurs while retrieving the trades.
      */
-    List<Trade> getOpenTrades();
+    List<Trade> getOpenTrades() throws Exception;
 
     /**
      * Retrieves a list of all trades.
@@ -40,15 +42,17 @@ public interface BrokerClient {
      *
      * @param trade The trade to be opened.
      * @return The opened trade.
+     * @throws Exception If an error occurs while opening the trade.
      */
-    Trade openTrade(Trade trade);
+    Trade openTrade(Trade trade) throws Exception;
 
     /**
      * Closes an existing trade.
      *
      * @param tradeId The ID of the trade to be closed.
+     * @throws Exception If an error occurs while closing the trade.
      */
-    void closeTrade(Integer tradeId);
+    void closeTrade(Integer tradeId) throws Exception;
 
     /**
      * Streams prices for a list of instruments.

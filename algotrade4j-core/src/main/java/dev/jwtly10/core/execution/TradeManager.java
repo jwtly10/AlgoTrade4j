@@ -1,7 +1,6 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
@@ -45,8 +44,9 @@ public interface TradeManager {
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
      * @return A unique identifier for the opened trade
+     * @throws Exception If an error occurs while opening the trade
      */
-    Integer openLong(TradeParameters params) throws InvalidTradeException;
+    Integer openLong(TradeParameters params) throws Exception;
 
     /**
      * Opens a short position for the specified instrument, uses the current bid price as the entry price.
@@ -54,16 +54,18 @@ public interface TradeManager {
      *
      * @param params {@link TradeParameters} Trading params as defined in the TradeParameters class
      * @return A unique identifier for the opened trade
+     * @throws Exception If an error occurs while opening the trade
      */
-    Integer openShort(TradeParameters params) throws InvalidTradeException;
+    Integer openShort(TradeParameters params) throws Exception;
 
     /**
      * Closes an existing position identified by the trade ID.
      *
      * @param tradeId The unique identifier of the trade to close
      * @param manual  Weather the close was manually triggered or a result of a stoploss/tp (this lets us manually handle slippage)
+     * @throws Exception If an error occurs while closing the trade
      */
-    void closePosition(Integer tradeId, boolean manual) throws InvalidTradeException;
+    void closePosition(Integer tradeId, boolean manual) throws Exception;
 
     /**
      * Loads all trades from the trading account.

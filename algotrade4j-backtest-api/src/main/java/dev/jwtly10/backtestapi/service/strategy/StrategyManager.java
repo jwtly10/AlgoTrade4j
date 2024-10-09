@@ -108,7 +108,7 @@ public class StrategyManager {
         RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
 
         TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
-        TradeStateManager tradeStateManager = new DefaultTradeStateManager(strategy.getStrategyId(), eventPublisher);
+        TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
         BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager);
