@@ -10,6 +10,7 @@ import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.risk.RiskProfileConfig;
 
 import java.time.ZonedDateTime;
@@ -73,6 +74,16 @@ public interface Strategy {
      * @param currentBar The current bar of market data (may be incomplete)
      */
     void onTick(Tick tick, Bar currentBar);
+
+    /**
+     * Called when a trade is closed.
+     * This method can be used to perform additional processing when a trade is closed.
+     * This method should ideally NOT throw.
+     * Any exceptions should be caught and logged within the method.
+     *
+     * @param trade The trade that was closed
+     */
+    void onTradeClose(Trade trade);
 
     /**
      * Called on each new day of market data.

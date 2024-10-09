@@ -134,74 +134,79 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
     const openTrades = trades.filter(trade => !trade.closeTime && (!trade.closePrice || trade.closePrice === 0));
     const closedTrades = trades.filter(trade => trade.closeTime || (trade.closePrice && trade.closePrice !== 0));
 
-    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange, showActions = false) => (
-        <div className="rounded-md border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Order #</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Closed</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Instrument</TableHead>
-                        <TableHead>Open</TableHead>
-                        <TableHead>Close</TableHead>
-                        <TableHead>S/L</TableHead>
-                        <TableHead>T/P</TableHead>
-                        <TableHead>Profit</TableHead>
-                        {showActions && strategy != null && (
-                            <TableHead>Actions</TableHead>
-                        )}
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {tradesToRender
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        .map((trade) => (
-                            <TableRow key={trade.id}>
-                                <TableCell>{trade.tradeId}</TableCell>
-                                <TableCell>{formatUTCDate(trade.openTime)}</TableCell>
-                                <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
-                                <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime) : ""}</TableCell>
-                                <TableCell>{trade.quantity}</TableCell>
-                                <TableCell>{trade.instrument}</TableCell>
-                                <TableCell>{trade.entry}</TableCell>
-                                <TableCell>{trade.closePrice !== 0 ? trade.closePrice : ""}</TableCell>
-                                <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
-                                <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
-                                <TableCell>{trade.profit ? trade.profit : "0.00"}</TableCell>
-                                {showActions && strategy != null && (
-                                    <TableCell>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={(e) => {
-                                                        handleCloseTrade(strategy, trade.id)
-                                                    }}>
-                                                        <X className="h-4 w-4"/>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Close trade</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </TableCell>
-                                )}
-                            </TableRow>
-                        ))}
-                </TableBody>
-            </Table>
-            <CustomTablePagination
-                count={tradesToRender.length}
-                rowsPerPage={rowsPerPage}
-                page={page}
-                onPageChange={onPageChange}
-                onRowsPerPageChange={onRowsPerPageChange}
-            />
-        </div>
-    );
+    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange, showActions = false) => {
+        // Sort trades by trade.id in descending order
+        const sortedTrades = tradesToRender.sort((a, b) => b.closeTime - a.closeTime);
+
+        return (
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Order #</TableHead>
+                            <TableHead>Time</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Closed</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Instrument</TableHead>
+                            <TableHead>Open</TableHead>
+                            <TableHead>Close</TableHead>
+                            <TableHead>S/L</TableHead>
+                            <TableHead>T/P</TableHead>
+                            <TableHead>Profit</TableHead>
+                            {showActions && strategy != null && (
+                                <TableHead>Actions</TableHead>
+                            )}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {sortedTrades
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((trade) => (
+                                <TableRow key={trade.id}>
+                                    <TableCell>{trade.tradeId}</TableCell>
+                                    <TableCell>{formatUTCDate(trade.openTime)}</TableCell>
+                                    <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
+                                    <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime) : ""}</TableCell>
+                                    <TableCell>{trade.quantity}</TableCell>
+                                    <TableCell>{trade.instrument}</TableCell>
+                                    <TableCell>{trade.entry}</TableCell>
+                                    <TableCell>{trade.closePrice !== 0 ? trade.closePrice : ""}</TableCell>
+                                    <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
+                                    <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
+                                    <TableCell>{trade.profit ? trade.profit : "0.00"}</TableCell>
+                                    {showActions && strategy != null && (
+                                        <TableCell>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="sm" onClick={(e) => {
+                                                            handleCloseTrade(strategy, trade.id)
+                                                        }}>
+                                                            <X className="h-4 w-4"/>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Close trade</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            ))}
+                    </TableBody>
+                </Table>
+                <CustomTablePagination
+                    count={sortedTrades.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={onPageChange}
+                    onRowsPerPageChange={onRowsPerPageChange}
+                />
+            </div>
+        );
+    };
 
     if (useLiveSplit) {
         return (
