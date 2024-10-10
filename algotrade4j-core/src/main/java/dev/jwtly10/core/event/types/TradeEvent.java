@@ -1,5 +1,6 @@
-package dev.jwtly10.core.event;
+package dev.jwtly10.core.event.types;
 
+import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Trade;
 import lombok.Getter;

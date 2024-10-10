@@ -1,7 +1,8 @@
-package dev.jwtly10.core.event;
+package dev.jwtly10.core.event.types;
 
 import dev.jwtly10.core.analysis.AnalysisStats;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
+import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.model.Instrument;
 import lombok.Getter;
 

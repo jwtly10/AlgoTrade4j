@@ -1,5 +1,6 @@
 package dev.jwtly10.core.event;
 
+import dev.jwtly10.core.event.types.LogEvent;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;

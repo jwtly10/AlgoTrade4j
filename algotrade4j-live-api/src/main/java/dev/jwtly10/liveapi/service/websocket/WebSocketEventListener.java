@@ -1,8 +1,8 @@
 package dev.jwtly10.liveapi.service.websocket;
 
 import dev.jwtly10.core.event.BaseEvent;
-import dev.jwtly10.core.event.ErrorEvent;
 import dev.jwtly10.core.event.EventListener;
+import dev.jwtly10.core.event.types.ErrorEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;

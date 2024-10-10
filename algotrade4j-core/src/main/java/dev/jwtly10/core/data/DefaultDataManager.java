@@ -1,7 +1,7 @@
 package dev.jwtly10.core.data;
 
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.LogEvent;
+import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Number;

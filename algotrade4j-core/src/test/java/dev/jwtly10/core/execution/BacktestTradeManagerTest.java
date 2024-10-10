@@ -1,7 +1,7 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.event.types.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;

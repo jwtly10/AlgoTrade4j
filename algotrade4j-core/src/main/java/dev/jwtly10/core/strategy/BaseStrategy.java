@@ -4,7 +4,7 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.LogEvent;
+import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
