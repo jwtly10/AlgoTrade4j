@@ -179,12 +179,12 @@ public class LiveExecutor implements DataListener {
         return this.strategyId;
     }
 
-    public void closeTrade(String tradeId) throws Exception {
+    public void closeTrade(String tradeId) throws RuntimeException {
         try {
             tradeManager.closePosition(Integer.parseInt(tradeId), true);
         } catch (Exception e) {
             log.error("Error closing trade: {}", tradeId, e);
-            throw new LiveExecutorException(strategyId, "Error closing trade", e);
+            throw new LiveExecutorException(strategyId, e.getMessage(), e);
         }
     }
 
