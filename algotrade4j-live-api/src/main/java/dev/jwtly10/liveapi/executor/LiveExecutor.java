@@ -16,6 +16,8 @@ import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
+import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.liveapi.service.strategy.DailyStartingBalanceService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,7 @@ public class LiveExecutor implements DataListener {
     private final LiveStateManager liveStateManager;
     private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final DailyStartingBalanceService dailyStartingBalanceService;
 
     @Getter
     @Setter
@@ -50,7 +53,8 @@ public class LiveExecutor implements DataListener {
                         DataManager dataManager,
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
-                        RiskManager riskManager
+                        RiskManager riskManager,
+                        DailyStartingBalanceService dailyStartingBalanceService
 
     ) {
         this.strategy = strategy;
@@ -61,6 +65,7 @@ public class LiveExecutor implements DataListener {
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
         this.riskManager = riskManager;
+        this.dailyStartingBalanceService = dailyStartingBalanceService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
     }
@@ -135,9 +140,27 @@ public class LiveExecutor implements DataListener {
             return;
         }
         try {
+            // Set the daily starting equity and balance
+            if (strategy.getLiveStrategy() != null) {
+                if (strategy.getLiveStrategy() instanceof LiveStrategy) {
+                    dailyStartingBalanceService.setDailyStartBalance(
+                            (LiveStrategy) strategy.getLiveStrategy(),
+                            accountManager.getBalance(),
+                            accountManager.getEquity(),
+                            newDay
+                    );
+                } else {
+                    // Since we use Object for getLiveStrategy() as a live strategy is not known by the core module
+                    // we can't set the daily start balance
+                    log.warn("LiveStrategy is not an instance of LiveStrategy, can't set daily start balance");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error saving daily start balance for strategy to db: {}", strategyId, e);
+        }
+        try {
             strategy.onNewDay(newDay);
         } catch (Exception e) {
-            log.error("Error processing new day for strategy: {}", strategyId, e);
             throw new LiveExecutorException(strategyId, "Error processing new day", e);
         }
     }

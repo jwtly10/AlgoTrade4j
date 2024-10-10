@@ -36,6 +36,11 @@ public abstract class BaseStrategy implements Strategy {
      * The instrument associated with the strategy.
      */
     public Instrument SYMBOL;
+
+    /**
+     * Used for injecting config context for live strategies
+     */
+    private Object liveStrategy;
     /**
      * The series of bars used by the strategy.
      */
@@ -511,4 +516,13 @@ public abstract class BaseStrategy implements Strategy {
         }
     }
 
+    @Override
+    public void setLiveStrat(Object liveStrategy) {
+        this.liveStrategy = liveStrategy;
+    }
+
+    @Override
+    public Object getLiveStrategy() {
+        return liveStrategy;
+    }
 }

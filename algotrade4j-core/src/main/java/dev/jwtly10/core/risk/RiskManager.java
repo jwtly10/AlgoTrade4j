@@ -22,6 +22,12 @@ public class RiskManager {
         this.dailyStartEquity = accountManager.getEquity();
     }
 
+    public RiskManager(RiskProfileConfig config, AccountManager accountManager, ZonedDateTime startTime, double dailyStartEquity) {
+        this.config = config;
+        this.accountManager = accountManager;
+        this.currentTradingDay = calculateCurrentTradingDay(startTime.withZoneSameInstant(config.getBrokerTimeZone()));
+        this.dailyStartEquity = dailyStartEquity;
+    }
 
     /**
      * Assess the risk of the current account state given the risk configuration
@@ -73,7 +79,7 @@ public class RiskManager {
         if (!newTradingDay.equals(currentTradingDay)) {
             currentTradingDay = newTradingDay;
             dailyStartEquity = accountManager.getEquity();
-            log.debug("New trading day started at {}. Daily start equity set to: {}", currentTime, dailyStartEquity);
+            log.debug("New trading day started at {}. Daily start equity internally set to: {}", currentTime, dailyStartEquity);
         }
     }
 

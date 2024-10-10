@@ -47,17 +47,19 @@ public class LiveStrategyManager {
     private final EventPublisher eventPublisher;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
     private final LiveExecutorRepository liveExecutorRepository;
+    private final DailyStartingBalanceService dailyStartingBalanceService;
     private final OandaClient oandaClient;
     private final TelegramNotifier telegramNotifier;
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService) {
+    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService, DailyStartingBalanceService dailyStartingBalanceService) {
         this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.telegramNotifier = telegramNotifier;
         this.liveStrategyService = liveStrategyService;
+        this.dailyStartingBalanceService = dailyStartingBalanceService;
     }
 
     /**
@@ -196,6 +198,8 @@ public class LiveStrategyManager {
 
         // Create strategy instance
         Strategy strategyInstance = strategyFactory.createStrategy(config.getStrategyClass(), strategyId);
+        strategyInstance.setLiveStrat(liveStrategy);
+
         LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(client, config.getInstrumentData().getInstrument());
 
         // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
@@ -227,7 +231,7 @@ public class LiveStrategyManager {
         );
 
         // Here we need to 'hack' how we have generated the bars
-        // The last bar is the 'currentBar' which teh datamanager maintains state for seperately
+        // The last bar is the 'currentBar' which the datamanager maintains state for separately
         // So we remove the last bar from the general series
         Bar currentBar = barSeries.getBars().removeLast();
         DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
@@ -241,7 +245,13 @@ public class LiveStrategyManager {
 
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
+        // Get the starting balance for the day if available, otherwise use the current equity
+        double dailyStartEquity = dailyStartingBalanceService.getDailyStartingBalance(liveStrategy, ZonedDateTime.now())
+                .orElse(accountManager.getEquity());
+        log.info("On init, daily start equity set to: {}", dailyStartEquity);
+
+        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now(), dailyStartEquity);
+
         TradeManager tradeManager = new LiveTradeManager(client, riskManager);
         // Set, so we have the ability to stop the strategy in case of background processes
         tradeManager.setDataManager(dataManager);
@@ -258,7 +268,8 @@ public class LiveStrategyManager {
                 dataManager,
                 eventPublisher,
                 liveStateManager,
-                riskManager
+                riskManager,
+                dailyStartingBalanceService
         );
 
         executor.initialise();

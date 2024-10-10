@@ -130,4 +130,18 @@ public interface Strategy {
      * @return The risk profile configuration
      */
     RiskProfileConfig getRiskProfileConfig();
+
+    /**
+     * Util class to set the live strategy entity for live strategies
+     *
+     * @param liveStrategy The live strategy entity
+     */
+    void setLiveStrat(Object liveStrategy);
+
+    /**
+     * Get the live strategy entity for live strategies
+     *
+     * @return The live strategy entity
+     */
+    Object getLiveStrategy();
 }
