@@ -1,5 +1,6 @@
 package dev.jwtly10.backtestapi.auth.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.jwtly10.shared.auth.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -33,5 +34,6 @@ public class UserLoginLog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
     private User user;
 }

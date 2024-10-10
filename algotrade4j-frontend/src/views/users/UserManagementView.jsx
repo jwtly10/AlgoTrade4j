@@ -11,7 +11,6 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../../components/ui/tooltip.jsx";
 import MetadataViewer from "@/components/user/MetadataViewer.jsx";
 import CreateUserForm from "../../components/user/CreateUserForm.jsx";
-import {USER_ACTIONS} from './userActions';
 import log from '../../logger.js';
 
 const UserManagementView = ({loggedInUser}) => {
@@ -25,6 +24,8 @@ const UserManagementView = ({loggedInUser}) => {
 
     const [expandedUser, setExpandedUser] = useState(null);
     const [userLogs, setUserLogs] = useState([]);
+    const [loginLogs, setLoginLogs] = useState([]);
+    const [activeTab, setActiveTab] = useState('actions');
     const [actionFilter, setActionFilter] = useState('ALL');
     const [sortOrder, setSortOrder] = useState('desc');
     const [currentPage, setCurrentPage] = useState(1);
@@ -51,10 +52,6 @@ const UserManagementView = ({loggedInUser}) => {
             setUsers(fetchedUsers);
         } catch (error) {
             log.error('Failed to fetch users:', error);
-            setToast({
-                open: true,
-                severity: 'error'
-            });
             toast({
                 title: "Failed to fetch users",
                 description: "Error fetching users: " + error.message,
@@ -86,7 +83,7 @@ const UserManagementView = ({loggedInUser}) => {
         try {
             await adminClient.createUser(newUserData);
             setIsCreateDialogOpen(false);
-            fetchUsers();
+            await fetchUsers();
             toast({
                 title: "User Created",
                 description: `User ${newUserData.username} created successfully`,
@@ -116,7 +113,7 @@ const UserManagementView = ({loggedInUser}) => {
         try {
             await adminClient.updateUser(selectedUser.id, selectedUser);
             setIsEditDialogOpen(false);
-            fetchUsers();
+            await fetchUsers();
             toast({
                 title: "User Updated",
                 description: `User ${selectedUser.username} updated successfully`,
@@ -154,7 +151,7 @@ const UserManagementView = ({loggedInUser}) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
             try {
                 await adminClient.deleteUser(userId);
-                fetchUsers();
+                await fetchUsers();
                 toast({
                     title: "User Deleted",
                     description: "User deleted successfully",
@@ -213,9 +210,21 @@ const UserManagementView = ({loggedInUser}) => {
                         variant: "destructive",
                     });
                 }
+
+                try {
+                    const loginLogs = await adminClient.getLoginLogsForUser(userId);
+                    setLoginLogs(prev => ({...prev, [userId]: loginLogs}));
+                } catch (error) {
+                    log.error('Failed to fetch login logs:', error);
+                    toast({
+                        title: "Error",
+                        description: "Failed to fetch login logs: " + error.message,
+                        variant: "destructive",
+                    });
+                }
             }
         }
-    };
+    }
 
     const getFilteredAndSortedLogs = (userId) => {
         const filteredLogs = (userLogs[userId] || [])
@@ -236,6 +245,24 @@ const UserManagementView = ({loggedInUser}) => {
             totalPages: Math.ceil(filteredLogs.length / logsPerPage)
         };
     };
+
+    const getFilteredAndSortedLoginLogs = (userId) => {
+        const sortedLoginLogs = (loginLogs[userId] || [])
+            .sort((a, b) => {
+                return sortOrder === 'desc' ? b.id - a.id : a.id - b.id;
+            });
+
+        // Calculate pagination
+        const indexOfLastLog = currentPage * logsPerPage;
+        const indexOfFirstLog = indexOfLastLog - logsPerPage;
+        const currentLoginLogs = sortedLoginLogs.slice(indexOfFirstLog, indexOfLastLog);
+
+        return {
+            logs: currentLoginLogs,
+            totalPages: Math.ceil(sortedLoginLogs.length / logsPerPage),
+        };
+    };
+
 
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -327,64 +354,101 @@ const UserManagementView = ({loggedInUser}) => {
                                         </TooltipProvider>
                                     </TableCell>
                                 </TableRow>
-                                {expandedUser === user.id && userLogs[user.id] && (
+                                {expandedUser === user.id && (
                                     <TableRow>
                                         <TableCell colSpan={7}>
                                             <div className="p-4">
                                                 <div className="flex justify-between items-center mb-4">
-                                                    <h3 className="text-lg font-semibold">User Action Log</h3>
-                                                    <div className="flex gap-2">
-                                                        <Select
-                                                            value={actionFilter}
-                                                            onValueChange={(value) => setActionFilter(value)}
+                                                    <h3 className="text-lg font-semibold">User Logs</h3>
+                                                    <div className="flex gap-4">
+                                                        <Button
+                                                            variant={activeTab === 'actions' ? 'outline' : 'solid'}
+                                                            onClick={() => setActiveTab('actions')}
                                                         >
-                                                            <SelectTrigger className="w-[200px]">
-                                                                <SelectValue placeholder="Filter by action"/>
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="ALL">All Actions</SelectItem>
-                                                                {USER_ACTIONS.map((action) => (
-                                                                    <SelectItem key={action} value={action}>{action}</SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <Button onClick={toggleSortOrder} variant="outline">
-                                                            Sort {sortOrder === 'desc' ? 'Ascending' : 'Descending'}
+                                                            Actions
+                                                        </Button>
+                                                        <Button
+                                                            variant={activeTab === 'logins' ? 'outline' : 'solid'}
+                                                            onClick={() => setActiveTab('logins')}
+                                                        >
+                                                            Logins
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow>
-                                                            <TableHead>Action</TableHead>
-                                                            <TableHead>Timestamp</TableHead>
-                                                            <TableHead>Metadata</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {getFilteredAndSortedLogs(user.id).logs.length > 0 ?
-                                                            getFilteredAndSortedLogs(user.id).logs.map((log) => (
-                                                                <TableRow key={log.id}>
-                                                                    <TableCell>{log.action}</TableCell>
-                                                                    <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
-                                                                    <TableCell>
-                                                                        <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )) : (
+
+                                                {activeTab === 'actions' && (
+                                                    <div>
+                                                        <Table>
+                                                            <TableHeader>
                                                                 <TableRow>
-                                                                    <TableCell colSpan={3} className="text-center">No logs found</TableCell>
+                                                                    <TableHead>Action</TableHead>
+                                                                    <TableHead>Timestamp</TableHead>
+                                                                    <TableHead>Metadata</TableHead>
                                                                 </TableRow>
-                                                            )}
-                                                    </TableBody>
-                                                </Table>
-                                                <div className="mt-4 flex justify-center">
-                                                    <Pagination
-                                                        currentPage={currentPage}
-                                                        totalPages={getFilteredAndSortedLogs(user.id).totalPages}
-                                                        onPageChange={handlePageChange}
-                                                    />
-                                                </div>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                                {getFilteredAndSortedLogs(user.id).logs.length > 0 ? (
+                                                                    getFilteredAndSortedLogs(user.id).logs.map((log) => (
+                                                                        <TableRow key={log.id}>
+                                                                            <TableCell>{log.action}</TableCell>
+                                                                            <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
+                                                                            <TableCell>
+                                                                                <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
+                                                                            </TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={3} className="text-center">No logs found</TableCell>
+                                                                    </TableRow>
+                                                                )}
+                                                            </TableBody>
+                                                        </Table>
+                                                        <div className="mt-4 flex justify-center">
+                                                            <Pagination
+                                                                currentPage={currentPage}
+                                                                totalPages={getFilteredAndSortedLogs(user.id).totalPages}
+                                                                onPageChange={handlePageChange}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {activeTab === 'logins' && (
+                                                    <div>
+                                                        <Table>
+                                                            <TableHeader>
+                                                                <TableRow>
+                                                                    <TableHead>IP Address</TableHead>
+                                                                    <TableHead>User Agent</TableHead>
+                                                                    <TableHead>Login Time</TableHead>
+                                                                </TableRow>
+                                                            </TableHeader>
+                                                            <TableBody>
+                                                                {getFilteredAndSortedLoginLogs(user.id).logs.length > 0 ? (
+                                                                    getFilteredAndSortedLoginLogs(user.id).logs.map((login) => (
+                                                                        <TableRow key={login.id}>
+                                                                            <TableCell>{login.ipAddress}</TableCell>
+                                                                            <TableCell>{login.userAgent}</TableCell>
+                                                                            <TableCell>{formatDate(login.loginTime)}</TableCell>
+                                                                        </TableRow>
+                                                                    ))
+                                                                ) : (
+                                                                    <TableRow>
+                                                                        <TableCell colSpan={3} className="text-center">No login logs found</TableCell>
+                                                                    </TableRow>
+                                                                )}
+                                                            </TableBody>
+                                                        </Table>
+                                                        <div className="mt-4 flex justify-center">
+                                                            <Pagination
+                                                                currentPage={currentPage}
+                                                                totalPages={getFilteredAndSortedLoginLogs(user.id).totalPages}
+                                                                onPageChange={handlePageChange}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

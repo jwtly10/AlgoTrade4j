@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserLoginLogService {
@@ -26,5 +27,9 @@ public class UserLoginLogService {
         log.setUserAgent(userAgent);
         log.setLoginTime(LocalDateTime.now());
         return userLoginLogRepository.save(log);
+    }
+
+    public List<UserLoginLog> getUserLoginLogs(Long userId) {
+        return userLoginLogRepository.findByUserId(userId);
     }
 }

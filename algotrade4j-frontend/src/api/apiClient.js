@@ -172,6 +172,16 @@ export const adminClient = {
         } catch (error) {
             return handleError(error, url);
         }
+    },
+
+    getLoginLogsForUser: async (userId) => {
+        const url = `${V1}/admin/login-logs/${userId}`;
+        try {
+            const response = await mainInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
     }
 };
 
