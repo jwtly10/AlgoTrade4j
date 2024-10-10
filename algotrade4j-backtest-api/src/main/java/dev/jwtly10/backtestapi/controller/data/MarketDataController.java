@@ -10,6 +10,7 @@ import dev.jwtly10.marketdata.oanda.OandaClient;
 import dev.jwtly10.marketdata.oanda.OandaDataClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,7 @@ public class MarketDataController {
     }
 
     @GetMapping("/candles")
+    @Cacheable(value = "candlesCache", key = "#instrument + '-' + #from + '-' + #to + '-' + #period", unless = "#result.body == null || #result.body.isEmpty()")
     public ResponseEntity<?> getCandles(
             @RequestHeader("x-api-key") String requestApiKey,
             @RequestParam("instrument") Instrument instrument,
