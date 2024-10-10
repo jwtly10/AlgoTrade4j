@@ -19,6 +19,7 @@ services:
       - NEW_RELIC_APP_NAME=backtest-api-prod
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_LOG_FILE_NAME=STDOUT
+      - MARKETDATA_API_KEY=${MARKET_API_KEY}
 
   live-api:
     image: joshwatley/algotrade4j-live-api:latest
