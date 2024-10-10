@@ -1,5 +1,6 @@
 package dev.jwtly10.core.event;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class AsyncEventPublisher implements EventPublisher {
-    private static final int BATCH_SIZE = 300;
+    protected static final int BATCH_SIZE = 300;
     private static final long MAX_BATCH_WAIT_MS = 100;
     private final List<EventListener> listeners = new CopyOnWriteArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -22,7 +23,8 @@ public class AsyncEventPublisher implements EventPublisher {
     private final AtomicInteger eventCount = new AtomicInteger(0);
 
     // Using a queue to batch send events rather than creating a new runnable instant for each invocation
-    private final Queue<BaseEvent> eventQueue = new ConcurrentLinkedQueue<>();
+    @Getter
+    protected final Queue<BaseEvent> eventQueue = new ConcurrentLinkedQueue<>();
 
     public AsyncEventPublisher() {
         scheduler.scheduleAtFixedRate(this::processEvents, 0, MAX_BATCH_WAIT_MS, TimeUnit.MILLISECONDS);
@@ -64,7 +66,7 @@ public class AsyncEventPublisher implements EventPublisher {
     /**
      * Processes events in order.
      */
-    private void processEvents() {
+    protected void processEvents() {
         List<BaseEvent> batch = new ArrayList<>(BATCH_SIZE);
         BaseEvent event;
         int processed = 0;

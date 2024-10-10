@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DefaultDataManagerFactory;
-import dev.jwtly10.core.event.AsyncEventPublisher;
-import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.DefaultExecutorFactory;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Number;
@@ -30,11 +28,6 @@ public class SharedCoreBeanConfig {
 
     @Value("${telegram.bot.token}")
     private String telegramBotToken;
-
-    @Bean
-    public EventPublisher eventPublisher() {
-        return new AsyncEventPublisher();
-    }
 
     @Bean
     public ObjectMapper objectMapper() {
