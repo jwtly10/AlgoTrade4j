@@ -662,6 +662,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#usesystemnotifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      useSystemNotifications()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong" class="md-nav__link">
     <span class="md-ellipsis">
       getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong)
@@ -778,6 +787,15 @@
   <a href="#onbarclosebar-bar" class="md-nav__link">
     <span class="md-ellipsis">
       onBarClose(Bar bar)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ontradeclosetrade-trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      onTradeClose(Trade trade)
     </span>
   </a>
   
@@ -1093,6 +1111,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#usesystemnotifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      useSystemNotifications()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong" class="md-nav__link">
     <span class="md-ellipsis">
       getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong)
@@ -1215,6 +1242,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ontradeclosetrade-trade" class="md-nav__link">
+    <span class="md-ellipsis">
+      onTradeClose(Trade trade)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#onnewdayzoneddatetime-newday" class="md-nav__link">
     <span class="md-ellipsis">
       onNewDay(ZonedDateTime newDay)
@@ -1324,6 +1360,10 @@
 <li><strong>Returns</strong>: Number</li>
 </ul>
 <h3 id="utility-methods">Utility Methods</h3>
+<h4 id="usesystemnotifications"><code>useSystemNotifications()</code></h4>
+<ul>
+<li><strong>Description</strong>: Turns on the use of system notifications for a strategy.</li>
+</ul>
 <h4 id="getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong"><code>getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong)</code></h4>
 <ul>
 <li><strong>Description</strong>: Calculates the stop loss price based on the given parameters.</li>
@@ -1362,6 +1402,10 @@
 <h4 id="onbarclosebar-bar"><code>onBarClose(Bar bar)</code></h4>
 <ul>
 <li><strong>Description</strong>: Called when a bar closes. Here you can define your strategy logic that runs on each bar close.</li>
+</ul>
+<h4 id="ontradeclosetrade-trade"><code>onTradeClose(Trade trade)</code></h4>
+<ul>
+<li><strong>Description</strong>: Called when trade is closed. Some internal logic runs but this can be overridden to add custom logic.</li>
 </ul>
 <h4 id="onnewdayzoneddatetime-newday"><code>onNewDay(ZonedDateTime newDay)</code></h4>
 <ul>
