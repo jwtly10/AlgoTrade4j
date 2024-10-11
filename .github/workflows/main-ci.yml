@@ -153,7 +153,7 @@ jobs:
             export VITE_MAIN_API_HOST=${{vars.VITE_MAIN_API_HOST}}
             export VITE_LIVE_API_HOST=${{vars.VITE_LIVE_API_HOST}}
             export NEW_RELIC_LICENSE_KEY=${{secrets.NEW_RELIC_LICENSE_KEY}}
-            export MARKETDATA_API_KEY=${{secrets.MARKET_API_KEY}}
+            export MARKETDATA_API_KEY=${{secrets.MARKETDATA_API_KEY}}
             
             docker compose pull
             docker compose down
