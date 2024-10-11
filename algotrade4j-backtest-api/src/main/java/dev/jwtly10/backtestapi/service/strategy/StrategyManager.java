@@ -16,8 +16,6 @@ import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
-import dev.jwtly10.core.strategy.demo.SMACrossoverStrategy;
-import dev.jwtly10.core.strategy.private_strats.IntegrationTestStrategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
 import dev.jwtly10.marketdata.common.ExternalDataProvider;
@@ -202,7 +200,7 @@ public class StrategyManager {
                 reflections.getSubTypesOf(BaseStrategy.class);
 
         return strategies.stream()
-                .filter(this::shouldIncludeStrategy)
+                .filter(strategy -> shouldIncludeStrategy(strategy.getSimpleName()))
                 .map(Class::getSimpleName)
                 .collect(Collectors.toSet());
     }
@@ -210,20 +208,21 @@ public class StrategyManager {
     /**
      * Hides some test strategies from the production environment.
      *
-     * @param strategyClass The strategy class to check.
+     * @param strategyClassName The strategy class name to check.
      * @return True if the strategy should be included, false otherwise.
      */
-    private boolean shouldIncludeStrategy(Class<? extends BaseStrategy> strategyClass) {
+    private boolean shouldIncludeStrategy(String strategyClassName) {
         if (environment.acceptsProfiles(Profiles.of("prod"))) {
-            // List of test strategy classes to exclude in production
-            Set<Class<?>> excludedStrategies = Set.of(
-                    IntegrationTestStrategy.class,
-                    SMACrossoverStrategy.class
+            // List of test strategy class names to exclude in production
+            Set<String> excludedStrategies = Set.of(
+                    "IntegrationTestStrategy",
+                    "SMACrossoverStrategy"
             );
-            return !excludedStrategies.contains(strategyClass);
+            return !excludedStrategies.contains(strategyClassName);
         }
         return true;
     }
+
 
     /**
      * <p>
