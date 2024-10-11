@@ -4,8 +4,9 @@ import dev.jwtly10.core.account.AccountManager;
 import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataListener;
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.event.*;
-import dev.jwtly10.core.event.async.*;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.types.*;
+import dev.jwtly10.core.event.types.async.*;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
@@ -88,7 +89,7 @@ public class BacktestExecutor implements DataListener {
 
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            throw new BacktestExecutorException(strategyId, "Strategy failed on tick: " + e.getMessage(), e);
         }
     }
 
@@ -105,7 +106,7 @@ public class BacktestExecutor implements DataListener {
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
             performanceAnalyser.updateOnBar(accountManager.getEquity(), closedBar.getCloseTime());
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            throw new BacktestExecutorException(strategyId, "Strategy failed on bar close: " + e.getMessage(), e);
         }
     }
 
@@ -120,7 +121,7 @@ public class BacktestExecutor implements DataListener {
             // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us notify frontend of progress each day
             eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed due to: ", e);
+            throw new BacktestExecutorException(strategyId, "Strategy failed on new day: " + e.getMessage(), e);
         }
     }
 

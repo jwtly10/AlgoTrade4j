@@ -1,8 +1,8 @@
 package dev.jwtly10.core.optimisation;
 
-import dev.jwtly10.core.event.AnalysisEvent;
 import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.event.EventListener;
+import dev.jwtly10.core.event.types.AnalysisEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;

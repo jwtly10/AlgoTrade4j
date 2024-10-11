@@ -1,9 +1,9 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.account.AccountManager;
-import dev.jwtly10.core.event.AccountEvent;
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.TradeEvent;
+import dev.jwtly10.core.event.types.AccountEvent;
+import dev.jwtly10.core.event.types.TradeEvent;
 import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Tick;
@@ -60,7 +60,7 @@ public class BacktestTradeStateManager implements TradeStateManager {
         // Risk management TODO: Should we move this out the trade manager?
         // We will stop running if we go below 10% of initial balance.
         if (accountManager.getEquity() < (accountManager.getInitialBalance() * 0.1)) {
-            throw new RiskException("Equity is below 10%. In order to prevent further losses, the strategy has been terminated.");
+            throw new RiskException("Strat ID: '" + strategyId + "'. Equity is below 10%. In order to prevent further losses, the strategy has been terminated.");
         }
     }
 

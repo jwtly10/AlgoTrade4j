@@ -39,7 +39,7 @@ public class RiskManager {
                     try {
                         tradeManager.closePosition(trade.getId(), false);
                     } catch (Exception e) {
-                        log.error("Error closing trade, during risk management cleanup: {}", trade, e);
+                        log.error("Error closing trade during risk management cleanup: {}", trade, e);
                     }
                 });
             }

@@ -2,6 +2,7 @@ package dev.jwtly10.backtestapi.controller.users;
 
 import dev.jwtly10.backtestapi.auth.model.LoginResponse;
 import dev.jwtly10.backtestapi.auth.model.SignupRequest;
+import dev.jwtly10.backtestapi.auth.service.UserLoginLogService;
 import dev.jwtly10.backtestapi.auth.service.UserService;
 import dev.jwtly10.shared.auth.model.Role;
 import dev.jwtly10.shared.auth.model.User;
@@ -24,9 +25,11 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     private final UserService userService;
+    private final UserLoginLogService userLoginLogService;
 
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, UserLoginLogService userLoginLogService) {
         this.userService = userService;
+        this.userLoginLogService = userLoginLogService;
     }
 
     @PostMapping("/users")
@@ -95,5 +98,14 @@ public class AdminController {
                 .map(Enum::name)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(roles);
+    }
+
+    @GetMapping("/login-logs/{userId}")
+    public ResponseEntity<?> getUserLoginLogs(@PathVariable("userId") Long userId) {
+        try {
+            return ResponseEntity.ok(userLoginLogService.getUserLoginLogs(userId));
+        } catch (Exception e) {
+            throw new ApiException(e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
     }
 }

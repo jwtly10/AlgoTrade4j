@@ -1,5 +1,6 @@
 package dev.jwtly10.core.event.async;
 
+import dev.jwtly10.core.event.types.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.model.IndicatorValue;
 import dev.jwtly10.core.model.Instrument;
 import org.junit.jupiter.api.Test;

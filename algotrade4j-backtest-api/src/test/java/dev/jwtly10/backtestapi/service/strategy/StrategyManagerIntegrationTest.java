@@ -4,7 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.backtestapi.model.StrategyConfig;
 import dev.jwtly10.core.data.DataSpeed;
-import dev.jwtly10.core.event.*;
+import dev.jwtly10.core.event.BaseEvent;
+import dev.jwtly10.core.event.EventListener;
+import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.types.AccountEvent;
+import dev.jwtly10.core.event.types.BarEvent;
+import dev.jwtly10.core.event.types.StrategyStopEvent;
+import dev.jwtly10.core.event.types.TradeEvent;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
@@ -15,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.Mockito;
+import org.springframework.core.env.Environment;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -42,10 +50,12 @@ class StrategyManagerIntegrationTest {
         String baseUrl = "https://api-fxpractice.oanda.com";
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
 
+        Environment env = Mockito.mock(Environment.class);
+
         eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         OandaClient oandaClient = new OandaClient(baseUrl, apiKey, objectMapper);
-        strategyManager = new StrategyManager(eventPublisher, oandaClient);
+        strategyManager = new StrategyManager(eventPublisher, oandaClient, env);
     }
 
     @Test

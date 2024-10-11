@@ -1,4 +1,4 @@
-package dev.jwtly10.core.event.async;
+package dev.jwtly10.core.event.types.async;
 
 import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.event.BaseEvent;

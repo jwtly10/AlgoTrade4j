@@ -1,6 +1,7 @@
-package dev.jwtly10.core.event;
+package dev.jwtly10.core.event.types;
 
 import dev.jwtly10.core.account.Account;
+import dev.jwtly10.core.event.BaseEvent;
 import lombok.Getter;
 
 /**

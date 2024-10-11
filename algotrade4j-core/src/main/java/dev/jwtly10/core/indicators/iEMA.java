@@ -1,7 +1,7 @@
 package dev.jwtly10.core.indicators;
 
 import dev.jwtly10.core.event.EventPublisher;
-import dev.jwtly10.core.event.IndicatorEvent;
+import dev.jwtly10.core.event.types.IndicatorEvent;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.IndicatorValue;
 import lombok.Getter;

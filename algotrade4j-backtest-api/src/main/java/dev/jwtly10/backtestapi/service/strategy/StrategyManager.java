@@ -26,6 +26,8 @@ import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 import org.slf4j.MDC;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -48,9 +50,12 @@ public class StrategyManager {
     private final OandaClient oandaClient;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
-    public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient) {
+    private final Environment environment;
+
+    public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
+        this.environment = environment;
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
@@ -195,9 +200,29 @@ public class StrategyManager {
                 reflections.getSubTypesOf(BaseStrategy.class);
 
         return strategies.stream()
+                .filter(strategy -> shouldIncludeStrategy(strategy.getSimpleName()))
                 .map(Class::getSimpleName)
                 .collect(Collectors.toSet());
     }
+
+    /**
+     * Hides some test strategies from the production environment.
+     *
+     * @param strategyClassName The strategy class name to check.
+     * @return True if the strategy should be included, false otherwise.
+     */
+    private boolean shouldIncludeStrategy(String strategyClassName) {
+        if (environment.acceptsProfiles(Profiles.of("prod"))) {
+            // List of test strategy class names to exclude in production
+            Set<String> excludedStrategies = Set.of(
+                    "IntegrationTestStrategy",
+                    "SMACrossoverStrategy"
+            );
+            return !excludedStrategies.contains(strategyClassName);
+        }
+        return true;
+    }
+
 
     /**
      * <p>

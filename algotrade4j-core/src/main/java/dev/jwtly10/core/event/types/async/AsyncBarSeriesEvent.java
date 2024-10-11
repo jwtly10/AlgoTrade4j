@@ -1,4 +1,4 @@
-package dev.jwtly10.core.event.async;
+package dev.jwtly10.core.event.types.async;
 
 import dev.jwtly10.core.event.BaseEvent;
 import dev.jwtly10.core.model.BarSeries;

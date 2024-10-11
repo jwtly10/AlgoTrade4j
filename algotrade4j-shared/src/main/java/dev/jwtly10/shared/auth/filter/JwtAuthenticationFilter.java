@@ -68,7 +68,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // We can ignore the /api/v1/auth/verify path as it is used to verify the JWT token
             // And isn't a concern - it checks on all page loads, if someone just accesses /login, it will trigger and log, but it's not worth logging as malicious
             // We can ignore /health since it's a health check
-            if (!Objects.equals(path, "/api/v1/auth/verify") && !Objects.equals(path, "/health")) {
+            // We can ignore /api/v1/marketdata/** since it's a public endpoint, and uses API keys for authentication
+            if (!Objects.equals(path, "/api/v1/auth/verify") && !Objects.equals(path, "/health") && !path.contains("/api/v1/marketdata/candles")) {
                 log.warn("Unauthenticated access attempt: Method: {}, Path: {}, IP: {}, Country: {}, CF-RAY: {}, User-Agent: {}",
                         method, path, ipAddress, country, cfRay, userAgent);
 
