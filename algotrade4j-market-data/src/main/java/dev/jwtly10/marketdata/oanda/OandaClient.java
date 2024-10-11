@@ -22,8 +22,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Oanda API client
@@ -32,15 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class OandaClient {
-    /**
-     * Map of active price streams.
-     */
-    private final Map<String, Call> activePriceStreams = new ConcurrentHashMap<>();
-    /**
-     * Map of active transaction streams.
-     */
-    private final Map<String, Call> activeTransactionStreams = new ConcurrentHashMap<>();
-
     private final String apiKey;
     private final String apiUrl;
     private final OkHttpClient client;
