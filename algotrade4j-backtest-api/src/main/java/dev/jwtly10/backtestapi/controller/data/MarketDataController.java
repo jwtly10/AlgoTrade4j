@@ -45,7 +45,7 @@ public class MarketDataController {
     @GetMapping("/candles")
     @Cacheable(value = "candlesCache", key = "#instrument + '-' + #from + '-' + #to + '-' + #period", unless = "#result.body == null || #result.body.isEmpty()")
     public ResponseEntity<?> getCandles(
-            @RequestHeader("x-api-key") String requestApiKey,
+            @RequestHeader(value = "x-api-key", required = false) String requestApiKey,
             @RequestParam("broker") Broker broker,
             @RequestParam("instrument") Instrument instrument,
             @RequestParam("from") String from,
@@ -53,7 +53,7 @@ public class MarketDataController {
             @RequestParam("period") Period period) {
 
         if (!this.apiKey.equals(requestApiKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid API key");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Missing or invalid API key");
         }
 
         ZonedDateTime fromDateTime = ZonedDateTime.parse(from);
