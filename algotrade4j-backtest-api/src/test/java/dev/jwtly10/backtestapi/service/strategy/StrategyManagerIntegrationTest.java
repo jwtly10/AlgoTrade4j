@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.Mockito;
+import org.springframework.core.env.Environment;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -48,10 +50,12 @@ class StrategyManagerIntegrationTest {
         String baseUrl = "https://api-fxpractice.oanda.com";
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
 
+        Environment env = Mockito.mock(Environment.class);
+
         eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         OandaClient oandaClient = new OandaClient(baseUrl, apiKey, objectMapper);
-        strategyManager = new StrategyManager(eventPublisher, oandaClient);
+        strategyManager = new StrategyManager(eventPublisher, oandaClient, env);
     }
 
     @Test
