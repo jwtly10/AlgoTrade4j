@@ -1,9 +1,10 @@
 package dev.jwtly10.backtestapi.controller.data;
 
-import dev.jwtly10.backtestapi.model.marketData.BarDTO;
+import dev.jwtly10.backtestapi.model.marketData.MarketDataBarDTO;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Period;
+import dev.jwtly10.marketdata.common.Broker;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.oanda.OandaClient;
@@ -45,6 +46,7 @@ public class MarketDataController {
     @Cacheable(value = "candlesCache", key = "#instrument + '-' + #from + '-' + #to + '-' + #period", unless = "#result.body == null || #result.body.isEmpty()")
     public ResponseEntity<?> getCandles(
             @RequestHeader("x-api-key") String requestApiKey,
+            @RequestParam("broker") Broker broker,
             @RequestParam("instrument") Instrument instrument,
             @RequestParam("from") String from,
             @RequestParam("to") String to,
@@ -58,36 +60,42 @@ public class MarketDataController {
         ZonedDateTime toDateTime = ZonedDateTime.parse(to);
         Duration duration = period.getDuration();
 
-        List<BarDTO> result = new ArrayList<>();
+        List<MarketDataBarDTO> result = new ArrayList<>();
 
         try {
-            oandaDataClient.fetchCandles(instrument, fromDateTime, toDateTime, duration, new ClientCallback() {
-                @Override
-                public boolean onCandle(Bar bar) {
-                    BarDTO dto = new BarDTO(
-                            bar.getInstrument().getOandaSymbol(),  // Assuming `Instrument` has `getOandaSymbol()`
-                            bar.getOpenTime(),
-                            bar.getOpen().doubleValue(),
-                            bar.getHigh().doubleValue(),
-                            bar.getLow().doubleValue(),
-                            bar.getClose().doubleValue(),
-                            bar.getVolume().doubleValue()
-                    );
-                    result.add(dto);
-                    return true;
-                }
+            switch (broker) {
+                case OANDA:
+                    oandaDataClient.fetchCandles(instrument, fromDateTime, toDateTime, duration, new ClientCallback() {
+                        @Override
+                        public boolean onCandle(Bar bar) {
+                            MarketDataBarDTO dto = new MarketDataBarDTO(
+                                    bar.getInstrument().getOandaSymbol(),
+                                    bar.getOpenTime(),
+                                    bar.getOpen().doubleValue(),
+                                    bar.getHigh().doubleValue(),
+                                    bar.getLow().doubleValue(),
+                                    bar.getClose().doubleValue(),
+                                    bar.getVolume().doubleValue()
+                            );
+                            result.add(dto);
+                            return true;
+                        }
 
-                @Override
-                public void onError(Exception exception) {
-                    log.error("Error fetching data", exception);
-                    throw new RuntimeException("Error fetching data", exception);
-                }
+                        @Override
+                        public void onError(Exception exception) {
+                            log.error("Error fetching data", exception);
+                            throw new RuntimeException("Error fetching data", exception);
+                        }
 
-                @Override
-                public void onComplete() {
-                    log.debug("Fetching complete.");
-                }
-            });
+                        @Override
+                        public void onComplete() {
+                            log.debug("Fetching complete.");
+                        }
+                    });
+                    break;
+                default:
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid broker");
+            }
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());

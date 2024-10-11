@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BarDTO {
+public class MarketDataBarDTO {
     private String instrument;
     private ZonedDateTime openTime;
     private double open;
