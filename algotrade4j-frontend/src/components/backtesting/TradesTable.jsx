@@ -174,7 +174,7 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
                                     <TableCell>{trade.closePrice !== 0 ? trade.closePrice : ""}</TableCell>
                                     <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
                                     <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
-                                    <TableCell>{trade.profit ? trade.profit : "0.00"}</TableCell>
+                                    <TableCell>{trade.profit ? Number.parseFloat(trade.profit).toFixed(2) : "0.00"}</TableCell>
                                     {showActions && strategy != null && (
                                         <TableCell>
                                             <TooltipProvider>
