@@ -1,10 +1,10 @@
-package dev.jwtly10.marketdata.oanda.models;
+package dev.jwtly10.marketdata.impl.oanda.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
-import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.impl.oanda.request.MarketOrderRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;

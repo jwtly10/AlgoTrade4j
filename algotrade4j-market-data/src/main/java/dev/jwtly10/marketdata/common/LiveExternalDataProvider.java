@@ -8,7 +8,7 @@ import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.stream.Stream;
-import dev.jwtly10.marketdata.oanda.OandaBrokerClient;
+import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

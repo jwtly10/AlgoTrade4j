@@ -1,4 +1,4 @@
-package dev.jwtly10.marketdata.oanda.models;
+package dev.jwtly10.marketdata.impl.oanda.models;
 
 /**
  * https://developer.oanda.com/rest-live-v20/trade-df/#TradeStateFilter

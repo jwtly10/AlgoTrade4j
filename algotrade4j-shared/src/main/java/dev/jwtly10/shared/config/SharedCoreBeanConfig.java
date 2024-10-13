@@ -12,7 +12,7 @@ import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
-import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;

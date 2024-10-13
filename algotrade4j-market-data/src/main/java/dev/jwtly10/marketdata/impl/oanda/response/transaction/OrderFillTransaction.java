@@ -1,4 +1,4 @@
-package dev.jwtly10.marketdata.oanda.response.transaction;
+package dev.jwtly10.marketdata.impl.oanda.response.transaction;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

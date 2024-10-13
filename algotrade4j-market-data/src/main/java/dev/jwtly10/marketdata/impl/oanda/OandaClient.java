@@ -1,18 +1,18 @@
-package dev.jwtly10.marketdata.oanda;
+package dev.jwtly10.marketdata.impl.oanda;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.marketdata.oanda.models.OandaOrder;
-import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
-import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
-import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
-import dev.jwtly10.marketdata.oanda.stream.OandaPriceStream;
-import dev.jwtly10.marketdata.oanda.stream.OandaTransactionStream;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
+import dev.jwtly10.marketdata.impl.oanda.models.OandaOrder;
+import dev.jwtly10.marketdata.impl.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.impl.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaAccountResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaCandleResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaOpenTradeResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaTradeResponse;
+import dev.jwtly10.marketdata.impl.oanda.stream.OandaPriceStream;
+import dev.jwtly10.marketdata.impl.oanda.stream.OandaTransactionStream;
+import dev.jwtly10.marketdata.impl.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 

@@ -1,4 +1,4 @@
-package dev.jwtly10.marketdata.oanda;
+package dev.jwtly10.marketdata.impl.oanda;
 
 import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.model.Number;
@@ -6,13 +6,13 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
-import dev.jwtly10.marketdata.oanda.models.OandaTrade;
-import dev.jwtly10.marketdata.oanda.models.TradeStateFilter;
-import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
-import dev.jwtly10.marketdata.oanda.response.OandaAccountResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaOpenTradeResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaTradeResponse;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
+import dev.jwtly10.marketdata.impl.oanda.models.OandaTrade;
+import dev.jwtly10.marketdata.impl.oanda.models.TradeStateFilter;
+import dev.jwtly10.marketdata.impl.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaAccountResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaOpenTradeResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaTradeResponse;
+import dev.jwtly10.marketdata.impl.oanda.utils.OandaUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;

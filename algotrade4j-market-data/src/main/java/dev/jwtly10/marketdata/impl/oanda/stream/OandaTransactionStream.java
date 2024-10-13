@@ -1,10 +1,10 @@
-package dev.jwtly10.marketdata.oanda.stream;
+package dev.jwtly10.marketdata.impl.oanda.stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.RetryableStream;
-import dev.jwtly10.marketdata.oanda.response.transaction.OrderFillTransaction;
+import dev.jwtly10.marketdata.impl.oanda.response.transaction.OrderFillTransaction;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

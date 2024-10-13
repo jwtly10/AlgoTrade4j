@@ -1,12 +1,12 @@
-package dev.jwtly10.marketdata.oanda.utils;
+package dev.jwtly10.marketdata.impl.oanda.utils;
 
 import dev.jwtly10.core.model.DefaultBar;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.marketdata.oanda.models.PriceBucket;
-import dev.jwtly10.marketdata.oanda.response.OandaCandleResponse;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.impl.oanda.models.PriceBucket;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaCandleResponse;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaPriceResponse;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;

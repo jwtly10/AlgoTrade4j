@@ -1,7 +1,7 @@
-package dev.jwtly10.marketdata.oanda.response;
+package dev.jwtly10.marketdata.impl.oanda.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.impl.oanda.request.MarketOrderRequest;
 
 import java.util.List;
 

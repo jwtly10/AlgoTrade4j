@@ -1,8 +1,8 @@
-package dev.jwtly10.marketdata.oanda.models;
+package dev.jwtly10.marketdata.impl.oanda.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.jwtly10.marketdata.oanda.request.MarketOrderRequest;
+import dev.jwtly10.marketdata.impl.oanda.request.MarketOrderRequest;
 
 /**
  * OandaOrder

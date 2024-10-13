@@ -1,11 +1,11 @@
-package dev.jwtly10.marketdata.oanda.stream;
+package dev.jwtly10.marketdata.impl.oanda.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.stream.RetryableStream;
-import dev.jwtly10.marketdata.oanda.response.OandaPriceResponse;
-import dev.jwtly10.marketdata.oanda.utils.OandaUtils;
+import dev.jwtly10.marketdata.impl.oanda.response.OandaPriceResponse;
+import dev.jwtly10.marketdata.impl.oanda.utils.OandaUtils;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 
