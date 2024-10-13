@@ -97,6 +97,11 @@ public class OandaBrokerClient implements BrokerClient {
     }
 
     @Override
+    public Trade openTrade(TradeParameters tradeParameters) throws Exception {
+        return openTrade(tradeParameters.createTrade());
+    }
+
+    @Override
     public void closeTrade(Integer tradeId) throws Exception {
         if (accountId == null) {
             log.error("Account ID not set. Cannot close trade.");
