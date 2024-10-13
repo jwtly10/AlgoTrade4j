@@ -36,6 +36,18 @@ import static org.junit.jupiter.api.Assertions.*;
  * And that the strategy generates the expected events.
  * This test should be run whenever we make changes to the core library, to ensure that existing strategies wont suddenly return different results.
  */
+
+//***************************************************************
+//***************************************************************
+//***************************************************************
+//***************************************************************
+// NOTE: Temporarily failing due to changes made for https://onenr.io/0ERPr99n6QW
+//***************************************************************
+//***************************************************************
+//***************************************************************
+//***************************************************************
+//***************************************************************
+
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
 @Slf4j
 class StrategyManagerIntegrationTest {

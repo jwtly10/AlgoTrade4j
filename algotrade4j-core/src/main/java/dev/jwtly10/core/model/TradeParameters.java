@@ -112,6 +112,13 @@ public class TradeParameters {
             // If quantity == 0 ( the default of a double ) then we should calculate the expected quantity based on the risk amount
             double quantity = this.quantity != 0 ? this.quantity :
                     riskAmount / stopLossDistance.getValue().doubleValue();
+            // TODO: This rounding workaround is based on issue https://onenr.io/0ERPr99n6QW -
+            // It works as we are just testing the prod impl on NAS100USD for OANDA. But this may not work for Forex pairs
+            // We need a way to pass context about the broker and max units allowed
+            // And use that to round the quantity to the nearest allowed unit
+            // Note this causes the Integration test to fail.
+            // Only making this change because the goal is to test the prod impl on NAS100USD
+            quantity = Math.round(quantity * 10.0) / 10.0;
             log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
 
             Number takeProfit = this.takeProfit != null ? this.takeProfit :

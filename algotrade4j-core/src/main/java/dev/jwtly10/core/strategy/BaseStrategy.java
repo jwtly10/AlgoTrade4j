@@ -97,6 +97,7 @@ public abstract class BaseStrategy implements Strategy {
             sendOpenTradeNotification(openedTrade);
             return Optional.of(openedTrade);
         } catch (Exception e) {
+            sendErrorNotification("Error opening long trade for strategy '" + strategyId + "'", e);
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return Optional.empty();
         }
@@ -117,6 +118,7 @@ public abstract class BaseStrategy implements Strategy {
             sendOpenTradeNotification(openedTrade);
             return Optional.of(openedTrade);
         } catch (Exception e) {
+            sendErrorNotification("Error opening short trade for strategy '" + strategyId + "'", e);
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return Optional.empty();
         }
@@ -220,6 +222,12 @@ public abstract class BaseStrategy implements Strategy {
     public void sendNotification(String message) {
         if (notifier != null && notifierChatId != null) {
             notifier.sendNotification(notifierChatId, message, true);
+        }
+    }
+
+    public void sendErrorNotification(String message, Exception e) {
+        if (notifier != null && notifierChatId != null) {
+            notifier.sendErrorNotification(notifierChatId, message, e, true);
         }
     }
 
@@ -510,5 +518,4 @@ public abstract class BaseStrategy implements Strategy {
             sendNotification(message);
         }
     }
-
 }
