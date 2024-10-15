@@ -1,17 +1,18 @@
 package dev.jwtly10.backtestapi.auth.service;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import dev.jwtly10.shared.auth.model.Role;
 import dev.jwtly10.shared.auth.model.User;
 import dev.jwtly10.shared.auth.model.dto.UserDTO;
 import dev.jwtly10.shared.auth.repository.UserRepository;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
 
 @Service
 public class UserService {
@@ -79,7 +80,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password));
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setRole(Role.BASIC_USER);
+        user.setRole(Role.BACKTEST_USER);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 

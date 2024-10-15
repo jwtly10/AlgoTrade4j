@@ -1,26 +1,26 @@
-import {useEffect, useRef, useState} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import 'chartjs-adapter-date-fns';
 import TradesTable from '../../components/backtesting/TradesTable.jsx';
 import LogsTable from '../../components/backtesting/LogsTable.jsx';
 import TradingViewChart from '../../components/backtesting/TradingViewChart.jsx';
 import EmptyChart from '../../components/backtesting/EmptyChart.jsx';
 
-import {Card, CardContent, CardFooter, CardHeader} from "@/components/ui/card"
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs.jsx';
-import {Button} from '@/components/ui/button.jsx';
-import {Bell, Edit2, Eye, Loader2, Plus, RefreshCw} from 'lucide-react';
-import {useLive} from '@/hooks/use-live.js';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx';
+import { Button } from '@/components/ui/button.jsx';
+import { Bell, Edit2, Eye, Loader2, Plus, RefreshCw } from 'lucide-react';
+import { useLive } from '@/hooks/use-live.js';
 import LiveConfigEditModal from '@/components/modals/LiveConfigEditModal.jsx';
 import LiveCreateStratModal from '@/components/modals/LiveCreateStratModal.jsx';
 import LiveBrokerModal from '@/components/modals/LiveBrokersModal.jsx';
-import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import log from '@/logger.js';
-import {Badge} from "@/components/ui/badge"
-import {liveStrategyClient} from '@/api/liveClient.js';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
-import {useToast} from "@/hooks/use-toast.js";
+import { Badge } from '@/components/ui/badge';
+import { liveStrategyClient } from '@/api/liveClient.js';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast.js';
 
-const LiveStrategyView = () => {
+const LiveStrategyView = ({ user }) => {
     const {
         isConnected,
         trades,
@@ -34,7 +34,7 @@ const LiveStrategyView = () => {
         viewStrategy,
     } = useLive();
 
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,7 +105,7 @@ const LiveStrategyView = () => {
     const handleConfigEditClose = async () => {
         setIsModalOpen(false);
         await fetchLiveStrategies();
-    }
+    };
 
     const handleToggle = async (strategyId) => {
         setTogglingStrategyId(strategyId);
@@ -121,10 +121,10 @@ const LiveStrategyView = () => {
             });
         }
         await fetchLiveStrategies();
-        setTogglingStrategyId(null)
-    }
+        setTogglingStrategyId(null);
+    };
 
-    const StatCard = ({title, value, valueColor = 'text-foreground'}) => (
+    const StatCard = ({ title, value, valueColor = 'text-foreground' }) => (
         <div className="bg-background p-3 rounded-md shadow-sm">
             <h4 className="text-sm font-medium text-muted-foreground mb-1">{title}</h4>
             <p className={`text-lg font-semibold ${valueColor}`}>{value}</p>
@@ -142,7 +142,6 @@ const LiveStrategyView = () => {
                             <>
                                 {/* Chart Section */}
                                 <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
-
                                     {chartData && chartData.length > 0 ? (
                                         <TradingViewChart
                                             showChart={true}
@@ -152,23 +151,65 @@ const LiveStrategyView = () => {
                                             indicators={indicators}
                                         />
                                     ) : (
-                                        <EmptyChart/>
+                                        <EmptyChart />
                                     )}
                                 </div>
 
                                 {/* Stats Widget Section */}
                                 {viewingStrategy && analysisData && (
                                     <div className="mb-6 bg-card rounded-lg shadow-md p-4">
-                                        <h3 className="text-lg font-semibold mb-3">Strategy Performance</h3>
+                                        <h3 className="text-lg font-semibold mb-3">
+                                            Strategy Performance
+                                        </h3>
                                         {analysisData.stats ? (
                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <StatCard title="Balance" value={`${analysisData.stats.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`} valueColor={analysisData.balance >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                <StatCard title="Equity" value={`${analysisData.stats.equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.equity >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                <StatCard title="Running PnL" value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} valueColor={analysisData.openTradeProfit >= 0 ? 'text-green-500' : 'text-red-500'}/>
-                                                <StatCard title="Win Rate" value={`${analysisData.stats.winRate.toFixed(2)}%`}/>
-                                                <StatCard title="Profit Factor" value={analysisData.stats.profitFactor.toFixed(2)}/>
-                                                <StatCard title="Sharpe Ratio" value={analysisData.stats.sharpeRatio.toFixed(2)}/>
-                                                <StatCard title="Total Trades" value={analysisData.stats.totalTrades}/>
+                                                <StatCard
+                                                    title="Balance"
+                                                    value={`${analysisData.stats.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
+                                                    valueColor={
+                                                        analysisData.balance >= 0
+                                                            ? 'text-green-500'
+                                                            : 'text-red-500'
+                                                    }
+                                                />
+                                                <StatCard
+                                                    title="Equity"
+                                                    value={`${analysisData.stats.equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                                    valueColor={
+                                                        analysisData.equity >= 0
+                                                            ? 'text-green-500'
+                                                            : 'text-red-500'
+                                                    }
+                                                />
+                                                <StatCard
+                                                    title="Running PnL"
+                                                    value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                                                    valueColor={
+                                                        analysisData.openTradeProfit >= 0
+                                                            ? 'text-green-500'
+                                                            : 'text-red-500'
+                                                    }
+                                                />
+                                                <StatCard
+                                                    title="Win Rate"
+                                                    value={`${analysisData.stats.winRate.toFixed(2)}%`}
+                                                />
+                                                <StatCard
+                                                    title="Profit Factor"
+                                                    value={analysisData.stats.profitFactor.toFixed(
+                                                        2
+                                                    )}
+                                                />
+                                                <StatCard
+                                                    title="Sharpe Ratio"
+                                                    value={analysisData.stats.sharpeRatio.toFixed(
+                                                        2
+                                                    )}
+                                                />
+                                                <StatCard
+                                                    title="Total Trades"
+                                                    value={analysisData.stats.totalTrades}
+                                                />
                                             </div>
                                         ) : (
                                             <div className="flex justify-center items-center h-32">
@@ -177,7 +218,6 @@ const LiveStrategyView = () => {
                                         )}
                                     </div>
                                 )}
-
 
                                 {/* Tabs and Content Section */}
                                 <Tabs
@@ -194,11 +234,16 @@ const LiveStrategyView = () => {
                                             value="trades"
                                             className="h-full overflow-auto"
                                         >
-                                            <TradesTable trades={trades} strategy={viewingStrategy} useLiveSplit={true}/>
+                                            <TradesTable
+                                                user={user}
+                                                trades={trades}
+                                                strategy={viewingStrategy}
+                                                useLiveSplit={true}
+                                            />
                                         </TabsContent>
                                         <TabsContent value="logs" className="h-full overflow-auto">
                                             {logs.length > 0 ? (
-                                                <LogsTable logs={logs}/>
+                                                <LogsTable logs={logs} />
                                             ) : (
                                                 <p className="p-4 text-center">
                                                     No logs available yet.
@@ -226,8 +271,13 @@ const LiveStrategyView = () => {
                     <div className="flex flex-col h-full space-y-6">
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-bold">Live Strategies</h2>
-                            <Button variant="outline" size="sm" onClick={handleNewStrategy}>
-                                <Plus className="w-4 h-4 mr-1"/> New Live Strategy
+                            <Button
+                                variant="outline"
+                                disabled={user.role != 'ADMIN'}
+                                size="sm"
+                                onClick={handleNewStrategy}
+                            >
+                                <Plus className="w-4 h-4 mr-1" /> New Live Strategy
                             </Button>
                         </div>
                         <div className="space-y-4">
@@ -241,26 +291,42 @@ const LiveStrategyView = () => {
                                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                                             <div>
                                                 <div className="flex items-center">
-                                                    <h3 className="font-bold text-lg">{strategy.strategyName}</h3>
-                                                    {viewingStrategy && viewingStrategy.id === strategy.id && (
-                                                        <Badge variant="secondary" className="ml-2">
-                                                            Viewing
-                                                        </Badge>
-                                                    )}
+                                                    <h3 className="font-bold text-lg">
+                                                        {strategy.strategyName}
+                                                    </h3>
+                                                    {viewingStrategy &&
+                                                        viewingStrategy.id === strategy.id && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="ml-2"
+                                                            >
+                                                                Viewing
+                                                            </Badge>
+                                                        )}
                                                 </div>
-                                                <p className="text-xs text-muted-foreground">{strategy.config.strategyClass}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {strategy.config.strategyClass}
+                                                </p>
                                             </div>
                                             <div className="flex space-x-2 items-center">
                                                 {strategy.lastErrorMsg && (
                                                     <Popover>
                                                         <PopoverTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                                                                <Bell className="h-4 w-4 text-destructive"/>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 p-0"
+                                                            >
+                                                                <Bell className="h-4 w-4 text-destructive" />
                                                             </Button>
                                                         </PopoverTrigger>
                                                         <PopoverContent className="w-80">
-                                                            <h4 className="font-medium leading-none mb-2">Live Alert</h4>
-                                                            <p className="text-sm text-muted-foreground">{strategy.lastErrorMsg}</p>
+                                                            <h4 className="font-medium leading-none mb-2">
+                                                                Live Alert
+                                                            </h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {strategy.lastErrorMsg}
+                                                            </p>
                                                         </PopoverContent>
                                                     </Popover>
                                                 )}
@@ -268,16 +334,36 @@ const LiveStrategyView = () => {
                                                     <Tooltip>
                                                         <TooltipTrigger>
                                                             <Badge
-                                                                variant={strategy.active ? "default" : "secondary"}
-                                                                className={`cursor-pointer flex items-center gap-2 ${
-                                                                    strategy.active ? 'bg-green-500 hover:bg-green-600' : ''
+                                                                vvariant={
+                                                                    strategy.active
+                                                                        ? 'default'
+                                                                        : 'secondary'
+                                                                }
+                                                                className={`flex items-center gap-2 ${
+                                                                    strategy.active
+                                                                        ? 'bg-green-500 hover:bg-green-600'
+                                                                        : ''
+                                                                } ${
+                                                                    user.role !== 'ADMIN'
+                                                                        ? 'cursor-not-allowed'
+                                                                        : 'cursor-pointer'
                                                                 }`}
-                                                                onClick={() => handleToggle(strategy.id)}
+                                                                onClick={
+                                                                    user.role === 'ADMIN'
+                                                                        ? () =>
+                                                                              handleToggle(
+                                                                                  strategy.id
+                                                                              )
+                                                                        : null
+                                                                }
                                                             >
-                                                                {togglingStrategyId === strategy.id ? (
-                                                                    <Loader2 className="h-3 w-3 animate-spin"/>
+                                                                {togglingStrategyId ===
+                                                                strategy.id ? (
+                                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                                ) : strategy.active ? (
+                                                                    'Active'
                                                                 ) : (
-                                                                    strategy.active ? 'Active' : 'Inactive'
+                                                                    'Inactive'
                                                                 )}
                                                             </Badge>
                                                         </TooltipTrigger>
@@ -286,7 +372,13 @@ const LiveStrategyView = () => {
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
-                                                <Badge variant={strategy.brokerAccount.brokerType === 'LIVE' ? "destructive" : "default"}>
+                                                <Badge
+                                                    variant={
+                                                        strategy.brokerAccount.brokerType === 'LIVE'
+                                                            ? 'destructive'
+                                                            : 'default'
+                                                    }
+                                                >
                                                     {strategy.brokerAccount.brokerType}
                                                 </Badge>
                                             </div>
@@ -296,47 +388,123 @@ const LiveStrategyView = () => {
                                                 <div className="bg-muted p-3 rounded-md">
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-muted-foreground">Broker:</span>
-                                                            <span className="font-medium">{strategy.brokerAccount.brokerName}</span>
+                                                            <span className="text-muted-foreground">
+                                                                Broker:
+                                                            </span>
+                                                            <span className="font-medium">
+                                                                {strategy.brokerAccount.brokerName}
+                                                            </span>
                                                         </div>
                                                         <div className="flex flex-col sm:flex-row sm:justify-between">
-                                                            <span className="text-muted-foreground pr-2">Account ID:</span>
-                                                            <span className="font-medium break-all">{strategy.brokerAccount.accountId}</span>
+                                                            <span className="text-muted-foreground pr-2">
+                                                                Account ID:
+                                                            </span>
+                                                            <span className="font-medium break-all">
+                                                                {strategy.brokerAccount.accountId}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {strategy.stats && (
                                                     <div>
-                                                        <h4 className="text-sm font-semibold mb-2">Account Statistics</h4>
+                                                        <h4 className="text-sm font-semibold mb-2">
+                                                            Account Statistics
+                                                        </h4>
                                                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Balance:</span>
-                                                                <span className="font-medium">${parseFloat(strategy.stats.accountBalance) ? parseFloat(strategy.stats.accountBalance.toFixed(2)).toLocaleString() : strategy.stats.accountBalance}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Balance:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    $
+                                                                    {parseFloat(
+                                                                        strategy.stats
+                                                                            .accountBalance
+                                                                    )
+                                                                        ? parseFloat(
+                                                                              strategy.stats.accountBalance.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
+                                                                        : strategy.stats
+                                                                              .accountBalance}
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Running PNL:</span>
-                                                                <span className="font-medium">${parseFloat(strategy.stats.openTradeProfit) ? parseFloat(strategy.stats.openTradeProfit.toFixed(2)).toLocaleString() : strategy.stats.openTradeProfit}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Running PNL:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    $
+                                                                    {parseFloat(
+                                                                        strategy.stats
+                                                                            .openTradeProfit
+                                                                    )
+                                                                        ? parseFloat(
+                                                                              strategy.stats.openTradeProfit.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
+                                                                        : strategy.stats
+                                                                              .openTradeProfit}
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">PNL:</span>
-                                                                <span className="font-medium">${parseFloat(strategy.stats.profit) ? parseFloat(strategy.stats.profit.toFixed(2)).toLocaleString() : strategy.stats.profit}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    PNL:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    $
+                                                                    {parseFloat(
+                                                                        strategy.stats.profit
+                                                                    )
+                                                                        ? parseFloat(
+                                                                              strategy.stats.profit.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
+                                                                        : strategy.stats.profit}
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Total Trades:</span>
-                                                                <span className="font-medium">{strategy.stats.totalTrades}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Total Trades:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    {strategy.stats.totalTrades}
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Win Rate:</span>
-                                                                <span className="font-medium">{strategy.stats.winRate.toFixed(2)}%</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Win Rate:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    {strategy.stats.winRate.toFixed(
+                                                                        2
+                                                                    )}
+                                                                    %
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Profit Factor:</span>
-                                                                <span className="font-medium">{strategy.stats.profitFactor.toFixed(2)}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Profit Factor:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    {strategy.stats.profitFactor.toFixed(
+                                                                        2
+                                                                    )}
+                                                                </span>
                                                             </div>
                                                             <div className="flex justify-between">
-                                                                <span className="text-muted-foreground">Sharpe Ratio:</span>
-                                                                <span className="font-medium">{strategy.stats.sharpeRatio.toFixed(2)}</span>
+                                                                <span className="text-muted-foreground">
+                                                                    Sharpe Ratio:
+                                                                </span>
+                                                                <span className="font-medium">
+                                                                    {strategy.stats.sharpeRatio.toFixed(
+                                                                        2
+                                                                    )}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -346,38 +514,51 @@ const LiveStrategyView = () => {
                                         <CardFooter className="flex justify-end space-x-2 pt-2">
                                             {strategy.active && (
                                                 <Button
-                                                    variant={viewingStrategy && viewingStrategy.id === strategy.id ? "default" : "outline"}
+                                                    variant={
+                                                        viewingStrategy &&
+                                                        viewingStrategy.id === strategy.id
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
                                                     size="sm"
                                                     onClick={() => handleViewStrategy(strategy)}
                                                 >
-                                                    {viewingStrategy && viewingStrategy.id === strategy.id ? (
+                                                    {viewingStrategy &&
+                                                    viewingStrategy.id === strategy.id ? (
                                                         <>
-                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin"/> Refresh
+                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />{' '}
+                                                            Refresh
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Eye className="w-4 h-4 mr-2"/> View
+                                                            <Eye className="w-4 h-4 mr-2" /> View
                                                         </>
                                                     )}
                                                 </Button>
                                             )}
-                                            <Button variant="outline" size="sm" onClick={() => handleEditStrategy(strategy)}>
-                                                <Edit2 className="w-4 h-4 mr-2"/> Edit
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEditStrategy(strategy)}
+                                                disabled={user.role !== 'ADMIN'}
+                                            >
+                                                <Edit2 className="w-4 h-4 mr-2" /> Edit
                                             </Button>
                                         </CardFooter>
                                     </Card>
                                 ))}
                         </div>
-                        <div className="flex-grow"/>
+                        <div className="flex-grow" />
 
                         <p className="text-sm text-muted-foreground text-center">
-                            Start/Pause/View Strategies above in real time
+                            Only admins can create and manage live strategies.
                         </p>
                         <Button
                             variant="outline"
                             size="md"
                             className="p-1"
                             onClick={handleAccountManagement}
+                            disabled={user.role !== 'ADMIN'}
                         >
                             Account Management
                         </Button>

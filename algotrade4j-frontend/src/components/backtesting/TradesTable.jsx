@@ -1,17 +1,34 @@
-import React, {useState} from 'react';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Button} from "@/components/ui/button";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {formatUTCDate} from '@/utils/dateUtils';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.jsx";
-import {X} from "lucide-react";
-import {liveStrategyClient} from "@/api/liveClient.js";
-import log from "@/logger.js";
-import {useToast} from "@/hooks/use-toast.js";
+import React, { useState } from 'react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatUTCDate } from '@/utils/dateUtils';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip.jsx';
+import { X } from 'lucide-react';
+import { liveStrategyClient } from '@/api/liveClient.js';
+import log from '@/logger.js';
+import { useToast } from '@/hooks/use-toast.js';
 
-
-function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPerPageChange}) {
+function CustomTablePagination({ count, page, rowsPerPage, onPageChange, onRowsPerPageChange }) {
     const totalPages = Math.ceil(count / rowsPerPage);
 
     const handlePageChange = (value) => {
@@ -22,15 +39,13 @@ function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPe
     return (
         <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-2">
-                <p className="text-sm text-gray-700">
-                    Rows per page:
-                </p>
+                <p className="text-sm text-gray-700">Rows per page:</p>
                 <Select
                     value={rowsPerPage.toString()}
-                    onValueChange={(value) => onRowsPerPageChange({target: {value}})}
+                    onValueChange={(value) => onRowsPerPageChange({ target: { value } })}
                 >
                     <SelectTrigger className="w-[70px]">
-                        <SelectValue/>
+                        <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                         {[5, 10, 25, 50].map((option) => (
@@ -58,12 +73,9 @@ function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPe
                 >
                     Next
                 </Button>
-                <Select
-                    value={(page + 1).toString()}
-                    onValueChange={handlePageChange}
-                >
+                <Select value={(page + 1).toString()} onValueChange={handlePageChange}>
                     <SelectTrigger className="w-[100px]">
-                        <SelectValue placeholder="Go to page"/>
+                        <SelectValue placeholder="Go to page" />
                     </SelectTrigger>
                     <SelectContent>
                         {[...Array(totalPages)].map((_, index) => (
@@ -78,13 +90,13 @@ function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPe
     );
 }
 
-function TradesTable({trades, strategy = null, useLiveSplit = false}) {
+function TradesTable({ user = null, trades, strategy = null, useLiveSplit = false }) {
     const [openPage, setOpenPage] = useState(0);
     const [closedPage, setClosedPage] = useState(0);
     const [openRowsPerPage, setOpenRowsPerPage] = useState(10);
     const [closedRowsPerPage, setClosedRowsPerPage] = useState(10);
-    const [activeTab, setActiveTab] = useState("open");
-    const {toast} = useToast();
+    const [activeTab, setActiveTab] = useState('open');
+    const { toast } = useToast();
 
     const handleChangePage = (tabType) => (event, newPage) => {
         if (tabType === 'open') {
@@ -114,7 +126,6 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
     }
 
     const handleCloseTrade = async (strategy, tradeId) => {
-
         try {
             await liveStrategyClient.closeTrade(strategy.id, tradeId);
             toast({
@@ -129,12 +140,23 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
                 variant: 'destructive',
             });
         }
-    }
+    };
 
-    const openTrades = trades.filter(trade => !trade.closeTime && (!trade.closePrice || trade.closePrice === 0));
-    const closedTrades = trades.filter(trade => trade.closeTime || (trade.closePrice && trade.closePrice !== 0));
+    const openTrades = trades.filter(
+        (trade) => !trade.closeTime && (!trade.closePrice || trade.closePrice === 0)
+    );
+    const closedTrades = trades.filter(
+        (trade) => trade.closeTime || (trade.closePrice && trade.closePrice !== 0)
+    );
 
-    const renderTable = (tradesToRender, page, rowsPerPage, onPageChange, onRowsPerPageChange, showActions = false) => {
+    const renderTable = (
+        tradesToRender,
+        page,
+        rowsPerPage,
+        onPageChange,
+        onRowsPerPageChange,
+        showActions = false
+    ) => {
         // Sort trades by trade.id in descending order
         const sortedTrades = tradesToRender.sort((a, b) => b.closeTime - a.closeTime);
 
@@ -154,9 +176,7 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
                             <TableHead>S/L</TableHead>
                             <TableHead>T/P</TableHead>
                             <TableHead>Profit</TableHead>
-                            {showActions && strategy != null && (
-                                <TableHead>Actions</TableHead>
-                            )}
+                            {showActions && strategy != null && <TableHead>Actions</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -166,24 +186,43 @@ function TradesTable({trades, strategy = null, useLiveSplit = false}) {
                                 <TableRow key={trade.id}>
                                     <TableCell>{trade.tradeId}</TableCell>
                                     <TableCell>{formatUTCDate(trade.openTime)}</TableCell>
-                                    <TableCell>{trade.isLong ? "LONG" : "SHORT"}</TableCell>
-                                    <TableCell>{trade.closeTime ? formatUTCDate(trade.closeTime) : ""}</TableCell>
+                                    <TableCell>{trade.isLong ? 'LONG' : 'SHORT'}</TableCell>
+                                    <TableCell>
+                                        {trade.closeTime ? formatUTCDate(trade.closeTime) : ''}
+                                    </TableCell>
                                     <TableCell>{trade.quantity}</TableCell>
                                     <TableCell>{trade.instrument}</TableCell>
                                     <TableCell>{trade.entry}</TableCell>
-                                    <TableCell>{trade.closePrice !== 0 ? trade.closePrice : ""}</TableCell>
-                                    <TableCell>{trade.stopLoss !== 0 ? trade.stopLoss : ""}</TableCell>
-                                    <TableCell>{trade.takeProfit !== 0 ? trade.takeProfit : ""}</TableCell>
-                                    <TableCell>{trade.profit ? Number.parseFloat(trade.profit).toFixed(2) : "0.00"}</TableCell>
+                                    <TableCell>
+                                        {trade.closePrice !== 0 ? trade.closePrice : ''}
+                                    </TableCell>
+                                    <TableCell>
+                                        {trade.stopLoss !== 0 ? trade.stopLoss : ''}
+                                    </TableCell>
+                                    <TableCell>
+                                        {trade.takeProfit !== 0 ? trade.takeProfit : ''}
+                                    </TableCell>
+                                    <TableCell>
+                                        {trade.profit
+                                            ? Number.parseFloat(trade.profit).toFixed(2)
+                                            : '0.00'}
+                                    </TableCell>
                                     {showActions && strategy != null && (
                                         <TableCell>
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="sm" onClick={(e) => {
-                                                            handleCloseTrade(strategy, trade.id)
-                                                        }}>
-                                                            <X className="h-4 w-4"/>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                handleCloseTrade(
+                                                                    strategy,
+                                                                    trade.id
+                                                                );
+                                                            }}
+                                                        >
+                                                            <X className="h-4 w-4" />
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
