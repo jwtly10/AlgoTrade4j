@@ -221,6 +221,10 @@ function TradesTable({ user = null, trades, strategy = null, useLiveSplit = fals
                                                                     trade.id
                                                                 );
                                                             }}
+                                                            disabled={
+                                                                user !== null &&
+                                                                user.role !== 'ADMIN'
+                                                            }
                                                         >
                                                             <X className="h-4 w-4" />
                                                         </Button>
