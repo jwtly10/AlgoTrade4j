@@ -107,7 +107,6 @@ public abstract class BaseStrategy implements Strategy {
      * Opens a short position with the specified trade parameters.
      * This method will throw an exception if the risk manager does not allow the trade.
      * The risk manager checks the risk profile of the strategy and the account balance before allowing the trade.
-     * Will return -1 if the trade open failed
      *
      * @param params the trade parameters
      * @return Optional of the trade

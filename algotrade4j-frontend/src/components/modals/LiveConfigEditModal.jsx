@@ -8,7 +8,7 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {ScrollArea} from '@/components/ui/scroll-area';
-import {InfoIcon} from 'lucide-react';
+import {InfoIcon, Loader2} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
 import {liveStrategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
@@ -18,6 +18,8 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
     const [localConfig, setLocalConfig] = useState(strategyConfig);
+
+    const [uiIsSaving, setUiIsSaving] = useState(false);
 
     useEffect(() => {
         if (open && strategyConfig) {
@@ -99,6 +101,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
     };
 
     const handleConfigSave = async (config) => {
+        setUiIsSaving(true);
         try {
             await liveStrategyClient.updateStrategy(config);
 
@@ -106,6 +109,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                 title: 'Strategy updated',
                 description: `Live Strategy '${config.strategyName}' has been updated successfully`,
             });
+            setUiIsSaving(false);
             onClose();
         } catch (error) {
             toast({
@@ -113,7 +117,9 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                 description: `Error updating live strategy '${config.strategyName}': ${error.message}`,
                 variant: 'destructive',
             });
+            setUiIsSaving(false);
         }
+        setUiIsSaving(false);
     }
 
     const handleDelete = async (localConfig) => {
@@ -344,17 +350,25 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
                     </TabsContent>
                 </Tabs>
                 <DialogFooter className="space-x-2">
-                    <Button variant="destructive" onClick={() => handleDelete(localConfig)}>
+                    <Button variant="destructive" onClick={() => handleDelete(localConfig)} disabled={uiIsSaving}>
                         Delete
                     </Button>
-                    <Button variant="outline" onClick={onClose}>
+                    <Button variant="outline" onClick={onClose} disabled={uiIsSaving}>
                         Cancel
                     </Button>
                     <Button
                         variant="default"
                         onClick={() => handleConfigSave(localConfig)}
+                        disabled={uiIsSaving}
                     >
-                        Save changes
+                        {uiIsSaving ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                                Saving...
+                            </>
+                        ) : (
+                            'Save changes'
+                        )}
                     </Button>
                 </DialogFooter>
             </DialogContent>

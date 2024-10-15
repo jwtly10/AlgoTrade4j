@@ -28,6 +28,7 @@ https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 - Advanced optimization tools for efficient backtesting
 - Robust authentication and authorization system
 - Separate live service for live trading, supporting independent scaling
+- Python SDK for data access for quick prototyping and analysis
 
 ## Architecture
 
@@ -55,7 +56,9 @@ Each part of the system has access to the global async event publisher to suppor
 
 ### Usage (AlgoTrade4j-Core Library)
 
-AlgoTrade4j-Core is the main logic module of the platform. It can be extended to create custom indicators, strategies or backtest engines. Some defaults have been created, which are used by default. Below is a brief overview of how you can implement your own strategies. Full documentation [here](). (TODO)
+AlgoTrade4j-Core is the main logic module of the platform. It can be extended to create custom indicators, strategies or backtest engines. Some defaults have been created, which are used by default. Below is a brief overview of how you can implement your own strategies.
+
+Full documentation [here](https://jwtly10.github.io/AlgoTrade4j/).
 
 #### Strategies
 

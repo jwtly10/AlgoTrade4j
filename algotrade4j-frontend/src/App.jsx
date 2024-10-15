@@ -1,30 +1,30 @@
-import React, {useEffect, useState} from 'react';
-import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import BacktestView from './views/main/BacktestView.jsx';
 import AuthModal from './components/modals/AuthModal';
-import {authClient} from './api/apiClient.js';
+import { authClient } from './api/apiClient.js';
 import UserManagementView from './views/users/UserManagementView.jsx';
-import NotFoundView from "./views/NotFoundView.jsx";
-import HomeView from "./views/main/HomeView.jsx";
-import OptimisationView from "./views/main/OptimisationView.jsx";
+import NotFoundView from './views/NotFoundView.jsx';
+import HomeView from './views/main/HomeView.jsx';
+import OptimisationView from './views/main/OptimisationView.jsx';
 import log from './logger.js';
-import {ThemeProvider} from "./components/ThemeProvider";
-import {Toaster} from "./components/ui/toaster";
-import UnauthorizedAccessView from "@/views/UnauthorizedAccessView.jsx";
-import MonitorView from "@/views/MonitorView.jsx";
-import {useToast} from "@/hooks/use-toast.js";
-import LiveStrategyView from "@/views/main/LiveStrategyView.jsx";
+import { ThemeProvider } from './components/ThemeProvider';
+import { Toaster } from './components/ui/toaster';
+import UnauthorizedAccessView from '@/views/UnauthorizedAccessView.jsx';
+import MonitorView from '@/views/MonitorView.jsx';
+import { useToast } from '@/hooks/use-toast.js';
+import LiveStrategyView from '@/views/main/LiveStrategyView.jsx';
 
 function App() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const [authModalOpen, setAuthModalOpen] = useState(false);
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     useEffect(() => {
         const verifyToken = async () => {
-            setLoading(true)
+            setLoading(true);
             try {
                 const userData = await authClient.verifyToken();
                 setUser(userData);
@@ -32,9 +32,9 @@ function App() {
                 log.error('Token verification failed:', error);
                 toast({
                     title: 'Session Expired',
-                    description: "Your session has expired. Please login again.",
-                    status: 'destructive'
-                })
+                    description: 'Your session has expired. Please login again.',
+                    status: 'destructive',
+                });
             } finally {
                 setLoading(false);
             }
@@ -58,61 +58,98 @@ function App() {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <Router>
                 <div className="min-h-screen bg-background text-foreground">
-                    {user && (<Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>)}
+                    {user && (
+                        <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal} />
+                    )}
                     <Routes>
                         <Route
                             path="/"
-                            element={user ? <HomeView/> : <Navigate to="/login" replace/>}
+                            element={user ? <HomeView /> : <Navigate to="/login" replace />}
                         />
 
                         <Route
                             path="/backtest"
-                            element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
+                            element={user ? <BacktestView /> : <Navigate to="/login" replace />}
                         />
 
                         <Route
                             path="/login"
-                            element={user ? <Navigate to="/" replace/> : <AuthModal open={true} onClose={() => {
-                            }} setUser={setUser}/>}
+                            element={
+                                user ? (
+                                    <Navigate to="/" replace />
+                                ) : (
+                                    <AuthModal open={true} onClose={() => {}} setUser={setUser} />
+                                )
+                            }
                         />
 
                         <Route
                             path="/optimisation"
-                            element={user ? <OptimisationView/> : <Navigate to="/login" replace/>}
+                            element={user ? <OptimisationView /> : <Navigate to="/login" replace />}
                         />
 
-                        <Route path="/signup" element={<Navigate to="/login" replace/>}/>
+                        <Route path="/signup" element={<Navigate to="/login" replace />} />
 
                         {/* Admin routes */}
                         <Route
                             path="/users"
-                            element={user ? (
-                                user.role === 'ADMIN' ? <UserManagementView loggedInUser={user}/> : <UnauthorizedAccessView/>
-                            ) : <Navigate to="/login" replace/>}
+                            element={
+                                user ? (
+                                    user.role === 'ADMIN' ? (
+                                        <UserManagementView loggedInUser={user} />
+                                    ) : (
+                                        <UnauthorizedAccessView />
+                                    )
+                                ) : (
+                                    <Navigate to="/login" replace />
+                                )
+                            }
                         />
                         <Route
                             path="/monitor"
-                            element={user ? (
-                                user.role === 'ADMIN' ? <MonitorView/> : <UnauthorizedAccessView/>
-                            ) : <Navigate to="/login" replace/>}
+                            element={
+                                user ? (
+                                    user.role === 'ADMIN' ? (
+                                        <MonitorView />
+                                    ) : (
+                                        <UnauthorizedAccessView />
+                                    )
+                                ) : (
+                                    <Navigate to="/login" replace />
+                                )
+                            }
                         />
 
                         <Route
                             path="/live"
-                            element={user ? (
-                                user.role === 'ADMIN' ? <LiveStrategyView/> : <UnauthorizedAccessView/>
-                            ) : <Navigate to="/login" replace/>}
+                            element={
+                                user ? (
+                                    user.role === 'ADMIN' || user.role === 'LIVE_VIEWER' ? (
+                                        <LiveStrategyView user={user} />
+                                    ) : (
+                                        <UnauthorizedAccessView />
+                                    )
+                                ) : (
+                                    <Navigate to="/login" replace />
+                                )
+                            }
                         />
 
                         <Route
                             path="*"
-                            element={user ? <NotFoundView/> : <Navigate to="/login" replace/>}
+                            element={user ? <NotFoundView /> : <Navigate to="/login" replace />}
                         />
                     </Routes>
-                    {!user && <AuthModal open={authModalOpen} onClose={handleCloseAuthModal} setUser={setUser}/>}
+                    {!user && (
+                        <AuthModal
+                            open={authModalOpen}
+                            onClose={handleCloseAuthModal}
+                            setUser={setUser}
+                        />
+                    )}
                 </div>
             </Router>
-            <Toaster/>
+            <Toaster />
         </ThemeProvider>
     );
 }

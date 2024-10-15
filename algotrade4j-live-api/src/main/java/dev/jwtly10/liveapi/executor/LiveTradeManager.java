@@ -127,7 +127,7 @@ public class LiveTradeManager implements TradeManager {
             throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
         }
 
-        Trade trade = brokerClient.openTrade(params.createTrade());
+        Trade trade = brokerClient.openTrade(params);
 
         log.info("Opened {} position @ {}: id={}, instrument={}, entryPrice={}, stopLoss={}, takeProfit={}, quantity={}",
                 trade.isLong() ? "long" : "short", trade.getOpenTime(), trade.getId(), trade.getInstrument(), trade.getEntryPrice(), trade.getStopLoss(), trade.getTakeProfit(), trade.getQuantity());

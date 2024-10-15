@@ -3,6 +3,7 @@ package dev.jwtly10.marketdata.common;
 import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.model.TradeParameters;
 import dev.jwtly10.marketdata.common.stream.Stream;
 
 import java.util.List;
@@ -45,6 +46,16 @@ public interface BrokerClient {
      * @throws Exception If an error occurs while opening the trade.
      */
     Trade openTrade(Trade trade) throws Exception;
+
+    /**
+     * Opens a new trade.
+     * Useful for opening trades with brokers where we dont have all the context about the execution.
+     *
+     * @param tradeParameters The parameters for the trade to be opened.
+     * @return The opened trade.
+     * @throws Exception If an error occurs while opening the trade.
+     */
+    Trade openTrade(TradeParameters tradeParameters) throws Exception;
 
     /**
      * Closes an existing trade.

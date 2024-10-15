@@ -14,7 +14,7 @@ import dev.jwtly10.core.event.types.TradeEvent;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Period;
 import dev.jwtly10.core.model.Timeframe;
-import dev.jwtly10.marketdata.oanda.OandaClient;
+import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

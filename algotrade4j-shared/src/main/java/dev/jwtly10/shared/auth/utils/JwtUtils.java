@@ -49,7 +49,8 @@ public class JwtUtils {
         } catch (MalformedJwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            log.warn("JWT token is expired: {}", e.getMessage());
+            // Removed log due to log spam
+            // log.warn("JWT token is expired: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
             log.warn("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
