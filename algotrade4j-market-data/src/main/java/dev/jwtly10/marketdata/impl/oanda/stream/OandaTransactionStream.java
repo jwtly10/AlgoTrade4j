@@ -49,19 +49,29 @@ public class OandaTransactionStream extends RetryableStream<List<TradeDTO>> {
 
             switch (type) {
                 case "ORDER_FILL":
-                    if ("MARKET_ORDER_TRADE_CLOSE".equals(reason)) {
-                        log.trace("Received ORDER_FILL transaction with MARKET_ORDER_TRADE_CLOSE reason: {}", line);
-                        OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
-                        List<TradeDTO> closedTrades = new ArrayList<>();
+                    switch (reason) {
+                        case "MARKET_ORDER_TRADE_CLOSE" -> {
+                            log.debug("Received ORDER_FILL transaction with MARKET_ORDER_TRADE_CLOSE reason: {}", line);
+                            OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
+                            List<TradeDTO> closedTrades = handleOrderFillTransaction(transaction);
 
-                        // Iterate over closed trades and build the list of Trade IDs, to check for open trades
-                        transaction.tradesClosed().forEach(tradeClose -> {
-                            log.debug("Trade closed: {}", tradeClose);
-                            closedTrades.add(new TradeDTO(tradeClose.tradeID(), Double.parseDouble(tradeClose.realizedPL()), Double.parseDouble(tradeClose.price())));
-                        });
+                            callback.onData(closedTrades);
+                        }
+                        case "STOP_LOSS_ORDER" -> {
+                            log.debug("Received ORDER_FILL transaction with STOP_LOSS_ORDER reason: {}", line);
+                            OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
+                            List<TradeDTO> closedTrades = handleOrderFillTransaction(transaction);
 
-                        // Trigger the callback with the list of closed trades
-                        callback.onData(closedTrades);
+                            callback.onData(closedTrades);
+                        }
+                        case "TAKE_PROFIT_ORDER" -> {
+                            log.debug("Received ORDER_FILL transaction with TAKE_PROFIT_ORDER reason: {}", line);
+                            OrderFillTransaction transaction = objectMapper.treeToValue(jsonNode, OrderFillTransaction.class);
+                            List<TradeDTO> closedTrades = handleOrderFillTransaction(transaction);
+
+                            callback.onData(closedTrades);
+                        }
+                        case null, default -> log.debug("Received ORDER_FILL transaction with reason: {}", reason);
                     }
                     break;
                 case "HEARTBEAT":
@@ -76,5 +86,16 @@ public class OandaTransactionStream extends RetryableStream<List<TradeDTO>> {
         if (line.contains("error")) {
             throw new Exception("Error in transaction stream: " + line);
         }
+    }
+
+    private List<TradeDTO> handleOrderFillTransaction(OrderFillTransaction transaction) {
+        List<TradeDTO> closedTrades = new ArrayList<>();
+
+        transaction.tradesClosed().forEach(tradeClose -> {
+            log.debug("Trade closed: {}", tradeClose);
+            closedTrades.add(new TradeDTO(tradeClose.tradeID(), Double.parseDouble(tradeClose.realizedPL()), Double.parseDouble(tradeClose.price())));
+        });
+
+        return closedTrades;
     }
 }
