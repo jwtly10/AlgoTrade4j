@@ -1,34 +1,16 @@
-import React, { useState } from 'react';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatUTCDate } from '@/utils/dateUtils';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip.jsx';
-import { X } from 'lucide-react';
-import { liveStrategyClient } from '@/api/liveClient.js';
+import React, {useState} from 'react';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
+import {Button} from '@/components/ui/button';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {formatUTCDate} from '@/utils/dateUtils';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from '@/components/ui/tooltip.jsx';
+import {X} from 'lucide-react';
+import {liveStrategyClient} from '@/api/liveClient.js';
 import log from '@/logger.js';
-import { useToast } from '@/hooks/use-toast.js';
+import {useToast} from '@/hooks/use-toast.js';
 
-function CustomTablePagination({ count, page, rowsPerPage, onPageChange, onRowsPerPageChange }) {
+function CustomTablePagination({count, page, rowsPerPage, onPageChange, onRowsPerPageChange}) {
     const totalPages = Math.ceil(count / rowsPerPage);
 
     const handlePageChange = (value) => {
@@ -42,10 +24,10 @@ function CustomTablePagination({ count, page, rowsPerPage, onPageChange, onRowsP
                 <p className="text-sm text-gray-700">Rows per page:</p>
                 <Select
                     value={rowsPerPage.toString()}
-                    onValueChange={(value) => onRowsPerPageChange({ target: { value } })}
+                    onValueChange={(value) => onRowsPerPageChange({target: {value}})}
                 >
                     <SelectTrigger className="w-[70px]">
-                        <SelectValue />
+                        <SelectValue/>
                     </SelectTrigger>
                     <SelectContent>
                         {[5, 10, 25, 50].map((option) => (
@@ -75,7 +57,7 @@ function CustomTablePagination({ count, page, rowsPerPage, onPageChange, onRowsP
                 </Button>
                 <Select value={(page + 1).toString()} onValueChange={handlePageChange}>
                     <SelectTrigger className="w-[100px]">
-                        <SelectValue placeholder="Go to page" />
+                        <SelectValue placeholder="Go to page"/>
                     </SelectTrigger>
                     <SelectContent>
                         {[...Array(totalPages)].map((_, index) => (
@@ -90,13 +72,15 @@ function CustomTablePagination({ count, page, rowsPerPage, onPageChange, onRowsP
     );
 }
 
-function TradesTable({ user = null, trades, strategy = null, useLiveSplit = false }) {
+function TradesTable({user = null, trades, strategy = null, useLiveSplit = false}) {
     const [openPage, setOpenPage] = useState(0);
     const [closedPage, setClosedPage] = useState(0);
     const [openRowsPerPage, setOpenRowsPerPage] = useState(10);
     const [closedRowsPerPage, setClosedRowsPerPage] = useState(10);
     const [activeTab, setActiveTab] = useState('open');
-    const { toast } = useToast();
+    const {toast} = useToast();
+
+    const [uiIsClosingTrade, setUiIsClosing] = useState(false);
 
     const handleChangePage = (tabType) => (event, newPage) => {
         if (tabType === 'open') {
@@ -126,6 +110,7 @@ function TradesTable({ user = null, trades, strategy = null, useLiveSplit = fals
     }
 
     const handleCloseTrade = async (strategy, tradeId) => {
+        setUiIsClosing(true)
         try {
             await liveStrategyClient.closeTrade(strategy.id, tradeId);
             toast({
@@ -140,6 +125,8 @@ function TradesTable({ user = null, trades, strategy = null, useLiveSplit = fals
                 variant: 'destructive',
             });
         }
+
+        setUiIsClosing(false)
     };
 
     const openTrades = trades.filter(
@@ -222,11 +209,11 @@ function TradesTable({ user = null, trades, strategy = null, useLiveSplit = fals
                                                                 );
                                                             }}
                                                             disabled={
-                                                                user !== null &&
-                                                                user.role !== 'ADMIN'
+                                                                (user !== null &&
+                                                                    user.role !== 'ADMIN') || uiIsClosingTrade
                                                             }
                                                         >
-                                                            <X className="h-4 w-4" />
+                                                            <X className="h-4 w-4"/>
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
