@@ -1,7 +1,7 @@
 package dev.jwtly10.liveapi.repository;
 
-import dev.jwtly10.liveapi.model.BrokerAccount;
-import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package dev.jwtly10.liveapi.model;
+package dev.jwtly10.liveapi.model.broker;
 
 import dev.jwtly10.marketdata.common.Broker;
 

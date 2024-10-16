@@ -1,5 +1,6 @@
-package dev.jwtly10.liveapi.model;
+package dev.jwtly10.liveapi.model.broker;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import dev.jwtly10.marketdata.common.Broker;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,12 +22,15 @@ public class BrokerAccount {
     private Long id;
 
     @Column(name = "broker_name", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Broker brokerName;
+    private String brokerName;
 
     @Column(name = "broker_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private BrokerType brokerType;
+    private Broker brokerType;
+
+    @Column(name = "broker_env", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private BrokerEnv brokerEnv;
 
     @Column(name = "account_id", nullable = false)
     private String accountId;
@@ -44,4 +48,9 @@ public class BrokerAccount {
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // Add the one-to-one relationship to Mt5Credentials
+    @OneToOne(mappedBy = "brokerAccount", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Mt5Credentials mt5Credentials;
 }

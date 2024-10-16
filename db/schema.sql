@@ -79,7 +79,8 @@ CREATE TABLE broker_accounts_tb
 (
     id              BIGSERIAL PRIMARY KEY,
     broker_name     VARCHAR(255) NOT NULL,
-    broker_type     VARCHAR(10)  NOT NULL, -- LIVE/DEMO
+    broker_type     VARCHAR(255) NOT NULL,
+    broker_env      VARCHAR(255) NOT NULL, -- LIVE/DEMO
     account_id      VARCHAR(255) NOT NULL,
     active          BOOLEAN   DEFAULT TRUE,
     initial_balance INTEGER      NOT NULL,
@@ -122,3 +123,19 @@ CREATE TABLE user_action_log_tb
 
 CREATE INDEX idx_user_action_log_user_id ON user_action_log_tb (user_id);
 CREATE INDEX idx_user_action_log_timestamp ON user_action_log_tb (timestamp);
+
+CREATE TABLE mt5_credentials_tb
+(
+    id         BIGSERIAL PRIMARY KEY,
+    broker_id  BIGINT       NOT NULL,
+    password   VARCHAR(255) NOT NULL,
+    server     VARCHAR(255) NOT NULL,
+    path       VARCHAR(255) NOT NULL,
+    timezone   VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_broker_mt5
+        FOREIGN KEY (broker_id)
+            REFERENCES broker_accounts_tb (id)
+            ON DELETE CASCADE
+);

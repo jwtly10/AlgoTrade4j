@@ -1,7 +1,8 @@
 package dev.jwtly10.liveapi.service.broker;
 
-import dev.jwtly10.liveapi.model.BrokerAccount;
-import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.broker.Timezone;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
 import dev.jwtly10.marketdata.common.Broker;
@@ -35,6 +36,10 @@ public class BrokerAccountService {
         return List.of(Broker.values());
     }
 
+    public List<Timezone> getTimezones() {
+        return List.of(Timezone.values());
+    }
+
     public void validateAccountId(String accountId) {
         brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
                 .orElseThrow(() -> new RuntimeException("Account ID '" + accountId + "' not found"));
@@ -63,6 +68,10 @@ public class BrokerAccountService {
 
         broker.setActive(true);
 
+        if (broker.getMt5Credentials() != null) {
+            broker.getMt5Credentials().setBrokerAccount(broker);
+        }
+
         return brokerAccountRepository.save(broker);
     }
 
@@ -83,6 +92,10 @@ public class BrokerAccountService {
         foundAccount.setBrokerName(broker.getBrokerName());
         foundAccount.setBrokerType(broker.getBrokerType());
         foundAccount.setInitialBalance(broker.getInitialBalance());
+
+        if (broker.getMt5Credentials() != null) {
+            foundAccount.setMt5Credentials(broker.getMt5Credentials());
+        }
 
         foundAccount.setActive(true);
 

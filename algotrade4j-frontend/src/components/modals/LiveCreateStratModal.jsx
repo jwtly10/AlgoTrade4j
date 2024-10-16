@@ -25,6 +25,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
         brokerAccount: {
             brokerName: '',
             brokerType: '',
+            brokeEnv: '',
             accountId: '',
             initialBalance: '',
         },
@@ -76,6 +77,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                     brokerName: '',
                     brokerType: '',
                     accountId: '',
+                    brokeEnv: '',
                     initialBalance: '',
                 },
                 config: {
@@ -194,6 +196,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
             !config.brokerAccount.brokerName ||
             !config.brokerAccount.accountId ||
             !config.brokerAccount.brokerType ||
+            !config.brokerAccount.brokerEnv ||
             !config.brokerAccount.initialBalance
         )
             return false;
@@ -442,7 +445,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                             <ScrollArea className="h-full pr-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="account-id">Account ID</Label>
+                                        <Label htmlFor="account-id">Broker Account</Label>
                                         <Select
                                             value={config.brokerAccount.accountId}
                                             onValueChange={(value) => {
@@ -464,7 +467,7 @@ const LiveCreateStratModal = ({open, onClose, strategies}) => {
                                                         key={account.id}
                                                         value={account.accountId}
                                                     >
-                                                        {`${account.brokerName} - ${account.brokerType} - $${parseFloat(account.initialBalance) ? parseFloat(account.initialBalance).toLocaleString() : account.initialBalance} - ${account.accountId}`}
+                                                        {`${account.brokerName} - ${account.brokerType} - ${account.brokerEnv} - $${parseFloat(account.initialBalance) ? parseFloat(account.initialBalance).toLocaleString() : account.initialBalance}`}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

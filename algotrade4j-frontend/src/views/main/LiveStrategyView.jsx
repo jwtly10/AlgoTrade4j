@@ -379,33 +379,25 @@ const LiveStrategyView = ({user}) => {
                                                 </TooltipProvider>
                                                 <Badge
                                                     variant={
-                                                        strategy.brokerAccount.brokerType === 'LIVE'
+                                                        strategy.brokerAccount.brokerEnv === 'LIVE'
                                                             ? 'destructive'
                                                             : 'default'
                                                     }
                                                 >
-                                                    {strategy.brokerAccount.brokerType}
+                                                    {strategy.brokerAccount.brokerEnv}
                                                 </Badge>
                                             </div>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">
                                                 <div className="bg-muted p-3 rounded-md">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                    <div className="gap-x-4 gap-y-2 text-sm">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-muted-foreground">
-                                                                Broker:
+                                                                Trade Account:
                                                             </span>
                                                             <span className="font-medium">
-                                                                {strategy.brokerAccount.brokerName}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                                                            <span className="text-muted-foreground pr-2">
-                                                                Account ID:
-                                                            </span>
-                                                            <span className="font-medium break-all">
-                                                                {strategy.brokerAccount.accountId}
+                                                                ({strategy.brokerAccount.brokerType}) {strategy.brokerAccount.brokerName}
                                                             </span>
                                                         </div>
                                                     </div>

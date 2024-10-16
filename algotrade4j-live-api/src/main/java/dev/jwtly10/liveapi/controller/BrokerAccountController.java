@@ -1,6 +1,7 @@
 package dev.jwtly10.liveapi.controller;
 
-import dev.jwtly10.liveapi.model.BrokerAccount;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.broker.Timezone;
 import dev.jwtly10.liveapi.service.broker.BrokerAccountService;
 import dev.jwtly10.marketdata.common.Broker;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,11 @@ public class BrokerAccountController {
     @GetMapping("/brokers")
     public ResponseEntity<List<Broker>> getBrokers() {
         return ResponseEntity.ok().body(brokerAccountService.getBrokers());
+    }
+
+    @GetMapping("/timezones")
+    public ResponseEntity<List<Timezone>> getTimezones() {
+        return ResponseEntity.ok().body(brokerAccountService.getTimezones());
     }
 
     @DeleteMapping("/{accountId}")
