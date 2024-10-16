@@ -26,13 +26,15 @@ class BacktestTradeManagerTest {
     private BarSeries mockBarSeries;
     private RiskManager mockRiskManager;
 
+    private final Broker TEST_BROKER = Broker.OANDA;
+
     @BeforeEach
     void setUp() {
         mockEventPublisher = mock(EventPublisher.class);
         mockBarSeries = mock(DefaultBarSeries.class);
         mockCurrentTick = mock(DefaultTick.class);
         mockRiskManager = mock(RiskManager.class);
-        backtestTradeManager = new BacktestTradeManager(mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher, mockRiskManager);
+        backtestTradeManager = new BacktestTradeManager(TEST_BROKER, mockCurrentTick, mockBarSeries, "BacktestTradeManager", mockEventPublisher, mockRiskManager);
     }
 
     @Test
