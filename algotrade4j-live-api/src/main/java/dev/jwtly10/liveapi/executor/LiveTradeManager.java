@@ -83,6 +83,11 @@ public class LiveTradeManager implements TradeManager {
     }
 
     @Override
+    public Broker getBroker() {
+        return brokerClient.getBroker();
+    }
+
+    @Override
     public void updateOpenTrades(List<Trade> trades) {
         openTrades = new ConcurrentHashMap<>();
         trades.forEach(trade -> openTrades.put(trade.getId(), trade));

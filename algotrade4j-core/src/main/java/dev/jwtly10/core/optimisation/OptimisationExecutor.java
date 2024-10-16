@@ -9,6 +9,7 @@ import dev.jwtly10.core.event.types.AnalysisEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.ParameterHandler;
@@ -42,6 +43,7 @@ public class OptimisationExecutor {
     private final DataManagerFactory dataManagerFactory;
     private OptimisationProgress progress;
     private volatile boolean running = false;
+    private final Broker BROKER;
 
 
     /**
@@ -51,6 +53,7 @@ public class OptimisationExecutor {
      * @param progressCallback a Consumre that allows callers to handle progress updates once each batch has been processed
      */
     public OptimisationExecutor(
+            Broker broker,
             EventPublisher eventPublisher,
             DataProvider dataProvider,
             Consumer<OptimisationRunResult> resultCallback,
@@ -58,6 +61,7 @@ public class OptimisationExecutor {
             StrategyFactory strategyFactory,
             ExecutorFactory executorFactory,
             DataManagerFactory dataManagerFactory) {
+        this.BROKER = broker;
         this.resultCallback = resultCallback;
         this.progressCallback = progressCallback;
         this.resultListener = new OptimisationResultListener(this);
@@ -180,7 +184,7 @@ public class OptimisationExecutor {
             try {
                 ParameterHandler.validateRunParameters(strategy, parameterCombination);
                 strategy.setParameters(parameterCombination);
-                BacktestExecutor executor = executorFactory.createExecutor(strategy, id, dataManager, eventPublisher, config.getInitialCash());
+                BacktestExecutor executor = executorFactory.createExecutor(BROKER, strategy, id, dataManager, eventPublisher, config.getInitialCash());
                 executor.initialise();
                 dataManager.addDataListener(executor);
 

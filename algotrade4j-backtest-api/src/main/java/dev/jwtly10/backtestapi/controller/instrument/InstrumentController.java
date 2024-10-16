@@ -15,6 +15,6 @@ public class InstrumentController {
 
     @GetMapping
     public ResponseEntity<InstrumentData[]> getAllInstruments() {
-        return ResponseEntity.ok(Instrument.getAllInstrumentData());
+        return ResponseEntity.ok(Instrument.getChartingInstrumentData());
     }
 }

@@ -1,6 +1,7 @@
 package dev.jwtly10.marketdata.common;
 
 import dev.jwtly10.core.account.Account;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.model.TradeParameters;
@@ -13,6 +14,13 @@ import java.util.List;
  * It is simply a wrapper around the client implementation, to allow for easy switching between different broker clients.
  */
 public interface BrokerClient {
+
+    /**
+     * Returns the broker enum value associated with the client
+     *
+     * @return The broker
+     */
+    Broker getBroker();
 
     /**
      * Retrieves account information.

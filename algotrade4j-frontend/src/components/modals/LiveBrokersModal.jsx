@@ -55,7 +55,7 @@ const LiveBrokerModal = ({open, onClose}) => {
 
         const base = account.brokerName && account.brokerType && account.initialBalance && account.accountId
 
-        if (account.brokerType === 'MT5') {
+        if (account.brokerType.startsWith('MT5')) {
             const mt5 = account.mt5Credentials?.password && account.mt5Credentials?.server && account.mt5Credentials?.path && account.mt5Credentials?.timezone
             return base && mt5
         } else {

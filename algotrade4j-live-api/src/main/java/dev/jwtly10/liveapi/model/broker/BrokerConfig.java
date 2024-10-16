@@ -1,6 +1,6 @@
 package dev.jwtly10.liveapi.model.broker;
 
-import dev.jwtly10.marketdata.common.Broker;
+import dev.jwtly10.core.model.Broker;
 
 public class BrokerConfig {
     private Broker broker;

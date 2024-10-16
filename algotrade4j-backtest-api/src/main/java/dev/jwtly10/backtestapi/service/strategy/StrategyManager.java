@@ -50,6 +50,8 @@ public class StrategyManager {
     private final OandaClient oandaClient;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
+    private final Broker BACKTEST_BROKER = Broker.OANDA;
+
     private final Environment environment;
 
     public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
@@ -79,7 +81,7 @@ public class StrategyManager {
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(utcZone);
         // We seed the tick generation while backtesting so results can be consistent
         // TODO: implement a way to allow randomized tick generation (some frontend flag)
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, spread, period, from, to, 12345L);
+        DataProvider dataProvider = new ExternalDataProvider(BACKTEST_BROKER, externalDataClient, instrument, spread, period, from, to, 12345L);
 
         DataSpeed dataSpeed = config.getSpeed();
 
@@ -112,7 +114,7 @@ public class StrategyManager {
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
         RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
 
-        TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
+        TradeManager tradeManager = new BacktestTradeManager(BACKTEST_BROKER, currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 

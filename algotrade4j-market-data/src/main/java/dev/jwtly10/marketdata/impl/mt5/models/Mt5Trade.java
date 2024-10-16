@@ -1,6 +1,7 @@
 package dev.jwtly10.marketdata.impl.mt5.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
@@ -26,10 +27,11 @@ public record Mt5Trade(
         @JsonProperty("close_order_time") Integer closeOrderTime,
         @JsonProperty("is_open") Boolean isOpen
 ) {
-    public Trade toTrade() {
+
+    public Trade toTrade(Broker broker) {
         Trade trade = new Trade(
                 positionId,
-                Instrument.fromMt5Symbol(symbol),
+                Instrument.fromBrokerSymbol(broker, symbol),
                 Math.abs(totalVolume),
                 ZonedDateTime.ofInstant(Instant.ofEpochSecond(openOrderTime), ZoneId.systemDefault()),
                 new Number(openOrderPrice),

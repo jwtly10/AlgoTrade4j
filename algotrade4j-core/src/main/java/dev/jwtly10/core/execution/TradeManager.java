@@ -1,10 +1,7 @@
 package dev.jwtly10.core.execution;
 
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.model.Trade;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.*;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +14,9 @@ import java.util.function.Consumer;
  * Implementations of this interface can be used to execute trades in different live trading environments or backtest trading strategies.
  */
 public interface TradeManager {
+
+    Broker getBroker();
+
     /**
      * Updates the status of open trades
      *

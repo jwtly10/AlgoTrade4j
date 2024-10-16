@@ -1,12 +1,12 @@
 package dev.jwtly10.liveapi.service.broker;
 
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import dev.jwtly10.liveapi.model.broker.Timezone;
 import dev.jwtly10.liveapi.model.dto.TimezoneDTO;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
-import dev.jwtly10.marketdata.common.Broker;
 import dev.jwtly10.shared.auth.utils.SecurityUtils;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;

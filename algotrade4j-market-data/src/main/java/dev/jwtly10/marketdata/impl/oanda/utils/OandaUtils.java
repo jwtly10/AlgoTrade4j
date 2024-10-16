@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.util.List;
 
+import static dev.jwtly10.core.model.Broker.OANDA;
+
 public class OandaUtils {
     private static final DateTimeFormatter OANDA_DT_FORMATTER = new DateTimeFormatterBuilder()
             .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
@@ -29,7 +31,7 @@ public class OandaUtils {
      * @return the mapped DefaultTick object
      */
     public static DefaultTick mapPriceToTick(OandaPriceResponse oandaPrice) {
-        Instrument instrument = Instrument.fromOandaSymbol(oandaPrice.instrument());
+        Instrument instrument = Instrument.fromBrokerSymbol(OANDA, oandaPrice.instrument());
         ZonedDateTime timestamp = ZonedDateTime.parse(oandaPrice.time(), OANDA_DT_FORMATTER);
 
         Number bidPrice = getBestPrice(oandaPrice.bids());
@@ -74,7 +76,7 @@ public class OandaUtils {
      * @return a list of DefaultBar
      */
     public static List<DefaultBar> convertOandaCandles(OandaCandleResponse res) {
-        var instrument = Instrument.fromOandaSymbol(res.instrument());
+        var instrument = Instrument.fromBrokerSymbol(OANDA, res.instrument());
         return res.candles().stream()
                 .map(candle -> new DefaultBar(instrument,
                         convertGranularityToDuration(res.granularity()),

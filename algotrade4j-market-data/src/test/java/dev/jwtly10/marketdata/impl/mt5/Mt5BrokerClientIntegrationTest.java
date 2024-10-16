@@ -2,6 +2,7 @@ package dev.jwtly10.marketdata.impl.mt5;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.account.Account;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class Mt5BrokerClientIntegrationTest {
         mt5 = new Mt5Client(apiKey, apiUrl, objMapper);
 
         // Oanda logic is outside scope of this test
-        this.client = new Mt5BrokerClient(mt5, null, "1510057641", null);
+        this.client = new Mt5BrokerClient(mt5, null, "1510057641", null, Broker.MT5_FTMO);
     }
 
     @Test

@@ -208,7 +208,7 @@ public abstract class BaseStrategy implements Strategy {
         if (ticks < 100) {
             log.warn("Stop loss ticks is less than 100. This may be a mistake, ticks should be x10 pips. Ticks: {}", ticks);
         }
-        Number pipValue = new Number(ticks * instrument.getPipValue());
+        Number pipValue = new Number(ticks * instrument.getBrokerConfig(tradeManager.getBroker()).getPipValue());
         return isLong ? price.subtract(pipValue) : price.add(pipValue);
     }
 

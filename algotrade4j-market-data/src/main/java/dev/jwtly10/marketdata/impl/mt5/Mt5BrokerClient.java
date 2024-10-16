@@ -1,10 +1,8 @@
 package dev.jwtly10.marketdata.impl.mt5;
 
 import dev.jwtly10.core.account.Account;
-import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.model.Trade;
-import dev.jwtly10.core.model.TradeParameters;
+import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
@@ -20,13 +18,20 @@ public class Mt5BrokerClient implements BrokerClient {
     private final Mt5Client client;
     private final OandaClient oandaClient; // For market data
     private final String accountId;
+    private final Broker BROKER;
     private final String defaultOandaAccountId;
 
-    public Mt5BrokerClient(Mt5Client mt5Client, OandaClient oandaClient, String mt5AccountId, String defaultOandaAccountId) {
+    public Mt5BrokerClient(Mt5Client mt5Client, OandaClient oandaClient, String mt5AccountId, String defaultOandaAccountId, Broker broker) {
         this.client = mt5Client;
         this.accountId = mt5AccountId;
         this.oandaClient = oandaClient;
         this.defaultOandaAccountId = defaultOandaAccountId;
+        this.BROKER = broker;
+    }
+
+    @Override
+    public Broker getBroker() {
+        return BROKER;
     }
 
     @Override
@@ -45,7 +50,9 @@ public class Mt5BrokerClient implements BrokerClient {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
         Mt5TradesResponse res = client.fetchTrades(accountId);
-        List<Trade> allTrades = res.trades().stream().map(Mt5Trade::toTrade).toList();
+        List<Trade> allTrades = res.trades().stream().map(
+                t -> t.toTrade(BROKER)
+        ).toList();
         return allTrades.stream().filter(trade -> trade.getClosePrice() == Number.ZERO).toList();
 
     }
@@ -56,7 +63,9 @@ public class Mt5BrokerClient implements BrokerClient {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
         Mt5TradesResponse res = client.fetchTrades(accountId);
-        return res.trades().stream().map(Mt5Trade::toTrade).toList();
+        return res.trades().stream().map(
+                t -> t.toTrade(BROKER)
+        ).toList();
     }
 
     @Override
@@ -73,7 +82,7 @@ public class Mt5BrokerClient implements BrokerClient {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
         Mt5Trade res = client.openTrade(accountId, tradeParameters);
-        return res.toTrade();
+        return res.toTrade(BROKER);
     }
 
     @Override

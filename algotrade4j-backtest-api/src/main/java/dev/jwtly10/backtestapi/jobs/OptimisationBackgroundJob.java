@@ -10,6 +10,7 @@ import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.SyncEventPublisher;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
 import dev.jwtly10.core.optimisation.OptimisationExecutor;
 import dev.jwtly10.core.optimisation.OptimisationProgress;
@@ -47,6 +48,8 @@ public class OptimisationBackgroundJob {
     private final DataManagerFactory dataManagerFactory;
 
     private final OandaClient oandaClient;
+
+    private final Broker OPTIMISATION_BROKER = Broker.OANDA; // TODO:  Should have factory pattern for this, but we will use OANDA for now
 
     public OptimisationBackgroundJob(
             OptimisationTaskService taskService,
@@ -125,7 +128,7 @@ public class OptimisationBackgroundJob {
 
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(ZoneId.of("UTC"));
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(ZoneId.of("UTC"));
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, config.getInstrument(), config.getSpread(), config.getPeriod(), from, to, 12345L);
+        DataProvider dataProvider = new ExternalDataProvider(OPTIMISATION_BROKER, externalDataClient, config.getInstrument(), config.getSpread(), config.getPeriod(), from, to, 12345L);
 
         OptimisationExecutor optimisationExecutor = getOptimisationExecutor(task, dataProvider);
         optimisationExecutor.executeTask(config);
@@ -148,6 +151,7 @@ public class OptimisationBackgroundJob {
         };
 
         return new OptimisationExecutor(
+                OPTIMISATION_BROKER,
                 internalEventPublisher,
                 dataProvider,
                 resultCallback,

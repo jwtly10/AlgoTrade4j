@@ -3,10 +3,7 @@ package dev.jwtly10.marketdata.common;
 import dev.jwtly10.core.data.*;
 import dev.jwtly10.core.exception.DataProviderException;
 import dev.jwtly10.core.exception.RiskException;
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.DefaultTick;
-import dev.jwtly10.core.model.Instrument;
-import dev.jwtly10.core.model.Tick;
+import dev.jwtly10.core.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,19 +32,19 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     @Getter
     private boolean isRunning;
 
-    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
+    public ExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
         this.dataClient = dataClient;
         this.instrument = instrument;
         this.period = period;
         this.listeners = new ArrayList<>();
-        this.tickGenerator = new TickGenerator(spread, instrument, period, seed);
+        this.tickGenerator = new TickGenerator(broker, spread, instrument, period, seed);
         this.from = from;
         this.to = to;
     }
 
     // Overload the constructor to allow creation without a seed for tick generation
-    public ExternalDataProvider(ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
-        this(dataClient, instrument, spread, period, from, to, System.currentTimeMillis());
+    public ExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
+        this(broker, dataClient, instrument, spread, period, from, to, System.currentTimeMillis());
     }
 
     @Override

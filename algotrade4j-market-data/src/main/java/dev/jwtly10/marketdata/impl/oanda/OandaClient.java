@@ -2,6 +2,7 @@ package dev.jwtly10.marketdata.impl.oanda;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.exception.DataProviderException;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.marketdata.impl.oanda.models.OandaOrder;
 import dev.jwtly10.marketdata.impl.oanda.models.TradeStateFilter;
@@ -73,7 +74,7 @@ public class OandaClient {
                 to.withZoneSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
 
-        String endpoint = String.format("/v3/instruments/%s/candles", instrument.getOandaSymbol());
+        String endpoint = String.format("/v3/instruments/%s/candles", instrument.getBrokerConfig(Broker.OANDA).getSymbol());
         String url = apiUrl + endpoint;
 
         DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
@@ -265,7 +266,7 @@ public class OandaClient {
             queryParams.add("state=" + state.name());
         }
         if (instrument != null) {
-            queryParams.add("instrument=" + instrument.getOandaSymbol());
+            queryParams.add("instrument=" + instrument.getBrokerConfig(Broker.OANDA).getSymbol());
         }
         if (count != null) {
             queryParams.add("count=" + count);
