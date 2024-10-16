@@ -33,6 +33,11 @@ public enum Instrument {
         throw new IllegalArgumentException("No Instrument found for Oanda symbol: " + oandaSymbol);
     }
 
+    public static Instrument fromMt5Symbol(String oandaSymbol) {
+        // TODO: This needs to be supported
+        return fromOandaSymbol("NAS100_USD");
+    }
+
     public static InstrumentData[] getAllInstrumentData() {
         return java.util.Arrays.stream(values())
                 .map(Instrument::getInstrumentData)

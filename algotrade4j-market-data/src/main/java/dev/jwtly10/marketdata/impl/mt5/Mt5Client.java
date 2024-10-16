@@ -19,16 +19,18 @@ public class Mt5Client {
     private final ObjectMapper objectMapper;
     private final OkHttpClient client;
 
+    private final static String API_KEY_HEADER = "x-api-key";
+
     public Mt5Client(String apiKey, String apiUrl, OkHttpClient client, ObjectMapper objectMapper) {
         this.apiKey = apiKey;
-        this.apiUrl = apiUrl;
+        this.apiUrl = apiUrl + "/api/v1";
         this.objectMapper = objectMapper;
         this.client = client;
     }
 
     public Mt5Client(String apiKey, String apiUrl, ObjectMapper objectMapper) {
         this.apiKey = apiKey;
-        this.apiUrl = apiUrl;
+        this.apiUrl = apiUrl + "/api/v1";
         this.objectMapper = objectMapper;
         this.client = new OkHttpClient();
     }
@@ -43,9 +45,9 @@ public class Mt5Client {
      * @param path      the path to the mt5 terminal64.exe
      * @throws Exception if the account cannot be initialised
      */
-    public void initialiseAccount(int accountId, String password, String server, String path) throws Exception {
-        log.info("Initialising MT5 account: {}", accountId);
-        String url = String.format("%s/initialise", apiUrl);
+    public void initializeAccount(int accountId, String password, String server, String path) throws Exception {
+        log.info("Initializing MT5 account: {}", accountId);
+        String url = String.format("%s/initialize", apiUrl);
 
         Mt5Login login = new Mt5Login(accountId, password, server, path);
 
@@ -56,7 +58,7 @@ public class Mt5Client {
 
         Request req = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader(API_KEY_HEADER, apiKey)
                 .post(reqBody)
                 .build();
 
@@ -86,7 +88,7 @@ public class Mt5Client {
 
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader(API_KEY_HEADER, apiKey)
                 .get()
                 .build();
 
@@ -115,7 +117,7 @@ public class Mt5Client {
 
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader(API_KEY_HEADER, apiKey)
                 .get()
                 .build();
 
@@ -148,7 +150,7 @@ public class Mt5Client {
 
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader(API_KEY_HEADER, apiKey)
                 .post(reqBody)
                 .build();
 
@@ -177,7 +179,7 @@ public class Mt5Client {
 
         Request request = new Request.Builder()
                 .url(url)
-                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader(API_KEY_HEADER, apiKey)
                 .post(RequestBody.create("", okhttp3.MediaType.parse("application/json")))
                 .build();
 

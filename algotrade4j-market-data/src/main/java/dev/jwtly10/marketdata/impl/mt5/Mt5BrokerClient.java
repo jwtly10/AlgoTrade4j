@@ -73,10 +73,7 @@ public class Mt5BrokerClient implements BrokerClient {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
         Mt5Trade res = client.openTrade(accountId, tradeParameters);
-
-        throw new RuntimeException("TODO");
-//        return new Trade(
-//        )
+        return res.toTrade();
     }
 
     @Override
@@ -92,6 +89,10 @@ public class Mt5BrokerClient implements BrokerClient {
     public Stream<?> streamPrices(List<Instrument> instruments) {
         if (accountId == null) {
             throw new RuntimeException("Account ID not set. Cannot stream prices.");
+        }
+
+        if (oandaClient == null) {
+            throw new RuntimeException("Oanda client not set. Cannot stream prices.");
         }
         log.info("Starting price stream for accountId: {}", accountId);
         return oandaClient.streamPrices(defaultOandaAccountId, instruments);
