@@ -394,7 +394,7 @@ const LiveStrategyView = ({user}) => {
                                                     <div className="gap-x-4 gap-y-2 text-sm">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-muted-foreground">
-                                                                Trade Account:
+                                                                Account:
                                                             </span>
                                                             <span className="font-medium">
                                                                 ({strategy.brokerAccount.brokerType}) {strategy.brokerAccount.brokerName}
