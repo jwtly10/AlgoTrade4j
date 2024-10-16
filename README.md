@@ -28,7 +28,13 @@ https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 - Advanced optimization tools for efficient backtesting
 - Robust authentication and authorization system
 - Separate live service for live trading, supporting independent scaling
-- Python SDK for data access for quick prototyping and analysis
+- External integrations to make development easier and abstract MetaTrader internals.
+
+## Currently Supported Integrations
+
+- Oanda via REST API
+- MT5 via [custom REST Adapter API](https://github.com/jwtly10/algotrade4j_mt5)
+- Python SDK for market data for quick prototyping and analysis
 
 ## Architecture
 
@@ -39,6 +45,11 @@ The framework consists of 5 main components:
 3. live-api Module: A Spring service for live trading, and other broker related operations
 4. market-data Module: Manages the integration with external market data providers.
 5. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
+
+And there a few external custom add-ons:
+
+- [Algotrade4j_mt5](https://github.com/jwtly10/algotrade4j_mt5) - Broker adapter for MT5
+- [Algotrade4j_py](https://github.com/jwtly10/algotrade4j_py) - SDK for market data, direct support for [backtesting.py](https://github.com/kernc/backtesting.py)
 
 This is a high-level overview of the framework and how it handles strategies:
 
@@ -143,7 +154,7 @@ cd ./algotrade4j-frontend
 npm run dev
 ```
 
-Supported environment vars can be found here: ./algotrade4j-frontend/.env
+Supported environment vars can be found here: ./algotrade4j-frontend/.env-example
 
 The frontend application should be running at localhost:5173, with the main-api running on localhost:8080 and live-api running on localhost:8081.
 

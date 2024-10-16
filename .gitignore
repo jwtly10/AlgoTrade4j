@@ -45,3 +45,4 @@ heapdump*
 # Custom libraries (agent, etc)
 lib/
 site/
+.env
