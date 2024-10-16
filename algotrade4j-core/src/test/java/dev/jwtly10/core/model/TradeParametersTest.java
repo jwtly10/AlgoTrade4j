@@ -13,6 +13,8 @@ class TradeParametersTest {
     private TradeParameters tradeParameters;
     private Instrument instrument;
 
+    private final Broker TEST_BROKER = Broker.OANDA;
+
     @BeforeEach
     void setUp() {
         tradeParameters = new TradeParameters();
@@ -49,7 +51,7 @@ class TradeParametersTest {
         tradeParameters.setOpenTime(ZonedDateTime.now());
         tradeParameters.setLong(true);
 
-        Trade trade = tradeParameters.createTrade();
+        Trade trade = tradeParameters.createTrade(TEST_BROKER);
 
         assertNotNull(trade);
         assertEquals(1000, trade.getQuantity());
@@ -70,7 +72,7 @@ class TradeParametersTest {
         tradeParameters.setLong(true);
         tradeParameters.setOpenTime(ZonedDateTime.now());
 
-        Trade trade = tradeParameters.createTrade();
+        Trade trade = tradeParameters.createTrade(TEST_BROKER);
 
         assertNotNull(trade);
         assertEquals(1000, trade.getQuantity()); // 10000 * 0.01 / (1.0 - 0.9) = 1000
@@ -91,7 +93,7 @@ class TradeParametersTest {
         tradeParameters.setLong(false);
         tradeParameters.setOpenTime(ZonedDateTime.now());
 
-        Trade trade = tradeParameters.createTrade();
+        Trade trade = tradeParameters.createTrade(TEST_BROKER);
 
         assertNotNull(trade);
         assertEquals(1000, trade.getQuantity()); // 10000 * 0.01 / (1.1 - 1.0) = 1000
@@ -110,7 +112,7 @@ class TradeParametersTest {
         tradeParameters.setQuantity(-1000);
         tradeParameters.setOpenTime(ZonedDateTime.now());
 
-        assertThrows(InvalidTradeException.class, () -> tradeParameters.createTrade());
+        assertThrows(InvalidTradeException.class, () -> tradeParameters.createTrade(TEST_BROKER));
     }
 
     @Test
@@ -124,6 +126,6 @@ class TradeParametersTest {
         tradeParameters.setLong(true);
         tradeParameters.setOpenTime(ZonedDateTime.now());
 
-        assertThrows(InvalidTradeException.class, () -> tradeParameters.createTrade());
+        assertThrows(InvalidTradeException.class, () -> tradeParameters.createTrade(TEST_BROKER));
     }
 }

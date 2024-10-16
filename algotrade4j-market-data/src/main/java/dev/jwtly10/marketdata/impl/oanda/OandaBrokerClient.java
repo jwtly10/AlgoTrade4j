@@ -105,7 +105,7 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public Trade openTrade(TradeParameters tradeParameters) throws Exception {
-        return openTrade(tradeParameters.createTrade());
+        return openTrade(tradeParameters.createTrade(OANDA));
     }
 
     @Override

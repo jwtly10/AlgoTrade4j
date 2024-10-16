@@ -10,6 +10,7 @@ public class InstrumentConfig {
     private final int decimalPlaces;
     private final double minimumMove;
     private final double pipValue;
-    // private final minimumQuantity
+    private final int quantityPrecision; // The maximum number of decimal places for the quantity
+    //     private final minimumQuantity
     private final boolean isForex;
 }

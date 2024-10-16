@@ -99,7 +99,7 @@ public class BacktestTradeManager implements TradeManager {
 
         log.trace("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
-        Trade trade = params.createTrade();
+        Trade trade = params.createTrade(getBroker());
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
         allTrades.put(trade.getId(), trade);

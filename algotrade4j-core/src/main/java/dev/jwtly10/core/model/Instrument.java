@@ -12,6 +12,9 @@ import static dev.jwtly10.core.model.Broker.OANDA;
 /**
  * Instruments is an enum class to consolidate instruments in the system.
  * This should be extended to support new clients and their mappings of instruments, and other instrument data
+ * <p>
+ * Here is the source of truth for symbols supported by the platform. We define broker implementations here
+ * along with any metadata required during the execution of trades
  */
 @Getter
 public enum Instrument {
@@ -19,6 +22,7 @@ public enum Instrument {
         put(OANDA, InstrumentConfig.builder()
                 .symbol("NAS100_USD")
                 .decimalPlaces(1)
+                .quantityPrecision(1)
                 .minimumMove(0.1)
                 .pipValue(0.1)
                 .isForex(false)
@@ -27,6 +31,7 @@ public enum Instrument {
                 .symbol("US100.cash")
                 .decimalPlaces(1)
                 .minimumMove(0.1)
+                .quantityPrecision(2)
                 .isForex(false)
                 .pipValue(0.1)
                 .build());
@@ -36,6 +41,7 @@ public enum Instrument {
                 .symbol("EUR_USD")
                 .decimalPlaces(5)
                 .minimumMove(0.00001)
+                .quantityPrecision(1)
                 .pipValue(0.00001)
                 .isForex(true)
                 .build());
@@ -43,6 +49,7 @@ public enum Instrument {
                 .symbol("EURUSD")
                 .decimalPlaces(5)
                 .minimumMove(0.00001)
+                .quantityPrecision(2)
                 .pipValue(0.00001)
                 .isForex(true)
                 .build());
@@ -52,6 +59,7 @@ public enum Instrument {
                 .symbol("GBP_USD")
                 .decimalPlaces(5)
                 .minimumMove(0.00001)
+                .quantityPrecision(1)
                 .pipValue(0.00001)
                 .isForex(true)
                 .build());
@@ -59,6 +67,8 @@ public enum Instrument {
                 .symbol("GBPUSD")
                 .decimalPlaces(5)
                 .minimumMove(0.00001)
+                .quantityPrecision(2)
+                .pipValue(0.00001)
                 .isForex(true)
                 .build());
     }});
