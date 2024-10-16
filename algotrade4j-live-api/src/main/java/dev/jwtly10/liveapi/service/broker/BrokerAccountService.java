@@ -2,6 +2,7 @@ package dev.jwtly10.liveapi.service.broker;
 
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import dev.jwtly10.liveapi.model.broker.Timezone;
+import dev.jwtly10.liveapi.model.dto.TimezoneDTO;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BrokerAccountService {
@@ -36,8 +39,10 @@ public class BrokerAccountService {
         return List.of(Broker.values());
     }
 
-    public List<Timezone> getTimezones() {
-        return List.of(Timezone.values());
+    public List<TimezoneDTO> getTimezones() {
+        return Stream.of(Timezone.values())
+                .map(tz -> new TimezoneDTO(tz.name(), tz.getZoneId()))
+                .collect(Collectors.toList());
     }
 
     public void validateAccountId(String accountId) {

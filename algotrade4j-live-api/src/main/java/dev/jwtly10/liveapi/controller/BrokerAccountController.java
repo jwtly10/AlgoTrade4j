@@ -1,7 +1,7 @@
 package dev.jwtly10.liveapi.controller;
 
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
-import dev.jwtly10.liveapi.model.broker.Timezone;
+import dev.jwtly10.liveapi.model.dto.TimezoneDTO;
 import dev.jwtly10.liveapi.service.broker.BrokerAccountService;
 import dev.jwtly10.marketdata.common.Broker;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +39,7 @@ public class BrokerAccountController {
     }
 
     @GetMapping("/timezones")
-    public ResponseEntity<List<Timezone>> getTimezones() {
+    public ResponseEntity<List<TimezoneDTO>> getTimezones() {
         return ResponseEntity.ok().body(brokerAccountService.getTimezones());
     }
 

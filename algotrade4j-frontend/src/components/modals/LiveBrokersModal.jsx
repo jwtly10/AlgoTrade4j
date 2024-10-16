@@ -43,6 +43,14 @@ const LiveBrokerModal = ({open, onClose}) => {
         }
     }, [open]);
 
+    const getCurrentTimeByZone = (zoneId) => {
+        return new Date().toLocaleTimeString('en-US', {timeZone: zoneId, timeStyle: 'short'});
+    };
+
+    const findTimezoneByCode = (code) => {
+        return timezones.find(tz => tz.name === code);
+    };
+
     const isFormValid = (account) => {
 
         const base = account.brokerName && account.brokerType && account.initialBalance && account.accountId
@@ -107,7 +115,10 @@ const LiveBrokerModal = ({open, onClose}) => {
 
     const handleMt5InputChange = (field, value) => {
         if (mode === 'edit') {
-            console.log({field, value})
+            if (field === "timezone") {
+                value = value.name
+            }
+
             setEditingAccount({
                 ...editingAccount,
                 mt5Credentials: {
@@ -355,16 +366,16 @@ const LiveBrokerModal = ({open, onClose}) => {
                             <div className="space-y-2">
                                 <Label htmlFor="mt5Timezone">MT5 Timezone</Label>
                                 <Select
-                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.timezone : newAccount.mt5Credentials?.timezone}
+                                    value={mode === 'edit' ? findTimezoneByCode(editingAccount?.mt5Credentials?.timezone) : findTimezoneByCode(newAccount?.mt5Credentials?.timezone)}
                                     onValueChange={(value) => handleMt5InputChange('timezone', value)}
                                 >
                                     <SelectTrigger id="mt5Timezone">
                                         <SelectValue placeholder="Select timezone"/>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {timezones.map((tz) => (
-                                            <SelectItem key={tz} value={tz}>
-                                                {tz}
+                                        {timezones.map((tz, index) => (
+                                            <SelectItem key={index} value={tz}>
+                                                {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
