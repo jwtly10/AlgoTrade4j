@@ -1,13 +1,16 @@
 package dev.jwtly10.marketdata.impl.mt5;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.account.Account;
-import dev.jwtly10.core.model.Broker;
-import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +21,8 @@ class Mt5BrokerClientIntegrationTest {
 
     private Mt5BrokerClient client;
     private Mt5Client mt5;
+
+    private Broker TEST_BROKER = Broker.MT5_FTMO;
 
     private String accountId;
     private String password;
@@ -33,8 +38,7 @@ class Mt5BrokerClientIntegrationTest {
         assertNotNull(accountId, "TEST_MT5_ACCOUNT_ID environment variable not set");
         assertNotNull(password, "TEST_MT5_ACCOUNT_PASSWORD environment variable not set");
 
-
-        ObjectMapper objMapper = new ObjectMapper();
+        ObjectMapper objMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         mt5 = new Mt5Client(apiKey, apiUrl, objMapper);
 
         // Oanda logic is outside scope of this test
@@ -67,16 +71,43 @@ class Mt5BrokerClientIntegrationTest {
     }
 
     @Test
-    void testOpenTrade() {
-        // TODO
+    void testOpenTrade() throws Exception {
+        final Instrument SYMBOL = Instrument.NAS100USD;
+        TradeParameters params = new TradeParameters();
+        params.setInstrument(SYMBOL);
+        // This number should be the 'current' price on the mt5 charts
+        Number price = new Number(20264);
+        params.setEntryPrice(price);
+        int stopLossTicks = 300;
+        boolean isLong = false;
+        params.setLong(isLong);
+        Number pipValue = new Number(stopLossTicks * SYMBOL.getBrokerConfig(TEST_BROKER).getPipValue());
+        Number stopLossPrice = isLong ? price.subtract(pipValue) : price.add(pipValue);
+        params.setStopLoss(stopLossPrice);
+        double riskRatio = 2;
+        params.setRiskRatio(riskRatio);
+        Number takeProfitPrice = isLong ? price.add(pipValue.multiply(BigDecimal.valueOf(riskRatio))) : price.subtract(pipValue.multiply(BigDecimal.valueOf(riskRatio)));
+        params.setTakeProfit(takeProfitPrice);
+        double riskPercentage = 0.01;
+        params.setRiskPercentage(riskPercentage);
+        double balanceToRisk = 10_000.0;
+        params.setBalanceToRisk(balanceToRisk);
+        params.setOpenTime(ZonedDateTime.now());
+
+
+        Trade res = client.openTrade(params);
+        System.out.println(res);
     }
 
     @Test
-    void testCloseTrade() {
-        // TODO
+    void testCloseTrade() throws Exception {
+        int openTradeId = 183797372;
+
+        client.closeTrade(openTradeId);
     }
 
     @Test
     void testStreamTransactions() {
     }
+
 }

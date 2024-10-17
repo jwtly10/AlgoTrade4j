@@ -1,5 +1,6 @@
 package dev.jwtly10.core.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.jwtly10.core.exception.InvalidTradeException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class TradeParameters {
     /**
      * A specific flag indicating if the trade is long.
      */
+    @JsonProperty("isLong")
     private boolean isLong;
 
     /**

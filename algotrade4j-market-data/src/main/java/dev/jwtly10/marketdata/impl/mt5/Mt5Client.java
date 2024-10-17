@@ -1,9 +1,9 @@
 package dev.jwtly10.marketdata.impl.mt5;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.jwtly10.core.model.TradeParameters;
 import dev.jwtly10.marketdata.impl.mt5.models.Mt5Login;
 import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
+import dev.jwtly10.marketdata.impl.mt5.request.Mt5TradeRequest;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5AccountResponse;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5TradesResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -135,17 +135,17 @@ public class Mt5Client {
     /**
      * Open a trade for the given account
      *
-     * @param accountId   the account id of the mt5 terminal
-     * @param tradeParams the trade parameters for the trade
+     * @param accountId the account id of the mt5 terminal
+     * @param tradeReq  the trade parameters for the trade
      * @return the opened trade
      */
-    public Mt5Trade openTrade(String accountId, TradeParameters tradeParams) throws Exception {
+    public Mt5Trade openTrade(String accountId, Mt5TradeRequest tradeReq) throws Exception {
         log.trace("Opening trade for account: {}", accountId);
 
         String url = String.format("%s/trades/open/%s", apiUrl, accountId);
 
-        String body = objectMapper.writeValueAsString(tradeParams);
-        log.trace("Request JSON: {}", body);
+        String body = objectMapper.writeValueAsString(tradeReq);
+        log.info("Request JSON: {}", body);
         RequestBody reqBody = RequestBody.create(body, okhttp3.MediaType.parse("application/json"));
 
         Request request = new Request.Builder()
@@ -189,6 +189,8 @@ public class Mt5Client {
                 log.error("Failed to close trade. Response code: {}, Response Body: {}", response.code(), responseBody);
                 throw new RuntimeException("Failed to close trade: " + responseBody);
             }
+
+            log.debug("MT5 Close trade response: {}", responseBody);
 
             return objectMapper.readValue(responseBody, Mt5Trade.class);
         }

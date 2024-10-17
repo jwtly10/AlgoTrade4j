@@ -6,6 +6,7 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.stream.Stream;
 import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
+import dev.jwtly10.marketdata.impl.mt5.request.Mt5TradeRequest;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5AccountResponse;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5TradesResponse;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
@@ -81,7 +82,19 @@ public class Mt5BrokerClient implements BrokerClient {
         if (accountId == null) {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
-        Mt5Trade res = client.openTrade(accountId, tradeParameters);
+        Mt5Trade res = client.openTrade(accountId, new Mt5TradeRequest(
+                tradeParameters.getInstrument().getBrokerConfig(BROKER).getSymbol(),
+                tradeParameters.getQuantity(),
+                tradeParameters.getEntryPrice(),
+                tradeParameters.getStopLoss(),
+                tradeParameters.getTakeProfit(),
+                tradeParameters.getRiskPercentage(),
+                tradeParameters.getRiskRatio(),
+                tradeParameters.getBalanceToRisk(),
+                tradeParameters.isLong(),
+                tradeParameters.getOpenTime().toEpochSecond()
+        ));
+
         return res.toTrade(BROKER);
     }
 
