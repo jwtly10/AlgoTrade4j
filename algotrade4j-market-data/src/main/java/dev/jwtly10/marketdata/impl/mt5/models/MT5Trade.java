@@ -6,9 +6,8 @@ import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 // TODO: we should support passing the timezone for more accurate time conversions....
 public record MT5Trade(
@@ -29,11 +28,15 @@ public record MT5Trade(
 ) {
 
     public Trade toTrade(Broker broker, ZoneId brokerZoneId) {
+        // I HATE TIMEZONES
+        // This is a hack to get the broker's timezone offset, so we can properly convert the trade times to UTC
+        LocalDateTime brokerEpochStart = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
+
         Trade trade = new Trade(
                 positionId,
                 Instrument.fromBrokerSymbol(broker, symbol),
                 Math.abs(totalVolume),
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(openOrderTime), brokerZoneId),
+                brokerEpochStart.plusSeconds((long) openOrderTime).atZone(brokerZoneId),
                 new Number(openOrderPrice),
                 new Number(stopLoss),
                 new Number(takeProfit),
@@ -43,7 +46,9 @@ public record MT5Trade(
 
         if (!isOpen) {
             trade.setClosePrice(new Number(closeOrderPrice));
-            trade.setCloseTime(ZonedDateTime.ofInstant(Instant.ofEpochSecond(closeOrderTime), ZoneId.systemDefault()));
+            trade.setCloseTime(
+                    brokerEpochStart.plusSeconds((long) closeOrderTime).atZone(brokerZoneId)
+            );
         }
 
         return trade;
