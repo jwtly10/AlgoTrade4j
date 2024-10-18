@@ -62,10 +62,10 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
                     try {
                         tickGenerator.generateTicks(bar, dataSpeed, BacktestExternalDataProvider.this::notifyListeners);
                     } catch (RiskException e) {
-                        log.warn("Stopped data provider due to Risk Exception");
+                        log.warn("Stopped data provider due to Risk Exception: {}", e.getMessage());
                         return false;
                     } catch (Exception e) {
-                        log.warn("Stopping data provider due to Unhandled error: ", e);
+                        log.warn("Stopping data provider due to unhandled error: {}", e.getMessage(), e);
                         return false;
                     }
                     return true;
@@ -73,7 +73,7 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
 
                 @Override
                 public void onError(Exception e) {
-                    log.error("Error fetching data", e);
+                    log.error("Error fetching data: {}", e.getMessage(), e);
                     BacktestExternalDataProvider.this.stop(String.format("Error fetching data: %s", e.getMessage()));
                     for (DataProviderListener listener : listeners) {
                         listener.onError(new DataProviderException(e.getMessage(), e));
@@ -87,7 +87,7 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
                 }
             });
         } catch (Exception e) {
-            log.error("Error processing data", e);
+            log.error("Error processing data: {}", e.getMessage(), e);
             throw new DataProviderException("Unexpected error processing data. Stopping data feed.", e);
         } finally {
             if (isRunning) {

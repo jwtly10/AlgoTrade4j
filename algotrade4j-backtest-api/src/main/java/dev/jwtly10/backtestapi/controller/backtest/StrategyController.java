@@ -113,7 +113,7 @@ public class StrategyController {
         try {
             backtestStrategyManager.startStrategy(config, strategyId);
         } catch (Exception e) {
-            log.error("Error starting strategy: ", e);
+            log.error("Error starting strategy: {}", e.getMessage(), e);
             throw new StrategyManagerException("Error starting strategy: " + e, ErrorType.INTERNAL_ERROR);
         }
         log.info("Strategy: {} initialised and starting", strategyId);

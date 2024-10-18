@@ -68,7 +68,7 @@ public class LiveStrategyService {
             } catch (Exception e) {
                 // If we fail here, it's hard to recover, the user needs to regenerate the strategy
                 // But this error should be picked up by the validation job in live strategy @PostConstruct logic
-                log.error("Error getting strategy instance", e);
+                log.error("Error getting strategy instance: {}", e.getMessage(), e);
                 continue;
             }
 
@@ -78,7 +78,7 @@ public class LiveStrategyService {
             } catch (Exception ex) {
                 //  We can't recover if validation of the parameters fails outright - as we have already validated configuration on init & save
                 // So we just continue, and let the user re-create the strategy, if they want to update it
-                log.warn("Error initializing strategy parameters", ex.getMessage());
+                log.warn("Error initializing strategy parameters: {}", ex.getMessage());
                 continue;
             }
 
@@ -187,7 +187,7 @@ public class LiveStrategyService {
         try {
             strategy.getConfig().validate();
         } catch (Exception e) {
-            log.error("Invalid live strategy configuration", e);
+            log.error("Invalid live strategy configuration: {}", e.getMessage(), e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 
@@ -270,7 +270,7 @@ public class LiveStrategyService {
         try {
             strategySetup.getConfig().validate();
         } catch (Exception e) {
-            log.error("Invalid live strategy configuration", e);
+            log.error("Invalid live strategy configuration: {}", e.getMessage(), e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 

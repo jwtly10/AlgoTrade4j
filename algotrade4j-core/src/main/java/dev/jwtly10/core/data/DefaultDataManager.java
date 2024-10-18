@@ -75,7 +75,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         try {
             dataProvider.start();
         } catch (DataProviderException e) {
-            log.error("Error starting data provider", e);
+            log.error("Error starting data provider: {}", e.getMessage(), e);
             running = false;
             startTime = null;
             eventPublisher.publishErrorEvent(runId, e);

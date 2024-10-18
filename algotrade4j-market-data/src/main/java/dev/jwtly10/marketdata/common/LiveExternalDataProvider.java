@@ -112,7 +112,7 @@ public class LiveExternalDataProvider implements DataProvider {
             log.trace("Received stream tick: {}", tick);
             notifyListeners((DefaultTick) tick);
         } catch (Exception e) {
-            log.error("Error processing price response", e);
+            log.error("Error processing price response: {}", e.getMessage(), e);
         }
     }
 

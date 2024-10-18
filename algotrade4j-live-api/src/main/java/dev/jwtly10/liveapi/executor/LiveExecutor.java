@@ -117,7 +117,7 @@ public class LiveExecutor implements DataListener {
 
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
-            log.error("Error processing tick data", e);
+            log.error("Error processing tick data: {}", e.getMessage(), e);
             throw new LiveExecutorException(strategyId, "Error processing tick data", e);
         }
     }

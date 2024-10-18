@@ -333,7 +333,7 @@ public abstract class BaseStrategy implements Strategy {
             ParameterHandler.initialize(this);
         } catch (IllegalAccessException e) {
             // TODO: Make this better - we should stop this and send event
-            log.error("Error initializing strategy parameters", e);
+            log.error("Error initializing strategy parameters: {}", e.getMessage(), e);
             throw new RuntimeException("Error initializing strategy parameters", e);
         }
         initIndicators();

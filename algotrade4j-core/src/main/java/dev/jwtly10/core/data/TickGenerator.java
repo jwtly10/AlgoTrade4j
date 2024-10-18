@@ -101,7 +101,7 @@ public class TickGenerator {
                 try {
                     Thread.sleep(delayPerTick);
                 } catch (InterruptedException e) {
-                    log.error("Error sleeping during tick generation", e);
+                    log.error("Error sleeping during tick generation: {}", e.getMessage(), e);
                 }
             }
 

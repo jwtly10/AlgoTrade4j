@@ -39,7 +39,7 @@ public class MT5BrokerClient implements BrokerClient {
         try {
             client.initializeAccount(loginDetails.accountId(), loginDetails.password(), loginDetails.server(), loginDetails.path());
         } catch (Exception e) {
-            log.error("Error fetching account info", e);
+            log.error("Error fetching account info: {}", e.getMessage(), e);
             throw new RuntimeException("Error initialising MT5 Account: " + e.getMessage());
         }
     }

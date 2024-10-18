@@ -64,7 +64,7 @@ public class BacktestStrategyManager {
         try {
             config.validate();
         } catch (Exception e) {
-            log.error("Error validating strategy config", e);
+            log.error("Error validating strategy config: {}", e.getMessage(), e);
             throw new StrategyManagerException("Error validating strategy config: " + e, ErrorType.BAD_REQUEST);
         }
 
@@ -131,7 +131,7 @@ public class BacktestStrategyManager {
             try {
                 dataManager.start();
             } catch (Exception e) {
-                log.error("Error running strategy", e);
+                log.error("Error running strategy: {}", e.getMessage(), e);
                 runningStrategies.remove(finalStrategy.getStrategyId());
                 eventPublisher.publishErrorEvent(finalStrategy.getStrategyId(), e);
             } finally {

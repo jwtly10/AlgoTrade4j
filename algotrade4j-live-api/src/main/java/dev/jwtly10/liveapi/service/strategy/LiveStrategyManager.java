@@ -100,7 +100,7 @@ public class LiveStrategyManager {
             try {
                 startStrategy(strategy);
             } catch (Exception e) {
-                log.error("Error starting strategy", e);
+                log.error("Error starting strategy: {}", e.getMessage(), e);
                 liveStrategyService.setErrorMessage(strategy, e.getMessage());
                 liveStrategyService.deactivateStrategy(strategy.getStrategyName());
             }
@@ -128,7 +128,7 @@ public class LiveStrategyManager {
             executor = createExecutor(strategy);
         } catch (Exception e) {
             // If we cannot create the executor, we should notify the user and stop the strategy
-            log.error("Error creating executor", e);
+            log.error("Error creating executor: {}", e.getMessage(), e);
             telegramNotifier.sendSysErrorNotification(String.format("Could not initialise Live Strategy '%s':", strategy.getStrategyName()), e, true);
             // Rethrow the exception to stop the strategy from starting
             throw e;
@@ -142,7 +142,7 @@ public class LiveStrategyManager {
             try {
                 executor.getDataManager().start();
             } catch (Exception e) {
-                log.error("Error running strategy", e);
+                log.error("Error running strategy: {}", e.getMessage(), e);
                 liveExecutorRepository.removeStrategy(strategy.getStrategyName());
                 eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
                 // Here we can notify the user that the strategy has stopped
@@ -166,7 +166,7 @@ public class LiveStrategyManager {
                 try {
                     executor.getDataManager().stop("Strategy stopped via controller");
                 } catch (Exception e) {
-                    log.error("Error stopping strategy", e);
+                    log.error("Error stopping strategy: {}", e.getMessage(), e);
                     log.warn("Attempting to force stop strategy: {}", strategyName);
                     executor.onStop(String.format("Error stopping via DataManager for strategy: %s", e.getMessage()));
                 }
@@ -176,7 +176,7 @@ public class LiveStrategyManager {
         } catch (Exception e) {
             // We have made some assumptions in the system that strategies shouldn't fail to stop
             // If this happens, some logic will need to be refactored
-            log.error("Error stopping strategy - THIS SHOULD NOT HAPPEN!", e);
+            log.error("Error stopping strategy - THIS SHOULD NOT HAPPEN!: {}", e.getMessage(), e);
         }
     }
 

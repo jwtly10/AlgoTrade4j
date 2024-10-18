@@ -67,7 +67,7 @@ public class OandaDataClient implements ExternalDataClient {
 
             callback.onComplete();
         } catch (Exception e) {
-            log.error("Failure while fetching candles and notifying systems. Stopping.", e);
+            log.error("Failure while fetching candles and notifying systems. Stopping: {}", e.getMessage(), e);
             callback.onError(e);
         }
     }

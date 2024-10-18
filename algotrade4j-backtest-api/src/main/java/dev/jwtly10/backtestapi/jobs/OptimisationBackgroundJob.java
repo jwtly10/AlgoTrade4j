@@ -88,7 +88,7 @@ public class OptimisationBackgroundJob {
                 taskSemaphore.release();  // Release if no task was processed
             }
         } catch (Exception e) {
-            log.error("Error processing optimisation task", e);
+            log.error("Error processing optimisation task: {}", e.getMessage(), e);
             taskSemaphore.release();  // Ensure semaphore is released on error
         }
     }
