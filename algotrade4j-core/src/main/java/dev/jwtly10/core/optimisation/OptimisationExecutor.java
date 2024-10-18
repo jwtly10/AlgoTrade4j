@@ -204,7 +204,7 @@ public class OptimisationExecutor {
         }
 
         // Clean up
-        dataManager.stop();
+        dataManager.stop("End of optimisation");
         for (BacktestExecutor executor : batchExecutors) {
             dataManager.removeDataListener(executor);
         }

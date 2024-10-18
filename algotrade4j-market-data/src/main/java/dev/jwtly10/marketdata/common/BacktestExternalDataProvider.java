@@ -74,7 +74,7 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
                 @Override
                 public void onError(Exception e) {
                     log.error("Error fetching data", e);
-                    BacktestExternalDataProvider.this.stop();
+                    BacktestExternalDataProvider.this.stop(String.format("Error fetching data: %s", e.getMessage()));
                     for (DataProviderListener listener : listeners) {
                         listener.onError(new DataProviderException(e.getMessage(), e));
                     }
@@ -83,7 +83,7 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
                 @Override
                 public void onComplete() {
                     log.debug("Data feed complete");
-                    BacktestExternalDataProvider.this.stop();
+                    BacktestExternalDataProvider.this.stop("Data feed complete");
                 }
             });
         } catch (Exception e) {
@@ -92,20 +92,20 @@ public class BacktestExternalDataProvider implements DataProvider, TickGenerator
         } finally {
             if (isRunning) {
                 log.debug("Data feed stopped");
-                stop();
+                stop("Data feed stopped");
             }
         }
     }
 
     @Override
-    public void stop() {
+    public void stop(String reason) {
         if (!isRunning) return;
 
-        log.debug("Stopping External data provider");
+        log.debug("Stopping External data provider: {}", reason);
         isRunning = false;
 
         for (DataProviderListener listener : listeners) {
-            listener.onStop();
+            listener.onStop(reason);
         }
     }
 

@@ -96,7 +96,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
                         log.debug("Stream was stopped internally, closing stream");
                     } else {
-                        log.error("Error processing stream.", e);
+                        log.error("Error processing stream: {}", e.getMessage(), e);
                     }
                     scheduleRetry(callback, retryCount, backoffMs);
                 } finally {
@@ -136,7 +136,6 @@ public abstract class RetryableStream<T> implements Stream<T> {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                log.info("Retrying stream connection for class: {}", getClass().getSimpleName());
                 retryWithBackoff(callback, retryCount + 1, nextBackoffMs);
             }
         }, backoffMs);

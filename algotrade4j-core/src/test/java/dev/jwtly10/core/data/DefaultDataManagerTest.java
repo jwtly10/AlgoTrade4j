@@ -185,8 +185,8 @@ class DefaultDataManagerTest {
     @Test
     void testStopWhenNotRunning() {
         dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
-        dataManager.stop();
-        verify(mockDataProvider, never()).stop();
+        dataManager.stop("Testing");
+        verify(mockDataProvider, never()).stop("Testing");
     }
 
     @Test

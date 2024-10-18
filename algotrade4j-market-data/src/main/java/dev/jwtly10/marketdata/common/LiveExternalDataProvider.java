@@ -69,10 +69,10 @@ public class LiveExternalDataProvider implements DataProvider {
     }
 
     @Override
-    public void stop() {
+    public void stop(String reason) {
         if (!isRunning) return;
 
-        log.debug("Stopping Live data provider");
+        log.debug("Stopping Live data provider: {}", reason);
         isRunning = false;
 
         if (priceStream != null) {
@@ -80,7 +80,7 @@ public class LiveExternalDataProvider implements DataProvider {
         }
 
         for (DataProviderListener listener : listeners) {
-            listener.onStop();
+            listener.onStop(reason);
         }
     }
 
@@ -117,15 +117,15 @@ public class LiveExternalDataProvider implements DataProvider {
     }
 
     public void onPriceStreamError(Exception e) {
-        log.error("Error in price stream", e);
+        log.error("Error in price stream: {}. Triggering shutdown", e.getMessage(), e);
         for (DataProviderListener listener : listeners) {
             listener.onError(new DataProviderException(e.getMessage(), e));
         }
-        stop();
+        stop(String.format("Error in price stream: %s", e.getMessage()));
     }
 
     public void onPriceStreamComplete() {
         log.debug("Price stream complete");
-        stop();
+        stop("Price stream complete");
     }
 }

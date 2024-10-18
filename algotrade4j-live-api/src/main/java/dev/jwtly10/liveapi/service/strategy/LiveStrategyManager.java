@@ -164,11 +164,11 @@ public class LiveStrategyManager {
             if (executor != null) {
                 log.info("Stopping live strategy: {}", strategyName);
                 try {
-                    executor.getDataManager().stop();
+                    executor.getDataManager().stop("Strategy stopped via controller");
                 } catch (Exception e) {
                     log.error("Error stopping strategy", e);
                     log.warn("Attempting to force stop strategy: {}", strategyName);
-                    executor.onStop();
+                    executor.onStop(String.format("Error stopping via DataManager for strategy: %s", e.getMessage()));
                 }
             } else {
                 log.warn("Strategy {} is not running", strategyName);

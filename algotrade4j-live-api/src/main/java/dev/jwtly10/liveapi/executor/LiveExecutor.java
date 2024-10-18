@@ -153,12 +153,12 @@ public class LiveExecutor implements DataListener {
     }
 
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (!initialised) {
             log.error("Attempt to stop uninitialized LiveExecutor for strategy: {}", strategyId);
             return;
         }
-        cleanup();
+        cleanup(reason);
     }
 
     @Override
@@ -167,8 +167,9 @@ public class LiveExecutor implements DataListener {
         strategy.onTradeClose(trade);
     }
 
-    private void cleanup() {
-        log.debug("Cleaning up strategy");
+    private void cleanup(String reason) {
+        log.info("Strategy {} stopped with reason: '{}'.", strategyId, reason);
+        notifier.sendSysNotification(String.format("Live Strategy '%s' stopped with reason: '%s'", strategyId, reason), true);
         scheduler.shutdown();
 
         // Shutdown any processes in the trade manager

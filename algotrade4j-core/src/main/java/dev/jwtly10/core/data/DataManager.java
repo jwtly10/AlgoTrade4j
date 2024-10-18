@@ -24,8 +24,10 @@ public interface DataManager {
 
     /**
      * Stops the data manager.
+     *
+     * @param reason the reason for stopping the data manager
      */
-    void stop();
+    void stop(String reason);
 
     /**
      * Adds a data listener to receive data events.

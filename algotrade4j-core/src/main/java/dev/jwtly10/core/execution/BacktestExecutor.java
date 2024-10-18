@@ -133,16 +133,16 @@ public class BacktestExecutor implements DataListener {
     }
 
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (!initialised) {
             log.error("Attempt to stop uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        cleanup();
+        cleanup(reason);
     }
 
-    private void cleanup() {
-        log.info("Cleaning up strategy and closing any open trades");
+    private void cleanup(String reason) {
+        log.info("Cleaning up strategy and closing any open trades due to: '{}'.", reason);
         tradeManager.getOpenTrades().values().forEach(trade -> {
             try {
                 tradeManager.closePosition(trade.getId(), false);

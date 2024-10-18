@@ -158,7 +158,7 @@ public class BacktestStrategyManager {
 
         DataManager dataManager = executor.getDataManager();
         if (dataManager != null) {
-            dataManager.stop();
+            dataManager.stop("Strategy stopped internally");
             runningStrategies.remove(strategyId);
             return true;
         } else {

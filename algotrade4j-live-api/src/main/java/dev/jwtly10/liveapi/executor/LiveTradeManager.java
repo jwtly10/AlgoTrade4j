@@ -189,7 +189,7 @@ public class LiveTradeManager implements TradeManager {
     public void shutdown() {
         log.info("Shutting down transaction streams.");
         if (dataManager != null) {
-            dataManager.stop();
+            dataManager.stop("Trade manager shutdown");
         }
 
         if (transactionStream != null) {

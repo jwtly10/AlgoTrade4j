@@ -83,21 +83,21 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     }
 
     @Override
-    public void stop() {
+    public void stop(String reason) {
         if (!running) return;
 
         running = false;
 
         // Stop the provider if its running
         if (dataProvider.isRunning()) {
-            dataProvider.stop();
+            dataProvider.stop(reason);
         }
 
         Duration runningTime = Duration.between(startTime, Instant.now());
-        log.info("Data Manager stopped. Runtime: {}, ticks modelled: {}", formatDuration(runningTime), ticksModeled);
+        log.info("Data Manager stopped due to '{}'. Runtime: {}, ticks modelled: {}", reason, formatDuration(runningTime), ticksModeled);
 
         // Stop data listeners (AKA strategies)
-        notifyStop();
+        notifyStop(reason);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         if (listeners.isEmpty()) {
             // There are no more listeners here
             log.warn("No more listeners. Stopping data manager.");
-            stop();
+            stop("No more listeners");
             return;
         }
 
@@ -165,7 +165,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             if (isOptimising) {
                 notifyStopForStrategyId(e.getStrategyId());
             } else {
-                stop();
+                stop(String.format("Error during strategy run for strategy %s: %s", e.getStrategyId(), e.getMessage()));
             }
         }
     }
@@ -227,9 +227,9 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         }
     }
 
-    private void notifyStop() {
+    private void notifyStop(String reason) {
         for (DataListener listener : listeners) {
-            listener.onStop();
+            listener.onStop(reason);
         }
     }
 
@@ -266,12 +266,13 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
      * This should stop the data manager, and notify all listeners
      */
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (running) {
             log.debug("Data provider stopped. Stopping data manager");
             // When this stops, we trigger the close of the latest bar
-            closeCurrentBar();
-            stop();
+            // TODO. This can actually cause trades to trigger, 18th Oct - commenting it out for now
+//            closeCurrentBar();
+            stop(reason);
         }
     }
 
