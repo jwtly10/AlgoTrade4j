@@ -224,7 +224,7 @@ public class LiveStrategyService {
     }
 
     public void deleteStrategy(Long id) {
-        // We dont actually delete the strategy, we just deactivate it and set hidden
+        // We don't actually delete the strategy, we just deactivate it and set hidden
         log.info("Deleting live strategy: {}", id);
 
         trackingService.track(
@@ -237,7 +237,10 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
-        liveStrategy.setActive(false);
+        if (liveStrategy.isActive()) {
+            throw new ApiException("Cannot delete an active strategy", ErrorType.BAD_REQUEST);
+        }
+        
         liveStrategy.setHidden(true);
 
         liveStrategyRepository.save(liveStrategy);

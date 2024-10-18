@@ -92,6 +92,13 @@ public class BrokerAccountService {
         BrokerAccount foundAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
                 .orElseThrow(() -> new ApiException("Account ID '" + accountId + "' not found", ErrorType.NOT_FOUND));
 
+        LiveStrategy liveStrategy = liveStrategyRepository.findLiveStrategyByBrokerAccountAndHiddenIsFalseAndActiveIsTrue(foundAccount)
+                .orElse(null);
+
+        if (liveStrategy != null) {
+            throw new ApiException("Account ID '" + accountId + "' is still in use by the strategy: " + liveStrategy.getStrategyName(), ErrorType.BAD_REQUEST);
+        }
+
         // TODO: Validate the account id passed in by making external API call if possible
         foundAccount.setAccountId(broker.getAccountId().trim());
         foundAccount.setBrokerName(broker.getBrokerName());
