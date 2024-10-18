@@ -316,7 +316,7 @@ class OandaIntegrationTest {
                 .type(MarketOrderRequest.OrderType.MARKET)
                 .instrument(Instrument.NAS100USD.getBrokerConfig(Broker.OANDA).getSymbol())
                 .timeInForce(MarketOrderRequest.TimeInForce.FOK)
-                .units(2)
+                .units(String.valueOf(2))
                 .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
                         .price("18709")
                         .timeInForce(MarketOrderRequest.TimeInForce.GTC)

@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ExternalDataProvider implements DataProvider, TickGeneratorCallback {
+public class BacktestExternalDataProvider implements DataProvider, TickGeneratorCallback {
     @Getter
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
     private final Instrument instrument;
@@ -32,7 +32,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     @Getter
     private boolean isRunning;
 
-    public ExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
+    public BacktestExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to, long seed) {
         this.dataClient = dataClient;
         this.instrument = instrument;
         this.period = period;
@@ -43,7 +43,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
     }
 
     // Overload the constructor to allow creation without a seed for tick generation
-    public ExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
+    public BacktestExternalDataProvider(Broker broker, ExternalDataClient dataClient, Instrument instrument, int spread, Duration period, ZonedDateTime from, ZonedDateTime to) {
         this(broker, dataClient, instrument, spread, period, from, to, System.currentTimeMillis());
     }
 
@@ -60,7 +60,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
                 public boolean onCandle(Bar bar) {
                     if (!isRunning) return false;
                     try {
-                        tickGenerator.generateTicks(bar, dataSpeed, ExternalDataProvider.this::notifyListeners);
+                        tickGenerator.generateTicks(bar, dataSpeed, BacktestExternalDataProvider.this::notifyListeners);
                     } catch (RiskException e) {
                         log.warn("Stopped data provider due to Risk Exception");
                         return false;
@@ -74,7 +74,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
                 @Override
                 public void onError(Exception e) {
                     log.error("Error fetching data", e);
-                    ExternalDataProvider.this.stop();
+                    BacktestExternalDataProvider.this.stop();
                     for (DataProviderListener listener : listeners) {
                         listener.onError(new DataProviderException(e.getMessage(), e));
                     }
@@ -83,7 +83,7 @@ public class ExternalDataProvider implements DataProvider, TickGeneratorCallback
                 @Override
                 public void onComplete() {
                     log.debug("Data feed complete");
-                    ExternalDataProvider.this.stop();
+                    BacktestExternalDataProvider.this.stop();
                 }
             });
         } catch (Exception e) {

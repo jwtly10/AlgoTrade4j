@@ -48,6 +48,10 @@ const LiveBrokerModal = ({open, onClose}) => {
     };
 
     const findTimezoneByCode = (code) => {
+        if (code?.name) {
+            return code
+        }
+
         return timezones.find(tz => tz.name === code);
     };
 
@@ -115,10 +119,6 @@ const LiveBrokerModal = ({open, onClose}) => {
 
     const handleMt5InputChange = (field, value) => {
         if (mode === 'edit') {
-            if (field === "timezone") {
-                value = value.name
-            }
-
             setEditingAccount({
                 ...editingAccount,
                 mt5Credentials: {
@@ -149,18 +149,20 @@ const LiveBrokerModal = ({open, onClose}) => {
         };
 
         // Remove mt5Credentials if brokerType is not 'MT5' or credentials are empty
-        if (accountToSave.brokerType !== 'MT5' || isEmptyMt5Credentials(accountToSave.mt5Credentials)) {
+        if (!accountToSave.brokerType.startsWith('MT5') || isEmptyMt5Credentials(accountToSave.mt5Credentials)) {
             // Create a copy of the account and remove mt5Credentials
             accountToSave = {
                 ...accountToSave,
                 mt5Credentials: undefined
             };
+        } else {
+            accountToSave.mt5Credentials.timezone = accountToSave.mt5Credentials.timezone.name
         }
 
         if (!isFormValid(accountToSave)) {
             toast({
                 title: 'Incomplete Account Details',
-                description: 'Please complete in all fields before saving.',
+                description: 'Please complete all fields before saving.',
                 variant: 'destructive',
             });
             return;
@@ -204,7 +206,11 @@ const LiveBrokerModal = ({open, onClose}) => {
     };
 
     const handleEdit = (account) => {
-        console.log({account})
+        // Convert the data from DB which just passes in the code
+        if (account.mt5Credentials && account.mt5Credentials.timezone) {
+            account.mt5Credentials.timezone = findTimezoneByCode(account.mt5Credentials.timezone);
+        }
+
         setEditingAccount(account);
         setMode('edit');
     };
@@ -311,8 +317,9 @@ const LiveBrokerModal = ({open, onClose}) => {
                                 value={mode === 'edit' ? editingAccount?.accountId : newAccount.accountId}
                                 onChange={(e) => handleInputChange('accountId', e.target.value)}
                                 disabled={mode === 'edit'}
-                                autoComplete="off"
                                 placeholder="Enter account ID"
+                                type="text"
+                                autoComplete="off"
                             />
                         </div>
                     </div>
@@ -320,7 +327,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             </Card>
 
             {/* Section 2: MT5 Credentials (conditional) */}
-            {(mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType) === 'MT5' && (
+            {(mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType).startsWith('MT5') && (
                 <Card>
                     <CardHeader>
                         <CardTitle>MT5 Credentials</CardTitle>

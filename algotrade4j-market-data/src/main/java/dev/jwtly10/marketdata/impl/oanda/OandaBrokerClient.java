@@ -79,7 +79,7 @@ public class OandaBrokerClient implements BrokerClient {
                 .type(MarketOrderRequest.OrderType.MARKET)
                 .timeInForce(MarketOrderRequest.TimeInForce.FOK)
                 .instrument(trade.getInstrument().getBrokerConfig(OANDA).getSymbol())
-                .units(trade.isLong() ? trade.getQuantity() : -trade.getQuantity()) // Oanda specific logic for determining short/long trades
+                .units(trade.isLong() ? String.valueOf(trade.getQuantity()) : String.valueOf(-trade.getQuantity())) // Oanda specific logic for determining short/long trades
                 .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
                         .price(trade.getTakeProfit().getValue().toString())
                         .timeInForce(MarketOrderRequest.TimeInForce.GTC)
@@ -132,7 +132,7 @@ public class OandaBrokerClient implements BrokerClient {
         if (accountId == null) {
             throw new RuntimeException("Account ID not set. Cannot stream transactions.");
         }
-        log.info("Starting transaction stream for accountId: {}", accountId);
+        log.info("Starting transaction stream for Oanda accountId: {}", accountId);
         return client.streamTransactions(accountId);
     }
 

@@ -5,6 +5,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.account.Account;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.marketdata.common.TradeDTO;
+import dev.jwtly10.marketdata.common.stream.Stream;
+import dev.jwtly10.marketdata.impl.mt5.models.Mt5Login;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -41,8 +44,10 @@ class Mt5BrokerClientIntegrationTest {
         ObjectMapper objMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         mt5 = new Mt5Client(apiKey, apiUrl, objMapper);
 
+        Mt5Login login = new Mt5Login(Integer.parseInt(accountId), password, "FTMO-Demo", "C:/Program Files/MetaTrader 5/terminal64.exe");
+
         // Oanda logic is outside scope of this test
-        this.client = new Mt5BrokerClient(mt5, null, "1510057641", null, Broker.MT5_FTMO);
+        this.client = new Mt5BrokerClient(mt5, null, login, null, Broker.MT5_FTMO);
     }
 
     @Test
@@ -107,7 +112,29 @@ class Mt5BrokerClientIntegrationTest {
     }
 
     @Test
-    void testStreamTransactions() {
+    void testStreamTransactions() throws InterruptedException {
+        Stream<List<TradeDTO>> transactionStream = client.streamTransactions();
+
+        transactionStream.start(new Stream.StreamCallback<>() {
+            @Override
+            public void onData(List<TradeDTO> closedTradeDTOs) {
+                closedTradeDTOs.forEach(System.out::println);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+                System.out.println("Transaction stream completed");
+            }
+        });
+
+
+        // Sleep for 30 seconds so we can see events come in
+        Thread.sleep(60_000);
     }
 
 }

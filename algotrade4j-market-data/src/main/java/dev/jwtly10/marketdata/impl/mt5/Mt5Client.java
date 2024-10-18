@@ -6,6 +6,7 @@ import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
 import dev.jwtly10.marketdata.impl.mt5.request.Mt5TradeRequest;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5AccountResponse;
 import dev.jwtly10.marketdata.impl.mt5.response.Mt5TradesResponse;
+import dev.jwtly10.marketdata.impl.mt5.stream.MT5TransactionStream;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -142,7 +143,7 @@ public class Mt5Client {
     public Mt5Trade openTrade(String accountId, Mt5TradeRequest tradeReq) throws Exception {
         log.trace("Opening trade for account: {}", accountId);
 
-        String url = String.format("%s/trades/open/%s", apiUrl, accountId);
+        String url = String.format("%s/trades/%s/open", apiUrl, accountId);
 
         String body = objectMapper.writeValueAsString(tradeReq);
         log.info("Request JSON: {}", body);
@@ -175,7 +176,7 @@ public class Mt5Client {
     public Mt5Trade closeTrade(String accountId, Integer tradeId) throws Exception {
         log.trace("Closing trade {} for account: {}", tradeId, accountId);
 
-        String url = String.format("%s/trades/close/%s/%s", apiUrl, accountId, tradeId);
+        String url = String.format("%s/trades/%s/close/%s", apiUrl, accountId, tradeId);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -194,5 +195,9 @@ public class Mt5Client {
 
             return objectMapper.readValue(responseBody, Mt5Trade.class);
         }
+    }
+
+    public MT5TransactionStream streamTransactions(String accountId) {
+        return new MT5TransactionStream(client, apiKey, apiUrl, accountId, objectMapper);
     }
 }

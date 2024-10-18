@@ -48,11 +48,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
 @Slf4j
-class StrategyManagerIntegrationTest {
+class BacktestStrategyManagerIntegrationTest {
 
     private InMemoryEventPublisher eventPublisher;
 
-    private StrategyManager strategyManager;
+    private BacktestStrategyManager backtestStrategyManager;
 
     @BeforeEach
     void setUp() {
@@ -65,7 +65,7 @@ class StrategyManagerIntegrationTest {
         eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         OandaClient oandaClient = new OandaClient(baseUrl, apiKey, objectMapper);
-        strategyManager = new StrategyManager(eventPublisher, oandaClient, env);
+        backtestStrategyManager = new BacktestStrategyManager(eventPublisher, oandaClient, env);
     }
 
     @Test
@@ -112,7 +112,7 @@ class StrategyManagerIntegrationTest {
 
         String strategyId = "int-test-strategy-id";
 
-        strategyManager.startStrategy(config, strategyId);
+        backtestStrategyManager.startStrategy(config, strategyId);
 
         // Wait for strategy to stop
         assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");
@@ -234,7 +234,7 @@ class StrategyManagerIntegrationTest {
 
         String strategyId = "int-test-strategy-id";
 
-        strategyManager.startStrategy(config, strategyId);
+        backtestStrategyManager.startStrategy(config, strategyId);
 
         // Wait for strategy to stop
         assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");

@@ -17,8 +17,8 @@ import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
+import dev.jwtly10.marketdata.common.BacktestExternalDataProvider;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
-import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaDataClient;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class StrategyManager {
+public class BacktestStrategyManager {
     private final EventPublisher eventPublisher;
     private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final OandaClient oandaClient;
@@ -54,7 +54,7 @@ public class StrategyManager {
 
     private final Environment environment;
 
-    public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
+    public BacktestStrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.environment = environment;
@@ -72,6 +72,7 @@ public class StrategyManager {
         int spread = config.getSpread();
         Instrument instrument = config.getInstrumentData().getInstrument();
 
+        // During backtesting, we only need access to the data api. This does not request an account ID
         OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient, null);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
@@ -79,9 +80,9 @@ public class StrategyManager {
         ZoneId utcZone = ZoneId.of("UTC");
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(utcZone);
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(utcZone);
-        // We seed the tick generation while backtesting so results can be consistent
-        // TODO: implement a way to allow randomized tick generation (some frontend flag)
-        DataProvider dataProvider = new ExternalDataProvider(BACKTEST_BROKER, externalDataClient, instrument, spread, period, from, to, 12345L);
+
+        // Seed the tick generation while backtesting so results can be consistent
+        DataProvider dataProvider = new BacktestExternalDataProvider(BACKTEST_BROKER, externalDataClient, instrument, spread, period, from, to, 12345L);
 
         DataSpeed dataSpeed = config.getSpeed();
 

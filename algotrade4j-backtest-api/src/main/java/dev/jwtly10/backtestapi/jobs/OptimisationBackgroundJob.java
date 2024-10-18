@@ -16,8 +16,8 @@ import dev.jwtly10.core.optimisation.OptimisationExecutor;
 import dev.jwtly10.core.optimisation.OptimisationProgress;
 import dev.jwtly10.core.optimisation.OptimisationRunResult;
 import dev.jwtly10.core.strategy.StrategyFactory;
+import dev.jwtly10.marketdata.common.BacktestExternalDataProvider;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
-import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaDataClient;
@@ -128,7 +128,7 @@ public class OptimisationBackgroundJob {
 
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(ZoneId.of("UTC"));
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(ZoneId.of("UTC"));
-        DataProvider dataProvider = new ExternalDataProvider(OPTIMISATION_BROKER, externalDataClient, config.getInstrument(), config.getSpread(), config.getPeriod(), from, to, 12345L);
+        DataProvider dataProvider = new BacktestExternalDataProvider(OPTIMISATION_BROKER, externalDataClient, config.getInstrument(), config.getSpread(), config.getPeriod(), from, to, 12345L);
 
         OptimisationExecutor optimisationExecutor = getOptimisationExecutor(task, dataProvider);
         optimisationExecutor.executeTask(config);

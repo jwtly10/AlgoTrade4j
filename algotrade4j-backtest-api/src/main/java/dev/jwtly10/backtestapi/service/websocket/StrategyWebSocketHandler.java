@@ -1,6 +1,6 @@
 package dev.jwtly10.backtestapi.service.websocket;
 
-import dev.jwtly10.backtestapi.service.strategy.StrategyManager;
+import dev.jwtly10.backtestapi.service.strategy.BacktestStrategyManager;
 import dev.jwtly10.core.event.EventPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,13 +19,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class StrategyWebSocketHandler extends TextWebSocketHandler {
     private final EventPublisher eventPublisher;
-    private final StrategyManager strategyManager;
+    private final BacktestStrategyManager backtestStrategyManager;
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
 
-    public StrategyWebSocketHandler(EventPublisher eventPublisher, StrategyManager strategyManager) {
+    public StrategyWebSocketHandler(EventPublisher eventPublisher, BacktestStrategyManager backtestStrategyManager) {
         this.eventPublisher = eventPublisher;
-        this.strategyManager = strategyManager;
+        this.backtestStrategyManager = backtestStrategyManager;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class StrategyWebSocketHandler extends TextWebSocketHandler {
         long endTime = startTime + 3000; // 3 seconds timeout
 
         while (System.currentTimeMillis() < endTime) {
-            if (strategyManager.stopStrategy(id)) {
+            if (backtestStrategyManager.stopStrategy(id)) {
                 return true;
             }
             try {

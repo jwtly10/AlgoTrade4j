@@ -20,6 +20,8 @@ services:
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_LOG_FILE_NAME=STDOUT
       - MARKETDATA_API_KEY=${MARKETDATA_API_KEY}
+      - MT5_API_URL=${MT5_API_URL}
+      - MT5_API_KEY=${MT5_API_KEY}
 
   live-api:
     image: joshwatley/algotrade4j-live-api:latest
@@ -39,6 +41,9 @@ services:
       - NEW_RELIC_APP_NAME=live-api-prod
       - NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY}
       - NEW_RELIC_LOG_FILE_NAME=STDOUT
+      - DEFAULT_OANDA_ACCOUNT_ID=${DEFAULT_OANDA_ACCOUNT_ID}
+      - MT5_API_URL=${MT5_API_URL}
+      - MT5_API_KEY=${MT5_API_KEY}
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest

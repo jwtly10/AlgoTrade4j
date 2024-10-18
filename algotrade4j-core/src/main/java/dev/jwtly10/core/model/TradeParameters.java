@@ -116,7 +116,8 @@ public class TradeParameters {
             double quantity = this.quantity != 0 ? this.quantity :
                     riskAmount / stopLossDistance.getValue().doubleValue();
 
-            double scale = Math.pow(10, instrument.getBrokerConfig(broker).getQuantityPrecision()); // Figure out how much we need to round units for the trade to be allowed
+            // Figure out how much we need to round units for the trade to be allowed
+            double scale = Math.pow(10, instrument.getBrokerConfig(broker).getQuantityPrecision());
             quantity = Math.round(quantity * scale) / scale;
             log.trace("Quantity calculation: {} / {} = {}", riskAmount, stopLossDistance.getValue(), quantity);
 
@@ -125,9 +126,6 @@ public class TradeParameters {
                             entryPrice.subtract(stopLossDistance.multiply(BigDecimal.valueOf(riskRatio))));
             log.trace("Take profit calculation: {} {} ({} * {}) = {}",
                     entryPrice, isLong ? "+" : "-", stopLossDistance, riskRatio, takeProfit);
-
-            quantity = Math.floor(quantity * 100) / 100;
-            log.trace("Final quantity after rounding down to 2 decimal places: {}", quantity);
 
             if (stopLoss.isLessThan(Number.ZERO) || takeProfit.isLessThan(Number.ZERO)) {
                 String reason = stopLoss.isLessThan(Number.ZERO) ? "STOP LOSS" : "TAKE PROFIT";

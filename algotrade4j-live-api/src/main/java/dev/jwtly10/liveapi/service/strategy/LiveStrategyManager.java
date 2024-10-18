@@ -16,9 +16,11 @@ import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.liveapi.executor.LiveExecutor;
 import dev.jwtly10.liveapi.executor.LiveStateManager;
 import dev.jwtly10.liveapi.executor.LiveTradeManager;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategyConfig;
 import dev.jwtly10.liveapi.repository.LiveExecutorRepository;
+import dev.jwtly10.liveapi.service.broker.BrokerClientFactory;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
@@ -49,15 +51,17 @@ public class LiveStrategyManager {
     private final LiveExecutorRepository liveExecutorRepository;
     private final OandaClient oandaClient;
     private final TelegramNotifier telegramNotifier;
+    private final BrokerClientFactory brokerClientFactory;
 
     private final LiveStrategyService liveStrategyService;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService) {
+    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService, BrokerClientFactory brokerClientFactory) {
         this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.telegramNotifier = telegramNotifier;
         this.liveStrategyService = liveStrategyService;
+        this.brokerClientFactory = brokerClientFactory;
     }
 
     /**
@@ -187,7 +191,12 @@ public class LiveStrategyManager {
         final String strategyId = liveStrategy.getStrategyName();
         final LiveStrategyConfig config = liveStrategy.getConfig();
         final StrategyFactory strategyFactory = new DefaultStrategyFactory();
-        final OandaBrokerClient client = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
+
+        BrokerAccount brokerConfig = liveStrategy.getBrokerAccount();
+        log.info("Strategy {} using broker account: {} ({})", strategyId, brokerConfig.getBrokerName(), brokerConfig.getBrokerType());
+
+
+        final BrokerClient client = brokerClientFactory.createBrokerClientFromBrokerConfig(brokerConfig);
 
         BarSeries barSeries = new DefaultBarSeries(5000);
 
@@ -200,7 +209,7 @@ public class LiveStrategyManager {
 
         // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
         // TODO: This should be based on either indicators or period size (eg we dont need a week of data for 1m period)
-        OandaDataClient oandaDataClient = new OandaDataClient(client);
+        OandaDataClient oandaDataClient = new OandaDataClient(new OandaBrokerClient(oandaClient, null)); // A single use client for fetching candles TODO: Improve this
         oandaDataClient.fetchCandles(
                 config.getInstrumentData().getInstrument(),
                 ZonedDateTime.now().minus(config.getPeriod().getDuration().multipliedBy(5000)),

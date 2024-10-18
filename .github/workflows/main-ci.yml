@@ -153,7 +153,10 @@ jobs:
             export VITE_MAIN_API_HOST=${{vars.VITE_MAIN_API_HOST}}
             export VITE_LIVE_API_HOST=${{vars.VITE_LIVE_API_HOST}}
             export NEW_RELIC_LICENSE_KEY=${{secrets.NEW_RELIC_LICENSE_KEY}}
-            export MARKETDATA_API_KEY=${{secrets.MARKETDATA_API_KEY}}
+            export MARKETDATA_API_KEY=${{secrets.MARKETDATA_API_KEY}} 
+            export DEFAULT_OANDA_ACCOUNT_ID=${{DEFAULT_OANDA_ACCOUNT_ID}}
+            export MT5_API_URL=${{MT5_API_URL}}
+            export MT5_API_KEY=${{MT5_API_KEY}}
             
             docker compose pull
             docker compose down

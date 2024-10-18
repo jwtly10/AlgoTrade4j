@@ -18,7 +18,7 @@ import java.util.TimerTask;
  */
 @Slf4j
 public abstract class RetryableStream<T> implements Stream<T> {
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 10;
     private static final long INITIAL_BACKOFF_MS = 1000;
     private static final long MAX_BACKOFF_MS = 30000;
     protected final ObjectMapper objectMapper;
@@ -94,9 +94,9 @@ public abstract class RetryableStream<T> implements Stream<T> {
                     }
                 } catch (Exception e) {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
-                        log.debug("Stream for class {} was stopped internally, closing stream", getClass().getSimpleName());
+                        log.debug("Stream was stopped internally, closing stream");
                     } else {
-                        log.error("Error processing stream for class: {}", getClass().getSimpleName(), e);
+                        log.error("Error processing stream.", e);
                     }
                     scheduleRetry(callback, retryCount, backoffMs);
                 } finally {

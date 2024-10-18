@@ -8,7 +8,6 @@ import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.stream.Stream;
-import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,7 @@ public class LiveExternalDataProvider implements DataProvider {
     public final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd'T'HH:mm:ssXXX");
     private final Instrument instrument;
     private final List<DataProviderListener> listeners;
-    private final OandaBrokerClient oandaClient;
+    private final BrokerClient client;
     @Setter
     private DataSpeed dataSpeed = DataSpeed.INSTANT;
     @Getter
@@ -37,8 +36,8 @@ public class LiveExternalDataProvider implements DataProvider {
 
     private Stream<Tick> priceStream;
 
-    public LiveExternalDataProvider(OandaBrokerClient oandaClient, Instrument instrument) {
-        this.oandaClient = oandaClient;
+    public LiveExternalDataProvider(BrokerClient client, Instrument instrument) {
+        this.client = client;
         this.instrument = instrument;
         this.listeners = new ArrayList<>();
     }
@@ -50,7 +49,7 @@ public class LiveExternalDataProvider implements DataProvider {
         from = ZonedDateTime.now();
 
         log.debug("Starting Live Data provider for instrument: {}", instrument);
-        this.priceStream = oandaClient.streamPrices(List.of(instrument));
+        this.priceStream = (Stream<Tick>) client.streamPrices(List.of(instrument));
         priceStream.start(new Stream.StreamCallback<>() {
             @Override
             public void onData(Tick price) {
