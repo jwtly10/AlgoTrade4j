@@ -11,7 +11,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 // TODO: we should support passing the timezone for more accurate time conversions....
-public record Mt5Trade(
+public record MT5Trade(
         @JsonProperty("position_id") Integer positionId,
         @JsonProperty("symbol") String symbol,
         @JsonProperty("total_volume") Double totalVolume,
@@ -28,12 +28,12 @@ public record Mt5Trade(
         @JsonProperty("is_open") Boolean isOpen
 ) {
 
-    public Trade toTrade(Broker broker) {
+    public Trade toTrade(Broker broker, ZoneId brokerZoneId) {
         Trade trade = new Trade(
                 positionId,
                 Instrument.fromBrokerSymbol(broker, symbol),
                 Math.abs(totalVolume),
-                ZonedDateTime.ofInstant(Instant.ofEpochSecond(openOrderTime), ZoneId.systemDefault()),
+                ZonedDateTime.ofInstant(Instant.ofEpochSecond(openOrderTime), brokerZoneId),
                 new Number(openOrderPrice),
                 new Number(stopLoss),
                 new Number(takeProfit),

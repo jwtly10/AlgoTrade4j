@@ -41,7 +41,7 @@ public class BrokerAccountService {
 
     public List<TimezoneDTO> getTimezones() {
         return Stream.of(Timezone.values())
-                .map(tz -> new TimezoneDTO(tz.name(), tz.getZoneId()))
+                .map(tz -> new TimezoneDTO(tz.name(), tz.getZoneId().toString()))
                 .collect(Collectors.toList());
     }
 

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Mt5Credentials {
+public class MT5Credentials {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

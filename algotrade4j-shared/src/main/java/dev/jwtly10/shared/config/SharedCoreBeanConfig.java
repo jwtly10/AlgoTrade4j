@@ -12,7 +12,7 @@ import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
-import dev.jwtly10.marketdata.impl.mt5.Mt5Client;
+import dev.jwtly10.marketdata.impl.mt5.MT5Client;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import okhttp3.OkHttpClient;
@@ -60,8 +60,8 @@ public class SharedCoreBeanConfig {
     }
 
     @Bean
-    public Mt5Client mt5Client() {
-        return new Mt5Client(mt5ApiKey, mt5ApiUrl, objectMapper());
+    public MT5Client mt5Client() {
+        return new MT5Client(mt5ApiKey, mt5ApiUrl, objectMapper());
     }
 
     @Bean

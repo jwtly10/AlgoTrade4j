@@ -2,6 +2,8 @@ package dev.jwtly10.liveapi.model.broker;
 
 import lombok.Getter;
 
+import java.time.ZoneId;
+
 @Getter
 public enum Timezone {
     UTC("UTC"),
@@ -15,5 +17,9 @@ public enum Timezone {
 
     Timezone(String zoneId) {
         this.zoneId = zoneId;
+    }
+
+    public ZoneId getZoneId() {
+        return ZoneId.of(zoneId);
     }
 }

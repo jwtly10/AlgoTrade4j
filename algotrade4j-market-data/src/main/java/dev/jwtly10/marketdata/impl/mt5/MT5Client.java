@@ -1,11 +1,11 @@
 package dev.jwtly10.marketdata.impl.mt5;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.jwtly10.marketdata.impl.mt5.models.Mt5Login;
-import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
-import dev.jwtly10.marketdata.impl.mt5.request.Mt5TradeRequest;
-import dev.jwtly10.marketdata.impl.mt5.response.Mt5AccountResponse;
-import dev.jwtly10.marketdata.impl.mt5.response.Mt5TradesResponse;
+import dev.jwtly10.marketdata.impl.mt5.models.MT5Login;
+import dev.jwtly10.marketdata.impl.mt5.models.MT5Trade;
+import dev.jwtly10.marketdata.impl.mt5.request.MT5TradeRequest;
+import dev.jwtly10.marketdata.impl.mt5.response.MT5AccountResponse;
+import dev.jwtly10.marketdata.impl.mt5.response.MT5TradesResponse;
 import dev.jwtly10.marketdata.impl.mt5.stream.MT5TransactionStream;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -14,7 +14,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 @Slf4j
-public class Mt5Client {
+public class MT5Client {
     private final String apiKey;
     private final String apiUrl;
     private final ObjectMapper objectMapper;
@@ -22,14 +22,14 @@ public class Mt5Client {
 
     private final static String API_KEY_HEADER = "x-api-key";
 
-    public Mt5Client(String apiKey, String apiUrl, OkHttpClient client, ObjectMapper objectMapper) {
+    public MT5Client(String apiKey, String apiUrl, OkHttpClient client, ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl + "/api/v1";
         this.objectMapper = objectMapper;
         this.client = client;
     }
 
-    public Mt5Client(String apiKey, String apiUrl, ObjectMapper objectMapper) {
+    public MT5Client(String apiKey, String apiUrl, ObjectMapper objectMapper) {
         this.apiKey = apiKey;
         this.apiUrl = apiUrl + "/api/v1";
         this.objectMapper = objectMapper;
@@ -50,7 +50,7 @@ public class Mt5Client {
         log.info("Initializing MT5 account: {}", accountId);
         String url = String.format("%s/initialize", apiUrl);
 
-        Mt5Login login = new Mt5Login(accountId, password, server, path);
+        MT5Login login = new MT5Login(accountId, password, server, path);
 
         String body = objectMapper.writeValueAsString(login);
         log.trace("Request JSON: {}", body);
@@ -82,7 +82,7 @@ public class Mt5Client {
      * @return the account info for the given account
      * @throws Exception if the account info cannot be fetched
      */
-    public Mt5AccountResponse fetchAccount(String accountId) throws Exception {
+    public MT5AccountResponse fetchAccount(String accountId) throws Exception {
         log.trace("Fetching account info for account: {}", accountId);
 
         String url = String.format("%s/accounts/%s", apiUrl, accountId);
@@ -100,7 +100,7 @@ public class Mt5Client {
                 throw new RuntimeException("Failed to fetch account info: " + responseBody);
             }
 
-            return objectMapper.readValue(responseBody, Mt5AccountResponse.class);
+            return objectMapper.readValue(responseBody, MT5AccountResponse.class);
         }
     }
 
@@ -111,7 +111,7 @@ public class Mt5Client {
      * @return the trades for the given account
      * @throws Exception if the trades cannot be fetched
      */
-    public Mt5TradesResponse fetchTrades(String accountId) throws Exception {
+    public MT5TradesResponse fetchTrades(String accountId) throws Exception {
         log.trace("Fetching trades for account: {}", accountId);
 
         String url = String.format("%s/trades/%s", apiUrl, accountId);
@@ -129,7 +129,7 @@ public class Mt5Client {
                 throw new RuntimeException("Failed to fetch trades: " + responseBody);
             }
 
-            return objectMapper.readValue(responseBody, Mt5TradesResponse.class);
+            return objectMapper.readValue(responseBody, MT5TradesResponse.class);
         }
     }
 
@@ -140,7 +140,7 @@ public class Mt5Client {
      * @param tradeReq  the trade parameters for the trade
      * @return the opened trade
      */
-    public Mt5Trade openTrade(String accountId, Mt5TradeRequest tradeReq) throws Exception {
+    public MT5Trade openTrade(String accountId, MT5TradeRequest tradeReq) throws Exception {
         log.trace("Opening trade for account: {}", accountId);
 
         String url = String.format("%s/trades/%s/open", apiUrl, accountId);
@@ -162,7 +162,7 @@ public class Mt5Client {
                 throw new RuntimeException("Failed to open trade: " + responseBody);
             }
 
-            return objectMapper.readValue(responseBody, Mt5Trade.class);
+            return objectMapper.readValue(responseBody, MT5Trade.class);
         }
     }
 
@@ -171,9 +171,8 @@ public class Mt5Client {
      *
      * @param accountId the account id of the mt5 terminal
      * @param tradeId   the trade id to close
-     * @return the closed trade
      */
-    public Mt5Trade closeTrade(String accountId, Integer tradeId) throws Exception {
+    public void closeTrade(String accountId, Integer tradeId) throws Exception {
         log.trace("Closing trade {} for account: {}", tradeId, accountId);
 
         String url = String.format("%s/trades/%s/close/%s", apiUrl, accountId, tradeId);
@@ -190,10 +189,6 @@ public class Mt5Client {
                 log.error("Failed to close trade. Response code: {}, Response Body: {}", response.code(), responseBody);
                 throw new RuntimeException("Failed to close trade: " + responseBody);
             }
-
-            log.debug("MT5 Close trade response: {}", responseBody);
-
-            return objectMapper.readValue(responseBody, Mt5Trade.class);
         }
     }
 

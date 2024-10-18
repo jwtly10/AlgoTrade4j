@@ -52,5 +52,5 @@ public class BrokerAccount {
     // Add the one-to-one relationship to Mt5Credentials
     @OneToOne(mappedBy = "brokerAccount", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private Mt5Credentials mt5Credentials;
+    private MT5Credentials mt5Credentials;
 }

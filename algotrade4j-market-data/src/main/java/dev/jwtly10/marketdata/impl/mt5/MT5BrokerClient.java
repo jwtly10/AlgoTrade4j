@@ -6,39 +6,41 @@ import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
-import dev.jwtly10.marketdata.impl.mt5.models.Mt5Login;
-import dev.jwtly10.marketdata.impl.mt5.models.Mt5Trade;
-import dev.jwtly10.marketdata.impl.mt5.request.Mt5TradeRequest;
-import dev.jwtly10.marketdata.impl.mt5.response.Mt5AccountResponse;
-import dev.jwtly10.marketdata.impl.mt5.response.Mt5TradesResponse;
+import dev.jwtly10.marketdata.impl.mt5.models.MT5Login;
+import dev.jwtly10.marketdata.impl.mt5.models.MT5Trade;
+import dev.jwtly10.marketdata.impl.mt5.request.MT5TradeRequest;
+import dev.jwtly10.marketdata.impl.mt5.response.MT5AccountResponse;
+import dev.jwtly10.marketdata.impl.mt5.response.MT5TradesResponse;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @Slf4j
-public class Mt5BrokerClient implements BrokerClient {
-    private final Mt5Client client;
+public class MT5BrokerClient implements BrokerClient {
+    private final MT5Client client;
     private final OandaClient oandaClient; // For market data
-    private final Mt5Login loginDetails;
+    private final MT5Login loginDetails;
     private final Broker BROKER;
     private final String defaultOandaAccountId;
+    private final ZoneId accountZoneId;
 
-    public Mt5BrokerClient(Mt5Client mt5Client, OandaClient oandaClient, Mt5Login loginDetails, String defaultOandaAccountId, Broker broker) {
+    public MT5BrokerClient(MT5Client mt5Client, OandaClient oandaClient, MT5Login loginDetails, String defaultOandaAccountId, Broker broker, ZoneId zoneId) {
         this.client = mt5Client;
         this.loginDetails = loginDetails;
         this.oandaClient = oandaClient;
         this.defaultOandaAccountId = defaultOandaAccountId;
         this.BROKER = broker;
-
+        this.accountZoneId = zoneId;
 
         // On obj creation we initialise the account on the server
-
         try {
             client.initializeAccount(loginDetails.accountId(), loginDetails.password(), loginDetails.server(), loginDetails.path());
         } catch (Exception e) {
             log.error("Error fetching account info", e);
+            throw new RuntimeException("Error initialising MT5 Account: " + e.getMessage());
         }
     }
 
@@ -53,7 +55,7 @@ public class Mt5BrokerClient implements BrokerClient {
             log.error("Account ID not set. Cannot fetch account info.");
             throw new RuntimeException("Account ID not set. Cannot fetch account info.");
         }
-        Mt5AccountResponse res = client.fetchAccount(String.valueOf(loginDetails.accountId()));
+        MT5AccountResponse res = client.fetchAccount(String.valueOf(loginDetails.accountId()));
         return new Account(-999999, res.equity(), res.balance());
     }
 
@@ -62,9 +64,9 @@ public class Mt5BrokerClient implements BrokerClient {
         if (loginDetails.accountId() == null) {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
-        Mt5TradesResponse res = client.fetchTrades(String.valueOf(loginDetails.accountId()));
+        MT5TradesResponse res = client.fetchTrades(String.valueOf(loginDetails.accountId()));
         List<Trade> allTrades = res.trades().stream().map(
-                t -> t.toTrade(BROKER)
+                t -> t.toTrade(BROKER, accountZoneId)
         ).toList();
         return allTrades.stream().filter(trade -> trade.getClosePrice() == Number.ZERO).toList();
 
@@ -75,9 +77,9 @@ public class Mt5BrokerClient implements BrokerClient {
         if (loginDetails.accountId() == null) {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
-        Mt5TradesResponse res = client.fetchTrades(String.valueOf(loginDetails.accountId()));
+        MT5TradesResponse res = client.fetchTrades(String.valueOf(loginDetails.accountId()));
         return res.trades().stream().map(
-                t -> t.toTrade(BROKER)
+                t -> t.toTrade(BROKER, accountZoneId)
         ).toList();
     }
 
@@ -94,20 +96,27 @@ public class Mt5BrokerClient implements BrokerClient {
         if (loginDetails.accountId() == null) {
             throw new RuntimeException("Account ID not set. Cannot fetch open trades.");
         }
-        Mt5Trade res = client.openTrade(String.valueOf(loginDetails.accountId()), new Mt5TradeRequest(
+
+        var entryPrice = tradeParameters.getEntryPrice() == null ? null : tradeParameters.getEntryPrice().doubleValue();
+        var stopLoss = tradeParameters.getStopLoss() == null ? null : tradeParameters.getStopLoss().doubleValue();
+        var takeProfit = tradeParameters.getTakeProfit() == null ? null : tradeParameters.getTakeProfit().doubleValue();
+
+        var tradeDTO = new MT5TradeRequest(
                 tradeParameters.getInstrument().getBrokerConfig(BROKER).getSymbol(),
                 tradeParameters.getQuantity(),
-                tradeParameters.getEntryPrice(),
-                tradeParameters.getStopLoss(),
-                tradeParameters.getTakeProfit(),
+                entryPrice,
+                stopLoss,
+                takeProfit,
                 tradeParameters.getRiskPercentage(),
                 tradeParameters.getRiskRatio(),
                 tradeParameters.getBalanceToRisk(),
                 tradeParameters.isLong(),
                 ZonedDateTime.now().toEpochSecond()
-        ));
+        );
 
-        return res.toTrade(BROKER);
+        MT5Trade res = client.openTrade(String.valueOf(loginDetails.accountId()), tradeDTO);
+
+        return res.toTrade(BROKER, accountZoneId);
     }
 
     @Override

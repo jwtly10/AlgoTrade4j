@@ -7,12 +7,13 @@ import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
-import dev.jwtly10.marketdata.impl.mt5.models.Mt5Login;
+import dev.jwtly10.marketdata.impl.mt5.models.MT5Login;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -20,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named = "TEST_MT5_ACCOUNT_ID", matches = ".+")
 @EnabledIfEnvironmentVariable(named = "TEST_MT5_ACCOUNT_PASSWORD", matches = ".+")
-class Mt5BrokerClientIntegrationTest {
+class MT5BrokerClientIntegrationTest {
 
-    private Mt5BrokerClient client;
-    private Mt5Client mt5;
+    private MT5BrokerClient client;
+    private MT5Client mt5;
 
     private Broker TEST_BROKER = Broker.MT5_FTMO;
 
@@ -42,12 +43,12 @@ class Mt5BrokerClientIntegrationTest {
         assertNotNull(password, "TEST_MT5_ACCOUNT_PASSWORD environment variable not set");
 
         ObjectMapper objMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        mt5 = new Mt5Client(apiKey, apiUrl, objMapper);
+        mt5 = new MT5Client(apiKey, apiUrl, objMapper);
 
-        Mt5Login login = new Mt5Login(Integer.parseInt(accountId), password, "FTMO-Demo", "C:/Program Files/MetaTrader 5/terminal64.exe");
+        MT5Login login = new MT5Login(Integer.parseInt(accountId), password, "FTMO-Demo", "C:/Program Files/MetaTrader 5/terminal64.exe");
 
         // Oanda logic is outside scope of this test
-        this.client = new Mt5BrokerClient(mt5, null, login, null, Broker.MT5_FTMO);
+        this.client = new MT5BrokerClient(mt5, null, login, null, Broker.MT5_FTMO, ZoneId.of("UTC"));
     }
 
     @Test
