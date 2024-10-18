@@ -670,6 +670,35 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-description-turns-on-the-use-of-system-notifications-for-a-strategy-system-notifications-are-configured-at-the-instance-level-and-used-for-247-monitoring-of-the-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      - Description: Turns on the use of system notifications for a strategy. System notifications are configured at the instance level and used for 24/7 monitoring of the strategy.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="- Description: Turns on the use of system notifications for a strategy. System notifications are configured at the instance level and used for 24/7 monitoring of the strategy.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usecustomnotifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      useCustomNotifications()
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong" class="md-nav__link">
     <span class="md-ellipsis">
@@ -680,16 +709,11 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sendnotificationstring-message" class="md-nav__link">
+  <a href="#sendcustomnotificationstring-message" class="md-nav__link">
     <span class="md-ellipsis">
-      sendNotification(String message)
+      sendCustomNotification(String message)
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1119,6 +1143,35 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-description-turns-on-the-use-of-system-notifications-for-a-strategy-system-notifications-are-configured-at-the-instance-level-and-used-for-247-monitoring-of-the-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      - Description: Turns on the use of system notifications for a strategy. System notifications are configured at the instance level and used for 24/7 monitoring of the strategy.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="- Description: Turns on the use of system notifications for a strategy. System notifications are configured at the instance level and used for 24/7 monitoring of the strategy.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usecustomnotifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      useCustomNotifications()
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong" class="md-nav__link">
     <span class="md-ellipsis">
@@ -1129,16 +1182,11 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sendnotificationstring-message" class="md-nav__link">
+  <a href="#sendcustomnotificationstring-message" class="md-nav__link">
     <span class="md-ellipsis">
-      sendNotification(String message)
+      sendCustomNotification(String message)
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1361,17 +1409,19 @@
 </ul>
 <h3 id="utility-methods">Utility Methods</h3>
 <h4 id="usesystemnotifications"><code>useSystemNotifications()</code></h4>
+<h2 id="-description-turns-on-the-use-of-system-notifications-for-a-strategy-system-notifications-are-configured-at-the-instance-level-and-used-for-247-monitoring-of-the-strategy">- <strong>Description</strong>: Turns on the use of system notifications for a strategy. System notifications are configured at the instance level and used for 24/7 monitoring of the strategy.</h2>
+<h4 id="usecustomnotifications"><code>useCustomNotifications()</code></h4>
 <ul>
-<li><strong>Description</strong>: Turns on the use of system notifications for a strategy.</li>
+<li><strong>Description</strong>: Turns on the use of custom developer created notifications for a strategy.</li>
 </ul>
 <h4 id="getstoplossgiveninstrumentpricedirinstrument-instrument-number-price-int-ticks-boolean-islong"><code>getStopLossGivenInstrumentPriceDir(Instrument instrument, Number price, int ticks, boolean isLong)</code></h4>
 <ul>
 <li><strong>Description</strong>: Calculates the stop loss price based on the given parameters.</li>
 <li><strong>Returns</strong>: Number</li>
 </ul>
-<h4 id="sendnotificationstring-message"><code>sendNotification(String message)</code></h4>
+<h4 id="sendcustomnotificationstring-message"><code>sendCustomNotification(String message)</code></h4>
 <ul>
-<li><strong>Description</strong>: Sends a notification message to the external notifier implementation.</li>
+<li><strong>Description</strong>: Sends a notification message to the external notifier implementation. Uses the live strategies chatId configuration item.</li>
 </ul>
 <h3 id="indicator-management">Indicator Management</h3>
 <h4 id="createindicatorclasst-indicatorclass-object-params"><code>createIndicator(Class&lt;T&gt; indicatorClass, Object... params)</code></h4>
