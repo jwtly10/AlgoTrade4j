@@ -158,6 +158,10 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(strategyName)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
+        if (!liveStrategy.isActive()) {
+            log.warn("Strategy is already deactivated");
+        }
+
         liveStrategy.setActive(false);
         return liveStrategyRepository.save(liveStrategy);
     }
@@ -240,7 +244,7 @@ public class LiveStrategyService {
         if (liveStrategy.isActive()) {
             throw new ApiException("Cannot delete an active strategy", ErrorType.BAD_REQUEST);
         }
-        
+
         liveStrategy.setHidden(true);
 
         liveStrategyRepository.save(liveStrategy);

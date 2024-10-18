@@ -266,8 +266,8 @@ public class LiveStrategyManager {
                 eventPublisher,
                 liveStateManager,
                 riskManager,
-                telegramNotifier
-
+                telegramNotifier,
+                liveStrategyService
         );
 
         executor.initialise();

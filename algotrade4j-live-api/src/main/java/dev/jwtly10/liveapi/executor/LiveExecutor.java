@@ -17,6 +17,7 @@ import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
+import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ public class LiveExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final AccountManager accountManager;
     private final EventPublisher eventPublisher;
+    private final LiveStrategyService liveStrategyService;
     @Getter
     private final DataManager dataManager;
     private final String strategyId;
@@ -55,7 +57,8 @@ public class LiveExecutor implements DataListener {
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
                         RiskManager riskManager,
-                        Notifier notifier
+                        Notifier notifier,
+                        LiveStrategyService liveStrategyService
     ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
@@ -66,6 +69,7 @@ public class LiveExecutor implements DataListener {
         this.liveStateManager = liveStateManager;
         this.riskManager = riskManager;
         this.notifier = notifier;
+        this.liveStrategyService = liveStrategyService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null, notifier);
     }
@@ -169,6 +173,13 @@ public class LiveExecutor implements DataListener {
 
         // Shutdown any processes in the trade manager
         tradeManager.shutdown();
+
+        try {
+            log.info("Deactivating strategy: {}", strategyId);
+            liveStrategyService.deactivateStrategy(strategyId);
+        } catch (Exception e) {
+            log.warn("Error deactivating strategy: {}", strategyId, e);
+        }
 
         strategy.onDeInit();
         strategy.onEnd();
