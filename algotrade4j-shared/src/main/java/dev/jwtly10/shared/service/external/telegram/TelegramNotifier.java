@@ -45,7 +45,7 @@ public class TelegramNotifier implements Notifier {
     @Override
     public void sendNotification(String chatId, String message, boolean isHtml) {
         log.info("Sending notification to chat: {}", chatId);
-        send(chatId, sanitize(message), isHtml);
+        send(chatId, message, isHtml);
     }
 
     /**
@@ -62,7 +62,7 @@ public class TelegramNotifier implements Notifier {
         String errorDetails = NotifierUtils.formatError(e);
         send(chatId, String.format("""
                 <b>Error:</b> %s
-                <pre>%s</pre>""", sanitize(message), sanitize(errorDetails)
+                <pre>%s</pre>""", message, sanitize(errorDetails)
         ), isHtml);
 
     }
@@ -79,7 +79,7 @@ public class TelegramNotifier implements Notifier {
         log.info("Sending system notification to chat: {}", systemChatId);
         send(systemChatId, String.format("""
                 [SYSTEM]
-                %s""", sanitize(message)
+                %s""", message
         ), isHtml);
     }
 
@@ -99,7 +99,7 @@ public class TelegramNotifier implements Notifier {
         send(systemChatId, String.format("""
                 [SYSTEM]
                 <b>Error:</b> %s
-                <pre>%s</pre>""", sanitize(message), sanitize(errorDetails)
+                <pre>%s</pre>""", message, sanitize(errorDetails)
         ), isHtml);
     }
 
