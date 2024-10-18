@@ -159,7 +159,7 @@ public class LiveExecutor implements DataListener {
 
     @Override
     public void onTradeClose(Trade trade) {
-        log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
+        log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}, stopLoss={}, takeProfit={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice(), trade.getStopLoss(), trade.getTakeProfit());
         strategy.onTradeClose(trade);
     }
 
