@@ -47,6 +47,16 @@ export const useLive = () => {
         };
     }, []);
 
+    const resetChart = () => {
+        setChartData([]);
+        setTrades([]);
+        setTradeIdMap(new Map());
+        tradeCounterRef.current = 1;
+        setIndicators({});
+        setLogs([]);
+        setAnalysisData({})
+    }
+
     const viewStrategy = async (strategyId) => {
         // Clean previous data
         setChartData([]);
@@ -334,6 +344,7 @@ export const useLive = () => {
         [tradeIdMap]
     );
     return {
+        resetChart,
         isConnected,
         analysisData,
         trades,
