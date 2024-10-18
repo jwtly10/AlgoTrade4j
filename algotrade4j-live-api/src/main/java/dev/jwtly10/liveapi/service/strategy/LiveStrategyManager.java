@@ -129,7 +129,7 @@ public class LiveStrategyManager {
         } catch (Exception e) {
             // If we cannot create the executor, we should notify the user and stop the strategy
             log.error("Error creating executor", e);
-            telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Could not initialise Live Strategy '%s':", strategy.getStrategyName()), e, true);
+            telegramNotifier.sendSysErrorNotification(String.format("Could not initialise Live Strategy '%s':", strategy.getStrategyName()), e, true);
             // Rethrow the exception to stop the strategy from starting
             throw e;
         }
@@ -146,7 +146,7 @@ public class LiveStrategyManager {
                 liveExecutorRepository.removeStrategy(strategy.getStrategyName());
                 eventPublisher.publishErrorEvent(strategy.getStrategyName(), e);
                 // Here we can notify the user that the strategy has stopped
-                telegramNotifier.sendErrorNotification(strategy.getTelegramChatId(), String.format("Live Strategy %s has been stopped:", strategy.getStrategyName()), e, true);
+                telegramNotifier.sendSysErrorNotification(String.format("Live Strategy %s has been stopped:", strategy.getStrategyName()), e, true);
             } finally {
                 MDC.clear();
             }
@@ -195,8 +195,7 @@ public class LiveStrategyManager {
         BrokerAccount brokerConfig = liveStrategy.getBrokerAccount();
         log.info("Strategy {} using broker account: {} ({})", strategyId, brokerConfig.getBrokerName(), brokerConfig.getBrokerType());
 
-
-        final BrokerClient client = brokerClientFactory.createBrokerClientFromBrokerConfig(brokerConfig);
+        final BrokerClient brokerClient = brokerClientFactory.createBrokerClientFromBrokerConfig(brokerConfig);
 
         BarSeries barSeries = new DefaultBarSeries(5000);
 
@@ -205,12 +204,12 @@ public class LiveStrategyManager {
 
         // Create strategy instance
         Strategy strategyInstance = strategyFactory.createStrategy(config.getStrategyClass(), strategyId);
-        LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(client, config.getInstrumentData().getInstrument());
+        LiveExternalDataProvider dataProvider = new LiveExternalDataProvider(brokerClient, config.getInstrumentData().getInstrument());
 
         // Preload data to ensure the live strategy 'starts' with enough data for all calculations (indicators) to be valid
         // TODO: This should be based on either indicators or period size (eg we dont need a week of data for 1m period)
-        OandaDataClient oandaDataClient = new OandaDataClient(new OandaBrokerClient(oandaClient, null)); // A single use client for fetching candles TODO: Improve this
-        oandaDataClient.fetchCandles(
+        OandaDataClient prefetchDataClient = new OandaDataClient(new OandaBrokerClient(oandaClient, null)); // A single use client for fetching candles TODO: Improve this
+        prefetchDataClient.fetchCandles(
                 config.getInstrumentData().getInstrument(),
                 ZonedDateTime.now().minus(config.getPeriod().getDuration().multipliedBy(5000)),
                 ZonedDateTime.now(),
@@ -239,7 +238,7 @@ public class LiveStrategyManager {
         // The last bar is the 'currentBar' which teh datamanager maintains state for seperately
         // So we remove the last bar from the general series
         Bar currentBar = barSeries.getBars().removeLast();
-        DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher);
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, config.getInstrumentData().getInstrument(), dataProvider, config.getPeriod().getDuration(), barSeries, eventPublisher, telegramNotifier);
         // And initialise the datamanager with the current bar, so it can handle events for the current bar on tick
         dataManager.initialise(currentBar, currentBar.getOpenTime().plus(config.getPeriod().getDuration()));
 
@@ -251,14 +250,13 @@ public class LiveStrategyManager {
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
         RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
-        TradeManager tradeManager = new LiveTradeManager(client, riskManager);
+        TradeManager tradeManager = new LiveTradeManager(brokerClient, riskManager);
         // Set, so we have the ability to stop the strategy in case of background processes
         tradeManager.setDataManager(dataManager);
 
-        BrokerClient brokerClient = new OandaBrokerClient(oandaClient, liveStrategy.getBrokerAccount().getAccountId());
-        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyId, config.getInstrumentData().getInstrument(), liveStrategyService);
+        LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyInstance, config.getInstrumentData().getInstrument(), liveStrategyService, telegramNotifier);
 
-        strategyInstance.setNotificationService(telegramNotifier, liveStrategy.getTelegramChatId());
+        strategyInstance.setNotificationChatId(liveStrategy.getTelegramChatId());
 
         LiveExecutor executor = new LiveExecutor(
                 strategyInstance,
@@ -267,7 +265,9 @@ public class LiveStrategyManager {
                 dataManager,
                 eventPublisher,
                 liveStateManager,
-                riskManager
+                riskManager,
+                telegramNotifier
+
         );
 
         executor.initialise();

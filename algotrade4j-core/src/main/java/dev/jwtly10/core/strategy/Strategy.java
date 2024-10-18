@@ -32,8 +32,9 @@ public interface Strategy {
      * @param tradeManager        The TradeManager instance for executing trades.
      * @param eventPublisher      The EventPublisher instance for publishing events.
      * @param performanceAnalyser The PerformanceAnalyser instance for analysing strategy performance.
+     * @param notifier            The Notifier instance for sending notifications. Can be null for strategies that do not require notifications (backtesting)
      */
-    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser);
+    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier);
 
     /**
      * Called once after the strategy processing ends.
@@ -117,12 +118,18 @@ public interface Strategy {
     void setParameters(Map<String, String> parameters) throws IllegalAccessException;
 
     /**
-     * Set the notification service for the strategy
+     * Set the notification chat id for a specific strategy
      *
-     * @param notifier The notifier service
-     * @param chatId   The chat id to send notifications to
+     * @param chatId The chat id to send notifications to
      */
-    void setNotificationService(Notifier notifier, String chatId);
+    void setNotificationChatId(String chatId);
+
+    /**
+     * Get flag to enable system notifications
+     *
+     * @return if system notifications are enabled
+     */
+    boolean canUseSystemNotifications();
 
     /**
      * Get the risk profile configuration for the strategy

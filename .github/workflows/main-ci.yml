@@ -147,6 +147,7 @@ jobs:
             export ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}}
             export GRAFANA_API_KEY=${{secrets.GRAFANA_API_KEY}}
             export TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
+            export TELEGRAM_SYSTEM_CHAT_ID=${{TELEGRAM_SYSTEM_CHAT_ID}}
             export VITE_NODE_ENV=${{vars.VITE_NODE_ENV}}
             export VITE_ENABLE_DEBUG_LOGS=${{vars.VITE_ENABLE_DEBUG_LOGS}}
             export VITE_ENABLE_SIGNUP=${{vars.VITE_ENABLE_SIGNUP}}

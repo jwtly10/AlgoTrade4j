@@ -35,17 +35,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * This test should be run whenever we make changes to the core library, to ensure that existing strategies wont suddenly return different results.
  */
 
-//***************************************************************
-//***************************************************************
-//***************************************************************
-//***************************************************************
-// NOTE: Temporarily failing due to changes made for https://onenr.io/0ERPr99n6QW
-//***************************************************************
-//***************************************************************
-//***************************************************************
-//***************************************************************
-//***************************************************************
-
 @EnabledIfEnvironmentVariable(named = "OANDA_API_KEY", matches = ".+")
 @Slf4j
 class BacktestStrategyManagerIntegrationTest {
@@ -173,12 +162,6 @@ class BacktestStrategyManagerIntegrationTest {
         // Assertions to check if numbers are roughly equal
         double epsilon = 0.01; // Tolerance
 
-//        assert Math.abs(balance - 28586.58) < epsilon : "Balance should be ~= 27119.16";
-//        assert Math.abs(equity - 28586.58) < epsilon : "Equity should be ~= 27119.16";
-//        assert Math.abs(profit - 18586.58) < epsilon : "Profit should be ~= 17119.16";
-//        assert Math.abs(profitPercentage - 185.86) < epsilon : "Profit percentage should be ~= 185.86%";
-
-        // TEMPORARY ASSERTS WHILE BROKEN
         assert Math.abs(balance - 28636.35) < epsilon : "Balance should be ~= 28636.35";
         assert Math.abs(equity - 28636.35) < epsilon : "Equity should be ~= 28636.35";
         assert Math.abs(profit - 18636.35) < epsilon : "Profit should be ~= 18636.35";

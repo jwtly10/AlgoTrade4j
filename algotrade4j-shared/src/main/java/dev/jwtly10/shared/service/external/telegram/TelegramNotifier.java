@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.jwtly10.core.external.notifications.Notifier;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -13,6 +14,9 @@ import java.util.Map;
 @Service
 @Slf4j
 public class TelegramNotifier implements Notifier {
+
+    @Value("${telegram.system.chat.id}")
+    private String systemChatId;
 
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
@@ -36,6 +40,67 @@ public class TelegramNotifier implements Notifier {
      */
     @Override
     public void sendNotification(String chatId, String message, boolean isHtml) {
+        log.info("Sending notification to chat: {}", chatId);
+        send(chatId, message, isHtml);
+    }
+
+    /**
+     * Sending an error notification to a Telegram chat
+     *
+     * @param chatId  The chat id to send the message to
+     * @param message The message to send
+     * @param e       The exception that caused the error
+     * @param isHtml  Whether the message is HTML or not
+     */
+    @Override
+    public void sendErrorNotification(String chatId, String message, Exception e, boolean isHtml) {
+        log.info("Sending error notification to chat: {}", chatId);
+        String errorDetails = NotifierUtils.formatError(e);
+        sendNotification(chatId, String.format("""
+                <b>Error:</b> %s
+                <pre>%s</pre>""", message, errorDetails
+        ), isHtml);
+
+    }
+
+    /**
+     * Sends internal system notification to the system chat
+     * This is useful for sending system-wide notifications
+     *
+     * @param message the message to send
+     * @param isHtml  whether the message is HTML or not
+     */
+    @Override
+    public void sendSysNotification(String message, boolean isHtml) {
+        log.info("Sending system notification to chat: {}", systemChatId);
+        sendNotification(systemChatId, String.format("""
+                [SYSTEM]
+                %s""", message
+        ), isHtml);
+    }
+
+    /**
+     * Sends internal system error notification to the system chat
+     * This is useful for sending system-wide error notifications
+     *
+     * @param message the message to send
+     * @param e       the exception that caused the error
+     * @param isHtml  whether the message is HTML or not
+     */
+    @Override
+    public void sendSysErrorNotification(String message, Exception e, boolean isHtml) {
+        log.info("Sending system error notification to chat: {}", systemChatId);
+        String errorDetails = NotifierUtils.formatError(e);
+
+        sendNotification(systemChatId, String.format("""
+                [SYSTEM]
+                <b>Error:</b> %s
+                <pre>%s</pre>""", message, errorDetails
+        ), isHtml);
+    }
+
+
+    private void send(String chatId, String message, boolean isHtml) {
         String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
 
         Map<String, Object> bodyMap = new HashMap<>();
@@ -50,9 +115,8 @@ public class TelegramNotifier implements Notifier {
 
         try {
             String jsonBody = objectMapper.writeValueAsString(bodyMap);
-
             RequestBody body = RequestBody.create(jsonBody, MediaType.parse("application/json"));
-            log.debug("Sending notification: {}", jsonBody);
+            log.debug("Telegram Req Body: {}", jsonBody);
             Request request = new Request.Builder()
                     .url(url)
                     .post(body)
@@ -68,16 +132,6 @@ public class TelegramNotifier implements Notifier {
         } catch (IOException e) {
             log.error("Failed to send notification: {}", e.getMessage());
         }
-    }
-
-    @Override
-    public void sendErrorNotification(String chatId, String message, Exception e, boolean isHtml) {
-        String errorDetails = NotifierUtils.formatError(e);
-        sendNotification(chatId, String.format("""
-                <b>Error:</b> %s
-                <pre>%s</pre>""", message, errorDetails
-        ), isHtml);
-
     }
 
     private String escapeMarkdown(String text) {

@@ -9,6 +9,7 @@ import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.event.types.StrategyStopEvent;
 import dev.jwtly10.core.event.types.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
@@ -41,17 +42,20 @@ public class LiveExecutor implements DataListener {
     private final LiveStateManager liveStateManager;
     private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final Notifier notifier;
 
     @Getter
     @Setter
     private volatile boolean initialised = false;
 
-    public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
+    public LiveExecutor(Strategy strategy,
+                        TradeManager tradeManager,
+                        AccountManager accountManager,
                         DataManager dataManager,
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
-                        RiskManager riskManager
-
+                        RiskManager riskManager,
+                        Notifier notifier
     ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
@@ -61,8 +65,9 @@ public class LiveExecutor implements DataListener {
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
         this.riskManager = riskManager;
+        this.notifier = notifier;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
+        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null, notifier);
     }
 
     @Override
@@ -89,6 +94,7 @@ public class LiveExecutor implements DataListener {
         }
 
         // Start polling for account/trade data
+        log.info("Starting live state manager for strategy: {}", strategyId);
         scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 1, TimeUnit.SECONDS);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Live Strategy initialized"));
     }
@@ -154,7 +160,6 @@ public class LiveExecutor implements DataListener {
     @Override
     public void onTradeClose(Trade trade) {
         log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
-//        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
         strategy.onTradeClose(trade);
     }
 

@@ -74,7 +74,7 @@ class DefaultDataManagerTest {
 
     @Test
     void testNormalBarCreation() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -94,7 +94,7 @@ class DefaultDataManagerTest {
 
     @Test
     void testMissingDailyData() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -117,7 +117,7 @@ class DefaultDataManagerTest {
     @ParameterizedTest
     @MethodSource("provideTimeFrames")
     void testDifferentTimeFrames(Duration barDuration, ZonedDateTime[] tickTimes, int expectedBars) {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, barDuration, mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, barDuration, mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -131,7 +131,7 @@ class DefaultDataManagerTest {
 
     @Test
     void testLargeTimeGap() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofHours(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofHours(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -151,7 +151,7 @@ class DefaultDataManagerTest {
 
     @Test
     void testWeekendGap() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -176,7 +176,7 @@ class DefaultDataManagerTest {
     @Test
     void testDataProviderExceptionDuringStart() throws DataProviderException {
         doThrow(new DataProviderException("Test exception")).when(mockDataProvider).start();
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.start();
         assertFalse(dataManager.isRunning());
         verify(mockEventPublisher).publishErrorEvent(eq(STRAT_ID), any(DataProviderException.class));
@@ -184,14 +184,14 @@ class DefaultDataManagerTest {
 
     @Test
     void testStopWhenNotRunning() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.stop();
         verify(mockDataProvider, never()).stop();
     }
 
     @Test
     void testTickExactlyAtBarCloseTime() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
 
@@ -209,7 +209,7 @@ class DefaultDataManagerTest {
     @Test
     void testListenerNotifications() {
         DataListener mockListener = mock(DataListener.class);
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockListener);
         dataManager.start();
 
@@ -229,21 +229,21 @@ class DefaultDataManagerTest {
 
     @Test
     void testGetCurrentMidPrice() {
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockDataListener);
         dataManager.start();
         dataManager.onTick(new DefaultTick(NAS100USD, new Number("100"), new Number("100.5"), new Number("101"), new Number("10"), ZonedDateTime.now()));
         assertEquals(new Number("100.5"), dataManager.getCurrentMidPrice());
 
         // Reset to null
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofMinutes(1), mockBarSeries, mockEventPublisher, null);
         assertNull(dataManager.getCurrentMidPrice());
     }
 
     @Test
     void testMultipleDayScenario() {
         DataListener mockListener = mock(DataListener.class);
-        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher);
+        dataManager = new DefaultDataManager(STRAT_ID, NAS100USD, mockDataProvider, Duration.ofDays(1), mockBarSeries, mockEventPublisher, null);
         dataManager.addDataListener(mockListener);
         dataManager.start();
 

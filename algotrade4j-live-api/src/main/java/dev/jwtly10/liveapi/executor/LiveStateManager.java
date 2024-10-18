@@ -9,41 +9,49 @@ import dev.jwtly10.core.event.types.LiveAnalysisEvent;
 import dev.jwtly10.core.event.types.async.AsyncTradesEvent;
 import dev.jwtly10.core.exception.RiskException;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.model.Stats;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import dev.jwtly10.marketdata.common.BrokerClient;
+import lombok.extern.slf4j.Slf4j;
 
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class LiveStateManager {
     private final BrokerClient brokerClient;
     private final AccountManager accountManager;
     private final TradeManager tradeManager;
     private final EventPublisher eventPublisher;
-    private final String strategyId;
+    private final Strategy strategy;
     private final Instrument instrument;
     private final LiveStrategyService liveStrategyService;
     private final PerformanceAnalyser performanceAnalyser;
+    private final Notifier notifier;
 
     public LiveStateManager(BrokerClient brokerClient, AccountManager accountManager, TradeManager tradeManager,
-                            EventPublisher eventPublisher, String strategyId, Instrument instrument, LiveStrategyService liveStrategyService) {
+                            EventPublisher eventPublisher, Strategy strategy, Instrument instrument, LiveStrategyService liveStrategyService, Notifier notifier) {
         this.brokerClient = brokerClient;
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.instrument = instrument;
         this.eventPublisher = eventPublisher;
-        this.strategyId = strategyId;
+        this.strategy = strategy;
         this.liveStrategyService = liveStrategyService;
         this.performanceAnalyser = new PerformanceAnalyser();
+        this.notifier = notifier;
     }
 
     /**
      * Update the trade and account states of the strategy
+     * TODO, refactor this to use the same retryable stream logic we have implemented for streaming prices and transactions
+     * Currently if this fails, there is no retry
      */
     public void updateState() {
         try {
@@ -58,10 +66,10 @@ public class LiveStateManager {
             tradeManager.updateOpenTrades(openTrades);
 
             // Update any WS clients with latest trade results
-            eventPublisher.publishEvent(new AsyncTradesEvent(strategyId, instrument, tradeManager.getAllTrades()));
+            eventPublisher.publishEvent(new AsyncTradesEvent(strategy.getStrategyId(), instrument, tradeManager.getAllTrades()));
 
             // TODO: Need to refactor some account logic
-            eventPublisher.publishEvent(new AccountEvent(strategyId, accountManager.getAccount()));
+            eventPublisher.publishEvent(new AccountEvent(strategy.getStrategyId(), accountManager.getAccount()));
 
             // Check for risk management
             if (accountManager.getEquity() < (accountManager.getInitialBalance() * 0.1)) {
@@ -70,9 +78,11 @@ public class LiveStateManager {
 
             // Do stats calculations for the strategy, after everything has been updated and events fired
             runPerformanceAnalysis();
-            eventPublisher.publishEvent(new LiveAnalysisEvent(strategyId, instrument, performanceAnalyser, accountManager.getAccount()));
+            eventPublisher.publishEvent(new LiveAnalysisEvent(strategy.getStrategyId(), instrument, performanceAnalyser, accountManager.getAccount()));
         } catch (Exception e) {
-            throw new RuntimeException("Error updating state for strategy: " + strategyId, e);
+            log.error("Error updating state for strategy: {}", strategy, e);
+            notifier.sendSysErrorNotification("Error updating state for strategy: " + strategy.getStrategyId(), e, true);
+            throw new RuntimeException("Error updating state for strategy: " + strategy, e);
         }
     }
 
@@ -91,6 +101,6 @@ public class LiveStateManager {
         stats.setProfitFactor(Double.parseDouble(df.format(performanceAnalyser.getProfitFactor())));
         stats.setSharpeRatio(Double.parseDouble(df.format(performanceAnalyser.getSharpeRatio())));
 
-        liveStrategyService.updateStrategyStats(strategyId, stats);
+        liveStrategyService.updateStrategyStats(strategy.getStrategyId(), stats);
     }
 }

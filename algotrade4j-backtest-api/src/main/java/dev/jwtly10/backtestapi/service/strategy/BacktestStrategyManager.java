@@ -92,7 +92,7 @@ public class BacktestStrategyManager {
         int defaultSeriesSize = 5000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher, null);
 
         Tick currentTick = new DefaultTick();
         Strategy strategy = null;

@@ -67,7 +67,17 @@ public abstract class BaseStrategy implements Strategy {
      */
     private Notifier notifier;
 
+    /**
+     * Flag to determine if the strategy should allow system notifications
+     * Used to ensure the strategy runs can be monitored via an external system
+     */
     private boolean useSystemNotifications = false;
+
+    /**
+     * Flag to determine if the strategy should use custom notifications
+     * These are private notifications that can be sent by the strategy developer
+     */
+    private boolean useCustomNotifications = false;
 
     /**
      * The chat ID of the notifier.
@@ -94,10 +104,10 @@ public abstract class BaseStrategy implements Strategy {
     public Optional<Trade> openLong(TradeParameters params) {
         try {
             Trade openedTrade = tradeManager.openLong(params);
-            sendOpenTradeNotification(openedTrade);
+            sysOpenTradeNotif(openedTrade);
             return Optional.of(openedTrade);
         } catch (Exception e) {
-            sendErrorNotification("Error opening long trade for strategy '" + strategyId + "'", e);
+            sysErrorNotif("Error opening long trade for strategy '" + strategyId + "'", e);
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return Optional.empty();
         }
@@ -114,10 +124,10 @@ public abstract class BaseStrategy implements Strategy {
     public Optional<Trade> openShort(TradeParameters params) {
         try {
             Trade openedTrade = tradeManager.openShort(params);
-            sendOpenTradeNotification(openedTrade);
+            sysOpenTradeNotif(openedTrade);
             return Optional.of(openedTrade);
         } catch (Exception e) {
-            sendErrorNotification("Error opening short trade for strategy '" + strategyId + "'", e);
+            sysErrorNotif("Error opening short trade for strategy '" + strategyId + "'", e);
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return Optional.empty();
         }
@@ -129,6 +139,20 @@ public abstract class BaseStrategy implements Strategy {
      */
     public void useSystemNotifications() {
         this.useSystemNotifications = true;
+    }
+
+    /**
+     * Turns on the use of custom notifications for a strategy
+     * Custom notifications are private notifications that can be sent by the strategy developer
+     */
+    public void useCustomNotifications() {
+        this.useCustomNotifications = true;
+    }
+
+
+    @Override
+    public boolean canUseSystemNotifications() {
+        return this.useSystemNotifications;
     }
 
     /**
@@ -215,18 +239,13 @@ public abstract class BaseStrategy implements Strategy {
     /**
      * Sends a notification message to external notifier implementation
      * By default all notifications will use HTML mode
+     * Uses the chat id set by the strategy
      *
      * @param message the message
      */
-    public void sendNotification(String message) {
-        if (notifier != null && notifierChatId != null) {
+    public void sendCustomNotification(String message) {
+        if (notifier != null && !notifierChatId.isEmpty() && useCustomNotifications) {
             notifier.sendNotification(notifierChatId, message, true);
-        }
-    }
-
-    public void sendErrorNotification(String message, Exception e) {
-        if (notifier != null && notifierChatId != null) {
-            notifier.sendErrorNotification(notifierChatId, message, e, true);
         }
     }
 
@@ -240,8 +259,8 @@ public abstract class BaseStrategy implements Strategy {
         ParameterHandler.setParameters(this, parameters);
     }
 
-    public void setNotificationService(Notifier notifier, String chatId) {
-        this.notifier = notifier;
+    @Override
+    public void setNotificationChatId(String chatId) {
         this.notifierChatId = chatId;
     }
 
@@ -273,7 +292,7 @@ public abstract class BaseStrategy implements Strategy {
      * @param eventPublisher the event publisher
      */
     @Override
-    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser) {
+    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier) {
         this.barSeries = series;
         this.dataManager = dataManager;
         this.accountManager = accountManager;
@@ -281,6 +300,10 @@ public abstract class BaseStrategy implements Strategy {
         this.eventPublisher = eventPublisher;
         this.SYMBOL = dataManager.getInstrument();
         this.performanceAnalyser = performanceAnalyser;
+        if (notifier == null) {
+            log.warn("Notifier is null. Notifications will not be sent for strategy '{}'", strategyId);
+        }
+        this.notifier = notifier;
         try {
             ParameterHandler.initialize(this);
         } catch (IllegalAccessException e) {
@@ -327,7 +350,7 @@ public abstract class BaseStrategy implements Strategy {
 
     @Override
     public void onTradeClose(Trade trade) {
-        sendCloseTradeNotification(trade);
+        systemCloseTradeNotif(trade);
     }
 
     /**
@@ -470,9 +493,11 @@ public abstract class BaseStrategy implements Strategy {
 
     /**
      * Wrapper for trade open notifications
+     *
+     * @param trade The trade that was opened
      */
-    private void sendOpenTradeNotification(Trade trade) {
-        if (useSystemNotifications) {
+    private void sysOpenTradeNotif(Trade trade) {
+        if (useSystemNotifications && notifier != null) {
             String tradeType = trade.isLong() ? "Long" : "Short";
             String message = String.format(
                     "🚀 <b>New %s trade opened for '%s' !</b>\n" +
@@ -486,15 +511,17 @@ public abstract class BaseStrategy implements Strategy {
                     trade.getEntryPrice().doubleValue()
             );
 
-            sendNotification(message);
+            notifier.sendSysNotification(message, true);
         }
     }
 
     /**
      * Wrapper for trade close notifications
+     *
+     * @param trade The trade that was closed
      */
-    private void sendCloseTradeNotification(Trade trade) {
-        if (useSystemNotifications) {
+    private void systemCloseTradeNotif(Trade trade) {
+        if (useSystemNotifications && notifier != null) {
             String tradeType = trade.isLong() ? "Long" : "Short";
             String profitStatus = trade.getProfit() >= 0 ? "Profit" : "Loss";
             String message = String.format(
@@ -514,7 +541,19 @@ public abstract class BaseStrategy implements Strategy {
                     profitStatus
             );
 
-            sendNotification(message);
+            notifier.sendSysNotification(message, true);
+        }
+    }
+
+    /**
+     * Wrapper for trade error notifications
+     *
+     * @param message The message to send
+     * @param e       The exception that caused the error
+     */
+    private void sysErrorNotif(String message, Exception e) {
+        if (useSystemNotifications && notifier != null) {
+            notifier.sendSysErrorNotification(message, e, true);
         }
     }
 }

@@ -4,6 +4,7 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.exception.DataProviderException;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private final Instrument instrument;
     private final EventPublisher eventPublisher;
     private final String runId;
+    private final Notifier systemNotifier;
     @Getter
     private volatile Number currentBid;
     @Getter
@@ -48,7 +50,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private int ticksModeled;
     private boolean isOptimising = false;
 
-    public DefaultDataManager(String runId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
+    public DefaultDataManager(String runId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher, Notifier systemNotifier) {
         this.runId = runId;
         this.dataProvider = dataProvider;
         this.period = barDuration;
@@ -56,6 +58,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         this.instrument = instrument;
         this.dataProvider.addDataProviderListener(this);
         this.eventPublisher = eventPublisher;
+        this.systemNotifier = systemNotifier;
     }
 
     @Override
@@ -143,10 +146,21 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
             notifyTick(tick, currentBar);
         } catch (BacktestExecutorException e) {
-            // During a strategy run, here is where we handle any errors that may happen
-            log.error("Error during strategy run for strategy {}: ", e.getStrategyId(), e);
+            // Note:
+            // The default data manger does support running multiple strategies at once, see OptimisationExecutor impl,
+            // However, considering many strategies may run slightly different data parameters this is not advised for live/backtesting - since its harder to reason about where the error
+            // came from, and how it should be handled.
+
+            // So here we should handle errors as if the default usage will be a single strategy, additional flags can be implemented to do different handling if needed
+
+            log.error("Error during strategy run for strategy {}: ", e.getStrategy(), e);
             eventPublisher.publishEvent(new LogEvent(e.getStrategyId(), LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
             eventPublisher.publishErrorEvent(e.getStrategyId(), e);
+
+            if (systemNotifier != null && e.getStrategy().canUseSystemNotifications()) {
+                systemNotifier.sendSysErrorNotification("Error during strategy run for strategy '" + e.getStrategyId() + "'", e, true);
+            }
+
             // If we are optimising. Gracefully remove the listener, rather than stopping the data manager
             if (isOptimising) {
                 notifyStopForStrategyId(e.getStrategyId());

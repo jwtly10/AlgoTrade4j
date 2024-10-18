@@ -1,5 +1,6 @@
 package dev.jwtly10.core.exception;
 
+import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
 
 /**
@@ -8,19 +9,20 @@ import lombok.Getter;
  */
 @Getter
 public class BacktestExecutorException extends RuntimeException {
-    private final String strategyId;
+    private final Strategy strategy;
 
-    public BacktestExecutorException(String strategyId, String message) {
+    public BacktestExecutorException(Strategy strategyId, String message) {
         super(message);
-        this.strategyId = strategyId;
+        this.strategy = strategyId;
     }
 
-    public BacktestExecutorException(String errorId, String message, Throwable cause) {
+    public BacktestExecutorException(Strategy strategy, String message, Throwable cause) {
         super(message, cause);
-        this.strategyId = errorId;
+        this.strategy = strategy;
     }
 
-    public String getErrorId() {
-        return strategyId;
+
+    public String getStrategyId() {
+        return strategy.getStrategyId();
     }
 }

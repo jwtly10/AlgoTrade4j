@@ -22,6 +22,7 @@ services:
       - MARKETDATA_API_KEY=${MARKETDATA_API_KEY}
       - MT5_API_URL=${MT5_API_URL}
       - MT5_API_KEY=${MT5_API_KEY}
+      - TELEGRAM_SYSTEM_CHAT_ID=${TELEGRAM_SYSTEM_CHAT_ID}
 
   live-api:
     image: joshwatley/algotrade4j-live-api:latest
@@ -44,6 +45,7 @@ services:
       - DEFAULT_OANDA_ACCOUNT_ID=${DEFAULT_OANDA_ACCOUNT_ID}
       - MT5_API_URL=${MT5_API_URL}
       - MT5_API_KEY=${MT5_API_KEY}
+      - TELEGRAM_SYSTEM_CHAT_ID=${TELEGRAM_SYSTEM_CHAT_ID}
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest
