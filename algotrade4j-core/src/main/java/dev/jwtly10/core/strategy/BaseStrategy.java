@@ -94,6 +94,31 @@ public abstract class BaseStrategy implements Strategy {
     }
 
     /**
+     * Create trade parameters for a trade
+     * This is the recommend way of creating a trade, all trades in a strategy (to comply with good risk management)
+     * Should open trades based on a given risk ratio, given a defined tick size, this way trades are consistent
+     *
+     * @param instrument     The instrument to trade
+     * @param stopLossTicks  The number of ticks for the stop loss
+     * @param isLong         Whether the trade is long or short
+     * @param riskRatio      The risk ratio of SL to TP
+     * @param riskPercentage The percentage of balance to risk
+     * @param balanceToRisk  The balance to risk
+     * @return The trade parameters, ready to be used
+     */
+    protected TradeParameters createTradeParameters(Instrument instrument, int stopLossTicks, boolean isLong, double riskRatio, double riskPercentage, double balanceToRisk) {
+        TradeParameters params = new TradeParameters();
+        params.setInstrument(instrument);
+        params.setEntryPrice(isLong ? Ask() : Bid());
+        Number stopLossPrice = getStopLossGivenInstrumentPriceDir(instrument, params.getEntryPrice(), stopLossTicks, isLong);
+        params.setStopLoss(stopLossPrice);
+        params.setRiskRatio(riskRatio);
+        params.setRiskPercentage(riskPercentage);
+        params.setBalanceToRisk(balanceToRisk);
+        return params;
+    }
+
+    /**
      * Opens a long position with the specified trade parameters.
      * This method will throw an exception if the risk manager does not allow the trade.
      * The risk manager checks the risk profile of the strategy and the account balance before allowing the trade.
