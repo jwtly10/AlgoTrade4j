@@ -91,6 +91,12 @@
             <artifactId>loki-logback-appender</artifactId>
             <version>1.6.0-m1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.18.1</version>
+        </dependency>
     </dependencies>
 
     <build>
