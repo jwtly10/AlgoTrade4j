@@ -553,6 +553,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#createtradeparametersinstrument-instrument-int-stoplossticks-boolean-islong-double-riskratio-double-riskpercentage-double-balancetorisk" class="md-nav__link">
+    <span class="md-ellipsis">
+      createTradeParameters(Instrument instrument, int stopLossTicks, boolean isLong, double riskRatio, double riskPercentage, double balanceToRisk)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1026,6 +1035,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#createtradeparametersinstrument-instrument-int-stoplossticks-boolean-islong-double-riskratio-double-riskpercentage-double-balancetorisk" class="md-nav__link">
+    <span class="md-ellipsis">
+      createTradeParameters(Instrument instrument, int stopLossTicks, boolean isLong, double riskRatio, double riskPercentage, double balanceToRisk)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1369,6 +1387,12 @@
 <li><strong>Description</strong>: Opens a short position with the specified trade parameters.</li>
 <li><strong>Returns</strong>: Integer (trade ID)</li>
 <li><strong>Note</strong>: Returns -1 if the trade is not allowed by the risk manager.</li>
+</ul>
+<h4 id="createtradeparametersinstrument-instrument-int-stoplossticks-boolean-islong-double-riskratio-double-riskpercentage-double-balancetorisk"><code>createTradeParameters(Instrument instrument, int stopLossTicks, boolean isLong, double riskRatio, double riskPercentage, double balanceToRisk)</code></h4>
+<ul>
+<li><strong>Description</strong>: Automatically creates a new TradeParameters object based on the strategy's risk management settings.</li>
+<li><strong>Returns</strong>: TradeParameters</li>
+<li><strong>Note</strong>: This is the recommended way to create trade parameters for a trade. All trades in a strategy should open trades based on a given risk ratio, given a defined tick size, to ensure consistency.</li>
 </ul>
 <h3 id="account-information">Account Information</h3>
 <h4 id="getinitialbalance"><code>getInitialBalance()</code></h4>
