@@ -1,16 +1,24 @@
 # AlgoTrade4j
 
-🏗️ Note: This project is currently a work in progress and not yet ready for production live trading use 🏗️
+🏗️ Note: Currently a work in progress and not yet ready for production live trading 🏗️
 
-AlgoTrade4j is a complete (strategy-dev, backtesting and live trading), high-performance algorithmic trading platform for Java, designed to be simple yet opinionated. Originally built to port strategies from MQL (MetaTrader4) to Java, it offers robust and flexible ways to backtest and extend functionality. The platform is capable of processing 50,000 ticks per second, making it suitable for relatively high-frequency trading strategies.
+AlgoTrade4j is a complete (supporting strategy-dev, backtesting, optimising and live trading), high-performance algorithmic trading platform for Java, designed to be opinionated but simple.
 
-⚠️It is a bespoke implementation so may not be suitable for all use cases. ⚠️
+Originally built to port strategies from MQL (MetaTrader4) to Java, it offers robust and flexible ways to backtest and extend functionality. The platform is capable of processing 50,000 ticks per second, making it suitable for complex strategy logic, on low timeframes.
 
-Application documentation can be found [here](https://jwtly10.github.io/AlgoTrade4j/)
+⚠️ See https://jwtly10.github.io/AlgoTrade4j/limitations/ for notes on current limitations of the platform ⚠️
+
+Full application documentation can be found [here](https://jwtly10.github.io/AlgoTrade4j/)
 
 Here is a small video demo of the system.
 
-https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
+https://github.com/user-attachments/assets/c7d43939-a11e-43c9-8fb5-55c20b5dcdff
+
+## Roadmap:
+
+- UI Refactor/Mobile Support
+- Desktop App
+- HFT Support
 
 ## Key Features:
 
@@ -30,32 +38,31 @@ https://github.com/user-attachments/assets/dc23724b-5104-4816-a33a-532f44149c36
 - Separate live service for live trading, supporting independent scaling
 - External integrations to make development easier and abstract MetaTrader internals.
 
-## Currently Supported Integrations
+## Currently Supported Broker Integrations
 
-- Oanda via REST API
-- MT5 via [custom REST Adapter API](https://github.com/jwtly10/algotrade4j_mt5)
-- Python SDK for market data for quick prototyping and analysis
+- Oanda - https://developer.oanda.com/rest-live-v20/introduction/
+- MT5 via custom REST Adapter API - https://github.com/jwtly10/algotrade4j_mt5
 
 ## Architecture
 
 The framework consists of 5 main components:
 
-1. core Module: Contains the main trading logic, event system and implemented defaults
-2. backtest-api Module: A Spring REST API for handling backtesting operations and core system operations
-3. live-api Module: A Spring service for live trading, and other broker related operations
-4. market-data Module: Manages the integration with external market data providers.
-5. React Frontend Module: A React-based frontend providing a base user interface for interacting with the system.
+1. `Core Module`: Contains the main trading logic, event system and implemented defaults
+2. `Backtest-api Module`: A Spring REST API for handling backtesting operations and core system operations
+3. `Live-api Module`: A Spring service for live trading, and other broker related operations
+4. `Market-data Module`: Manages the integration with external market data providers.
+5. `Frontend React Module`: A React-based frontend providing a base user interface for interacting with the system.
 
 And there a few external custom add-ons:
 
-- [Algotrade4j_mt5](https://github.com/jwtly10/algotrade4j_mt5) - Broker adapter for MT5
-- [Algotrade4j_py](https://github.com/jwtly10/algotrade4j_py) - SDK for market data, direct support for [backtesting.py](https://github.com/kernc/backtesting.py)
+- [jwtly10/Algotrade4j_mt5](https://github.com/jwtly10/algotrade4j_mt5) - Broker adapter for MT5
+- [jwtly10/Algotrade4j_py](https://github.com/jwtly10/algotrade4j_py) - Python SDK for AT4J market data, direct support for [backtesting.py](https://github.com/kernc/backtesting.py)
 
 This is a high-level overview of the framework and how it handles strategies:
 
 - A data provider is initialised with the data that needs to be listened to (e.g. Broker price streams, or historical API data).
 - A data manager is wrapper around this data provider, to transform raw data into ticks & bars.
-- A data listener/executor is then created to listen callbacks from the data manager. This interface handles the data, and orchestrates other flows that are required for running a strategy:
+- A data listener/executor is then created to listen to callbacks from the data manager. This interface handles the data, and orchestrates other flows that are required for running a strategy:
     - Handles updating account data (PNL, balance, etc)
     - Handles updating trade stats (open trades, closed trades, etc)
     - Emits events to the running strategy instance.
@@ -140,9 +147,7 @@ Intellij Setup for both the backtest-api and live-api:
 - Profile:
     - dev
 - Environment Vars:
-    - OANDA_API_URL=https://api-fxpractice.oanda.com;
-    - OANDA_API_KEY=<your_api_key>;
-    - TELEGRAM_BOT_TOKEN=7711666751:AAGDIcfDKo6NrwrEOvm-e_bdsoQTDp-7RII # This is required for live-api only
+    - see .env-example for required vars
 
 Properties are defined in the respective application.properties files.
 
@@ -154,13 +159,15 @@ cd ./algotrade4j-frontend
 npm run dev
 ```
 
-Supported environment vars can be found here: ./algotrade4j-frontend/.env-example
+All supported environment vars can be found here: ./algotrade4j-frontend/.env-example
 
 The frontend application should be running at localhost:5173, with the main-api running on localhost:8080 and live-api running on localhost:8081.
 
 #### Creating new prod instances
 
-THe build steps (CI/CD) are defined in the .github/workflows folder. Docker images are built and pushed to docker hub which can be used to deploy the application anywhere.
+The build steps (CI/CD) are defined in the .github/workflows folder. Docker images are built and pushed to docker hub which can be used to deploy the application anywhere.
+
+The docker-compose setup should allow for deploying to new environments with minimal changes.
 
 Requirements:
 
