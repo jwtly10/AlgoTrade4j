@@ -5,21 +5,33 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from '@/components/ui/select';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from '@/components/ui/table';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {liveAccountClient} from '@/api/liveClient.js';
 import {useToast} from '@/hooks/use-toast';
 
 const LiveBrokerModal = ({open, onClose}) => {
-    const [accounts, setAccounts] = useState([]);
-    const [brokers, setBrokers] = useState([]);
-    const [mode, setMode] = useState('list'); // 'list', 'edit', or 'new'
-    const [editingAccount, setEditingAccount] = useState(null);
-    const [newAccount, setNewAccount] = useState({
+
+    const DEFAULT_NEW_ACCOUNT = {
         brokerName: '',
         brokerType: '',
+        brokerEnv: '',
         initialBalance: '',
         accountId: '',
-    });
+        mt5Credentials: {
+            password: '',
+            server: '',
+            path: '',
+            timezone: ''
+        }
+    }
+
+    const [accounts, setAccounts] = useState([]);
+    const [brokers, setBrokers] = useState([]);
+    const [timezones, setTimezones] = useState([]);
+    const [mode, setMode] = useState('list'); // 'list', 'edit', or 'new'
+    const [editingAccount, setEditingAccount] = useState(null);
+    const [newAccount, setNewAccount] = useState(DEFAULT_NEW_ACCOUNT);
     const {toast} = useToast();
 
     useEffect(() => {
@@ -27,13 +39,32 @@ const LiveBrokerModal = ({open, onClose}) => {
             resetState();
             fetchAccounts();
             fetchBrokers();
+            fetchTimezones();
         }
     }, [open]);
 
+    const getCurrentTimeByZone = (zoneId) => {
+        return new Date().toLocaleTimeString('en-US', {timeZone: zoneId, timeStyle: 'short'});
+    };
+
+    const findTimezoneByCode = (code) => {
+        if (code?.name) {
+            return code
+        }
+
+        return timezones.find(tz => tz.name === code);
+    };
+
     const isFormValid = (account) => {
-        return (
-            account.brokerName && account.brokerType && account.initialBalance && account.accountId
-        );
+
+        const base = account.brokerName && account.brokerType && account.initialBalance && account.accountId
+
+        if (account.brokerType.startsWith('MT5')) {
+            const mt5 = account.mt5Credentials?.password && account.mt5Credentials?.server && account.mt5Credentials?.path && account.mt5Credentials?.timezone
+            return base && mt5
+        } else {
+            return base
+        }
     };
 
     const fetchAccounts = async () => {
@@ -64,6 +95,20 @@ const LiveBrokerModal = ({open, onClose}) => {
         }
     };
 
+    const fetchTimezones = async () => {
+        try {
+            const res = await liveAccountClient.getTimezones();
+            setTimezones(res);
+        } catch (error) {
+            console.error('Failed to fetch timezones', error);
+            toast({
+                title: 'Error',
+                description: `Failed to timezones brokers: ${error.message}`,
+                variant: 'destructive',
+            });
+        }
+    };
+
     const handleInputChange = (field, value) => {
         if (mode === 'edit') {
             setEditingAccount({...editingAccount, [field]: value});
@@ -72,12 +117,52 @@ const LiveBrokerModal = ({open, onClose}) => {
         }
     };
 
+    const handleMt5InputChange = (field, value) => {
+        if (mode === 'edit') {
+            setEditingAccount({
+                ...editingAccount,
+                mt5Credentials: {
+                    ...editingAccount.mt5Credentials,
+                    [field]: value,
+                },
+            });
+        } else {
+            setNewAccount({
+                ...newAccount,
+                mt5Credentials: {
+                    ...newAccount.mt5Credentials,
+                    [field]: value,
+                },
+            });
+        }
+    };
+
+
     const handleSave = async () => {
-        const accountToSave = mode === 'edit' ? editingAccount : newAccount;
+        let accountToSave = mode === 'edit' ? editingAccount : newAccount;
+
+        console.log({accountToSave, editingAccount, newAccount})
+
+
+        const isEmptyMt5Credentials = (credentials) => {
+            return !credentials || Object.values(credentials).every((value) => !value);
+        };
+
+        // Remove mt5Credentials if brokerType is not 'MT5' or credentials are empty
+        if (!accountToSave.brokerType.startsWith('MT5') || isEmptyMt5Credentials(accountToSave.mt5Credentials)) {
+            // Create a copy of the account and remove mt5Credentials
+            accountToSave = {
+                ...accountToSave,
+                mt5Credentials: undefined
+            };
+        } else {
+            accountToSave.mt5Credentials.timezone = accountToSave.mt5Credentials.timezone.name
+        }
+
         if (!isFormValid(accountToSave)) {
             toast({
                 title: 'Incomplete Account Details',
-                description: 'Please complete in all fields before saving.',
+                description: 'Please complete all fields before saving.',
                 variant: 'destructive',
             });
             return;
@@ -89,23 +174,27 @@ const LiveBrokerModal = ({open, onClose}) => {
             if (mode === 'edit') {
                 updatedAccount = await liveAccountClient.updateBrokerAccount(
                     editingAccount.accountId,
-                    editingAccount
+                    accountToSave
                 );
                 const updatedAccounts = accounts.map((account) =>
                     account.id === editingAccount.id ? editingAccount : account
                 );
                 setAccounts(updatedAccounts);
+                toast({
+                    title: 'Success',
+                    description: `Account '${updatedAccount.brokerName}' updated successfully`,
+                });
             } else if (mode === 'new') {
-                savedAccount = await liveAccountClient.createBrokerAccount(newAccount);
-                setAccounts([...accounts, {...newAccount, id: Date.now()}]);
+                savedAccount = await liveAccountClient.createBrokerAccount(accountToSave);
+                setAccounts([...accounts, {...accountToSave, id: Date.now()}]);
+                toast({
+                    title: 'Success',
+                    description: `Account '${savedAccount.accountId}' created successfully`,
+                });
             }
             setMode('list');
             setEditingAccount(null);
-            setNewAccount({brokerName: '', brokerType: '', initialBalance: '', accountId: ''});
-            toast({
-                title: 'Success',
-                description: `Account '${mode === 'edit' ? updatedAccount.accountId : savedAccount.accountId}' updated successfully`,
-            });
+            setNewAccount(DEFAULT_NEW_ACCOUNT);
         } catch (error) {
             console.error('Failed to save account', error);
             toast({
@@ -117,6 +206,11 @@ const LiveBrokerModal = ({open, onClose}) => {
     };
 
     const handleEdit = (account) => {
+        // Convert the data from DB which just passes in the code
+        if (account.mt5Credentials && account.mt5Credentials.timezone) {
+            account.mt5Credentials.timezone = findTimezoneByCode(account.mt5Credentials.timezone);
+        }
+
         setEditingAccount(account);
         setMode('edit');
     };
@@ -142,77 +236,165 @@ const LiveBrokerModal = ({open, onClose}) => {
     const resetState = () => {
         setAccounts([]);
         setBrokers([]);
+        setTimezones([])
         setMode('list');
         setEditingAccount(null);
-        setNewAccount({
-            brokerName: '',
-            brokerType: '',
-            initialBalance: '',
-            accountId: '',
-        });
+        setNewAccount(DEFAULT_NEW_ACCOUNT);
     };
 
     const renderForm = () => (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="broker">Broker</Label>
-                    <Select
-                        value={mode === 'edit' ? editingAccount?.brokerName : newAccount.brokerName}
-                        onValueChange={(value) => handleInputChange('brokerName', value)}
-                    >
-                        <SelectTrigger id="broker">
-                            <SelectValue placeholder="Select broker"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {brokers.map((broker) => (
-                                <SelectItem key={broker} value={broker}>
-                                    {broker}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="type">Type</Label>
-                    <Select
-                        value={mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType}
-                        onValueChange={(value) => handleInputChange('brokerType', value)}
-                    >
-                        <SelectTrigger id="type">
-                            <SelectValue placeholder="Select type"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="LIVE">LIVE</SelectItem>
-                            <SelectItem value="DEMO">DEMO</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="initialBalance">Initial Balance</Label>
-                    <Input
-                        id="initialBalance"
-                        value={
-                            mode === 'edit'
-                                ? editingAccount?.initialBalance
-                                : newAccount.initialBalance
-                        }
-                        onChange={(e) => handleInputChange('initialBalance', e.target.value)}
-                        type="number"
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="accountId">Account ID</Label>
-                    <Input
-                        id="accountId"
-                        value={mode === 'edit' ? editingAccount?.accountId : newAccount.accountId}
-                        onChange={(e) => handleInputChange('accountId', e.target.value)}
-                        disabled={mode === 'edit'}
-                        autoComplete="off"
-                    />
-                </div>
-            </div>
-            <div className="flex justify-end space-x-2">
+        <div className="space-y-6">
+            {/* Section 1: General Broker Information */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Broker Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="brokerName">Name</Label>
+                            <Input
+                                id="brokerName"
+                                value={mode === 'edit' ? editingAccount?.brokerName : newAccount.brokerName}
+                                onChange={(e) => handleInputChange('brokerName', e.target.value)}
+                                type="text"
+                                placeholder="Enter Broker Name"
+                                autoComplete="off"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="brokerType">Broker Type</Label>
+                            <Select
+                                value={mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType}
+                                onValueChange={(value) => handleInputChange('brokerType', value)}
+                                disabled={mode === 'edit'}
+                            >
+                                <SelectTrigger id="brokerType">
+                                    <SelectValue placeholder="Select broker type"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {brokers.map((broker) => (
+                                        <SelectItem key={broker} value={broker}>
+                                            {broker}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="environment">Environment</Label>
+                            <Select
+                                value={mode === 'edit' ? editingAccount?.brokerEnv : newAccount.brokerEnv}
+                                onValueChange={(value) => handleInputChange('brokerEnv', value)}
+                            >
+                                <SelectTrigger id="environment">
+                                    <SelectValue placeholder="Select environment"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="LIVE">LIVE</SelectItem>
+                                    <SelectItem value="DEMO">DEMO</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="initialBalance">Initial Balance</Label>
+                            <Input
+                                id="initialBalance"
+                                value={mode === 'edit' ? editingAccount?.initialBalance : newAccount.initialBalance}
+                                onChange={(e) => handleInputChange('initialBalance', e.target.value)}
+                                type="number"
+                                placeholder="Enter initial balance"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="accountId">Account ID</Label>
+                            <Input
+                                id="accountId"
+                                value={mode === 'edit' ? editingAccount?.accountId : newAccount.accountId}
+                                onChange={(e) => handleInputChange('accountId', e.target.value)}
+                                disabled={mode === 'edit'}
+                                placeholder="Enter account ID"
+                                type="text"
+                                autoComplete="off"
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Section 2: MT5 Credentials (conditional) */}
+            {(mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType).startsWith('MT5') && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>MT5 Credentials</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="mt5Password">MT5 Password</Label>
+                                <Input
+                                    id="mt5Password"
+                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
+                                    onChange={(e) => handleMt5InputChange('password', e.target.value)}
+                                    type="password"
+                                    placeholder="Enter MT5 password"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="mt5Server">MT5 Server</Label>
+                                <Input
+                                    id="mt5Server"
+                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.server : newAccount.mt5Credentials?.server}
+                                    onChange={(e) => handleMt5InputChange('server', e.target.value)}
+                                    type="text"
+                                    placeholder="Enter MT5 server"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="mt5Path">MT5 Path</Label>
+                                <Input
+                                    id="mt5Path"
+                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.path : newAccount.mt5Credentials?.path}
+                                    onChange={(e) => handleMt5InputChange('path', e.target.value)}
+                                    type="text"
+                                    placeholder="Enter MT5 path"
+                                    autoComplete="off"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="mt5Timezone">MT5 Timezone</Label>
+                                <Select
+                                    value={mode === 'edit' ? findTimezoneByCode(editingAccount?.mt5Credentials?.timezone) : findTimezoneByCode(newAccount?.mt5Credentials?.timezone)}
+                                    onValueChange={(value) => handleMt5InputChange('timezone', value)}
+                                >
+                                    <SelectTrigger id="mt5Timezone">
+                                        <SelectValue placeholder="Select timezone"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {timezones.map((tz, index) => (
+                                            <SelectItem key={index} value={tz}>
+                                                {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-2 pt-4">
                 <Button variant="outline" onClick={() => setMode('list')}>
                     Cancel
                 </Button>
@@ -233,8 +415,9 @@ const LiveBrokerModal = ({open, onClose}) => {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Broker</TableHead>
+                                        <TableHead>Name</TableHead>
                                         <TableHead>Type</TableHead>
+                                        <TableHead>Env</TableHead>
                                         <TableHead>Initial Balance</TableHead>
                                         <TableHead>Account ID</TableHead>
                                         <TableHead>Actions</TableHead>
@@ -245,6 +428,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                                         <TableRow key={account.id}>
                                             <TableCell>{account.brokerName}</TableCell>
                                             <TableCell>{account.brokerType}</TableCell>
+                                            <TableCell>{account.brokerEnv}</TableCell>
                                             <TableCell>${parseFloat(account.initialBalance) ? parseFloat(account.initialBalance).toLocaleString() : account.initialBalance}</TableCell>
                                             <TableCell>{account.accountId}</TableCell>
                                             <TableCell>

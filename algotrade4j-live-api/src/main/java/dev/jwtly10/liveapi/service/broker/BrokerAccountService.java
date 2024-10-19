@@ -1,10 +1,12 @@
 package dev.jwtly10.liveapi.service.broker;
 
-import dev.jwtly10.liveapi.model.BrokerAccount;
-import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.core.model.Broker;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.broker.Timezone;
+import dev.jwtly10.liveapi.model.dto.TimezoneDTO;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
-import dev.jwtly10.marketdata.common.Broker;
 import dev.jwtly10.shared.auth.utils.SecurityUtils;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BrokerAccountService {
@@ -33,6 +37,12 @@ public class BrokerAccountService {
 
     public List<Broker> getBrokers() {
         return List.of(Broker.values());
+    }
+
+    public List<TimezoneDTO> getTimezones() {
+        return Stream.of(Timezone.values())
+                .map(tz -> new TimezoneDTO(tz.name(), tz.getZoneId().toString()))
+                .collect(Collectors.toList());
     }
 
     public void validateAccountId(String accountId) {
@@ -63,6 +73,10 @@ public class BrokerAccountService {
 
         broker.setActive(true);
 
+        if (broker.getMt5Credentials() != null) {
+            broker.getMt5Credentials().setBrokerAccount(broker);
+        }
+
         return brokerAccountRepository.save(broker);
     }
 
@@ -78,11 +92,22 @@ public class BrokerAccountService {
         BrokerAccount foundAccount = brokerAccountRepository.findByAccountIdAndActiveIsTrue(accountId)
                 .orElseThrow(() -> new ApiException("Account ID '" + accountId + "' not found", ErrorType.NOT_FOUND));
 
+        LiveStrategy liveStrategy = liveStrategyRepository.findLiveStrategyByBrokerAccountAndHiddenIsFalseAndActiveIsTrue(foundAccount)
+                .orElse(null);
+
+        if (liveStrategy != null) {
+            throw new ApiException("Account ID '" + accountId + "' is still in use by the strategy: " + liveStrategy.getStrategyName(), ErrorType.BAD_REQUEST);
+        }
+
         // TODO: Validate the account id passed in by making external API call if possible
         foundAccount.setAccountId(broker.getAccountId().trim());
         foundAccount.setBrokerName(broker.getBrokerName());
         foundAccount.setBrokerType(broker.getBrokerType());
         foundAccount.setInitialBalance(broker.getInitialBalance());
+
+        if (broker.getMt5Credentials() != null) {
+            foundAccount.setMt5Credentials(broker.getMt5Credentials());
+        }
 
         foundAccount.setActive(true);
 

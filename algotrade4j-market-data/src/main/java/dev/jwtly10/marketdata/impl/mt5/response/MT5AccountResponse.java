@@ -1,6 +1,6 @@
 package dev.jwtly10.marketdata.impl.mt5.response;
 
-public record Mt5AccountResponse(
+public record MT5AccountResponse(
         double assets,
         double balance,
         double commission_blocked,

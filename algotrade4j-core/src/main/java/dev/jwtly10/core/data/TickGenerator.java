@@ -1,9 +1,7 @@
 package dev.jwtly10.core.data;
 
-import dev.jwtly10.core.model.Bar;
-import dev.jwtly10.core.model.DefaultTick;
-import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -18,10 +16,11 @@ public class TickGenerator {
     private final int spread;
     private final Random random;
     private final Duration period;
+    private final Broker BROKER;
     private final Instrument instrument;
     private Number remainingVolume; // Used for ensuring that the total volume is maintained
 
-    public TickGenerator(int ticksPerBar, Instrument instrument, int spread, Duration period, long seed) {
+    public TickGenerator(Broker broker, int ticksPerBar, Instrument instrument, int spread, Duration period, long seed) {
         if (ticksPerBar < 4) {
             throw new IllegalArgumentException("Ticks per bar must be at least 4");
         }
@@ -30,15 +29,17 @@ public class TickGenerator {
         this.period = period;
         this.random = new Random(seed);
         this.instrument = instrument;
+        this.BROKER = broker;
     }
 
-    public TickGenerator(int spread, Instrument instrument, Duration period, long seed) {
+    public TickGenerator(Broker broker, int spread, Instrument instrument, Duration period, long seed) {
         this.ticksPerBar = mapTicksPerBarToPeriod(period);
         log.info("For duration {}, generating {} ticks with spread {}", period, ticksPerBar, spread);
         this.spread = spread;
         this.period = period;
         this.random = new Random(seed);
         this.instrument = instrument;
+        this.BROKER = broker;
     }
 
     /**
@@ -100,7 +101,7 @@ public class TickGenerator {
                 try {
                     Thread.sleep(delayPerTick);
                 } catch (InterruptedException e) {
-                    log.error("Error sleeping during tick generation", e);
+                    log.error("Error sleeping during tick generation: {}", e.getMessage(), e);
                 }
             }
 
@@ -156,7 +157,7 @@ public class TickGenerator {
             }
         }
 
-        Number calculatedSpread = new Number(this.spread * instrument.getMinimumMove());
+        Number calculatedSpread = new Number(this.spread * instrument.getBrokerConfig(BROKER).getMinimumMove());
 
         Number bid = mid.subtract(calculatedSpread.divide(2));
         Number ask = mid.add(calculatedSpread.divide(2));
@@ -177,10 +178,10 @@ public class TickGenerator {
 
         return new DefaultTick(
                 bar.getInstrument(),
-                bid.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
-                mid.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
-                ask.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
-                tickVolume.setScale(bar.getInstrument().getDecimalPlaces(), RoundingMode.DOWN),
+                bid.setScale(bar.getInstrument().getBrokerConfig(BROKER).getDecimalPlaces(), RoundingMode.DOWN),
+                mid.setScale(bar.getInstrument().getBrokerConfig(BROKER).getDecimalPlaces(), RoundingMode.DOWN),
+                ask.setScale(bar.getInstrument().getBrokerConfig(BROKER).getDecimalPlaces(), RoundingMode.DOWN),
+                tickVolume.setScale(bar.getInstrument().getBrokerConfig(BROKER).getDecimalPlaces(), RoundingMode.DOWN),
                 tickTime);
     }
 

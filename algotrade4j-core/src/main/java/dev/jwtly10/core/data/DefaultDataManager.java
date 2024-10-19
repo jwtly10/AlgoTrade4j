@@ -4,6 +4,7 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.exception.DataProviderException;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private final Instrument instrument;
     private final EventPublisher eventPublisher;
     private final String runId;
+    private final Notifier systemNotifier;
     @Getter
     private volatile Number currentBid;
     @Getter
@@ -48,7 +50,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     private int ticksModeled;
     private boolean isOptimising = false;
 
-    public DefaultDataManager(String runId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher) {
+    public DefaultDataManager(String runId, Instrument instrument, DataProvider dataProvider, Duration barDuration, BarSeries barSeries, EventPublisher eventPublisher, Notifier systemNotifier) {
         this.runId = runId;
         this.dataProvider = dataProvider;
         this.period = barDuration;
@@ -56,6 +58,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         this.instrument = instrument;
         this.dataProvider.addDataProviderListener(this);
         this.eventPublisher = eventPublisher;
+        this.systemNotifier = systemNotifier;
     }
 
     @Override
@@ -72,7 +75,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         try {
             dataProvider.start();
         } catch (DataProviderException e) {
-            log.error("Error starting data provider", e);
+            log.error("Error starting data provider: {}", e.getMessage(), e);
             running = false;
             startTime = null;
             eventPublisher.publishErrorEvent(runId, e);
@@ -80,21 +83,21 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
     }
 
     @Override
-    public void stop() {
+    public void stop(String reason) {
         if (!running) return;
 
         running = false;
 
         // Stop the provider if its running
         if (dataProvider.isRunning()) {
-            dataProvider.stop();
+            dataProvider.stop(reason);
         }
 
         Duration runningTime = Duration.between(startTime, Instant.now());
-        log.info("Data Manager stopped. Runtime: {}, ticks modelled: {}", formatDuration(runningTime), ticksModeled);
+        log.info("Data Manager stopped due to '{}'. Runtime: {}, ticks modelled: {}", reason, formatDuration(runningTime), ticksModeled);
 
         // Stop data listeners (AKA strategies)
-        notifyStop();
+        notifyStop(reason);
     }
 
     @Override
@@ -119,7 +122,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         if (listeners.isEmpty()) {
             // There are no more listeners here
             log.warn("No more listeners. Stopping data manager.");
-            stop();
+            stop("No more listeners");
             return;
         }
 
@@ -143,15 +146,26 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
 
             notifyTick(tick, currentBar);
         } catch (BacktestExecutorException e) {
-            // During a strategy run, here is where we handle any errors that may happen
-            log.error("Error during strategy run for strategy {}: ", e.getStrategyId(), e);
+            // Note:
+            // The default data manger does support running multiple strategies at once, see OptimisationExecutor impl,
+            // However, considering many strategies may run slightly different data parameters this is not advised for live/backtesting - since its harder to reason about where the error
+            // came from, and how it should be handled.
+
+            // So here we should handle errors as if the default usage will be a single strategy, additional flags can be implemented to do different handling if needed
+
+            log.error("Error during strategy run for strategy {}: ", e.getStrategy(), e);
             eventPublisher.publishEvent(new LogEvent(e.getStrategyId(), LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
             eventPublisher.publishErrorEvent(e.getStrategyId(), e);
+
+            if (systemNotifier != null && e.getStrategy().canUseSystemNotifications()) {
+                systemNotifier.sendSysErrorNotification("Error during strategy run for strategy '" + e.getStrategyId() + "'", e, true);
+            }
+
             // If we are optimising. Gracefully remove the listener, rather than stopping the data manager
             if (isOptimising) {
                 notifyStopForStrategyId(e.getStrategyId());
             } else {
-                stop();
+                stop(String.format("Error during strategy run for strategy %s: %s", e.getStrategyId(), e.getMessage()));
             }
         }
     }
@@ -213,9 +227,9 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
         }
     }
 
-    private void notifyStop() {
+    private void notifyStop(String reason) {
         for (DataListener listener : listeners) {
-            listener.onStop();
+            listener.onStop(reason);
         }
     }
 
@@ -252,12 +266,13 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
      * This should stop the data manager, and notify all listeners
      */
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (running) {
             log.debug("Data provider stopped. Stopping data manager");
             // When this stops, we trigger the close of the latest bar
-            closeCurrentBar();
-            stop();
+            // TODO. This can actually cause trades to trigger, 18th Oct - commenting it out for now
+//            closeCurrentBar();
+            stop(reason);
         }
     }
 

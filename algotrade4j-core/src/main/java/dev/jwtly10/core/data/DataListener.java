@@ -46,8 +46,10 @@ public interface DataListener {
 
     /**
      * Called when the data listener is stopped.
+     *
+     * @param reason the reason for stopping the data listener
      */
-    void onStop();
+    void onStop(String reason);
 
     /**
      * Called when a trade is closed

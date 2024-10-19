@@ -1,9 +1,11 @@
-package dev.jwtly10.liveapi.model;
+package dev.jwtly10.liveapi.model.strategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
+import dev.jwtly10.liveapi.model.Stats;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

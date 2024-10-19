@@ -97,7 +97,7 @@ class BacktestExecutorTest {
         backtestExecutor.initialise();
         when(tradeManager.getOpenTrades()).thenReturn(new ConcurrentHashMap<>());
         when(accountManager.getInitialBalance()).thenReturn(10000.0);
-        backtestExecutor.onStop();
+        backtestExecutor.onStop("Testing");
         verify(strategy).onDeInit();
         verify(strategy).onEnd();
         verify(eventPublisher).publishEvent(any(StrategyStopEvent.class));
@@ -112,7 +112,7 @@ class BacktestExecutorTest {
         Bar bar = mock(Bar.class);
         backtestExecutor.onTick(tick, bar);
         backtestExecutor.onBarClose(bar);
-        backtestExecutor.onStop();
+        backtestExecutor.onStop("Testing");
         verify(strategy, never()).onTick(any(), any());
         verify(strategy, never()).onBarClose(any());
         verify(strategy, never()).onDeInit();

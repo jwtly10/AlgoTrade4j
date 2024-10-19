@@ -22,6 +22,7 @@ import {useToast} from '@/hooks/use-toast.js';
 
 const LiveStrategyView = ({user}) => {
     const {
+        resetChart,
         isConnected,
         trades,
         analysisData,
@@ -113,6 +114,12 @@ const LiveStrategyView = ({user}) => {
     const handleToggle = async (strategyId) => {
         setTogglingStrategyId(strategyId);
         setUiIsToggling(true)
+
+        if (viewingStrategy && viewingStrategy.id === strategyId) {
+            resetChart();
+            setViewingStrategy(null);
+        }
+
         try {
             const res = await liveStrategyClient.toggleStrategy(strategyId);
             log.debug('Toggled strategy:', res);
@@ -147,10 +154,10 @@ const LiveStrategyView = ({user}) => {
                             <>
                                 {/* Chart Section */}
                                 <div className="flex-shrink-0 h-2/5 min-h-[500px] mb-6 bg-background rounded overflow-hidden">
-                                    {chartData && chartData.length > 0 ? (
+                                    {chartData && viewingStrategy && chartData.length > 0 ? (
                                         <TradingViewChart
                                             showChart={true}
-                                            strategyConfig={viewingStrategy.config}
+                                            strategyConfig={viewingStrategy?.config}
                                             chartData={chartData}
                                             trades={trades}
                                             indicators={indicators}
@@ -339,7 +346,7 @@ const LiveStrategyView = ({user}) => {
                                                     <Tooltip>
                                                         <TooltipTrigger>
                                                             <Badge
-                                                                vvariant={
+                                                                variant={
                                                                     strategy.active
                                                                         ? 'default'
                                                                         : 'secondary'
@@ -379,33 +386,25 @@ const LiveStrategyView = ({user}) => {
                                                 </TooltipProvider>
                                                 <Badge
                                                     variant={
-                                                        strategy.brokerAccount.brokerType === 'LIVE'
+                                                        strategy.brokerAccount.brokerEnv === 'LIVE'
                                                             ? 'destructive'
                                                             : 'default'
                                                     }
                                                 >
-                                                    {strategy.brokerAccount.brokerType}
+                                                    {strategy.brokerAccount.brokerEnv}
                                                 </Badge>
                                             </div>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">
                                                 <div className="bg-muted p-3 rounded-md">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                    <div className="gap-x-4 gap-y-2 text-sm">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-muted-foreground">
-                                                                Broker:
+                                                                Account:
                                                             </span>
                                                             <span className="font-medium">
-                                                                {strategy.brokerAccount.brokerName}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex flex-col sm:flex-row sm:justify-between">
-                                                            <span className="text-muted-foreground pr-2">
-                                                                Account ID:
-                                                            </span>
-                                                            <span className="font-medium break-all">
-                                                                {strategy.brokerAccount.accountId}
+                                                                ({strategy.brokerAccount.brokerType}) {strategy.brokerAccount.brokerName}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -517,7 +516,7 @@ const LiveStrategyView = ({user}) => {
                                             </div>
                                         </CardContent>
                                         <CardFooter className="flex justify-end space-x-2 pt-2">
-                                            {strategy.active && (
+                                            {strategy.active && !uiIsToggling && (
                                                 <Button
                                                     variant={
                                                         viewingStrategy &&
@@ -577,6 +576,8 @@ const LiveStrategyView = ({user}) => {
                     open={isModalOpen}
                     onClose={handleConfigEditClose}
                     strategyConfig={pickedLiveStrategy}
+                    clearChart={resetChart}
+                    isStrategyInUse={viewingStrategy && viewingStrategy.id === pickedLiveStrategy.id}
                 />
             )}
             <LiveCreateStratModal

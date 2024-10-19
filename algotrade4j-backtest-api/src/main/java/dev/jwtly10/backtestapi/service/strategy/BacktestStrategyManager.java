@@ -17,8 +17,8 @@ import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
+import dev.jwtly10.marketdata.common.BacktestExternalDataProvider;
 import dev.jwtly10.marketdata.common.ExternalDataClient;
-import dev.jwtly10.marketdata.common.ExternalDataProvider;
 import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaDataClient;
@@ -44,15 +44,17 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class StrategyManager {
+public class BacktestStrategyManager {
     private final EventPublisher eventPublisher;
     private final ConcurrentHashMap<String, BacktestExecutor> runningStrategies = new ConcurrentHashMap<>();
     private final OandaClient oandaClient;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
+    private final Broker BACKTEST_BROKER = Broker.OANDA;
+
     private final Environment environment;
 
-    public StrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
+    public BacktestStrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.environment = environment;
@@ -62,7 +64,7 @@ public class StrategyManager {
         try {
             config.validate();
         } catch (Exception e) {
-            log.error("Error validating strategy config", e);
+            log.error("Error validating strategy config: {}", e.getMessage(), e);
             throw new StrategyManagerException("Error validating strategy config: " + e, ErrorType.BAD_REQUEST);
         }
 
@@ -70,6 +72,7 @@ public class StrategyManager {
         int spread = config.getSpread();
         Instrument instrument = config.getInstrumentData().getInstrument();
 
+        // During backtesting, we only need access to the data api. This does not request an account ID
         OandaBrokerClient oandaBrokerClient = new OandaBrokerClient(oandaClient, null);
         ExternalDataClient externalDataClient = new OandaDataClient(oandaBrokerClient);
 
@@ -77,9 +80,9 @@ public class StrategyManager {
         ZoneId utcZone = ZoneId.of("UTC");
         ZonedDateTime from = config.getTimeframe().getFrom().withZoneSameInstant(utcZone);
         ZonedDateTime to = config.getTimeframe().getTo().withZoneSameInstant(utcZone);
-        // We seed the tick generation while backtesting so results can be consistent
-        // TODO: implement a way to allow randomized tick generation (some frontend flag)
-        DataProvider dataProvider = new ExternalDataProvider(externalDataClient, instrument, spread, period, from, to, 12345L);
+
+        // Seed the tick generation while backtesting so results can be consistent
+        DataProvider dataProvider = new BacktestExternalDataProvider(BACKTEST_BROKER, externalDataClient, instrument, spread, period, from, to, 12345L);
 
         DataSpeed dataSpeed = config.getSpeed();
 
@@ -89,7 +92,7 @@ public class StrategyManager {
         int defaultSeriesSize = 5000;
         BarSeries barSeries = new DefaultBarSeries(defaultSeriesSize);
 
-        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher);
+        DefaultDataManager dataManager = new DefaultDataManager(strategyId, instrument, dataProvider, period, barSeries, eventPublisher, null);
 
         Tick currentTick = new DefaultTick();
         Strategy strategy = null;
@@ -112,7 +115,7 @@ public class StrategyManager {
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
         RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
 
-        TradeManager tradeManager = new BacktestTradeManager(currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
+        TradeManager tradeManager = new BacktestTradeManager(BACKTEST_BROKER, currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
@@ -128,7 +131,7 @@ public class StrategyManager {
             try {
                 dataManager.start();
             } catch (Exception e) {
-                log.error("Error running strategy", e);
+                log.error("Error running strategy: {}", e.getMessage(), e);
                 runningStrategies.remove(finalStrategy.getStrategyId());
                 eventPublisher.publishErrorEvent(finalStrategy.getStrategyId(), e);
             } finally {
@@ -155,7 +158,7 @@ public class StrategyManager {
 
         DataManager dataManager = executor.getDataManager();
         if (dataManager != null) {
-            dataManager.stop();
+            dataManager.stop("Strategy stopped internally");
             runningStrategies.remove(strategyId);
             return true;
         } else {

@@ -7,7 +7,7 @@ public class NotifierUtils {
                 e.getClass().getSimpleName(), e.getMessage()));
 
         StackTraceElement[] stackTrace = e.getStackTrace();
-        int linesToInclude = Math.min(5, stackTrace.length); // Include up to 10 lines of stack trace
+        int linesToInclude = Math.min(10, stackTrace.length); // Include up to 10 lines of stack trace
 
         sb.append("Stack trace:\n");
         for (int i = 0; i < linesToInclude; i++) {

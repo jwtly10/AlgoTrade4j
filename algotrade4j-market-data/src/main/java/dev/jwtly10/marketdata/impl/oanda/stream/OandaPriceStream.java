@@ -1,6 +1,7 @@
 package dev.jwtly10.marketdata.impl.oanda.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.stream.RetryableStream;
@@ -24,7 +25,9 @@ public class OandaPriceStream extends RetryableStream<Tick> {
 
     private static Request buildRequest(String apiKey, String streamUrl, String accountId, List<Instrument> instruments) {
         String instrumentParams = instruments.stream()
-                .map(Instrument::getOandaSymbol)
+                .map(
+                        instrument -> instrument.getBrokerConfig(Broker.OANDA).getSymbol()
+                )
                 .collect(Collectors.joining(","));
 
         String url = String.format("%s/v3/accounts/%s/pricing/stream?instruments=%s", streamUrl, accountId, instrumentParams);

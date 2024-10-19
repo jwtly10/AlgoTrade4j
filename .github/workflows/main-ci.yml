@@ -147,13 +147,17 @@ jobs:
             export ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}}
             export GRAFANA_API_KEY=${{secrets.GRAFANA_API_KEY}}
             export TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
+            export TELEGRAM_SYSTEM_CHAT_ID=${{TELEGRAM_SYSTEM_CHAT_ID}}
             export VITE_NODE_ENV=${{vars.VITE_NODE_ENV}}
             export VITE_ENABLE_DEBUG_LOGS=${{vars.VITE_ENABLE_DEBUG_LOGS}}
             export VITE_ENABLE_SIGNUP=${{vars.VITE_ENABLE_SIGNUP}}
             export VITE_MAIN_API_HOST=${{vars.VITE_MAIN_API_HOST}}
             export VITE_LIVE_API_HOST=${{vars.VITE_LIVE_API_HOST}}
             export NEW_RELIC_LICENSE_KEY=${{secrets.NEW_RELIC_LICENSE_KEY}}
-            export MARKETDATA_API_KEY=${{secrets.MARKETDATA_API_KEY}}
+            export MARKETDATA_API_KEY=${{secrets.MARKETDATA_API_KEY}} 
+            export DEFAULT_OANDA_ACCOUNT_ID=${{DEFAULT_OANDA_ACCOUNT_ID}}
+            export MT5_API_URL=${{MT5_API_URL}}
+            export MT5_API_KEY=${{MT5_API_KEY}}
             
             docker compose pull
             docker compose down

@@ -19,7 +19,8 @@ public class DefaultDataManagerFactory implements DataManagerFactory {
                 dataProvider,
                 period,
                 barSeries,
-                eventPublisher
+                eventPublisher,
+                null
         );
     }
 }

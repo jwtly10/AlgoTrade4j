@@ -1,6 +1,6 @@
 package dev.jwtly10.liveapi.controller;
 
-import dev.jwtly10.liveapi.model.LiveStrategy;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyManager;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import dev.jwtly10.shared.config.ratelimit.RateLimit;

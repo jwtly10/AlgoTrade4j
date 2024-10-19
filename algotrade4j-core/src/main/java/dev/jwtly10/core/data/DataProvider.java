@@ -26,8 +26,10 @@ public interface DataProvider {
 
     /**
      * Stops the data provider.
+     *
+     * @param reason the reason for stopping the data provider
      */
-    void stop();
+    void stop(String reason);
 
     /**
      * Checks if the data provider is running.

@@ -18,15 +18,17 @@ import java.util.TimerTask;
  */
 @Slf4j
 public abstract class RetryableStream<T> implements Stream<T> {
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 10;
     private static final long INITIAL_BACKOFF_MS = 1000;
     private static final long MAX_BACKOFF_MS = 30000;
     protected final ObjectMapper objectMapper;
     protected final OkHttpClient client;
     protected final Request request;
+    protected final Timer timer;
     protected Call call;
     protected BufferedReader reader;
     protected volatile boolean isRunning = false;
+    private int retryCount = 0;
 
     /**
      * Constructor for RetryableStream.
@@ -34,11 +36,24 @@ public abstract class RetryableStream<T> implements Stream<T> {
      * @param client       The OkHttpClient instance.
      * @param request      The HTTP request.
      * @param objectMapper The ObjectMapper instance for JSON processing.
+     * @param timer        The Timer instance for scheduling retries.
      */
-    public RetryableStream(OkHttpClient client, Request request, ObjectMapper objectMapper) {
+    public RetryableStream(OkHttpClient client, Request request, ObjectMapper objectMapper, Timer timer) {
         this.client = client;
         this.request = request;
         this.objectMapper = objectMapper;
+        this.timer = timer;
+    }
+
+    /**
+     * Constructor for RetryableStream. Uses default Timer instance.
+     *
+     * @param client       The OkHttpClient instance.
+     * @param request      The HTTP request.
+     * @param objectMapper The ObjectMapper instance for JSON processing.
+     */
+    public RetryableStream(OkHttpClient client, Request request, ObjectMapper objectMapper) {
+        this(client, request, objectMapper, new Timer(true));
     }
 
     /**
@@ -51,17 +66,16 @@ public abstract class RetryableStream<T> implements Stream<T> {
         log.info("Starting stream for class: {}", getClass().getSimpleName());
 
         isRunning = true;
-        retryWithBackoff(callback, 0, INITIAL_BACKOFF_MS);
+        retryWithBackoff(callback, INITIAL_BACKOFF_MS);
     }
 
     /**
      * Retries the stream connection with exponential backoff.
      *
-     * @param callback   The callback to handle stream events.
-     * @param retryCount The current retry count.
-     * @param backoffMs  The current backoff time in milliseconds.
+     * @param callback  The callback to handle stream events.
+     * @param backoffMs The current backoff time in milliseconds.
      */
-    private void retryWithBackoff(StreamCallback<T> callback, int retryCount, long backoffMs) {
+    private void retryWithBackoff(StreamCallback<T> callback, long backoffMs) {
         if (!isRunning) {
             return;
         }
@@ -85,6 +99,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
             public void onResponse(Call call, Response response) {
                 if (response.isSuccessful()) {
                     log.info("Stream connection established successfully");
+                    retryCount = 0;
                 }
                 try {
                     reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
@@ -94,9 +109,9 @@ public abstract class RetryableStream<T> implements Stream<T> {
                     }
                 } catch (Exception e) {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
-                        log.debug("Stream for class {} was stopped internally, closing stream", getClass().getSimpleName());
+                        log.debug("Stream was stopped internally, closing stream");
                     } else {
-                        log.error("Error processing stream for class: {}", getClass().getSimpleName(), e);
+                        log.error("Error processing stream: {}", e.getMessage(), e);
                     }
                     scheduleRetry(callback, retryCount, backoffMs);
                 } finally {
@@ -129,15 +144,15 @@ public abstract class RetryableStream<T> implements Stream<T> {
             return;
         }
 
+        retryCount++;
         long nextBackoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
         log.info("Scheduling retry {} in {} ms for class: {}", retryCount + 1, backoffMs, getClass().getSimpleName());
 
 
-        new Timer().schedule(new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                log.info("Retrying stream connection for class: {}", getClass().getSimpleName());
-                retryWithBackoff(callback, retryCount + 1, nextBackoffMs);
+                retryWithBackoff(callback, nextBackoffMs);
             }
         }, backoffMs);
     }
@@ -169,5 +184,9 @@ public abstract class RetryableStream<T> implements Stream<T> {
                 log.error("Error closing resource for class: {}", getClass().getSimpleName(), e);
             }
         }
+    }
+
+    protected int getRetryCount() {
+        return retryCount;
     }
 }

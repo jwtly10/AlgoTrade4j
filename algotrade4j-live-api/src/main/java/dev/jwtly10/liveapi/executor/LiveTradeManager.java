@@ -71,7 +71,7 @@ public class LiveTradeManager implements TradeManager {
 
             @Override
             public void onError(Exception e) {
-                log.error("Error in transaction stream", e);
+                log.error("Error in transaction stream: {}", e.getMessage(), e);
             }
 
             @Override
@@ -80,6 +80,11 @@ public class LiveTradeManager implements TradeManager {
             }
         });
 
+    }
+
+    @Override
+    public Broker getBroker() {
+        return brokerClient.getBroker();
     }
 
     @Override
@@ -105,7 +110,7 @@ public class LiveTradeManager implements TradeManager {
         try {
             return openPosition(params);
         } catch (Exception e) {
-            log.error("Error opening long trade", e);
+            log.error("Error opening long trade: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -116,7 +121,7 @@ public class LiveTradeManager implements TradeManager {
         try {
             return openPosition(params);
         } catch (Exception e) {
-            log.error("Error opening short trade", e);
+            log.error("Error opening short trade: {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -184,7 +189,7 @@ public class LiveTradeManager implements TradeManager {
     public void shutdown() {
         log.info("Shutting down transaction streams.");
         if (dataManager != null) {
-            dataManager.stop();
+            dataManager.stop("Trade manager shutdown");
         }
 
         if (transactionStream != null) {

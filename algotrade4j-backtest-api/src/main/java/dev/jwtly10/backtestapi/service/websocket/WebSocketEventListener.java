@@ -62,7 +62,7 @@ public class WebSocketEventListener implements EventListener {
                 log.debug("Session already closed, unable to send event: {}", event);
                 deactivate();
             } catch (IOException e) {
-                log.error("Failed to send message to WS session", e);
+                log.error("Failed to send message to WS session {}", e.getMessage(), e);
             }
         }
     }

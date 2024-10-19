@@ -18,6 +18,7 @@ class TickGeneratorTest {
 
     private Instrument instrument;
     private Bar testBar;
+    private final Broker TEST_BROKER = Broker.OANDA; // Oanda is used since that's the default for backtesting and tick generation TODO
 
     @BeforeEach
     void setUp() {
@@ -30,7 +31,7 @@ class TickGeneratorTest {
 
     @Test
     void testSpreadIsCalculatedCorrectlyForShortPipValues() {
-        TickGenerator generator = new TickGenerator(50, Instrument.NAS100USD, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 50, Instrument.NAS100USD, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = new ArrayList<>();
         DefaultBar bar = new DefaultBar(Instrument.NAS100USD, Duration.ofMinutes(5), ZonedDateTime.now(),
                 new Number("15000"), new Number("10010"), new Number("9990"), new Number("10000"), new Number("69"));
@@ -44,7 +45,7 @@ class TickGeneratorTest {
         assertEquals(new Number("14997.5000"), ticks.getFirst().getBid());
         assertEquals(new Number("15002.5000"), ticks.getFirst().getAsk());
 
-        TickGenerator generator1 = new TickGenerator(50, Instrument.GBPUSD, Duration.ofMinutes(5), 42L);
+        TickGenerator generator1 = new TickGenerator(TEST_BROKER, 50, Instrument.GBPUSD, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks1 = new ArrayList<>();
         DefaultBar bar1 = new DefaultBar(Instrument.GBPUSD, Duration.ofMinutes(5), ZonedDateTime.now(),
                 new Number("1.2000"), new Number("1.2400"), new Number("1.1800"), new Number("1.2000"), new Number("69"));
@@ -61,7 +62,7 @@ class TickGeneratorTest {
 
     @Test
     void testConstructorWithExplicitTicksPerBar() {
-        TickGenerator generator = new TickGenerator(100, instrument, 10, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 100, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(100, ticks.size());
     }
@@ -77,14 +78,14 @@ class TickGeneratorTest {
             "P1D, 200"
     })
     void testConstructorWithPeriodMapping(Duration period, int expectedTicks) {
-        TickGenerator generator = new TickGenerator(10, instrument, period, 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, period, 42L);
         List<DefaultTick> ticks = generateTicks(generator);
         assertEquals(expectedTicks, ticks.size());
     }
 
     @Test
     void testTickGeneration() {
-        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(40, ticks.size());
@@ -105,7 +106,7 @@ class TickGeneratorTest {
 
     @Test
     void testTimeDistribution() {
-        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         ZonedDateTime startTime = testBar.getOpenTime();
@@ -124,7 +125,7 @@ class TickGeneratorTest {
 
     @Test
     void testVolumeDistribution() {
-        TickGenerator generator = new TickGenerator(10, instrument, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         Number totalVolume = new Number("0");
@@ -144,7 +145,7 @@ class TickGeneratorTest {
 
     @Test
     void testMinimumTicksPerBar() {
-        TickGenerator generator = new TickGenerator(4, instrument, 10, Duration.ofMinutes(5), 42L);
+        TickGenerator generator = new TickGenerator(TEST_BROKER, 4, instrument, 10, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
         assertEquals(4, ticks.size());
@@ -157,7 +158,7 @@ class TickGeneratorTest {
     @Test
     void testInvalidTicksPerBar() {
         assertThrows(IllegalArgumentException.class, () ->
-                new TickGenerator(3, instrument, 10, Duration.ofMinutes(5), 42L));
+                new TickGenerator(TEST_BROKER, 3, instrument, 10, Duration.ofMinutes(5), 42L));
     }
 
     private List<DefaultTick> generateTicks(TickGenerator generator) {

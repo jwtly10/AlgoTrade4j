@@ -43,5 +43,6 @@ logs/
 heapdump*
 .run
 # Custom libraries (agent, etc)
-lib/
+libraries/
 site/
+.env

@@ -6,6 +6,7 @@ While AlgoTrade4j implements many key features of a trading platform there are s
 
 - The platform is profiled, well tested and optimisation for performance, but HFT is not a goal of the platform. While you may have success with HFT strategies, the platform is not designed for this use case, and there will be edge cases where the platform may not be suitable.
 - The system has not been stress tested for HFT strategies, and issues may arise under high load, which will not be addressed for now.
+- Indicators currently only support updates on new bars, so they will lag on tick data. This will be changed in future.
 
 ### Live Trading:
 

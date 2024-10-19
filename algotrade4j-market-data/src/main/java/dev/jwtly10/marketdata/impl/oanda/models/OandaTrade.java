@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static dev.jwtly10.core.model.Broker.OANDA;
+
 /**
  * https://developer.oanda.com/rest-live-v20/trade-df/#Trade
  */
@@ -43,7 +45,7 @@ public record OandaTrade(
         // These should be there for every trade
         Trade trade = new Trade(
                 Integer.parseInt(id), // external id
-                Instrument.fromOandaSymbol(instrument), // instrument
+                Instrument.fromBrokerSymbol(OANDA, instrument), // instrument
                 Math.abs(initialUnits), // Quantity
                 ZonedDateTime.parse(openTime), // open time
                 new Number(price), // entry price

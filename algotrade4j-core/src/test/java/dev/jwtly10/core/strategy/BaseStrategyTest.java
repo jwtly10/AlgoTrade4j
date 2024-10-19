@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class BaseStrategyTest {
 
@@ -51,7 +52,7 @@ class BaseStrategyTest {
 
     @Test
     void testOnInit() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
 
         assertEquals(mockBarSeries, testStrategy.getBarSeries());
         assertEquals(mockDataManager, testStrategy.getDataManager());
@@ -70,7 +71,8 @@ class BaseStrategyTest {
 
     @Test
     void testCreateIndicator() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         var indicator = testStrategy.getTestIndicator();
 
@@ -88,6 +90,9 @@ class BaseStrategyTest {
 
     @Test
     void testGBPUSDLongStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.GBPUSD;
         Number price = new Number("1.30000");
         int ticks = 50;
@@ -105,6 +110,9 @@ class BaseStrategyTest {
      */
     @Test
     void testGBPUSDRealLongStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.GBPUSD;
         Number price = new Number("1.32631");
         int ticks = 300;
@@ -118,6 +126,9 @@ class BaseStrategyTest {
 
     @Test
     void testGBPUSDShortStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.GBPUSD;
         Number price = new Number("1.30000");
         int ticks = 50;
@@ -135,6 +146,9 @@ class BaseStrategyTest {
      */
     @Test
     void testNAS100USDRealLongStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.NAS100USD;
         Number price = new Number("19814.2");
         int ticks = 300;
@@ -149,6 +163,9 @@ class BaseStrategyTest {
 
     @Test
     void testNAS100USDLongStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.NAS100USD;
         Number price = new Number("15000.0");
         int ticks = 50;
@@ -162,6 +179,9 @@ class BaseStrategyTest {
 
     @Test
     void testNAS100USDShortStopLoss() {
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null);
+        when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
+
         Instrument instrument = Instrument.NAS100USD;
         Number price = new Number("15000.0");
         int ticks = 50;

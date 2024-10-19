@@ -50,7 +50,7 @@ public class TrackingService {
             try {
                 userActionLogRepository.saveAll(logs);
             } catch (Exception e) {
-                log.error("Failed to save user action logs", e);
+                log.error("Failed to save user action logs: {}", e.getMessage(), e);
             }
         }
     }

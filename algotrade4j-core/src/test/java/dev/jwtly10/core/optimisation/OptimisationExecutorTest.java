@@ -4,6 +4,7 @@ import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,11 +40,14 @@ class OptimisationExecutorTest {
 
     private OptimisationExecutor optimisationExecutor;
 
+
+    private final Broker TEST_BROKER = Broker.OANDA;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         optimisationExecutor = new OptimisationExecutor(
-                eventPublisher, dataProvider, resultCallback, progressCallback,
+                TEST_BROKER, eventPublisher, dataProvider, resultCallback, progressCallback,
                 strategyFactory, executorFactory, dataManagerFactory
         );
     }

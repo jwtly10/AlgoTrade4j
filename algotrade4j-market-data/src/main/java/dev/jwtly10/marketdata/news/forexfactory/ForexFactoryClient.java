@@ -68,7 +68,7 @@ public class ForexFactoryClient {
             return objectMapper.readValue(response, new TypeReference<>() {
             });
         } catch (IOException e) {
-            log.error("Failed to fetch new data from ForexFactory.", e);
+            log.error("Failed to fetch new data from ForexFactory: {}", e.getMessage(), e);
             throw e;
         }
     }

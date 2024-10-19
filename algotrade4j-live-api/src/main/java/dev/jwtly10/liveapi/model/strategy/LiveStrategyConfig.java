@@ -1,4 +1,4 @@
-package dev.jwtly10.liveapi.model;
+package dev.jwtly10.liveapi.model.strategy;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import dev.jwtly10.core.data.DataSpeed;

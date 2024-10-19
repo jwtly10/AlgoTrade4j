@@ -97,6 +97,15 @@ export const liveAccountClient = {
             return handleError(error, url);
         }
     },
+    getTimezones: async () => {
+        const url = `${V1}/accounts/timezones`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
 
     getAccounts: async () => {
         const url = `${V1}/accounts`;

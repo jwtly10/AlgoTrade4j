@@ -65,7 +65,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
                 try {
                     session.sendMessage(new TextMessage("ERROR:" + message));
                 } catch (IOException e) {
-                    log.error("Error sending error message", e);
+                    log.error("Error sending error message: {}", e.getMessage(), e);
                 }
             }
         }
@@ -82,7 +82,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
             AsyncIndicatorsEvent indicatorsEvent = new AsyncIndicatorsEvent(executor.getStrategyId(), executor.getInstrument(), executor.getIndicators());
             listener.sendBinaryMessage(indicatorsEvent.toJson());
         } catch (IOException e) {
-            log.error("Error sending initial state", e);
+            log.error("Error sending initial state: {}", e.getMessage(), e);
         }
     }
 

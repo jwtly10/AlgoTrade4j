@@ -25,6 +25,8 @@ public class OandaBrokerClient implements BrokerClient {
     private final OandaClient client;
     private final String accountId;
 
+    private final Broker OANDA = Broker.OANDA;
+
     public OandaBrokerClient(OandaClient client, String accountId) {
         this.client = client;
         this.accountId = accountId;
@@ -32,6 +34,11 @@ public class OandaBrokerClient implements BrokerClient {
 
     public List<DefaultBar> fetchCandles(Instrument instrument, ZonedDateTime from, ZonedDateTime to, Duration period) throws Exception {
         return OandaUtils.convertOandaCandles(client.fetchCandles(instrument, period, from, to));
+    }
+
+    @Override
+    public Broker getBroker() {
+        return OANDA;
     }
 
     @Override
@@ -71,8 +78,8 @@ public class OandaBrokerClient implements BrokerClient {
         MarketOrderRequest req = MarketOrderRequest.builder()
                 .type(MarketOrderRequest.OrderType.MARKET)
                 .timeInForce(MarketOrderRequest.TimeInForce.FOK)
-                .instrument(trade.getInstrument().getOandaSymbol())
-                .units(trade.isLong() ? trade.getQuantity() : -trade.getQuantity()) // Oanda specific logic for determining short/long trades
+                .instrument(trade.getInstrument().getBrokerConfig(OANDA).getSymbol())
+                .units(trade.isLong() ? String.valueOf(trade.getQuantity()) : String.valueOf(-trade.getQuantity())) // Oanda specific logic for determining short/long trades
                 .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
                         .price(trade.getTakeProfit().getValue().toString())
                         .timeInForce(MarketOrderRequest.TimeInForce.GTC)
@@ -86,7 +93,7 @@ public class OandaBrokerClient implements BrokerClient {
 
         return new Trade(
                 Integer.parseInt(res.orderFillTransaction().orderID()), // external id
-                Instrument.fromOandaSymbol(res.orderCreateTransaction().instrument()), // instrument
+                Instrument.fromBrokerSymbol(OANDA, res.orderCreateTransaction().instrument()), // instrument
                 trade.isLong() ? trade.getQuantity() : -trade.getQuantity(), // Quantity
                 ZonedDateTime.parse(res.orderFillTransaction().time()), // open time
                 new Number(res.orderFillTransaction().tradeOpened().price()), // entry price
@@ -98,7 +105,7 @@ public class OandaBrokerClient implements BrokerClient {
 
     @Override
     public Trade openTrade(TradeParameters tradeParameters) throws Exception {
-        return openTrade(tradeParameters.createTrade());
+        return openTrade(tradeParameters.createTrade(OANDA));
     }
 
     @Override
@@ -125,7 +132,7 @@ public class OandaBrokerClient implements BrokerClient {
         if (accountId == null) {
             throw new RuntimeException("Account ID not set. Cannot stream transactions.");
         }
-        log.info("Starting transaction stream for accountId: {}", accountId);
+        log.info("Starting transaction stream for Oanda accountId: {}", accountId);
         return client.streamTransactions(accountId);
     }
 

@@ -3,10 +3,10 @@ package dev.jwtly10.liveapi.service.strategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.utils.StrategyReflectionUtils;
-import dev.jwtly10.liveapi.model.BrokerAccount;
-import dev.jwtly10.liveapi.model.LiveStrategy;
-import dev.jwtly10.liveapi.model.LiveStrategyConfig;
 import dev.jwtly10.liveapi.model.Stats;
+import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategyConfig;
 import dev.jwtly10.liveapi.repository.BrokerAccountRepository;
 import dev.jwtly10.liveapi.repository.LiveStrategyRepository;
 import dev.jwtly10.shared.auth.utils.SecurityUtils;
@@ -68,7 +68,7 @@ public class LiveStrategyService {
             } catch (Exception e) {
                 // If we fail here, it's hard to recover, the user needs to regenerate the strategy
                 // But this error should be picked up by the validation job in live strategy @PostConstruct logic
-                log.error("Error getting strategy instance", e);
+                log.error("Error getting strategy instance: {}", e.getMessage(), e);
                 continue;
             }
 
@@ -78,7 +78,7 @@ public class LiveStrategyService {
             } catch (Exception ex) {
                 //  We can't recover if validation of the parameters fails outright - as we have already validated configuration on init & save
                 // So we just continue, and let the user re-create the strategy, if they want to update it
-                log.warn("Error initializing strategy parameters", ex.getMessage());
+                log.warn("Error initializing strategy parameters: {}", ex.getMessage());
                 continue;
             }
 
@@ -158,6 +158,10 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findByStrategyName(strategyName)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
+        if (!liveStrategy.isActive()) {
+            log.warn("Strategy is already deactivated");
+        }
+
         liveStrategy.setActive(false);
         return liveStrategyRepository.save(liveStrategy);
     }
@@ -183,7 +187,7 @@ public class LiveStrategyService {
         try {
             strategy.getConfig().validate();
         } catch (Exception e) {
-            log.error("Invalid live strategy configuration", e);
+            log.error("Invalid live strategy configuration: {}", e.getMessage(), e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 
@@ -224,7 +228,7 @@ public class LiveStrategyService {
     }
 
     public void deleteStrategy(Long id) {
-        // We dont actually delete the strategy, we just deactivate it and set hidden
+        // We don't actually delete the strategy, we just deactivate it and set hidden
         log.info("Deleting live strategy: {}", id);
 
         trackingService.track(
@@ -237,7 +241,10 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
-        liveStrategy.setActive(false);
+        if (liveStrategy.isActive()) {
+            throw new ApiException("Cannot delete an active strategy", ErrorType.BAD_REQUEST);
+        }
+
         liveStrategy.setHidden(true);
 
         liveStrategyRepository.save(liveStrategy);
@@ -263,7 +270,7 @@ public class LiveStrategyService {
         try {
             strategySetup.getConfig().validate();
         } catch (Exception e) {
-            log.error("Invalid live strategy configuration", e);
+            log.error("Invalid live strategy configuration: {}", e.getMessage(), e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 

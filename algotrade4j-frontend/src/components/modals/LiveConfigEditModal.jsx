@@ -13,7 +13,7 @@ import {apiClient} from '@/api/apiClient.js';
 import {liveStrategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
 
-const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
+const LiveConfigEditModal = ({open, onClose, strategyConfig, clearChart, isStrategyInUse}) => {
     const [activeTab, setActiveTab] = useState('parameters');
     const [activeGroup, setActiveGroup] = useState('');
     const [instruments, setInstruments] = useState([]);
@@ -105,10 +105,15 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig}) => {
         try {
             await liveStrategyClient.updateStrategy(config);
 
+            if (isStrategyInUse) {
+                clearChart();
+            }
+
             toast({
                 title: 'Strategy updated',
                 description: `Live Strategy '${config.strategyName}' has been updated successfully`,
             });
+
             setUiIsSaving(false);
             onClose();
         } catch (error) {

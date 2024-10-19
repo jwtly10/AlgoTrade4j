@@ -2,9 +2,9 @@ package dev.jwtly10.backtestapi.controller.data;
 
 import dev.jwtly10.backtestapi.model.marketData.MarketDataBarDTO;
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Period;
-import dev.jwtly10.marketdata.common.Broker;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.impl.oanda.OandaBrokerClient;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
@@ -85,7 +85,7 @@ public class MarketDataController {
                         @Override
                         public boolean onCandle(Bar bar) {
                             MarketDataBarDTO dto = new MarketDataBarDTO(
-                                    bar.getInstrument().getOandaSymbol(),
+                                    bar.getInstrument().getBrokerConfig(Broker.OANDA).getSymbol(),
                                     bar.getOpenTime(),
                                     bar.getOpen().doubleValue(),
                                     bar.getHigh().doubleValue(),

@@ -52,7 +52,7 @@ public class BacktestExecutor implements DataListener {
         this.performanceAnalyser = performanceAnalyser;
         this.riskManager = riskManager;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser);
+        strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser, null);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class BacktestExecutor implements DataListener {
 
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed on tick: " + e.getMessage(), e);
+            throw new BacktestExecutorException(strategy, "Strategy failed on tick: " + e.getMessage(), e);
         }
     }
 
@@ -106,7 +106,7 @@ public class BacktestExecutor implements DataListener {
             log.trace("Bar: {}, Balance: {}, Equity: {}", closedBar, accountManager.getBalance(), accountManager.getEquity());
             performanceAnalyser.updateOnBar(accountManager.getEquity(), closedBar.getCloseTime());
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed on bar close: " + e.getMessage(), e);
+            throw new BacktestExecutorException(strategy, "Strategy failed on bar close: " + e.getMessage(), e);
         }
     }
 
@@ -121,7 +121,7 @@ public class BacktestExecutor implements DataListener {
             // Here we can trigger an async event to notify the async callers that a new day has passed. This will also let us notify frontend of progress each day
             eventPublisher.publishEvent(new AsyncProgressEvent(strategyId, dataManager.getInstrument(), dataManager.getFrom(), dataManager.getTo(), newDay, dataManager.getTicksModeled()));
         } catch (Exception e) {
-            throw new BacktestExecutorException(strategyId, "Strategy failed on new day: " + e.getMessage(), e);
+            throw new BacktestExecutorException(strategy, "Strategy failed on new day: " + e.getMessage(), e);
         }
     }
 
@@ -133,16 +133,16 @@ public class BacktestExecutor implements DataListener {
     }
 
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (!initialised) {
             log.error("Attempt to stop uninitialized BacktestExecutor for strategy: {}", strategyId);
             return;
         }
-        cleanup();
+        cleanup(reason);
     }
 
-    private void cleanup() {
-        log.info("Cleaning up strategy and closing any open trades");
+    private void cleanup(String reason) {
+        log.info("Cleaning up strategy and closing any open trades due to: '{}'.", reason);
         tradeManager.getOpenTrades().values().forEach(trade -> {
             try {
                 tradeManager.closePosition(trade.getId(), false);

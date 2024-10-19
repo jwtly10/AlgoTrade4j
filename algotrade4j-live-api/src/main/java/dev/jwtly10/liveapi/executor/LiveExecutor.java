@@ -9,6 +9,7 @@ import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.event.types.StrategyStopEvent;
 import dev.jwtly10.core.event.types.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
@@ -16,6 +17,7 @@ import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
+import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,23 +37,28 @@ public class LiveExecutor implements DataListener {
     private final TradeManager tradeManager;
     private final AccountManager accountManager;
     private final EventPublisher eventPublisher;
+    private final LiveStrategyService liveStrategyService;
     @Getter
     private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;
     private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final Notifier notifier;
 
     @Getter
     @Setter
     private volatile boolean initialised = false;
 
-    public LiveExecutor(Strategy strategy, TradeManager tradeManager, AccountManager accountManager,
+    public LiveExecutor(Strategy strategy,
+                        TradeManager tradeManager,
+                        AccountManager accountManager,
                         DataManager dataManager,
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
-                        RiskManager riskManager
-
+                        RiskManager riskManager,
+                        Notifier notifier,
+                        LiveStrategyService liveStrategyService
     ) {
         this.strategy = strategy;
         this.tradeManager = tradeManager;
@@ -61,8 +68,10 @@ public class LiveExecutor implements DataListener {
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
         this.riskManager = riskManager;
+        this.notifier = notifier;
+        this.liveStrategyService = liveStrategyService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null);
+        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null, notifier);
     }
 
     @Override
@@ -89,6 +98,7 @@ public class LiveExecutor implements DataListener {
         }
 
         // Start polling for account/trade data
+        log.info("Starting live state manager for strategy: {}", strategyId);
         scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 1, TimeUnit.SECONDS);
         eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Live Strategy initialized"));
     }
@@ -107,7 +117,7 @@ public class LiveExecutor implements DataListener {
 
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
-            log.error("Error processing tick data", e);
+            log.error("Error processing tick data: {}", e.getMessage(), e);
             throw new LiveExecutorException(strategyId, "Error processing tick data", e);
         }
     }
@@ -143,27 +153,34 @@ public class LiveExecutor implements DataListener {
     }
 
     @Override
-    public void onStop() {
+    public void onStop(String reason) {
         if (!initialised) {
             log.error("Attempt to stop uninitialized LiveExecutor for strategy: {}", strategyId);
             return;
         }
-        cleanup();
+        cleanup(reason);
     }
 
     @Override
     public void onTradeClose(Trade trade) {
-        log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice());
-//        eventPublisher.publishEvent(new TradeEvent(strategyId, getInstrument(), trade, TradeEvent.Action.CLOSE));
+        log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}, stopLoss={}, takeProfit={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice(), trade.getStopLoss(), trade.getTakeProfit());
         strategy.onTradeClose(trade);
     }
 
-    private void cleanup() {
-        log.debug("Cleaning up strategy");
+    private void cleanup(String reason) {
+        log.info("Strategy {} stopped with reason: '{}'.", strategyId, reason);
+        notifier.sendSysNotification(String.format("Live Strategy '%s' stopped with reason: '%s'", strategyId, reason), true);
         scheduler.shutdown();
 
         // Shutdown any processes in the trade manager
         tradeManager.shutdown();
+
+        try {
+            log.info("Deactivating strategy: {}", strategyId);
+            liveStrategyService.deactivateStrategy(strategyId);
+        } catch (Exception e) {
+            log.warn("Error deactivating strategy: {}", strategyId, e);
+        }
 
         strategy.onDeInit();
         strategy.onEnd();

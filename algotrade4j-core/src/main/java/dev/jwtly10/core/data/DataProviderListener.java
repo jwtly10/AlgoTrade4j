@@ -15,8 +15,10 @@ public interface DataProviderListener {
 
     /**
      * Called when the provider feed is stopped
+     *
+     * @param reason the reason for stopping the provider listener
      */
-    void onStop();
+    void onStop(String reason);
 
     /**
      * Called when error with feed

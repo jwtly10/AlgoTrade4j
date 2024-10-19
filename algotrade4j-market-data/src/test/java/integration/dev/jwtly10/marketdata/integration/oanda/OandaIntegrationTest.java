@@ -3,6 +3,7 @@ package integration.dev.jwtly10.marketdata.integration.oanda;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.model.Bar;
+import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.marketdata.common.ClientCallback;
@@ -313,9 +314,9 @@ class OandaIntegrationTest {
         // Test opening a trade
         MarketOrderRequest req = MarketOrderRequest.builder()
                 .type(MarketOrderRequest.OrderType.MARKET)
-                .instrument(Instrument.NAS100USD.getOandaSymbol())
+                .instrument(Instrument.NAS100USD.getBrokerConfig(Broker.OANDA).getSymbol())
                 .timeInForce(MarketOrderRequest.TimeInForce.FOK)
-                .units(2)
+                .units(String.valueOf(2))
                 .takeProfitOnFill(MarketOrderRequest.TakeProfitDetails.builder()
                         .price("18709")
                         .timeInForce(MarketOrderRequest.TimeInForce.GTC)

@@ -8,7 +8,7 @@ import lombok.Builder;
 public record MarketOrderRequest(
         OrderType type,
         String instrument,
-        double units,
+        String units,
         TimeInForce timeInForce,
         OrderPositionFill orderPositionFill,
         TakeProfitDetails takeProfitOnFill,

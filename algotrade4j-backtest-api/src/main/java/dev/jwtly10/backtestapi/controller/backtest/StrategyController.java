@@ -2,7 +2,7 @@ package dev.jwtly10.backtestapi.controller.backtest;
 
 import dev.jwtly10.backtestapi.exception.StrategyManagerException;
 import dev.jwtly10.backtestapi.model.StrategyConfig;
-import dev.jwtly10.backtestapi.service.strategy.StrategyManager;
+import dev.jwtly10.backtestapi.service.strategy.BacktestStrategyManager;
 import dev.jwtly10.backtestapi.service.websocket.StrategyWebSocketHandler;
 import dev.jwtly10.backtestapi.service.websocket.WebSocketEventListener;
 import dev.jwtly10.core.data.DataSpeed;
@@ -30,12 +30,12 @@ public class StrategyController {
 
     private final TrackingService trackingService;
 
-    private final StrategyManager strategyManager;
+    private final BacktestStrategyManager backtestStrategyManager;
     private final StrategyWebSocketHandler webSocketHandler;
 
-    public StrategyController(TrackingService trackingService, StrategyManager strategyManager, StrategyWebSocketHandler webSocketHandler) {
+    public StrategyController(TrackingService trackingService, BacktestStrategyManager backtestStrategyManager, StrategyWebSocketHandler webSocketHandler) {
         this.trackingService = trackingService;
-        this.strategyManager = strategyManager;
+        this.backtestStrategyManager = backtestStrategyManager;
         this.webSocketHandler = webSocketHandler;
     }
 
@@ -111,9 +111,9 @@ public class StrategyController {
         }
 
         try {
-            strategyManager.startStrategy(config, strategyId);
+            backtestStrategyManager.startStrategy(config, strategyId);
         } catch (Exception e) {
-            log.error("Error starting strategy: ", e);
+            log.error("Error starting strategy: {}", e.getMessage(), e);
             throw new StrategyManagerException("Error starting strategy: " + e, ErrorType.INTERNAL_ERROR);
         }
         log.info("Strategy: {} initialised and starting", strategyId);
@@ -164,7 +164,7 @@ public class StrategyController {
     @Deprecated
     public ResponseEntity<String> stopStrategy(@PathVariable("strategyId") String strategyId) {
         log.debug("Stopping strategy: {}", strategyId);
-        boolean stopped = strategyManager.stopStrategy(strategyId);
+        boolean stopped = backtestStrategyManager.stopStrategy(strategyId);
         if (stopped) {
             log.info("Stopped strategy: {}", strategyId);
             return ResponseEntity.ok("Stopped strategy: " + strategyId);
@@ -177,7 +177,7 @@ public class StrategyController {
     @GetMapping("/{strategyClass}/params")
     public ResponseEntity<List<ParameterHandler.ParameterInfo>> getParamsFromStrategy(@PathVariable("strategyClass") String strategyClass) {
         log.debug("Getting parameters for strategy: {}", strategyClass);
-        List<ParameterHandler.ParameterInfo> params = strategyManager.getParameters(strategyClass);
+        List<ParameterHandler.ParameterInfo> params = backtestStrategyManager.getParameters(strategyClass);
         log.debug("Parameters for strategy {}: {}", strategyClass, params);
         return ResponseEntity.ok(params);
     }
@@ -185,14 +185,14 @@ public class StrategyController {
     @GetMapping
     public ResponseEntity<Set<String>> getStrategiesInSystem() {
         log.debug("Getting all strategies in the system");
-        Set<String> strategies = strategyManager.getStrategiesInSystem();
+        Set<String> strategies = backtestStrategyManager.getStrategiesInSystem();
         log.debug("Strategies in the system: {}", strategies);
         return ResponseEntity.ok(strategies);
     }
 
     @PostMapping("/generate-id")
     public ResponseEntity<String> generateStrategyId(@RequestBody StrategyConfig config) {
-        String strategyId = strategyManager.generateBacktestStrategyId(config.getStrategyClass());
+        String strategyId = backtestStrategyManager.generateBacktestStrategyId(config.getStrategyClass());
         return ResponseEntity.ok(strategyId);
     }
 

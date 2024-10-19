@@ -32,7 +32,9 @@ public class BacktestTradeManager implements TradeManager {
     @Setter
     private Tick currentTick;
 
-    public BacktestTradeManager(Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher, RiskManager riskManager) {
+    private final Broker BROKER;
+
+    public BacktestTradeManager(Broker broker, Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher, RiskManager riskManager) {
         this.allTrades = new HashMap<>();
         this.openTrades = new ConcurrentHashMap<>();
         this.eventPublisher = eventPublisher;
@@ -40,6 +42,12 @@ public class BacktestTradeManager implements TradeManager {
         this.barSeries = barSeries;
         this.currentTick = currentTick;
         this.riskManager = riskManager;
+        this.BROKER = broker;
+    }
+
+    @Override
+    public Broker getBroker() {
+        return BROKER;
     }
 
     @Override
@@ -91,7 +99,7 @@ public class BacktestTradeManager implements TradeManager {
 
         log.trace("Entry price for {}: {}", params.getInstrument(), entryPrice);
 
-        Trade trade = params.createTrade();
+        Trade trade = params.createTrade(getBroker());
 
         eventPublisher.publishEvent(new TradeEvent(strategyId, params.getInstrument(), trade, TradeEvent.Action.OPEN));
         allTrades.put(trade.getId(), trade);
