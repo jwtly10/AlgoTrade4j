@@ -56,7 +56,12 @@ public class MarketDataController {
             @RequestParam("instrument") Instrument instrument,
             @RequestParam("from") String from,
             @RequestParam("to") String to,
-            @RequestParam("period") Period period) {
+            @RequestParam("period") Period period,
+            @RequestParam(value="limit", required=false) Integer limit
+    ) {
+        if (limit == null){
+            limit = 10000;
+        }
 
         if (!this.apiKey.equals(requestApiKey)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Missing or invalid API key");
@@ -69,6 +74,11 @@ public class MarketDataController {
 
         if (cachedResult != null) {
             log.info("Returning cached result for key: {}", cacheKey);
+
+            if (cachedResult.size() > limit) {
+                return ResponseEntity.ok(cachedResult.subList(0, limit));
+            }
+
             return ResponseEntity.ok(cachedResult);
         }
 
@@ -118,6 +128,10 @@ public class MarketDataController {
         }
 
         candlesCache.put(cacheKey, result);
+
+        if (result.size() > limit) {
+            return ResponseEntity.ok(result.subList(0, limit));
+        }
 
         return ResponseEntity.ok(result);
     }
