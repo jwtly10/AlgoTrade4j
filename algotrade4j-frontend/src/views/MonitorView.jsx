@@ -17,7 +17,7 @@ const MonitorView = () => {
         try {
             const [mainRes, liveRes] = await Promise.all([
                 MainSystem.monitor(),
-                LiveSystem.monitor()
+                LiveSystem.monitor(),
             ]);
             setMainMonitorInfo(mainRes);
             setLiveMonitorInfo(liveRes);
@@ -35,37 +35,37 @@ const MonitorView = () => {
     }, []);
 
     if (isLoading && !mainMonitorInfo && !liveMonitorInfo) {
-        return <LoadingScreen/>;
+        return <LoadingScreen />;
     }
 
     return (
         <div className="container mx-auto px-4 py-8">
             <header className="flex justify-between items-center mb-8">
-                <h1 className="text-3xl font-bold">System Monitor</h1>
+                <h1 className="text-2xl font-semibold">System Monitor</h1>
                 <Button onClick={fetchMonitorInfo} className="flex items-center gap-2">
-                    <RefreshCw className="h-4 w-4"/>
+                    <RefreshCw className="h-4 w-4" />
                     Refresh
                 </Button>
             </header>
             <div className="space-y-12">
-                <SystemMonitor title="Backtest API" monitorInfo={mainMonitorInfo}/>
-                <SystemMonitor title="Live API" monitorInfo={liveMonitorInfo}/>
+                <SystemMonitor title="Backtest API" monitorInfo={mainMonitorInfo} />
+                <SystemMonitor title="Live API" monitorInfo={liveMonitorInfo} />
             </div>
         </div>
     );
 };
 
-const SystemMonitor = ({title, monitorInfo}) => {
+const SystemMonitor = ({ title, monitorInfo }) => {
     if (!monitorInfo) return null;
 
     return (
         <section className="rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                <Activity className="h-6 w-6"/>
+                <Activity className="h-6 w-6" />
                 {title} <span className="text-sm font-normal">(v{monitorInfo.version})</span>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <MemoryCard jvmMemory={monitorInfo.jvmMemory}/>
+                <MemoryCard jvmMemory={monitorInfo.jvmMemory} />
                 <SystemInfoCard
                     environment={monitorInfo.environment}
                     version={monitorInfo.version}
@@ -75,11 +75,23 @@ const SystemMonitor = ({title, monitorInfo}) => {
                     uptime={monitorInfo.uptime}
                     timestamp={monitorInfo.timestamp}
                 />
-                {Object.keys(monitorInfo).filter(key =>
-                    !['jvmMemory', 'environment', 'appVersion', 'version', 'commit', 'timestamp', 'startTime', 'uptime'].includes(key)
-                ).map(key => (
-                    <GenericCard key={key} title={key} data={monitorInfo[key]}/>
-                ))}
+                {Object.keys(monitorInfo)
+                    .filter(
+                        (key) =>
+                            ![
+                                'jvmMemory',
+                                'environment',
+                                'appVersion',
+                                'version',
+                                'commit',
+                                'timestamp',
+                                'startTime',
+                                'uptime',
+                            ].includes(key)
+                    )
+                    .map((key) => (
+                        <GenericCard key={key} title={key} data={monitorInfo[key]} />
+                    ))}
             </div>
         </section>
     );
