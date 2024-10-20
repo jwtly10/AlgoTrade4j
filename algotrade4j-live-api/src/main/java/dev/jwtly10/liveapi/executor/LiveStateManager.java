@@ -82,7 +82,8 @@ public class LiveStateManager {
         } catch (Exception e) {
             log.error("Error updating state for strategy: {}", strategy, e);
             notifier.sendSysErrorNotification("Error updating state for strategy: " + strategy.getStrategyId(), e, true);
-            throw new RuntimeException("Error updating state for strategy: " + strategy, e);
+            // No longer throwing to prevent issue with thread getting shutdown if this errors
+//            throw new RuntimeException("Error updating state for strategy: " + strategy, e);
         }
     }
 
