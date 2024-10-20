@@ -277,7 +277,7 @@ const UserManagementView = ({loggedInUser}) => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold">User Management</h1>
                 <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    <UserPlus className="mr-2 h-4 w-4"/>
+                    <UserPlus className="mr-2 h-4 w-4" />
                     Create User
                 </Button>
             </div>
@@ -298,7 +298,10 @@ const UserManagementView = ({loggedInUser}) => {
                     <TableBody>
                         {users.map((user) => (
                             <React.Fragment key={user.id}>
-                                <TableRow className="hover:bg-gray-100 cursor-pointer" onClick={() => handleUserClick(user.id)}>
+                                <TableRow
+                                    className="hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleUserClick(user.id)}
+                                >
                                     <TableCell className="font-medium">{`${user.firstName} ${user.lastName}`}</TableCell>
                                     <TableCell>{user.username}</TableCell>
                                     <TableCell>{user.email}</TableCell>
@@ -309,11 +312,15 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditUser(user);
-                                                    }}>
-                                                        <Edit className="h-4 w-4"/>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditUser(user);
+                                                        }}
+                                                    >
+                                                        <Edit className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
@@ -324,12 +331,16 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedUser(user);
-                                                        setIsPasswordDialogOpen(true);
-                                                    }}>
-                                                        <Lock className="h-4 w-4"/>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedUser(user);
+                                                            setIsPasswordDialogOpen(true);
+                                                        }}
+                                                    >
+                                                        <Lock className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
@@ -340,11 +351,15 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="sm" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteUser(user.id);
-                                                    }}>
-                                                        <Trash className="h-4 w-4"/>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteUser(user.id);
+                                                        }}
+                                                    >
+                                                        <Trash className="h-4 w-4" />
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
@@ -359,16 +374,26 @@ const UserManagementView = ({loggedInUser}) => {
                                         <TableCell colSpan={7}>
                                             <div className="p-4">
                                                 <div className="flex justify-between items-center mb-4">
-                                                    <h3 className="text-lg font-semibold">User Logs</h3>
+                                                    <h3 className="text-lg font-semibold">
+                                                        User Logs
+                                                    </h3>
                                                     <div className="flex gap-4">
                                                         <Button
-                                                            variant={activeTab === 'actions' ? 'outline' : 'solid'}
+                                                            variant={
+                                                                activeTab === 'actions'
+                                                                    ? 'outline'
+                                                                    : 'solid'
+                                                            }
                                                             onClick={() => setActiveTab('actions')}
                                                         >
                                                             Actions
                                                         </Button>
                                                         <Button
-                                                            variant={activeTab === 'logins' ? 'outline' : 'solid'}
+                                                            variant={
+                                                                activeTab === 'logins'
+                                                                    ? 'outline'
+                                                                    : 'solid'
+                                                            }
                                                             onClick={() => setActiveTab('logins')}
                                                         >
                                                             Logins
@@ -387,19 +412,38 @@ const UserManagementView = ({loggedInUser}) => {
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
-                                                                {getFilteredAndSortedLogs(user.id).logs.length > 0 ? (
-                                                                    getFilteredAndSortedLogs(user.id).logs.map((log) => (
+                                                                {getFilteredAndSortedLogs(user.id)
+                                                                    .logs.length > 0 ? (
+                                                                    getFilteredAndSortedLogs(
+                                                                        user.id
+                                                                    ).logs.map((log) => (
                                                                         <TableRow key={log.id}>
-                                                                            <TableCell>{log.action}</TableCell>
-                                                                            <TableCell>{formatTimestamp(log.timestamp)}</TableCell>
                                                                             <TableCell>
-                                                                                <MetadataViewer metadata={log.metaData} title={`Metadata for ${log.action}`}/>
+                                                                                {log.action}
+                                                                            </TableCell>
+                                                                            <TableCell>
+                                                                                {formatTimestamp(
+                                                                                    log.timestamp
+                                                                                )}
+                                                                            </TableCell>
+                                                                            <TableCell>
+                                                                                <MetadataViewer
+                                                                                    metadata={
+                                                                                        log.metaData
+                                                                                    }
+                                                                                    title={`Metadata for ${log.action}`}
+                                                                                />
                                                                             </TableCell>
                                                                         </TableRow>
                                                                     ))
                                                                 ) : (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={3} className="text-center">No logs found</TableCell>
+                                                                        <TableCell
+                                                                            colSpan={3}
+                                                                            className="text-center"
+                                                                        >
+                                                                            No logs found
+                                                                        </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                             </TableBody>
@@ -407,7 +451,11 @@ const UserManagementView = ({loggedInUser}) => {
                                                         <div className="mt-4 flex justify-center">
                                                             <Pagination
                                                                 currentPage={currentPage}
-                                                                totalPages={getFilteredAndSortedLogs(user.id).totalPages}
+                                                                totalPages={
+                                                                    getFilteredAndSortedLogs(
+                                                                        user.id
+                                                                    ).totalPages
+                                                                }
                                                                 onPageChange={handlePageChange}
                                                             />
                                                         </div>
@@ -419,23 +467,46 @@ const UserManagementView = ({loggedInUser}) => {
                                                         <Table>
                                                             <TableHeader>
                                                                 <TableRow>
-                                                                    <TableHead>IP Address</TableHead>
-                                                                    <TableHead>User Agent</TableHead>
-                                                                    <TableHead>Login Time</TableHead>
+                                                                    <TableHead>
+                                                                        IP Address
+                                                                    </TableHead>
+                                                                    <TableHead>
+                                                                        User Agent
+                                                                    </TableHead>
+                                                                    <TableHead>
+                                                                        Login Time
+                                                                    </TableHead>
                                                                 </TableRow>
                                                             </TableHeader>
                                                             <TableBody>
-                                                                {getFilteredAndSortedLoginLogs(user.id).logs.length > 0 ? (
-                                                                    getFilteredAndSortedLoginLogs(user.id).logs.map((login) => (
+                                                                {getFilteredAndSortedLoginLogs(
+                                                                    user.id
+                                                                ).logs.length > 0 ? (
+                                                                    getFilteredAndSortedLoginLogs(
+                                                                        user.id
+                                                                    ).logs.map((login) => (
                                                                         <TableRow key={login.id}>
-                                                                            <TableCell>{login.ipAddress}</TableCell>
-                                                                            <TableCell>{login.userAgent}</TableCell>
-                                                                            <TableCell>{formatDate(login.loginTime)}</TableCell>
+                                                                            <TableCell>
+                                                                                {login.ipAddress}
+                                                                            </TableCell>
+                                                                            <TableCell>
+                                                                                {login.userAgent}
+                                                                            </TableCell>
+                                                                            <TableCell>
+                                                                                {formatDate(
+                                                                                    login.loginTime
+                                                                                )}
+                                                                            </TableCell>
                                                                         </TableRow>
                                                                     ))
                                                                 ) : (
                                                                     <TableRow>
-                                                                        <TableCell colSpan={3} className="text-center">No login logs found</TableCell>
+                                                                        <TableCell
+                                                                            colSpan={3}
+                                                                            className="text-center"
+                                                                        >
+                                                                            No login logs found
+                                                                        </TableCell>
                                                                     </TableRow>
                                                                 )}
                                                             </TableBody>
@@ -443,7 +514,11 @@ const UserManagementView = ({loggedInUser}) => {
                                                         <div className="mt-4 flex justify-center">
                                                             <Pagination
                                                                 currentPage={currentPage}
-                                                                totalPages={getFilteredAndSortedLoginLogs(user.id).totalPages}
+                                                                totalPages={
+                                                                    getFilteredAndSortedLoginLogs(
+                                                                        user.id
+                                                                    ).totalPages
+                                                                }
                                                                 onPageChange={handlePageChange}
                                                             />
                                                         </div>
@@ -459,7 +534,6 @@ const UserManagementView = ({loggedInUser}) => {
                 </Table>
             </div>
 
-
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -473,7 +547,9 @@ const UserManagementView = ({loggedInUser}) => {
                             <Input
                                 id="firstName"
                                 value={selectedUser?.firstName || ''}
-                                onChange={(e) => setSelectedUser({...selectedUser, firstName: e.target.value})}
+                                onChange={(e) =>
+                                    setSelectedUser({ ...selectedUser, firstName: e.target.value })
+                                }
                                 className="col-span-3"
                             />
                         </div>
@@ -484,7 +560,9 @@ const UserManagementView = ({loggedInUser}) => {
                             <Input
                                 id="lastName"
                                 value={selectedUser?.lastName || ''}
-                                onChange={(e) => setSelectedUser({...selectedUser, lastName: e.target.value})}
+                                onChange={(e) =>
+                                    setSelectedUser({ ...selectedUser, lastName: e.target.value })
+                                }
                                 className="col-span-3"
                             />
                         </div>
@@ -495,7 +573,9 @@ const UserManagementView = ({loggedInUser}) => {
                             <Input
                                 id="username"
                                 value={selectedUser?.username || ''}
-                                onChange={(e) => setSelectedUser({...selectedUser, username: e.target.value})}
+                                onChange={(e) =>
+                                    setSelectedUser({ ...selectedUser, username: e.target.value })
+                                }
                                 className="col-span-3"
                             />
                         </div>
@@ -506,7 +586,9 @@ const UserManagementView = ({loggedInUser}) => {
                             <Input
                                 id="email"
                                 value={selectedUser?.email || ''}
-                                onChange={(e) => setSelectedUser({...selectedUser, email: e.target.value})}
+                                onChange={(e) =>
+                                    setSelectedUser({ ...selectedUser, email: e.target.value })
+                                }
                                 className="col-span-3"
                             />
                         </div>
@@ -516,24 +598,30 @@ const UserManagementView = ({loggedInUser}) => {
                             </Label>
                             <Select
                                 value={selectedUser?.role || ''}
-                                onValueChange={(value) => setSelectedUser({...selectedUser, role: value})}
+                                onValueChange={(value) =>
+                                    setSelectedUser({ ...selectedUser, role: value })
+                                }
                             >
                                 <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select a role"/>
+                                    <SelectValue placeholder="Select a role" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roles.map((role) => (
-                                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                                        <SelectItem key={role} value={role}>
+                                            {role}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex flex-col sm:flex-row sm:space-x-4">
                         <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSaveUser}>Save</Button>
+                        <Button onClick={handleSaveUser} className="mt-2 sm:mt-0">
+                            Save
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -543,10 +631,12 @@ const UserManagementView = ({loggedInUser}) => {
                     <DialogHeader>
                         <DialogTitle>Change Password</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        handleChangePassword();
-                    }}>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleChangePassword();
+                        }}
+                    >
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="newPassword" className="text-right">
@@ -561,11 +651,17 @@ const UserManagementView = ({loggedInUser}) => {
                                 />
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                        <DialogFooter className="flex flex-col sm:flex-row sm:space-x-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsPasswordDialogOpen(false)}
+                            >
                                 Cancel
                             </Button>
-                            <Button type="submit">Save</Button>
+                            <Button type="submit" className="mt-2 sm:mt-0">
+                                Save
+                            </Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -576,7 +672,7 @@ const UserManagementView = ({loggedInUser}) => {
                     <DialogHeader>
                         <DialogTitle>Create New User</DialogTitle>
                     </DialogHeader>
-                    <CreateUserForm onSubmit={handleCreateUser} roles={roles}/>
+                    <CreateUserForm onSubmit={handleCreateUser} roles={roles} />
                 </DialogContent>
             </Dialog>
         </div>
