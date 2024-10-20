@@ -9,6 +9,10 @@
     flex-direction: column;
 }
 
+.SelectContent {
+    z-index: 50;
+    pointer-events: all;
+}
 .break-words {
     word-wrap: break-word;
     overflow-wrap: break-word;
