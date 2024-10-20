@@ -19,8 +19,9 @@ import {Badge} from '@/components/ui/badge';
 import {liveStrategyClient} from '@/api/liveClient.js';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {useToast} from '@/hooks/use-toast.js';
+import { useIsMobile } from '@/hooks/useisMobile.js';
 
-const LiveStrategyView = ({user}) => {
+const LiveStrategyView = ({ user }) => {
     const {
         resetChart,
         isConnected,
@@ -35,7 +36,7 @@ const LiveStrategyView = ({user}) => {
         viewStrategy,
     } = useLive();
 
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,6 +51,8 @@ const LiveStrategyView = ({user}) => {
     const [uiIsToggling, setUiIsToggling] = useState(false);
 
     const intervalRef = useRef(null);
+
+    const { isMobile } = useIsMobile();
 
     useEffect(() => {
         // Initial fetch
@@ -113,7 +116,7 @@ const LiveStrategyView = ({user}) => {
 
     const handleToggle = async (strategyId) => {
         setTogglingStrategyId(strategyId);
-        setUiIsToggling(true)
+        setUiIsToggling(true);
 
         if (viewingStrategy && viewingStrategy.id === strategyId) {
             resetChart();
@@ -136,12 +139,20 @@ const LiveStrategyView = ({user}) => {
         setUiIsToggling(false);
     };
 
-    const StatCard = ({title, value, valueColor = 'text-foreground'}) => (
-        <div className="bg-background p-3 rounded-md shadow-sm">
-            <h4 className="text-sm font-medium text-muted-foreground mb-1">{title}</h4>
-            <p className={`text-lg font-semibold ${valueColor}`}>{value}</p>
-        </div>
-    );
+    const StatCard = ({ title, value, valueColor = 'text-foreground' }) => {
+        const isMobile = useIsMobile();
+
+        return (
+            <div
+                className={`bg-background p-2 ${isMobile ? 'text-sm' : 'text-base'} rounded-md shadow-sm`}
+            >
+                <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1">
+                    {title}
+                </h4>
+                <p className={`font-semibold ${valueColor}`}>{value}</p>
+            </div>
+        );
+    };
 
     return (
         <div className="flex flex-col w-screen p-4 md:h-[calc(100vh-32px-68px)] md:overflow-hidden">
@@ -169,12 +180,12 @@ const LiveStrategyView = ({user}) => {
 
                                 {/* Stats Widget Section */}
                                 {viewingStrategy && analysisData && (
-                                    <div className="mb-6 bg-card rounded-lg shadow-md p-4">
-                                        <h3 className="text-lg font-semibold mb-3">
-                                            Strategy Performance
+                                    <div className="mb-4 bg-card rounded-md shadow-sm p-2 md:p-4">
+                                        <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-3">
+                                            Strategy Live Performance
                                         </h3>
                                         {analysisData.stats ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                                                 <StatCard
                                                     title="Balance"
                                                     value={`${analysisData.stats.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
@@ -224,8 +235,10 @@ const LiveStrategyView = ({user}) => {
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="flex justify-center items-center h-32">
-                                                <p className="text-gray-500">Loading stats...</p>
+                                            <div className="flex justify-center items-center h-20 md:h-32">
+                                                <p className="text-sm md:text-base text-gray-500">
+                                                    Loading stats...
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -271,7 +284,7 @@ const LiveStrategyView = ({user}) => {
                                     No Live Strategy Connected
                                 </h2>
                                 <p className="text-center mb-6">
-                                    Select a strategy from the right panel to view live data.
+                                    Select a strategy from the strategy panel to view live data.
                                 </p>
                             </div>
                         )}
