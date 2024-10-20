@@ -9,6 +9,8 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {liveAccountClient} from '@/api/liveClient.js';
 import {useToast} from '@/hooks/use-toast';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.jsx";
+import {InfoIcon} from "lucide-react";
 
 const LiveBrokerModal = ({open, onClose}) => {
 
@@ -334,17 +336,41 @@ const LiveBrokerModal = ({open, onClose}) => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="mt5Password">MT5 Password</Label>
-                                <Input
-                                    id="mt5Password"
-                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
-                                    onChange={(e) => handleMt5InputChange('password', e.target.value)}
-                                    type="password"
-                                    placeholder="Enter MT5 password"
-                                    autoComplete="off"
-                                />
-                            </div>
+                            <>
+                                {(mode !== 'edit' && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Label htmlFor="mt5Password">MT5 Password</Label>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                        >
+                                                            <InfoIcon className="h-4 w-4"/>
+                                                            <span className="sr-only">Info</span>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="top" align="start">
+                                                        You will not be able to see or change the password once it's set. You will need to delete and re-enter.
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Input
+                                                id="mt5Password"
+                                                value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
+                                                onChange={(e) => handleMt5InputChange('password', e.target.value)}
+                                                type="password"
+                                                placeholder="Enter MT5 password"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
 
                             <div className="space-y-2">
                                 <Label htmlFor="mt5Server">MT5 Server</Label>
