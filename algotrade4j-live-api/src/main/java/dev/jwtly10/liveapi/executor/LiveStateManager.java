@@ -35,6 +35,11 @@ public class LiveStateManager {
     private final PerformanceAnalyser performanceAnalyser;
     private final Notifier notifier;
 
+    // Some error handling for state updates
+    // To prevent spamming of notifications
+    private final static int MAX_ERROR_NOTIFICATIONS = 5;
+    private int errorNotificationCount = 0;
+
     public LiveStateManager(BrokerClient brokerClient, AccountManager accountManager, TradeManager tradeManager,
                             EventPublisher eventPublisher, Strategy strategy, Instrument instrument, LiveStrategyService liveStrategyService, Notifier notifier) {
         this.brokerClient = brokerClient;
@@ -51,6 +56,7 @@ public class LiveStateManager {
     /**
      * Update the trade and account states of the strategy
      * TODO, refactor this to use the same retryable stream logic we have implemented for streaming prices and transactions
+     * // TODO: Note. Risk management logic depends on this data being up to date. so we need to have a way to shutdown if we can't get this data
      * Currently if this fails, there is no retry
      */
     public void updateState() {
@@ -79,10 +85,24 @@ public class LiveStateManager {
             // Do stats calculations for the strategy, after everything has been updated and events fired
             runPerformanceAnalysis();
             eventPublisher.publishEvent(new LiveAnalysisEvent(strategy.getStrategyId(), instrument, performanceAnalyser, accountManager.getAccount()));
+
+            // Reset error notification count, alert if it was previously blocked
+            if (errorNotificationCount >= MAX_ERROR_NOTIFICATIONS) {
+                notifier.sendSysNotification("Update trade state Error notifications re-enabled for strategy: " + strategy.getStrategyId(), true);
+            }
+            errorNotificationCount = 0;
         } catch (Exception e) {
             log.error("Error updating state for strategy: {}", strategy, e);
-            notifier.sendSysErrorNotification("Error updating state for strategy: " + strategy.getStrategyId(), e, true);
-            throw new RuntimeException("Error updating state for strategy: " + strategy, e);
+
+            if (errorNotificationCount < MAX_ERROR_NOTIFICATIONS) {
+                notifier.sendSysErrorNotification("Error updating state for strategy (#" + errorNotificationCount + "): " + strategy.getStrategyId(), e, true);
+                errorNotificationCount++;
+            } else {
+                log.error("Max error notifications reached for updating state. Not sending any more notifications.");
+            }
+
+            // No longer throwing to prevent issue with thread getting shutdown if this errors
+            // throw new RuntimeException("Error updating state for strategy: " + strategy, e);
         }
     }
 

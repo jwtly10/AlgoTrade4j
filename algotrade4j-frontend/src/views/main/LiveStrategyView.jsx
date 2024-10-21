@@ -19,8 +19,9 @@ import {Badge} from '@/components/ui/badge';
 import {liveStrategyClient} from '@/api/liveClient.js';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {useToast} from '@/hooks/use-toast.js';
+import { useIsMobile } from '@/hooks/useisMobile.js';
 
-const LiveStrategyView = ({user}) => {
+const LiveStrategyView = ({ user }) => {
     const {
         resetChart,
         isConnected,
@@ -35,7 +36,7 @@ const LiveStrategyView = ({user}) => {
         viewStrategy,
     } = useLive();
 
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     const [pickedLiveStrategy, setPickedLiveStrategy] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,6 +51,8 @@ const LiveStrategyView = ({user}) => {
     const [uiIsToggling, setUiIsToggling] = useState(false);
 
     const intervalRef = useRef(null);
+
+    const { isMobile } = useIsMobile();
 
     useEffect(() => {
         // Initial fetch
@@ -113,7 +116,7 @@ const LiveStrategyView = ({user}) => {
 
     const handleToggle = async (strategyId) => {
         setTogglingStrategyId(strategyId);
-        setUiIsToggling(true)
+        setUiIsToggling(true);
 
         if (viewingStrategy && viewingStrategy.id === strategyId) {
             resetChart();
@@ -136,19 +139,27 @@ const LiveStrategyView = ({user}) => {
         setUiIsToggling(false);
     };
 
-    const StatCard = ({title, value, valueColor = 'text-foreground'}) => (
-        <div className="bg-background p-3 rounded-md shadow-sm">
-            <h4 className="text-sm font-medium text-muted-foreground mb-1">{title}</h4>
-            <p className={`text-lg font-semibold ${valueColor}`}>{value}</p>
-        </div>
-    );
+    const StatCard = ({ title, value, valueColor = 'text-foreground' }) => {
+        const isMobile = useIsMobile();
+
+        return (
+            <div
+                className={`bg-background p-2 ${isMobile ? 'text-sm' : 'text-base'} rounded-md shadow-sm`}
+            >
+                <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1">
+                    {title}
+                </h4>
+                <p className={`font-semibold ${valueColor}`}>{value}</p>
+            </div>
+        );
+    };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-32px-68px)] w-screen overflow-hidden p-4">
+        <div className="flex flex-col w-screen p-4 md:h-[calc(100vh-32px-68px)] md:overflow-hidden">
             {/* Main content area */}
-            <div className="flex-grow flex overflow-hidden">
+            <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
                 {/* Left section (3/4 width) */}
-                <div className="flex-grow h-full overflow-hidden">
+                <div className="w-full md:flex-grow h-full overflow-hidden">
                     <Card className="h-full flex flex-col p-6">
                         {isConnected ? (
                             <>
@@ -163,21 +174,21 @@ const LiveStrategyView = ({user}) => {
                                             indicators={indicators}
                                         />
                                     ) : (
-                                        <EmptyChart/>
+                                        <EmptyChart />
                                     )}
                                 </div>
 
                                 {/* Stats Widget Section */}
                                 {viewingStrategy && analysisData && (
-                                    <div className="mb-6 bg-card rounded-lg shadow-md p-4">
-                                        <h3 className="text-lg font-semibold mb-3">
-                                            Strategy Performance
+                                    <div className="mb-4 bg-card rounded-md shadow-sm p-2 md:p-4">
+                                        <h3 className="text-base md:text-lg font-semibold mb-2 md:mb-3">
+                                            Strategy Live Performance
                                         </h3>
                                         {analysisData.stats ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                                                 <StatCard
                                                     title="Balance"
-                                                    value={`${analysisData.stats.balance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`}
+                                                    value={`${analysisData.stats.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`}
                                                     valueColor={
                                                         analysisData.balance >= 0
                                                             ? 'text-green-500'
@@ -186,7 +197,7 @@ const LiveStrategyView = ({user}) => {
                                                 />
                                                 <StatCard
                                                     title="Equity"
-                                                    value={`${analysisData.stats.equity.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                                                    value={`${analysisData.stats.equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                                                     valueColor={
                                                         analysisData.equity >= 0
                                                             ? 'text-green-500'
@@ -195,7 +206,7 @@ const LiveStrategyView = ({user}) => {
                                                 />
                                                 <StatCard
                                                     title="Running PnL"
-                                                    value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                                                    value={`${analysisData.stats.openTradeProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                                                     valueColor={
                                                         analysisData.openTradeProfit >= 0
                                                             ? 'text-green-500'
@@ -224,8 +235,10 @@ const LiveStrategyView = ({user}) => {
                                                 />
                                             </div>
                                         ) : (
-                                            <div className="flex justify-center items-center h-32">
-                                                <p className="text-gray-500">Loading stats...</p>
+                                            <div className="flex justify-center items-center h-20 md:h-32">
+                                                <p className="text-sm md:text-base text-gray-500">
+                                                    Loading stats...
+                                                </p>
                                             </div>
                                         )}
                                     </div>
@@ -255,7 +268,7 @@ const LiveStrategyView = ({user}) => {
                                         </TabsContent>
                                         <TabsContent value="logs" className="h-full overflow-auto">
                                             {logs.length > 0 ? (
-                                                <LogsTable logs={logs}/>
+                                                <LogsTable logs={logs} />
                                             ) : (
                                                 <p className="p-4 text-center">
                                                     No logs available yet.
@@ -271,7 +284,7 @@ const LiveStrategyView = ({user}) => {
                                     No Live Strategy Connected
                                 </h2>
                                 <p className="text-center mb-6">
-                                    Select a strategy from the right panel to view live data.
+                                    Select a strategy from the strategy panel to view live data.
                                 </p>
                             </div>
                         )}
@@ -289,7 +302,7 @@ const LiveStrategyView = ({user}) => {
                                 size="sm"
                                 onClick={handleNewStrategy}
                             >
-                                <Plus className="w-4 h-4 mr-1"/> New Live Strategy
+                                <Plus className="w-4 h-4 mr-1" /> New Live Strategy
                             </Button>
                         </div>
                         <div className="space-y-4">
@@ -329,7 +342,7 @@ const LiveStrategyView = ({user}) => {
                                                                 size="icon"
                                                                 className="h-8 w-8 p-0"
                                                             >
-                                                                <Bell className="h-4 w-4 text-destructive"/>
+                                                                <Bell className="h-4 w-4 text-destructive" />
                                                             </Button>
                                                         </PopoverTrigger>
                                                         <PopoverContent className="w-80">
@@ -356,22 +369,24 @@ const LiveStrategyView = ({user}) => {
                                                                         ? 'bg-green-500 hover:bg-green-600'
                                                                         : ''
                                                                 } ${
-                                                                    (user.role !== 'ADMIN' || uiIsToggling)
+                                                                    user.role !== 'ADMIN' ||
+                                                                    uiIsToggling
                                                                         ? 'cursor-not-allowed'
                                                                         : 'cursor-pointer'
                                                                 }`}
                                                                 onClick={
-                                                                    (user.role === 'ADMIN' && !uiIsToggling)
+                                                                    user.role === 'ADMIN' &&
+                                                                    !uiIsToggling
                                                                         ? () =>
-                                                                            handleToggle(
-                                                                                strategy.id
-                                                                            )
+                                                                              handleToggle(
+                                                                                  strategy.id
+                                                                              )
                                                                         : null
                                                                 }
                                                             >
                                                                 {togglingStrategyId ===
                                                                 strategy.id ? (
-                                                                    <Loader2 className="h-3 w-3 animate-spin"/>
+                                                                    <Loader2 className="h-3 w-3 animate-spin" />
                                                                 ) : strategy.active ? (
                                                                     'Active'
                                                                 ) : (
@@ -404,7 +419,9 @@ const LiveStrategyView = ({user}) => {
                                                                 Account:
                                                             </span>
                                                             <span className="font-medium">
-                                                                ({strategy.brokerAccount.brokerType}) {strategy.brokerAccount.brokerName}
+                                                                ({strategy.brokerAccount.brokerType}
+                                                                ){' '}
+                                                                {strategy.brokerAccount.brokerName}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -427,12 +444,12 @@ const LiveStrategyView = ({user}) => {
                                                                             .accountBalance
                                                                     )
                                                                         ? parseFloat(
-                                                                            strategy.stats.accountBalance.toFixed(
-                                                                                2
-                                                                            )
-                                                                        ).toLocaleString()
+                                                                              strategy.stats.accountBalance.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
                                                                         : strategy.stats
-                                                                            .accountBalance}
+                                                                              .accountBalance}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between">
@@ -446,12 +463,12 @@ const LiveStrategyView = ({user}) => {
                                                                             .openTradeProfit
                                                                     )
                                                                         ? parseFloat(
-                                                                            strategy.stats.openTradeProfit.toFixed(
-                                                                                2
-                                                                            )
-                                                                        ).toLocaleString()
+                                                                              strategy.stats.openTradeProfit.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
                                                                         : strategy.stats
-                                                                            .openTradeProfit}
+                                                                              .openTradeProfit}
                                                                 </span>
                                                             </div>
                                                             <div className="flex justify-between">
@@ -464,10 +481,10 @@ const LiveStrategyView = ({user}) => {
                                                                         strategy.stats.profit
                                                                     )
                                                                         ? parseFloat(
-                                                                            strategy.stats.profit.toFixed(
-                                                                                2
-                                                                            )
-                                                                        ).toLocaleString()
+                                                                              strategy.stats.profit.toFixed(
+                                                                                  2
+                                                                              )
+                                                                          ).toLocaleString()
                                                                         : strategy.stats.profit}
                                                                 </span>
                                                             </div>
@@ -530,12 +547,12 @@ const LiveStrategyView = ({user}) => {
                                                     {viewingStrategy &&
                                                     viewingStrategy.id === strategy.id ? (
                                                         <>
-                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin"/>{' '}
+                                                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />{' '}
                                                             Refresh
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Eye className="w-4 h-4 mr-2"/> View
+                                                            <Eye className="w-4 h-4 mr-2" /> View
                                                         </>
                                                     )}
                                                 </Button>
@@ -546,13 +563,13 @@ const LiveStrategyView = ({user}) => {
                                                 onClick={() => handleEditStrategy(strategy)}
                                                 disabled={user.role !== 'ADMIN'}
                                             >
-                                                <Edit2 className="w-4 h-4 mr-2"/> Edit
+                                                <Edit2 className="w-4 h-4 mr-2" /> Edit
                                             </Button>
                                         </CardFooter>
                                     </Card>
                                 ))}
                         </div>
-                        <div className="flex-grow"/>
+                        <div className="flex-grow" />
 
                         <p className="text-sm text-muted-foreground text-center">
                             Only admins can create and manage live strategies.
@@ -577,7 +594,9 @@ const LiveStrategyView = ({user}) => {
                     onClose={handleConfigEditClose}
                     strategyConfig={pickedLiveStrategy}
                     clearChart={resetChart}
-                    isStrategyInUse={viewingStrategy && viewingStrategy.id === pickedLiveStrategy.id}
+                    isStrategyInUse={
+                        viewingStrategy && viewingStrategy.id === pickedLiveStrategy.id
+                    }
                 />
             )}
             <LiveCreateStratModal
