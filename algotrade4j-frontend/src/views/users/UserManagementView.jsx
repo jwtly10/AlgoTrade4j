@@ -12,10 +12,10 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "../../co
 import MetadataViewer from "@/components/user/MetadataViewer.jsx";
 import CreateUserForm from "../../components/user/CreateUserForm.jsx";
 import log from '../../logger.js';
-import { useIsMobile } from '../../hooks/useisMobile.js';
+import {useIsMobile} from '@/hooks/useIsMobile.js';
 import UserCard from '@/components/user/UserCard.jsx';
 
-const UserManagementView = ({ loggedInUser }) => {
+const UserManagementView = ({loggedInUser}) => {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -35,7 +35,7 @@ const UserManagementView = ({ loggedInUser }) => {
 
     const [uiIsLoadingLogs, setUiIsLoadingLogs] = useState(false);
 
-    const { toast } = useToast();
+    const {toast} = useToast();
     const isMobile = useIsMobile();
 
     useEffect(() => {
@@ -80,7 +80,7 @@ const UserManagementView = ({ loggedInUser }) => {
     };
 
     const handleEditUser = (user) => {
-        setSelectedUser({ ...user });
+        setSelectedUser({...user});
         setIsEditDialogOpen(true);
     };
 
@@ -208,7 +208,7 @@ const UserManagementView = ({ loggedInUser }) => {
                 setUiIsLoadingLogs(true);
                 try {
                     const logs = await adminClient.getTrackingForUser(userId);
-                    setUserLogs((prev) => ({ ...prev, [userId]: logs }));
+                    setUserLogs((prev) => ({...prev, [userId]: logs}));
                 } catch (error) {
                     log.error('Failed to fetch user logs:', error);
                     toast({
@@ -220,7 +220,7 @@ const UserManagementView = ({ loggedInUser }) => {
 
                 try {
                     const loginLogs = await adminClient.getLoginLogsForUser(userId);
-                    setLoginLogs((prev) => ({ ...prev, [userId]: loginLogs }));
+                    setLoginLogs((prev) => ({...prev, [userId]: loginLogs}));
                 } catch (error) {
                     log.error('Failed to fetch login logs:', error);
                     toast({
@@ -283,7 +283,7 @@ const UserManagementView = ({ loggedInUser }) => {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold">User Management</h1>
                 <Button onClick={() => setIsCreateDialogOpen(true)}>
-                    <UserPlus className="mr-2 h-4 w-4" />
+                    <UserPlus className="mr-2 h-4 w-4"/>
                     Create User
                 </Button>
             </div>
@@ -351,7 +351,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                                                 handleEditUser(user);
                                                             }}
                                                         >
-                                                            <Edit className="h-4 w-4" />
+                                                            <Edit className="h-4 w-4"/>
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -371,7 +371,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                                                 setIsPasswordDialogOpen(true);
                                                             }}
                                                         >
-                                                            <Lock className="h-4 w-4" />
+                                                            <Lock className="h-4 w-4"/>
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -390,7 +390,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                                                 handleDeleteUser(user.id);
                                                             }}
                                                         >
-                                                            <Trash className="h-4 w-4" />
+                                                            <Trash className="h-4 w-4"/>
                                                         </Button>
                                                     </TooltipTrigger>
                                                     <TooltipContent>
@@ -597,7 +597,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                 id="firstName"
                                 value={selectedUser?.firstName || ''}
                                 onChange={(e) =>
-                                    setSelectedUser({ ...selectedUser, firstName: e.target.value })
+                                    setSelectedUser({...selectedUser, firstName: e.target.value})
                                 }
                                 className="col-span-3"
                             />
@@ -610,7 +610,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                 id="lastName"
                                 value={selectedUser?.lastName || ''}
                                 onChange={(e) =>
-                                    setSelectedUser({ ...selectedUser, lastName: e.target.value })
+                                    setSelectedUser({...selectedUser, lastName: e.target.value})
                                 }
                                 className="col-span-3"
                             />
@@ -623,7 +623,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                 id="username"
                                 value={selectedUser?.username || ''}
                                 onChange={(e) =>
-                                    setSelectedUser({ ...selectedUser, username: e.target.value })
+                                    setSelectedUser({...selectedUser, username: e.target.value})
                                 }
                                 className="col-span-3"
                             />
@@ -636,7 +636,7 @@ const UserManagementView = ({ loggedInUser }) => {
                                 id="email"
                                 value={selectedUser?.email || ''}
                                 onChange={(e) =>
-                                    setSelectedUser({ ...selectedUser, email: e.target.value })
+                                    setSelectedUser({...selectedUser, email: e.target.value})
                                 }
                                 className="col-span-3"
                             />
@@ -648,11 +648,11 @@ const UserManagementView = ({ loggedInUser }) => {
                             <Select
                                 value={selectedUser?.role || ''}
                                 onValueChange={(value) =>
-                                    setSelectedUser({ ...selectedUser, role: value })
+                                    setSelectedUser({...selectedUser, role: value})
                                 }
                             >
                                 <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select a role" />
+                                    <SelectValue placeholder="Select a role"/>
                                 </SelectTrigger>
                                 <SelectContent onClick={(e) => e.stopPropagation()}>
                                     {roles.map((role) => (
@@ -721,7 +721,7 @@ const UserManagementView = ({ loggedInUser }) => {
                     <DialogHeader>
                         <DialogTitle>Create New User</DialogTitle>
                     </DialogHeader>
-                    <CreateUserForm onSubmit={handleCreateUser} roles={roles} />
+                    <CreateUserForm onSubmit={handleCreateUser} roles={roles}/>
                 </DialogContent>
             </Dialog>
         </div>
