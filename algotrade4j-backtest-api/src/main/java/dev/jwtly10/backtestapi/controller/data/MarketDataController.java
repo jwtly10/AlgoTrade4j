@@ -57,12 +57,8 @@ public class MarketDataController {
             @RequestParam("from") String from,
             @RequestParam("to") String to,
             @RequestParam("period") Period period,
-            @RequestParam(value="limit", required=false) Integer limit
+            @RequestParam(value = "limit", required = false) Integer limit
     ) {
-        if (limit == null){
-            limit = 10000;
-        }
-
         if (!this.apiKey.equals(requestApiKey)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Missing or invalid API key");
         }
@@ -129,7 +125,7 @@ public class MarketDataController {
 
         candlesCache.put(cacheKey, result);
 
-        if (result.size() > limit) {
+        if (limit != null && result.size() > limit) {
             return ResponseEntity.ok(result.subList(0, limit));
         }
 
