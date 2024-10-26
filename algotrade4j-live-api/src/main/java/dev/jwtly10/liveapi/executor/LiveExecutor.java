@@ -171,6 +171,8 @@ public class LiveExecutor implements DataListener {
         notifier.sendSysNotification(String.format("Live Strategy '%s' stopped with reason: '%s'", strategyId, reason), true);
         scheduler.shutdown();
 
+        // Kill the live state manager
+        scheduler.shutdownNow();
         // Shutdown any processes in the trade manager
         tradeManager.shutdown();
 

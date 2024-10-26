@@ -250,16 +250,16 @@ public class LiveStrategyService {
         liveStrategyRepository.save(liveStrategy);
     }
 
-    public LiveStrategy updateLiveStrategy(Long id, LiveStrategy strategySetup) {
-        log.info("Updating live strategy: {}", strategySetup.getStrategyName());
+    public LiveStrategy updateLiveStrategy(Long id, LiveStrategy updatedStratConfig) {
+        log.info("Updating live strategy: {}", updatedStratConfig.getStrategyName());
 
         trackingService.track(
                 SecurityUtils.getCurrentUserId(),
                 UserAction.LIVE_STRATEGY_EDIT,
                 Map.of(
                         "strategyId", id,
-                        "strategyName", strategySetup.getStrategyName(),
-                        "config", strategySetup.getConfig()
+                        "strategyName", updatedStratConfig.getStrategyName(),
+                        "config", updatedStratConfig.getConfig()
                 )
         );
 
@@ -267,18 +267,30 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
+        if (liveStrategy.isActive()) {
+            // If we allow real time updating of strategies while they are live, we would need to coordinate with
+            // the executor repository to shut down all threads that a strategy is using.
+            // This is a lot of maintenance overhead, which isnt worth the QOL improvement.
+            // We will require strategies must not be active to update them.
+            throw new ApiException("Cannot update an active strategy", ErrorType.BAD_REQUEST);
+        }
+
+        LiveStrategy existingStrategy = liveStrategyRepository.findByStrategyName(updatedStratConfig.getStrategyName()).orElse(null);
+        if (existingStrategy != null && !existingStrategy.getId().equals(id)) {
+            throw new ApiException("Strategy with the same name already exists", ErrorType.BAD_REQUEST);
+        }
+
         try {
-            strategySetup.getConfig().validate();
+            updatedStratConfig.getConfig().validate();
         } catch (Exception e) {
             log.error("Invalid live strategy configuration: {}", e.getMessage(), e);
             throw new ApiException("Invalid live strategy configuration: " + e.getMessage(), ErrorType.BAD_REQUEST);
         }
 
         // Update the possible values that we allow for updating
-        liveStrategy.setStrategyName(strategySetup.getStrategyName().trim());
-        liveStrategy.setTelegramChatId(strategySetup.getTelegramChatId().trim());
-        liveStrategy.setConfig(strategySetup.getConfig());
-        liveStrategy.setActive(false); // If we make updated, we should deactivate the strategy
+        liveStrategy.setStrategyName(updatedStratConfig.getStrategyName().trim());
+        liveStrategy.setTelegramChatId(updatedStratConfig.getTelegramChatId().trim());
+        liveStrategy.setConfig(updatedStratConfig.getConfig());
 
         // Save the strategy to the database
         return liveStrategyRepository.save(liveStrategy);

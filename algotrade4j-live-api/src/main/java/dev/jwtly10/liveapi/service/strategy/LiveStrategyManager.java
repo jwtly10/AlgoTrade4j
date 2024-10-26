@@ -170,8 +170,6 @@ public class LiveStrategyManager {
                     log.warn("Attempting to force stop strategy: {}", strategyName);
                     executor.onStop(String.format("Error stopping via DataManager for strategy: %s", e.getMessage()));
                 }
-            } else {
-                log.warn("Strategy {} is not running", strategyName);
             }
         } catch (Exception e) {
             // We have made some assumptions in the system that strategies shouldn't fail to stop
