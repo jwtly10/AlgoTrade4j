@@ -63,7 +63,13 @@ const LiveBrokerModal = ({open, onClose}) => {
         const base = account.brokerName && account.brokerType && account.initialBalance && account.accountId
 
         if (account.brokerType.startsWith('MT5')) {
-            const mt5 = account.mt5Credentials?.password && account.mt5Credentials?.server && account.mt5Credentials?.path && account.mt5Credentials?.timezone
+            const mt5 =
+                // If the mode is edit, we don't need to check the password, as we don't want to update it
+                // If the mode is new, we need to check the password
+                (mode !== "edit" ? account.mt5Credentials?.password : true)
+                && account.mt5Credentials?.server
+                && account.mt5Credentials?.path
+                && account.mt5Credentials?.timezone
             return base && mt5
         } else {
             return base
@@ -349,7 +355,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                                                             variant="ghost"
                                                             size="icon"
                                                         >
-                                                            <InfoIcon className="h-4 w-4"/>
+                                                            <InfoIcon className="h-3 w-3"/>
                                                             <span className="sr-only">Info</span>
                                                         </Button>
                                                     </TooltipTrigger>
@@ -373,7 +379,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                                 ))}
                             </>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 mt-3">
                                 <Label htmlFor="mt5Server">MT5 Server</Label>
                                 <Input
                                     id="mt5Server"

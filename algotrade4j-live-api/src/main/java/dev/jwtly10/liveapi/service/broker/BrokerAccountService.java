@@ -2,6 +2,7 @@ package dev.jwtly10.liveapi.service.broker;
 
 import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
+import dev.jwtly10.liveapi.model.broker.MT5Credentials;
 import dev.jwtly10.liveapi.model.broker.Timezone;
 import dev.jwtly10.liveapi.model.dto.TimezoneDTO;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
@@ -106,7 +107,15 @@ public class BrokerAccountService {
         foundAccount.setInitialBalance(broker.getInitialBalance());
 
         if (broker.getMt5Credentials() != null) {
-            foundAccount.setMt5Credentials(broker.getMt5Credentials());
+            MT5Credentials incomingCredentials = broker.getMt5Credentials();
+            MT5Credentials existingCredentials = foundAccount.getMt5Credentials();
+
+            // Note we do not support updating the password
+            existingCredentials.setServer(incomingCredentials.getServer());
+            existingCredentials.setPath(incomingCredentials.getPath());
+            existingCredentials.setTimezone(incomingCredentials.getTimezone());
+
+            foundAccount.setMt5Credentials(existingCredentials);
         }
 
         foundAccount.setActive(true);
