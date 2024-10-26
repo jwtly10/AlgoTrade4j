@@ -84,6 +84,16 @@ export const liveStrategyClient = {
         } catch (error) {
             return handleError(error, url);
         }
+    },
+
+    getLogs: async (strategyId) => {
+        const url = `${V1}/live/strategies/${strategyId}/logs`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
     }
 };
 

@@ -130,6 +130,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             Trade openedTrade = tradeManager.openLong(params);
             sysOpenTradeNotif(openedTrade);
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opened long trade for strategy '%s' @ %s", strategyId, openedTrade.getEntryPrice()));
             return Optional.of(openedTrade);
         } catch (Exception e) {
             sysErrorNotif("Error opening long trade for strategy '" + strategyId + "'", e);
@@ -150,6 +151,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             Trade openedTrade = tradeManager.openShort(params);
             sysOpenTradeNotif(openedTrade);
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Short trade opened for strategy '%s' @ %s", strategyId, openedTrade.getEntryPrice()));
             return Optional.of(openedTrade);
         } catch (Exception e) {
             sysErrorNotif("Error opening short trade for strategy '" + strategyId + "'", e);
@@ -337,6 +339,7 @@ public abstract class BaseStrategy implements Strategy {
             throw new RuntimeException("Error initializing strategy parameters", e);
         }
         initIndicators();
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' initialized", strategyId));
     }
 
     /**
@@ -345,7 +348,7 @@ public abstract class BaseStrategy implements Strategy {
     @Override
     public void onDeInit() {
         log.info("Strategy run {} completed", strategyId);
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy run complete"));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' de-initialized", strategyId));
     }
 
     /**

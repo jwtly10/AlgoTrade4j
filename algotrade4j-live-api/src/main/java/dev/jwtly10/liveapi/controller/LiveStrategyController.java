@@ -1,6 +1,8 @@
 package dev.jwtly10.liveapi.controller;
 
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategyLog;
+import dev.jwtly10.liveapi.service.strategy.LiveStrategyLogService;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyManager;
 import dev.jwtly10.liveapi.service.strategy.LiveStrategyService;
 import dev.jwtly10.shared.config.ratelimit.RateLimit;
@@ -16,12 +18,13 @@ import java.util.List;
 public class LiveStrategyController {
 
     private final LiveStrategyService liveStrategyService;
-
     private final LiveStrategyManager liveStrategyManager;
+    private final LiveStrategyLogService liveStrategyLogService;
 
-    public LiveStrategyController(LiveStrategyService liveStrategyService, LiveStrategyManager liveStrategyManager) {
+    public LiveStrategyController(LiveStrategyService liveStrategyService, LiveStrategyManager liveStrategyManager, LiveStrategyLogService liveStrategyLogService) {
         this.liveStrategyService = liveStrategyService;
         this.liveStrategyManager = liveStrategyManager;
+        this.liveStrategyLogService = liveStrategyLogService;
     }
 
     @GetMapping
@@ -90,5 +93,10 @@ public class LiveStrategyController {
         } catch (Exception e) {
             throw new ApiException("Error closing trade: " + e.getMessage(), ErrorType.INTERNAL_ERROR);
         }
+    }
+
+    @GetMapping("/{id}/logs")
+    public ResponseEntity<List<LiveStrategyLog>> getLogs(@PathVariable("id") Long strategyId) {
+        return ResponseEntity.ok(liveStrategyLogService.getLogs(strategyId));
     }
 }

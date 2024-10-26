@@ -139,3 +139,15 @@ CREATE TABLE mt5_credentials_tb
             REFERENCES broker_accounts_tb (id)
             ON DELETE CASCADE
 );
+
+CREATE TABLE live_strategy_log_tb
+(
+    id               BIGSERIAL PRIMARY KEY,
+    live_strategy_id BIGSERIAL    NOT NULL REFERENCES live_strategies_tb (id),
+    level            VARCHAR(10)  NOT NULL,
+    message          VARCHAR(255) NOT NULL,
+
+    created_at       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (live_strategy_id) REFERENCES live_strategies_tb (id)
+);

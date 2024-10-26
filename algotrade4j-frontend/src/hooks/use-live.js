@@ -1,5 +1,3 @@
-// hooks/useBacktest.js
-
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {liveWSClient} from '@/api/liveClient.js';
 import {apiClient} from '@/api/apiClient.js';
@@ -102,13 +100,16 @@ export const useLive = () => {
             updateTrades(data);
         } else if (data.type === 'LOG') {
             updateLogs(data);
+        } else if (data.type === 'ALL_LOGS') {
+            log.debug('All logs event');
+            updateAsyncLogs(data);
         } else if (data.type === 'BAR_SERIES') {
             updateTradingViewChart(data);
         } else if (data.type === 'ALL_TRADES') {
-            log.info('All trades event');
+            log.debug('All trades event');
             updateTradingViewChart(data);
         } else if (data.type === 'ALL_INDICATORS') {
-            log.info('All indicator event');
+            log.debug('All indicator event');
             setAllIndicators(data);
         } else if (data.type === 'PROGRESS') {
         } else if (data.type === 'ERROR') {
@@ -126,27 +127,51 @@ export const useLive = () => {
         setAnalysisData(data);
     };
 
+// For regenerating the logs
+    const updateAsyncLogs = (data) => {
+        setLogs(data.logs.map(log => {
+            return {
+                timestamp: new Date(log.time * 1000).toLocaleString('en-GB', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                    timeZoneName: 'short',
+                    timeZone: 'Europe/London'
+                }).replace(',', ''), // Remove comma after date for desired format
+                type: log.logType,
+                message: log.message,
+            }
+        }));
+    }
+
+// For appending new logs
     const updateLogs = (data) => {
         setLogs((prevLogs) => {
             return [
                 {
-                    timestamp: new Date(data.time * 1000).toLocaleString('en-US', {
+                    timestamp: new Date(data.time * 1000).toLocaleString('en-GB', {
                         year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit',
-                        fractionalSecondDigits: 3,
                         hour12: false,
-                    }),
+                        timeZoneName: 'short',
+                        timeZone: 'Europe/London'
+                    }).replace(',', ''), // Remove comma after date for desired format
                     type: data.logType,
                     message: data.message,
                 },
                 ...prevLogs,
             ];
         });
-    };
+    }
+
 
     const updateTrades = (data) => {
         // Update the profit value of the trade

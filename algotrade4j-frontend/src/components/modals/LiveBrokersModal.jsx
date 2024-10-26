@@ -11,6 +11,7 @@ import {liveAccountClient} from '@/api/liveClient.js';
 import {useToast} from '@/hooks/use-toast';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.jsx";
 import {InfoIcon} from "lucide-react";
+import log from "@/logger.js";
 
 const LiveBrokerModal = ({open, onClose}) => {
 
@@ -74,7 +75,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getAccounts();
             setAccounts(res);
         } catch (error) {
-            console.error('Failed to fetch accounts', error);
+            log.error('Failed to fetch accounts', error);
             toast({
                 title: 'Error',
                 description: `Failed to fetch accounts: ${error.message}`,
@@ -88,7 +89,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getBrokers();
             setBrokers(res);
         } catch (error) {
-            console.error('Failed to fetch brokers', error);
+            log.error('Failed to fetch brokers', error);
             toast({
                 title: 'Error',
                 description: `Failed to fetch brokers: ${error.message}`,
@@ -102,7 +103,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getTimezones();
             setTimezones(res);
         } catch (error) {
-            console.error('Failed to fetch timezones', error);
+            log.error('Failed to fetch timezones', error);
             toast({
                 title: 'Error',
                 description: `Failed to timezones brokers: ${error.message}`,
@@ -143,7 +144,7 @@ const LiveBrokerModal = ({open, onClose}) => {
     const handleSave = async () => {
         let accountToSave = mode === 'edit' ? editingAccount : newAccount;
 
-        console.log({accountToSave, editingAccount, newAccount})
+        log.debug({accountToSave, editingAccount, newAccount})
 
 
         const isEmptyMt5Credentials = (credentials) => {
@@ -198,7 +199,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             setEditingAccount(null);
             setNewAccount(DEFAULT_NEW_ACCOUNT);
         } catch (error) {
-            console.error('Failed to save account', error);
+            log.error('Failed to save account', error);
             toast({
                 title: 'Broker Account Error',
                 description: `Failed to update Accounts : ${error.message}`,
@@ -226,7 +227,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                 description: `Account '${accountId}' deleted successfully`,
             });
         } catch (error) {
-            console.error('Failed to delete account', error);
+            log.error('Failed to delete account', error);
             toast({
                 title: 'Broker Account Error',
                 description: `Failed to delete Account : ${error.message}`,
