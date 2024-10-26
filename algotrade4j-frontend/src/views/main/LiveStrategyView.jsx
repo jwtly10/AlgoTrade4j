@@ -119,6 +119,7 @@ const LiveStrategyView = ({user}) => {
         setUiIsToggling(true);
 
         if (viewingStrategy && viewingStrategy.id === strategyId) {
+            console.log("This happens")
             resetChart();
             setViewingStrategy(null);
         }

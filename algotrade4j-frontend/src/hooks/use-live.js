@@ -53,6 +53,13 @@ export const useLive = () => {
         setIndicators({});
         setLogs([]);
         setAnalysisData({})
+
+        // Clear WS connection
+        if (socketRef.current) {
+            socketRef.current.close();
+        }
+
+        setIsConnected(false);
     }
 
     const viewStrategy = async (strategyId) => {
