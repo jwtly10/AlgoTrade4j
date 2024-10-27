@@ -10,7 +10,11 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,7 +51,30 @@ public class ForexFactoryClient {
                 .collect(Collectors.toList());
     }
 
-    private List<ForexFactoryNews> getWeeksNews() throws IOException {
+    public List<ForexFactoryNews> searchMockedNews(ForexFactorySearchParams params) throws IOException, URISyntaxException {
+        List<ForexFactoryNews> allNews = getMockedNews();
+        return allNews.stream()
+                .filter(news -> params.country() == null || news.country().equalsIgnoreCase(params.country()))
+                .filter(news -> params.impact() == null || news.impact().getValue().equalsIgnoreCase(params.impact().getValue()))
+                .filter(news -> params.date() == null || news.date().toLocalDate().isEqual(params.date()))
+                .collect(Collectors.toList());
+    }
+
+    public List<ForexFactoryNews> getMockedNews() throws URISyntaxException, IOException {
+        log.info("Fetching mocked news from ForexFactory");
+        var path = Paths.get(Objects.requireNonNull(ForexFactoryClient.class.getResource("/forex_factory_mocked_news.json")).toURI());
+        var parsed = Files.readString(path);
+
+        ObjectMapper objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
+
+        return objectMapper.readValue(parsed, new TypeReference<>() {
+        });
+    }
+
+    // TODO: This should be cached daily, so we don't hit the API every time
+    public List<ForexFactoryNews> getWeeksNews() throws IOException {
         log.debug("Fetching news from ForexFactory");
         String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
 

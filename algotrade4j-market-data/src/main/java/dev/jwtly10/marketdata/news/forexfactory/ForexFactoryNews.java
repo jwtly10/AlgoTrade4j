@@ -41,6 +41,7 @@ public record ForexFactoryNews(
         public static final Impact LOW = new Impact("Low");
         public static final Impact MEDIUM = new Impact("Medium");
         public static final Impact HIGH = new Impact("High");
+        public static final Impact HOLIDAY = new Impact("Holiday");
         private final String value;
 
         /**
@@ -70,6 +71,8 @@ public record ForexFactoryNews(
                     return MEDIUM;
                 case "high":
                     return HIGH;
+                case "holiday":
+                    return HOLIDAY;
                 default:
                     return new Impact(value);
             }

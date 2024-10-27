@@ -12,6 +12,7 @@ import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.impl.mt5.MT5Client;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
+import dev.jwtly10.marketdata.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,5 +81,10 @@ public class SharedCoreBeanConfig {
     @Bean
     public TelegramNotifier telegramNotifier() {
         return new TelegramNotifier(okHttpClient(), telegramBotToken);
+    }
+
+    @Bean
+    public ForexFactoryClient forexFactoryClient() {
+        return new ForexFactoryClient(okHttpClient());
     }
 }

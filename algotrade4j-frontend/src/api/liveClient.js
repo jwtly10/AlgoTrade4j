@@ -158,6 +158,18 @@ export const liveAccountClient = {
     },
 };
 
+export const liveNewsClient = {
+    getNews: async () => {
+        const url = `${V1}/news/forexfactory`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+};
+
 export const liveWSClient = {
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {
