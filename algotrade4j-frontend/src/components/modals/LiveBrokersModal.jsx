@@ -9,6 +9,9 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {liveAccountClient} from '@/api/liveClient.js';
 import {useToast} from '@/hooks/use-toast';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.jsx";
+import {InfoIcon} from "lucide-react";
+import log from "@/logger.js";
 
 const LiveBrokerModal = ({open, onClose}) => {
 
@@ -60,7 +63,13 @@ const LiveBrokerModal = ({open, onClose}) => {
         const base = account.brokerName && account.brokerType && account.initialBalance && account.accountId
 
         if (account.brokerType.startsWith('MT5')) {
-            const mt5 = account.mt5Credentials?.password && account.mt5Credentials?.server && account.mt5Credentials?.path && account.mt5Credentials?.timezone
+            const mt5 =
+                // If the mode is edit, we don't need to check the password, as we don't want to update it
+                // If the mode is new, we need to check the password
+                (mode !== "edit" ? account.mt5Credentials?.password : true)
+                && account.mt5Credentials?.server
+                && account.mt5Credentials?.path
+                && account.mt5Credentials?.timezone
             return base && mt5
         } else {
             return base
@@ -72,7 +81,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getAccounts();
             setAccounts(res);
         } catch (error) {
-            console.error('Failed to fetch accounts', error);
+            log.error('Failed to fetch accounts', error);
             toast({
                 title: 'Error',
                 description: `Failed to fetch accounts: ${error.message}`,
@@ -86,7 +95,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getBrokers();
             setBrokers(res);
         } catch (error) {
-            console.error('Failed to fetch brokers', error);
+            log.error('Failed to fetch brokers', error);
             toast({
                 title: 'Error',
                 description: `Failed to fetch brokers: ${error.message}`,
@@ -100,7 +109,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             const res = await liveAccountClient.getTimezones();
             setTimezones(res);
         } catch (error) {
-            console.error('Failed to fetch timezones', error);
+            log.error('Failed to fetch timezones', error);
             toast({
                 title: 'Error',
                 description: `Failed to timezones brokers: ${error.message}`,
@@ -141,7 +150,7 @@ const LiveBrokerModal = ({open, onClose}) => {
     const handleSave = async () => {
         let accountToSave = mode === 'edit' ? editingAccount : newAccount;
 
-        console.log({accountToSave, editingAccount, newAccount})
+        log.debug({accountToSave, editingAccount, newAccount})
 
 
         const isEmptyMt5Credentials = (credentials) => {
@@ -196,7 +205,7 @@ const LiveBrokerModal = ({open, onClose}) => {
             setEditingAccount(null);
             setNewAccount(DEFAULT_NEW_ACCOUNT);
         } catch (error) {
-            console.error('Failed to save account', error);
+            log.error('Failed to save account', error);
             toast({
                 title: 'Broker Account Error',
                 description: `Failed to update Accounts : ${error.message}`,
@@ -224,7 +233,7 @@ const LiveBrokerModal = ({open, onClose}) => {
                 description: `Account '${accountId}' deleted successfully`,
             });
         } catch (error) {
-            console.error('Failed to delete account', error);
+            log.error('Failed to delete account', error);
             toast({
                 title: 'Broker Account Error',
                 description: `Failed to delete Account : ${error.message}`,
@@ -334,19 +343,43 @@ const LiveBrokerModal = ({open, onClose}) => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="mt5Password">MT5 Password</Label>
-                                <Input
-                                    id="mt5Password"
-                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
-                                    onChange={(e) => handleMt5InputChange('password', e.target.value)}
-                                    type="password"
-                                    placeholder="Enter MT5 password"
-                                    autoComplete="off"
-                                />
-                            </div>
+                            <>
+                                {(mode !== 'edit' && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Label htmlFor="mt5Password">MT5 Password</Label>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                        >
+                                                            <InfoIcon className="h-3 w-3"/>
+                                                            <span className="sr-only">Info</span>
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="top" align="start">
+                                                        You will not be able to see or change the password once it's set. You will need to delete and re-enter.
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Input
+                                                id="mt5Password"
+                                                value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
+                                                onChange={(e) => handleMt5InputChange('password', e.target.value)}
+                                                type="password"
+                                                placeholder="Enter MT5 password"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 mt-3">
                                 <Label htmlFor="mt5Server">MT5 Server</Label>
                                 <Input
                                     id="mt5Server"

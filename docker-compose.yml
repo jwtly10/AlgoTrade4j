@@ -46,6 +46,7 @@ services:
       - MT5_API_URL=${MT5_API_URL}
       - MT5_API_KEY=${MT5_API_KEY}
       - TELEGRAM_SYSTEM_CHAT_ID=${TELEGRAM_SYSTEM_CHAT_ID}
+      - SECURITY_ENCRYPTION_KEY=${SECURITY_ENCRYPTION_KEY}
 
   frontend:
     image: joshwatley/algotrade4j-frontend:latest

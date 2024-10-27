@@ -84,6 +84,16 @@ export const liveStrategyClient = {
         } catch (error) {
             return handleError(error, url);
         }
+    },
+
+    getLogs: async (strategyId) => {
+        const url = `${V1}/live/strategies/${strategyId}/logs`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
     }
 };
 
@@ -147,6 +157,30 @@ export const liveAccountClient = {
         }
     },
 };
+
+export const liveNewsClient = {
+    getNews: async () => {
+        const url = `${V1}/news/forexfactory`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+};
+
+export const liveOverViewClient = {
+    getRecentActivities: async () => {
+        const url = `${V1}/overview/activities`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+}
 
 export const liveWSClient = {
     connectWebSocket: (strategyId, onMessage) => {

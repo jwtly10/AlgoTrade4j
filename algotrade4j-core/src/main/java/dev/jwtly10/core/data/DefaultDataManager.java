@@ -154,7 +154,7 @@ public class DefaultDataManager implements DataManager, DataProviderListener {
             // So here we should handle errors as if the default usage will be a single strategy, additional flags can be implemented to do different handling if needed
 
             log.error("Error during strategy run for strategy {}: ", e.getStrategy(), e);
-            eventPublisher.publishEvent(new LogEvent(e.getStrategyId(), LogEvent.LogType.ERROR, "Error during strategy run: %s", e.getMessage()));
+            eventPublisher.publishEvent(new LogEvent(e.getStrategyId(), LogEvent.LogType.ERROR, "Error during strategy run for strategy '%s': %s", e.getStrategy().getStrategyId(), e.getMessage()));
             eventPublisher.publishErrorEvent(e.getStrategyId(), e);
 
             if (systemNotifier != null && e.getStrategy().canUseSystemNotifications()) {

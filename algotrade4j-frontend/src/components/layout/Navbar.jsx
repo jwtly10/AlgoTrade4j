@@ -1,25 +1,18 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { authClient } from '@/api/apiClient.js';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ChevronDown, Moon, Settings, Sun, Menu, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button.jsx';
-import { useTheme } from '@/components/ThemeProvider';
+import React, {useState} from 'react';
+import {Link, useLocation} from 'react-router-dom';
+import {authClient} from '@/api/apiClient.js';
+import {Avatar, AvatarFallback} from '@/components/ui/avatar';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,} from '@/components/ui/dropdown-menu';
+import {ChevronDown, Menu, Moon, Settings, Sun, X} from 'lucide-react';
+import {useToast} from '@/hooks/use-toast';
+import {cn} from '@/lib/utils';
+import {Button} from '@/components/ui/button.jsx';
+import {useTheme} from '@/components/ThemeProvider';
 
-function Navbar({ user, setUser }) {
+function Navbar({user, setUser}) {
     const location = useLocation();
-    const { toast } = useToast();
-    const { theme, toggleTheme } = useTheme();
+    const {toast} = useToast();
+    const {theme, toggleTheme} = useTheme();
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -71,9 +64,9 @@ function Navbar({ user, setUser }) {
                         className="h-8 w-8"
                     >
                         {isMobileMenuOpen ? (
-                            <X className="h-6 w-6" />
+                            <X className="h-6 w-6"/>
                         ) : (
-                            <Menu className="h-6 w-6" />
+                            <Menu className="h-6 w-6"/>
                         )}
                     </Button>
                 </div>
@@ -84,6 +77,19 @@ function Navbar({ user, setUser }) {
                 >
                     {user ? (
                         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+                            <Link
+                                to="/news"
+                                className={cn(
+                                    navItemStyles,
+                                    isActive('/news')
+                                        ? navItemActiveStyles
+                                        : navItemInactiveStyles
+                                )}
+                                onClick={handleMenuClick}
+                            >
+                                News
+                            </Link>
+
                             {(user.role === 'ADMIN' || user.role === 'LIVE_VIEWER') && (
                                 <Link
                                     to="/live"
@@ -93,7 +99,7 @@ function Navbar({ user, setUser }) {
                                             ? navItemActiveStyles
                                             : navItemInactiveStyles
                                     )}
-                                    onClick={handleMenuClick} // Close menu on link click
+                                    onClick={handleMenuClick}
                                 >
                                     Live
                                 </Link>
@@ -106,7 +112,7 @@ function Navbar({ user, setUser }) {
                                         ? navItemActiveStyles
                                         : navItemInactiveStyles
                                 )}
-                                onClick={handleMenuClick} // Close menu on link click
+                                onClick={handleMenuClick}
                             >
                                 Backtest
                             </Link>
@@ -118,7 +124,7 @@ function Navbar({ user, setUser }) {
                                         ? navItemActiveStyles
                                         : navItemInactiveStyles
                                 )}
-                                onClick={handleMenuClick} // Close menu on link click
+                                onClick={handleMenuClick}
                             >
                                 Optimise
                             </Link>
@@ -135,7 +141,7 @@ function Navbar({ user, setUser }) {
                                                     : navItemInactiveStyles
                                             )}
                                         >
-                                            <Settings className="h-4 w-4 mr-1" />
+                                            <Settings className="h-4 w-4 mr-1"/>
                                             Admin
                                         </button>
                                     </DropdownMenuTrigger>
@@ -171,7 +177,7 @@ function Navbar({ user, setUser }) {
                                             </AvatarFallback>
                                         </Avatar>
                                         <span>{user.firstName}</span>
-                                        <ChevronDown className="h-4 w-4" />
+                                        <ChevronDown className="h-4 w-4"/>
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
@@ -181,7 +187,7 @@ function Navbar({ user, setUser }) {
                                     <DropdownMenuLabel>
                                         Logged in as {user.username}
                                     </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
+                                    <DropdownMenuSeparator/>
                                     <DropdownMenuItem onSelect={handleLogout}>
                                         Logout
                                     </DropdownMenuItem>
@@ -193,14 +199,14 @@ function Navbar({ user, setUser }) {
                                 size="icon"
                                 onClick={() => {
                                     toggleTheme();
-                                    handleMenuClick(); // Close menu after theme toggle
+                                    handleMenuClick();
                                 }}
                                 className="h-8 w-8"
                             >
                                 {theme === 'light' ? (
-                                    <Moon className="h-5 w-5" />
+                                    <Moon className="h-5 w-5"/>
                                 ) : (
-                                    <Sun className="h-5 w-5" />
+                                    <Sun className="h-5 w-5"/>
                                 )}
                                 <span className="sr-only">Toggle theme</span>
                             </Button>
@@ -213,7 +219,7 @@ function Navbar({ user, setUser }) {
                                     navItemStyles,
                                     isActive('/login') ? navItemActiveStyles : navItemInactiveStyles
                                 )}
-                                onClick={handleMenuClick} // Close menu on link click
+                                onClick={handleMenuClick}
                             >
                                 Login
                             </Link>
@@ -225,7 +231,7 @@ function Navbar({ user, setUser }) {
                                         ? navItemActiveStyles
                                         : navItemInactiveStyles
                                 )}
-                                onClick={handleMenuClick} // Close menu on link click
+                                onClick={handleMenuClick}
                             >
                                 Sign Up
                             </Link>

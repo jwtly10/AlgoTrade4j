@@ -158,6 +158,7 @@ jobs:
             export DEFAULT_OANDA_ACCOUNT_ID=${{secrets.DEFAULT_OANDA_ACCOUNT_ID}}
             export MT5_API_URL=${{secrets.MT5_API_URL}}
             export MT5_API_KEY=${{secrets.MT5_API_KEY}}
+            export SECURITY_ENCRYPTION_KEY=${{secrets.SECURITY_ENCRYPTION_KEY}}
             
             docker compose pull
             docker compose down

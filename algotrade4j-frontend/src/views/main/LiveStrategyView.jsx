@@ -119,6 +119,7 @@ const LiveStrategyView = ({user}) => {
         setUiIsToggling(true);
 
         if (viewingStrategy && viewingStrategy.id === strategyId) {
+            console.log("This happens")
             resetChart();
             setViewingStrategy(null);
         }
@@ -557,14 +558,17 @@ const LiveStrategyView = ({user}) => {
                                                     )}
                                                 </Button>
                                             )}
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEditStrategy(strategy)}
-                                                disabled={user.role !== 'ADMIN'}
-                                            >
-                                                <Edit2 className="w-4 h-4 mr-2"/> Edit
-                                            </Button>
+                                            {
+                                                !strategy.active && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleEditStrategy(strategy)}
+                                                        disabled={user.role !== 'ADMIN'}
+                                                    >
+                                                        <Edit2 className="w-4 h-4 mr-2"/> Edit
+                                                    </Button>
+                                                )}
                                         </CardFooter>
                                     </Card>
                                 ))}

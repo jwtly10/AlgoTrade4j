@@ -56,6 +56,7 @@ public class StrategyController {
                 UserAction.BACKTEST_RUN,
                 Map.of(
                         "strategyId", strategyId,
+                        "strategyClass", config.getStrategyClass(),
                         "strategyConfig", config
                 )
         );

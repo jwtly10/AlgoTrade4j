@@ -1,4 +1,4 @@
-package dev.jwtly10.liveapi.repository;
+package dev.jwtly10.liveapi.repository.broker;
 
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import org.springframework.data.jpa.repository.JpaRepository;

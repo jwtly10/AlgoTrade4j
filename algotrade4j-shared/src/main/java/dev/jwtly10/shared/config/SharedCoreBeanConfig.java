@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DefaultDataManagerFactory;
-import dev.jwtly10.core.event.AsyncEventPublisher;
-import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.DefaultExecutorFactory;
 import dev.jwtly10.core.execution.ExecutorFactory;
 import dev.jwtly10.core.model.Number;
@@ -14,6 +12,7 @@ import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import dev.jwtly10.marketdata.impl.mt5.MT5Client;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
+import dev.jwtly10.marketdata.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,11 +36,6 @@ public class SharedCoreBeanConfig {
 
     @Value("${mt5.api.key}")
     private String mt5ApiKey;
-
-    @Bean
-    public EventPublisher eventPublisher() {
-        return new AsyncEventPublisher();
-    }
 
     @Bean
     public ObjectMapper objectMapper() {
@@ -87,5 +81,10 @@ public class SharedCoreBeanConfig {
     @Bean
     public TelegramNotifier telegramNotifier() {
         return new TelegramNotifier(okHttpClient(), telegramBotToken);
+    }
+
+    @Bean
+    public ForexFactoryClient forexFactoryClient() {
+        return new ForexFactoryClient(okHttpClient());
     }
 }

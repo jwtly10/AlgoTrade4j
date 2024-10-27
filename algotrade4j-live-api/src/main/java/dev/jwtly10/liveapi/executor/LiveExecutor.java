@@ -6,7 +6,6 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.BarEvent;
 import dev.jwtly10.core.event.types.LogEvent;
-import dev.jwtly10.core.event.types.StrategyStopEvent;
 import dev.jwtly10.core.event.types.async.AsyncIndicatorsEvent;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.external.notifications.Notifier;
@@ -100,7 +99,6 @@ public class LiveExecutor implements DataListener {
         // Start polling for account/trade data
         log.info("Starting live state manager for strategy: {}", strategyId);
         scheduler.scheduleAtFixedRate(liveStateManager::updateState, 0, 1, TimeUnit.SECONDS);
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Live Strategy initialized"));
     }
 
     @Override
@@ -164,6 +162,7 @@ public class LiveExecutor implements DataListener {
     @Override
     public void onTradeClose(Trade trade) {
         log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}, stopLoss={}, takeProfit={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice(), trade.getStopLoss(), trade.getTakeProfit());
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Trade closed for strategy '%s' with profit: %s", trade.getId(), trade.getProfit()));
         strategy.onTradeClose(trade);
     }
 
@@ -172,6 +171,8 @@ public class LiveExecutor implements DataListener {
         notifier.sendSysNotification(String.format("Live Strategy '%s' stopped with reason: '%s'", strategyId, reason), true);
         scheduler.shutdown();
 
+        // Kill the live state manager
+        scheduler.shutdownNow();
         // Shutdown any processes in the trade manager
         tradeManager.shutdown();
 
@@ -185,7 +186,6 @@ public class LiveExecutor implements DataListener {
         strategy.onDeInit();
         strategy.onEnd();
 
-        eventPublisher.publishEvent(new StrategyStopEvent(strategyId, "Live strategy stopped"));
         initialised = false;
 
         MDC.clear();

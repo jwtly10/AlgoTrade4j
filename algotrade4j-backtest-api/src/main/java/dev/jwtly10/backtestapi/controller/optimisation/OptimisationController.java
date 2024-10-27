@@ -35,7 +35,10 @@ public class OptimisationController {
     public ResponseEntity<OptimisationTask> queueOptimisation(@RequestBody StrategyConfig config) {
         Long userId = SecurityUtils.getCurrentUserId();
         log.debug("Queueing optimisation for user: {} with config: {}", userId, config);
-        trackingService.track(userId, UserAction.OPTIMISATION_RUN, Map.of("optimisation_config", config));
+        trackingService.track(userId, UserAction.OPTIMISATION_RUN, Map.of(
+                "optimisationConfig", config,
+                "strategyClass", config.getStrategyClass()
+        ));
 
         try {
             OptimisationTask task = optimisationService.queueOptimisation(config, userId);

@@ -1,6 +1,7 @@
 package dev.jwtly10.shared.tracking;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @Service
 @Slf4j
 public class TrackingService {
-
     private final ConcurrentLinkedQueue<UserActionLog> eventQueue = new ConcurrentLinkedQueue<>();
     private final UserActionLogRepository userActionLogRepository;
 
@@ -57,5 +57,13 @@ public class TrackingService {
 
     public List<UserActionLog> getTrackingEventsForUser(Long userId) {
         return userActionLogRepository.findByUserId(userId);
+    }
+
+    public List<UserActionLog> getAllTrackingEvents() {
+        return userActionLogRepository.findAll();
+    }
+
+    public List<UserActionLog> getRecentTrackingEvents(int limit) {
+        return userActionLogRepository.findAllByOrderByIdDesc(PageRequest.of(0, limit));
     }
 }

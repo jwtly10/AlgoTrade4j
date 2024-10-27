@@ -1,12 +1,16 @@
 package dev.jwtly10.liveapi.service.websocket;
 
 import dev.jwtly10.core.event.EventPublisher;
+import dev.jwtly10.core.event.Log;
 import dev.jwtly10.core.event.types.*;
 import dev.jwtly10.core.event.types.async.AsyncBarSeriesEvent;
 import dev.jwtly10.core.event.types.async.AsyncIndicatorsEvent;
+import dev.jwtly10.core.event.types.async.AsyncLogsEvent;
 import dev.jwtly10.core.event.types.async.AsyncTradesEvent;
 import dev.jwtly10.liveapi.executor.LiveExecutor;
+import dev.jwtly10.liveapi.model.strategy.LiveStrategyLog;
 import dev.jwtly10.liveapi.repository.LiveExecutorRepository;
+import dev.jwtly10.liveapi.service.strategy.LiveStrategyLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -15,6 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,10 +31,12 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
     private final Map<WebSocketSession, WebSocketEventListener> listeners = new ConcurrentHashMap<>();
     private final Map<String, WebSocketSession> strategySessions = new ConcurrentHashMap<>();
     private final LiveExecutorRepository liveExecutorRepository;
+    private final LiveStrategyLogService liveStrategyLogService;
 
-    public LiveStrategyWSHandler(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository) {
+    public LiveStrategyWSHandler(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, LiveStrategyLogService liveStrategyLogService) {
         this.eventPublisher = eventPublisher;
         this.liveExecutorRepository = liveExecutorRepository;
+        this.liveStrategyLogService = liveStrategyLogService;
     }
 
     @Override
@@ -57,6 +64,7 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
                 listener.subscribe(AnalysisEvent.class);
                 listener.subscribe(LiveAnalysisEvent.class);
                 listener.subscribe(LogEvent.class);
+                listener.subscribe(AsyncLogsEvent.class);
                 listener.subscribe(ErrorEvent.class);
                 listener.subscribe(AsyncIndicatorsEvent.class);
                 listener.subscribe(AsyncTradesEvent.class);
@@ -81,6 +89,16 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
             listener.sendBinaryMessage(tradesEvent.toJson());
             AsyncIndicatorsEvent indicatorsEvent = new AsyncIndicatorsEvent(executor.getStrategyId(), executor.getInstrument(), executor.getIndicators());
             listener.sendBinaryMessage(indicatorsEvent.toJson());
+
+            List<LiveStrategyLog> dbLogs = liveStrategyLogService.getLogs(executor.getStrategyId());
+            List<Log> logs = dbLogs.stream().map(log ->
+                    new Log(
+                            log.getMessage(),
+                            LogEvent.LogType.valueOf(log.getLevel()),
+                            log.getCreatedAt())
+            ).toList();
+            AsyncLogsEvent logsEvent = new AsyncLogsEvent(executor.getStrategyId(), executor.getInstrument(), logs);
+            listener.sendBinaryMessage(logsEvent.toJson());
         } catch (IOException e) {
             log.error("Error sending initial state: {}", e.getMessage(), e);
         }

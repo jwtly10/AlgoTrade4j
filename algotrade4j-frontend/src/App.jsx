@@ -1,26 +1,27 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import BacktestView from './views/main/BacktestView.jsx';
 import AuthModal from './components/modals/AuthModal';
-import { authClient } from './api/apiClient.js';
+import {authClient} from './api/apiClient.js';
 import UserManagementView from './views/users/UserManagementView.jsx';
 import NotFoundView from './views/NotFoundView.jsx';
 import HomeView from './views/main/HomeView.jsx';
 import OptimisationView from './views/main/OptimisationView.jsx';
 import log from './logger.js';
-import { ThemeProvider } from './components/ThemeProvider';
-import { Toaster } from './components/ui/toaster';
+import {ThemeProvider} from './components/ThemeProvider';
+import {Toaster} from './components/ui/toaster';
 import UnauthorizedAccessView from '@/views/UnauthorizedAccessView.jsx';
 import MonitorView from '@/views/MonitorView.jsx';
-import { useToast } from '@/hooks/use-toast.js';
+import {useToast} from '@/hooks/use-toast.js';
 import LiveStrategyView from '@/views/main/LiveStrategyView.jsx';
+import NewsView from "@/views/main/NewsView.jsx";
 
 function App() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
     const [authModalOpen, setAuthModalOpen] = useState(false);
-    const { toast } = useToast();
+    const {toast} = useToast();
 
     useEffect(() => {
         const verifyToken = async () => {
@@ -59,36 +60,41 @@ function App() {
             <Router>
                 <div className="min-h-screen bg-background text-foreground">
                     {user && (
-                        <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal} />
+                        <Navbar user={user} setUser={setUser} openAuthModal={handleOpenAuthModal}/>
                     )}
                     <Routes>
                         <Route
+                            path="/news"
+                            element={user ? <NewsView/> : <Navigate to="/login" replace/>}
+                        />
+                        <Route
                             path="/"
-                            element={user ? <HomeView /> : <Navigate to="/login" replace />}
+                            element={user ? <HomeView/> : <Navigate to="/login" replace/>}
                         />
 
                         <Route
                             path="/backtest"
-                            element={user ? <BacktestView /> : <Navigate to="/login" replace />}
+                            element={user ? <BacktestView/> : <Navigate to="/login" replace/>}
                         />
 
                         <Route
                             path="/login"
                             element={
                                 user ? (
-                                    <Navigate to="/" replace />
+                                    <Navigate to="/" replace/>
                                 ) : (
-                                    <AuthModal open={true} onClose={() => {}} setUser={setUser} />
+                                    <AuthModal open={true} onClose={() => {
+                                    }} setUser={setUser}/>
                                 )
                             }
                         />
 
                         <Route
                             path="/optimisation"
-                            element={user ? <OptimisationView /> : <Navigate to="/login" replace />}
+                            element={user ? <OptimisationView/> : <Navigate to="/login" replace/>}
                         />
 
-                        <Route path="/signup" element={<Navigate to="/login" replace />} />
+                        <Route path="/signup" element={<Navigate to="/login" replace/>}/>
 
                         {/* Admin routes */}
                         <Route
@@ -96,12 +102,12 @@ function App() {
                             element={
                                 user ? (
                                     user.role === 'ADMIN' ? (
-                                        <UserManagementView loggedInUser={user} />
+                                        <UserManagementView loggedInUser={user}/>
                                     ) : (
-                                        <UnauthorizedAccessView />
+                                        <UnauthorizedAccessView/>
                                     )
                                 ) : (
-                                    <Navigate to="/login" replace />
+                                    <Navigate to="/login" replace/>
                                 )
                             }
                         />
@@ -110,12 +116,12 @@ function App() {
                             element={
                                 user ? (
                                     user.role === 'ADMIN' ? (
-                                        <MonitorView />
+                                        <MonitorView/>
                                     ) : (
-                                        <UnauthorizedAccessView />
+                                        <UnauthorizedAccessView/>
                                     )
                                 ) : (
-                                    <Navigate to="/login" replace />
+                                    <Navigate to="/login" replace/>
                                 )
                             }
                         />
@@ -125,19 +131,19 @@ function App() {
                             element={
                                 user ? (
                                     user.role === 'ADMIN' || user.role === 'LIVE_VIEWER' ? (
-                                        <LiveStrategyView user={user} />
+                                        <LiveStrategyView user={user}/>
                                     ) : (
-                                        <UnauthorizedAccessView />
+                                        <UnauthorizedAccessView/>
                                     )
                                 ) : (
-                                    <Navigate to="/login" replace />
+                                    <Navigate to="/login" replace/>
                                 )
                             }
                         />
 
                         <Route
                             path="*"
-                            element={user ? <NotFoundView /> : <Navigate to="/login" replace />}
+                            element={user ? <NotFoundView/> : <Navigate to="/login" replace/>}
                         />
                     </Routes>
                     {!user && (
@@ -149,7 +155,7 @@ function App() {
                     )}
                 </div>
             </Router>
-            <Toaster />
+            <Toaster/>
         </ThemeProvider>
     );
 }

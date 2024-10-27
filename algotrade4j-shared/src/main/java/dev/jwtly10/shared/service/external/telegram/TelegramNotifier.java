@@ -20,6 +20,10 @@ public class TelegramNotifier implements Notifier {
     @Value("${telegram.system.chat.id}")
     private String systemChatId;
 
+    @Value("${telegram.disable.notifications:false}")
+    private boolean disableNotifications;
+
+
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
 
@@ -105,6 +109,12 @@ public class TelegramNotifier implements Notifier {
 
 
     private void send(String chatId, String message, boolean isHtml) {
+
+        if (disableNotifications) {
+            log.warn("Notifications are disabled via application.properties. Skipping notification.");
+            return;
+        }
+
         String url = "https://api.telegram.org/bot" + botToken + "/sendMessage";
 
         Map<String, Object> bodyMap = new HashMap<>();

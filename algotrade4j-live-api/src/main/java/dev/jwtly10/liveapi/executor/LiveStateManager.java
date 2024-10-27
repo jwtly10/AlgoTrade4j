@@ -97,12 +97,7 @@ public class LiveStateManager {
             if (errorNotificationCount < MAX_ERROR_NOTIFICATIONS) {
                 notifier.sendSysErrorNotification("Error updating state for strategy (#" + errorNotificationCount + "): " + strategy.getStrategyId(), e, true);
                 errorNotificationCount++;
-            } else {
-                log.error("Max error notifications reached for updating state. Not sending any more notifications.");
             }
-
-            // No longer throwing to prevent issue with thread getting shutdown if this errors
-            // throw new RuntimeException("Error updating state for strategy: " + strategy, e);
         }
     }
 

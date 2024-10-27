@@ -12,6 +12,7 @@ import {InfoIcon, Loader2} from 'lucide-react';
 import {apiClient} from '@/api/apiClient.js';
 import {liveStrategyClient} from "@/api/liveClient.js";
 import {toast} from "@/hooks/use-toast.js";
+import log from '@/logger.js'
 
 const LiveConfigEditModal = ({open, onClose, strategyConfig, clearChart, isStrategyInUse}) => {
     const [activeTab, setActiveTab] = useState('parameters');
@@ -35,7 +36,7 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig, clearChart, isStrat
                 const inst = await apiClient.getInstruments();
                 setInstruments(inst);
             } catch (e) {
-                console.error('Failed to fetch instruments', e);
+                log.error('Failed to fetch instruments', e);
             }
         };
 
@@ -56,47 +57,43 @@ const LiveConfigEditModal = ({open, onClose, strategyConfig, clearChart, isStrat
             const updatedRunParams = prevConfig.config.runParams.map(param =>
                 param.name === paramName ? {...param, value} : param
             );
-            const newConfig = {
+            return {
                 ...prevConfig,
                 config: {
                     ...prevConfig.config,
                     runParams: updatedRunParams,
                 },
             };
-            return newConfig;
         });
     };
 
     const handleStrategyNameChange = (value) => {
         setLocalConfig((prevConfig) => {
-            const newConfig = {
+            return {
                 ...prevConfig,
                 strategyName: value,
             };
-            return newConfig;
         });
     }
 
     const handleTelegramChatIDChange = (value) => {
         setLocalConfig((prevConfig) => {
-            const newConfig = {
+            return {
                 ...prevConfig,
                 telegramChatId: value,
             };
-            return newConfig;
         });
     }
 
     const handleConfigChange = (field, value) => {
         setLocalConfig((prevConfig) => {
-            const newConfig = {
+            return {
                 ...prevConfig,
                 config: {
                     ...prevConfig.config,
                     [field]: value,
                 },
             };
-            return newConfig;
         });
     };
 

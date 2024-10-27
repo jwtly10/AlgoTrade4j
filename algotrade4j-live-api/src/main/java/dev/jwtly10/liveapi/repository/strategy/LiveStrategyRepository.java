@@ -1,4 +1,4 @@
-package dev.jwtly10.liveapi.repository;
+package dev.jwtly10.liveapi.repository.strategy;
 
 import dev.jwtly10.liveapi.model.broker.BrokerAccount;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
