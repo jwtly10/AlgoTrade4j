@@ -212,15 +212,20 @@ public class LiveStrategyService {
     public LiveStrategy toggleStrategy(Long id) {
         log.info("Toggling live strategy: {}", id);
 
-        trackingService.track(
-                SecurityUtils.getCurrentUserId(),
-                UserAction.LIVE_STRATEGY_TOGGLE,
-                Map.of("strategyId", id)
-        );
-
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+
+
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_TOGGLE,
+                Map.of(
+                        "strategyId", id,
+                        "strategyName", liveStrategy.getStrategyName(),
+                        "toggledOn", liveStrategy.isActive()
+                )
+        );
 
         // Toggle the active strategy
         liveStrategy.setActive(!liveStrategy.isActive());
@@ -231,15 +236,18 @@ public class LiveStrategyService {
         // We don't actually delete the strategy, we just deactivate it and set hidden
         log.info("Deleting live strategy: {}", id);
 
-        trackingService.track(
-                SecurityUtils.getCurrentUserId(),
-                UserAction.LIVE_STRATEGY_DELETE,
-                Map.of("strategyId", id)
-        );
-
         // Find the strategy in the database
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+
+        trackingService.track(
+                SecurityUtils.getCurrentUserId(),
+                UserAction.LIVE_STRATEGY_DELETE,
+                Map.of(
+                        "strategyId", id,
+                        "strategyName", liveStrategy.getStrategyName()
+                )
+        );
 
         if (liveStrategy.isActive()) {
             throw new ApiException("Cannot delete an active strategy", ErrorType.BAD_REQUEST);

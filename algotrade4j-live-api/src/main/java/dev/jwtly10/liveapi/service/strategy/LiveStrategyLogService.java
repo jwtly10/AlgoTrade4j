@@ -43,4 +43,8 @@ public class LiveStrategyLogService {
 
         return getLogs(liveStrategy.getId());
     }
+
+    public List<LiveStrategyLog> getAllLiveStrategyLogs() {
+        return liveStrategyLogRepository.findAll();
+    }
 }

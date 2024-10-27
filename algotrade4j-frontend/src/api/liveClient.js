@@ -170,6 +170,18 @@ export const liveNewsClient = {
     },
 };
 
+export const liveOverViewClient = {
+    getRecentActivities: async () => {
+        const url = `${V1}/overview/activities`;
+        try {
+            const response = await liveInstance.get(url);
+            return handleResponse(response, url);
+        } catch (error) {
+            return handleError(error, url);
+        }
+    },
+}
+
 export const liveWSClient = {
     connectWebSocket: (strategyId, onMessage) => {
         return new Promise((resolve, reject) => {

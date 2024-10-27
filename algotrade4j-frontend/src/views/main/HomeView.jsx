@@ -5,9 +5,10 @@ import {Activity, BarChart, History, RefreshCcwDot, Settings, Zap} from 'lucide-
 import {useNavigate} from 'react-router-dom';
 
 import {useToast} from "@/hooks/use-toast";
-import {liveNewsClient} from "@/api/liveClient";
+import {liveNewsClient, liveOverViewClient} from "@/api/liveClient";
 
 import {countryIcons, impactIcons} from "@/views/main/NewsView.jsx";
+import {RecentActivityCard} from "@/home/RecentActivityCard.jsx";
 
 const QuickActionButton = ({icon, label, onClick}) => (
     <Button variant="outline" className="w-full flex items-center justify-start space-x-2" onClick={onClick}>
@@ -123,6 +124,25 @@ const NewsWidget = () => {
 
 const HomeView = () => {
     const navigate = useNavigate();
+    const {toast} = useToast();
+    const [recentActivities, setRecentActivities] = useState([]);
+
+    useEffect(() => {
+        async function fetchRecentActivities() {
+            try {
+                const data = await liveOverViewClient.getRecentActivities();
+                setRecentActivities(data);
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: `Failed to get recent activities: ${error.message}`,
+                    variant: 'destructive',
+                });
+            }
+        }
+
+        fetchRecentActivities();
+    }, [])
 
     return (
         <div className="container mx-auto p-6">
@@ -143,7 +163,7 @@ const HomeView = () => {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Active Strategies</CardTitle>
+                        <CardTitle>Live Strategies</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold">5</div>
@@ -194,6 +214,8 @@ const HomeView = () => {
                         />
                     </CardContent>
                 </Card>
+
+                <RecentActivityCard recentActivities={recentActivities}/>
 
                 <Card>
                     <CardHeader>
