@@ -171,37 +171,40 @@ const NewsView = () => {
                                     <TableRow className="bg-gray-200">
                                         <TableCell colSpan={6} className="font-semibold">{date + " (UTC)"}</TableCell>
                                     </TableRow>
-                                    {items.map((item, index) => (
-                                        <TableRow key={index} className="hover:bg-gray-100">
-                                            <TableCell>
-                                                {new Date(item.date * 1000).toLocaleString('en-GB', {
-                                                    weekday: 'short',
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric',
-                                                    hour: 'numeric',
-                                                    minute: '2-digit',
-                                                    hour12: true,
-                                                    timeZone: 'UTC',
-                                                }).replace('GMT', 'UTC')}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center space-x-2">
-                                                    <span>{countryIcons[item.country] || '🌐'}</span>
-                                                    <span>{item.country}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center space-x-2">
-                                                    {impactIcons[item.impact] || <Info className="text-gray-500 size-5" title={item.impact}/>}
-                                                    <span>{item.impact}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{item.title}</TableCell>
-                                            <TableCell>{item.forecast || '-'}</TableCell>
-                                            <TableCell>{item.previous || '-'}</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {items.map((item, index) => {
+                                        const isPastEvent = new Date(item.date * 1000) < new Date(); // Check if event time has passed
+                                        return (
+                                            <TableRow key={index} className={`${isPastEvent ? "text-gray-400" : "hover:bg-gray-100"}`}>
+                                                <TableCell>
+                                                    {new Date(item.date * 1000).toLocaleString('en-GB', {
+                                                        weekday: 'short',
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                        hour: 'numeric',
+                                                        minute: '2-digit',
+                                                        hour12: true,
+                                                        timeZone: 'UTC',
+                                                    }).replace('GMT', 'UTC')}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center space-x-2">
+                                                        <span>{countryIcons[item.country] || '🌐'}</span>
+                                                        <span>{item.country}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center space-x-2">
+                                                        {impactIcons[item.impact] || <Info className="text-gray-500 size-5" title={item.impact}/>}
+                                                        <span>{item.impact}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{item.title}</TableCell>
+                                                <TableCell>{item.forecast || '-'}</TableCell>
+                                                <TableCell>{item.previous || '-'}</TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </React.Fragment>
                             ))}
                         </TableBody>
