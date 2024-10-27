@@ -216,6 +216,8 @@ public class LiveStrategyService {
         LiveStrategy liveStrategy = liveStrategyRepository.findById(id)
                 .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
 
+        // Toggle the active strategy
+        liveStrategy.setActive(!liveStrategy.isActive());
 
         trackingService.track(
                 SecurityUtils.getCurrentUserId(),
@@ -227,8 +229,6 @@ public class LiveStrategyService {
                 )
         );
 
-        // Toggle the active strategy
-        liveStrategy.setActive(!liveStrategy.isActive());
         return liveStrategyRepository.save(liveStrategy);
     }
 
