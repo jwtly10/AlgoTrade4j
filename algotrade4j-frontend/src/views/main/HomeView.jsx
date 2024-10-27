@@ -189,8 +189,8 @@ const HomeView = () => {
                         />
                         <QuickActionButton
                             icon={<Settings className="h-4 w-4"/>}
-                            label="Manage Strategies"
-                            onClick={() => navigate('/strategies')}
+                            label="Manage Live Strategies"
+                            onClick={() => navigate('/live')}
                         />
                     </CardContent>
                 </Card>
