@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.jsx";
 import {Button} from "@/components/ui/button.jsx";
-import {Activity, BarChart, History, RefreshCcwDot, Settings, Zap} from 'lucide-react';
+import {BarChart, RefreshCcwDot, Settings, Zap} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
 
 import {useToast} from "@/hooks/use-toast";
@@ -9,6 +9,7 @@ import {liveNewsClient, liveOverViewClient} from "@/api/liveClient";
 
 import {countryIcons, impactIcons} from "@/views/main/NewsView.jsx";
 import {RecentActivityCard} from "@/home/RecentActivityCard.jsx";
+import SystemHealthCard from "@/components/monitor/SystemHealthCard.jsx";
 
 const QuickActionButton = ({icon, label, onClick}) => (
     <Button variant="outline" className="w-full flex items-center justify-start space-x-2" onClick={onClick}>
@@ -145,21 +146,11 @@ const HomeView = () => {
     }, [])
 
     return (
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto px-4 py-4 sm:py-8">
             <h1 className="text-3xl font-bold mb-6">Welcome to AlgoTrade4j</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>System Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center text-green-500">
-                            <Activity className="mr-2"/>
-                            <span>All systems operational</span>
-                        </div>
-                    </CardContent>
-                </Card>
+                <SystemHealthCard/>
 
                 <Card>
                     <CardHeader>
@@ -187,6 +178,8 @@ const HomeView = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <RecentActivityCard recentActivities={recentActivities}/>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Quick Actions</CardTitle>
@@ -212,30 +205,6 @@ const HomeView = () => {
                             label="Manage Live Strategies"
                             onClick={() => navigate('/live')}
                         />
-                    </CardContent>
-                </Card>
-
-                <RecentActivityCard recentActivities={recentActivities}/>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <ul className="space-y-2">
-                            <li className="flex items-center">
-                                <History className="h-4 w-4 mr-2"/>
-                                <span>SMACrossover strategy started</span>
-                            </li>
-                            <li className="flex items-center">
-                                <History className="h-4 w-4 mr-2"/>
-                                <span>Backtest completed for RSI strategy</span>
-                            </li>
-                            <li className="flex items-center">
-                                <History className="h-4 w-4 mr-2"/>
-                                <span>New market data synced for EURUSD</span>
-                            </li>
-                        </ul>
                     </CardContent>
                 </Card>
             </div>

@@ -78,6 +78,18 @@ function Navbar({user, setUser}) {
                     {user ? (
                         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
                             <Link
+                                to="/"
+                                className={cn(
+                                    navItemStyles,
+                                    isActive('/')
+                                        ? navItemActiveStyles
+                                        : navItemInactiveStyles
+                                )}
+                                onClick={handleMenuClick}
+                            >
+                                Home
+                            </Link>
+                            <Link
                                 to="/news"
                                 className={cn(
                                     navItemStyles,
