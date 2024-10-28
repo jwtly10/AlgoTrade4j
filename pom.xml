@@ -20,7 +20,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>0.17</revision>
+        <revision>0.18</revision>
     </properties>
 
     <dependencies>
