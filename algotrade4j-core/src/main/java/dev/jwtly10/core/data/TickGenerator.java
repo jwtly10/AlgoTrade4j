@@ -51,13 +51,13 @@ public class TickGenerator {
      */
     private int mapTicksPerBarToPeriod(Duration period) {
         return switch (period) {
-            case Duration d when d.equals(Duration.ofMinutes(1)) -> 20;
-            case Duration d when d.equals(Duration.ofMinutes(5)) -> 40;
-            case Duration d when d.equals(Duration.ofMinutes(15)) -> 60;
-            case Duration d when d.equals(Duration.ofMinutes(30)) -> 80;
-            case Duration d when d.equals(Duration.ofHours(1)) -> 100;
-            case Duration d when d.equals(Duration.ofHours(4)) -> 150;
-            case Duration d when d.equals(Duration.ofDays(1)) -> 200;
+            case Duration d when d.equals(Duration.ofMinutes(1)) -> 10;
+            case Duration d when d.equals(Duration.ofMinutes(5)) -> 20;
+            case Duration d when d.equals(Duration.ofMinutes(15)) -> 30;
+            case Duration d when d.equals(Duration.ofMinutes(30)) -> 40;
+            case Duration d when d.equals(Duration.ofHours(1)) -> 50;
+            case Duration d when d.equals(Duration.ofHours(4)) -> 75;
+            case Duration d when d.equals(Duration.ofDays(1)) -> 100;
             default -> throw new IllegalArgumentException("Unexpected period: " + period);
         };
     }
