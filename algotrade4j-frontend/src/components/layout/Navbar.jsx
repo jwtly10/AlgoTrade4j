@@ -48,7 +48,7 @@ function Navbar({user, setUser}) {
         <nav className="relative z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm p-2 px-4">
             <div className="flex justify-between items-center">
                 <Link
-                    to="/"
+                    to="/dashboard"
                     className="text-xl font-bold text-foreground hover:text-primary transition-colors"
                     onClick={handleMenuClick} // Close menu when the logo is clicked
                 >
@@ -78,16 +78,16 @@ function Navbar({user, setUser}) {
                     {user ? (
                         <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
                             <Link
-                                to="/"
+                                to="/dashboard"
                                 className={cn(
                                     navItemStyles,
-                                    isActive('/')
+                                    isActive('/dashboard')
                                         ? navItemActiveStyles
                                         : navItemInactiveStyles
                                 )}
                                 onClick={handleMenuClick}
                             >
-                                Home
+                                Dashboard
                             </Link>
                             <Link
                                 to="/news"

@@ -11,7 +11,7 @@ function NotFoundView() {
                 The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
             </p>
             <Button asChild>
-                <Link to="/">Go to Homepage</Link>
+                <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
         </div>
     );
