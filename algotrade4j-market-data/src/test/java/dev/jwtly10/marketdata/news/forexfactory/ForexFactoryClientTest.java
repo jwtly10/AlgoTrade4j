@@ -14,7 +14,7 @@ class ForexFactoryClientTest {
         // When
         try {
             var res = forexFactoryClient.getMockedNews();
-            assertEquals(98, res.size());
+            assertEquals(99, res.size());
         } catch (Exception e) {
             fail("Should not throw exception");
         }
