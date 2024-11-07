@@ -7,7 +7,7 @@ RUN apk add --no-cache wget
 # Download and unzip the New Relic Java agent
 RUN wget https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip && \
     unzip newrelic-java.zip && \
-    rm newrelic-java.zip \
+    rm newrelic-java.zip
 
 # Add Arthas for remote debugging
 RUN wget https://arthas.aliyun.com/arthas-boot.jar -O /app/arthas-boot.jar

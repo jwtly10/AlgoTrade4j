@@ -10,6 +10,9 @@ RUN wget https://download.newrelic.com/newrelic/java-agent/newrelic-agent/curren
     unzip newrelic-java.zip && \
     rm newrelic-java.zip
 
+# Add Arthas for remote debugging
+RUN wget https://arthas.aliyun.com/arthas-boot.jar -O /app/arthas-boot.jar
+
 COPY target/algotrade4j-backtest-api-*.jar /app/algotrade4j-backtest-api.jar
 
 # Add Arthas for remote debugging
