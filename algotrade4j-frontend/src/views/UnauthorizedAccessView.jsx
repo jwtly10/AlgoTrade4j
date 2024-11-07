@@ -11,7 +11,7 @@ function UnauthorizedAccessView() {
                 Sorry, you don't have permission to access this page. This area is restricted to admin users only.
             </p>
             <Button asChild>
-                <Link to="/">Return to Homepage</Link>
+                <Link to="/dashboard">Return to Dashboard</Link>
             </Button>
         </div>
     );

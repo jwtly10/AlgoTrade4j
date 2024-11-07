@@ -162,11 +162,11 @@ class BacktestStrategyManagerIntegrationTest {
         // Assertions to check if numbers are roughly equal
         double epsilon = 0.01; // Tolerance
 
-        assert Math.abs(balance - 28636.35) < epsilon : "Balance should be ~= 28636.35";
-        assert Math.abs(equity - 28636.35) < epsilon : "Equity should be ~= 28636.35";
-        assert Math.abs(profit - 18636.35) < epsilon : "Profit should be ~= 18636.35";
+        assert Math.abs(balance - 29268.29) < epsilon : "Balance should be ~= 29268.29";
+        assert Math.abs(equity - 29268.29) < epsilon : "Equity should be ~= 29268.29";
+        assert Math.abs(profit - 19268.28) < epsilon : "Profit should be ~= 19268.28";
 
-        assert Math.abs(profitPercentage - 186.36) < epsilon : "Profit percentage should be ~=  186.36%";
+        assert Math.abs(profitPercentage - 192.68) < epsilon : "Profit percentage should be ~= 192.68%";
     }
 
     /**

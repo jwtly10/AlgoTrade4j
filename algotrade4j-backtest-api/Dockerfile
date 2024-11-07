@@ -12,6 +12,9 @@ RUN wget https://download.newrelic.com/newrelic/java-agent/newrelic-agent/curren
 
 COPY target/algotrade4j-backtest-api-*.jar /app/algotrade4j-backtest-api.jar
 
+# Add Arthas for remote debugging
+RUN wget https://arthas.aliyun.com/arthas-boot.jar -O /app/arthas-boot.jar
+
 ENV SPRING_PROFILES_ACTIVE=prod
 
 EXPOSE 8080 9010

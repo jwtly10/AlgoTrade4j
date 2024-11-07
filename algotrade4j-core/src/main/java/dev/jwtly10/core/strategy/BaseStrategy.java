@@ -130,7 +130,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             Trade openedTrade = tradeManager.openLong(params);
             sysOpenTradeNotif(openedTrade);
-            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Opened long trade for strategy '%s' @ %s", strategyId, openedTrade.getEntryPrice()));
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Trade [%s] opened long for strategy '%s' at price", openedTrade.getId(), strategyId, openedTrade.getEntryPrice()));
             return Optional.of(openedTrade);
         } catch (Exception e) {
             sysErrorNotif("Error opening long trade for strategy '" + strategyId + "'", e);
@@ -151,7 +151,7 @@ public abstract class BaseStrategy implements Strategy {
         try {
             Trade openedTrade = tradeManager.openShort(params);
             sysOpenTradeNotif(openedTrade);
-            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Short trade opened for strategy '%s' @ %s", strategyId, openedTrade.getEntryPrice()));
+            eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Trade [%s] opened short for strategy '%s' at price", openedTrade.getId(), strategyId, openedTrade.getEntryPrice()));
             return Optional.of(openedTrade);
         } catch (Exception e) {
             sysErrorNotif("Error opening short trade for strategy '" + strategyId + "'", e);

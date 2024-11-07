@@ -254,8 +254,12 @@ public class OandaClient {
      * @return the URL for fetching trades
      */
     private String buildTradesUrl(String accountId, List<String> ids, TradeStateFilter state, Instrument instrument, Integer count) {
-        // TODO: Haven't implemented beforeId (see Oanda API documentation)
+        // TODO: Haven't implemented beforeID (see Oanda API documentation)
         StringBuilder urlBuilder = new StringBuilder(String.format("%s/v3/accounts/%s/trades", apiUrl, accountId));
+
+        if (count == null) {
+            count = 500; // The max by default (TODO: At some point we will exceed this, so need to paginate using `beforeID`
+        }
 
         List<String> queryParams = new ArrayList<>();
 
@@ -268,12 +272,10 @@ public class OandaClient {
         if (instrument != null) {
             queryParams.add("instrument=" + instrument.getBrokerConfig(Broker.OANDA).getSymbol());
         }
-        if (count != null) {
-            queryParams.add("count=" + count);
-        }
-        if (!queryParams.isEmpty()) {
-            urlBuilder.append("?").append(String.join("&", queryParams));
-        }
+
+        queryParams.add("count=" + count);
+        urlBuilder.append("?").append(String.join("&", queryParams));
+
         return urlBuilder.toString();
     }
 }

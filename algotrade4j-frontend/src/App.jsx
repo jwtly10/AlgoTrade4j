@@ -68,7 +68,7 @@ function App() {
                             element={user ? <NewsView/> : <Navigate to="/login" replace/>}
                         />
                         <Route
-                            path="/"
+                            path="/dashboard"
                             element={user ? <HomeView/> : <Navigate to="/login" replace/>}
                         />
 
@@ -81,7 +81,7 @@ function App() {
                             path="/login"
                             element={
                                 user ? (
-                                    <Navigate to="/" replace/>
+                                    <Navigate to="/dashboard" replace/>
                                 ) : (
                                     <AuthModal open={true} onClose={() => {
                                     }} setUser={setUser}/>
@@ -139,6 +139,11 @@ function App() {
                                     <Navigate to="/login" replace/>
                                 )
                             }
+                        />
+
+                        <Route
+                            path="/"
+                            element={<Navigate to="/dashboard" replace/>}
                         />
 
                         <Route

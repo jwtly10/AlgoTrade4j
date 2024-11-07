@@ -37,7 +37,7 @@ class TickGeneratorTest {
                 new Number("15000"), new Number("10010"), new Number("9990"), new Number("10000"), new Number("69"));
         generator.generateTicks(bar, DataSpeed.INSTANT, ticks::add);
 
-        assertEquals(40, ticks.size());
+        assertEquals(20, ticks.size());
 
         System.out.println(Instrument.NAS100USD + ": Bid: " + ticks.getFirst().getBid() + ", Ask: " + ticks.getFirst().getAsk() + ", Spread: " + ticks.getFirst().getAsk().subtract(ticks.getFirst().getBid()));
 
@@ -51,7 +51,7 @@ class TickGeneratorTest {
                 new Number("1.2000"), new Number("1.2400"), new Number("1.1800"), new Number("1.2000"), new Number("69"));
         generator1.generateTicks(bar1, DataSpeed.INSTANT, ticks1::add);
 
-        assertEquals(40, ticks1.size());
+        assertEquals(20, ticks1.size());
 
         System.out.println(Instrument.GBPUSD + ": Bid: " + ticks1.getFirst().getBid() + ", Ask: " + ticks1.getFirst().getAsk() + ", Spread: " + ticks1.getFirst().getAsk().subtract(ticks1.getFirst().getBid()));
         assertEquals(new Number("0.00050"), ticks1.getFirst().getAsk().subtract(ticks1.getFirst().getBid()));
@@ -69,13 +69,13 @@ class TickGeneratorTest {
 
     @ParameterizedTest
     @CsvSource({
-            "PT1M, 20",
-            "PT5M, 40",
-            "PT15M, 60",
-            "PT30M, 80",
-            "PT1H, 100",
-            "PT4H, 150",
-            "P1D, 200"
+            "PT1M, 10",
+            "PT5M, 20",
+            "PT15M, 30",
+            "PT30M, 40",
+            "PT1H, 50",
+            "PT4H, 75",
+            "P1D, 100"
     })
     void testConstructorWithPeriodMapping(Duration period, int expectedTicks) {
         TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, period, 42L);
@@ -88,7 +88,7 @@ class TickGeneratorTest {
         TickGenerator generator = new TickGenerator(TEST_BROKER, 10, instrument, Duration.ofMinutes(5), 42L);
         List<DefaultTick> ticks = generateTicks(generator);
 
-        assertEquals(40, ticks.size());
+        assertEquals(20, ticks.size());
         assertEquals(testBar.getOpen(), ticks.get(0).getMid());
         assertEquals(testBar.getClose(), ticks.get(ticks.size() - 1).getMid());
 

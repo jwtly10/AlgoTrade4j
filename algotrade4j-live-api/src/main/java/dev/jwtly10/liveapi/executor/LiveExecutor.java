@@ -162,7 +162,7 @@ public class LiveExecutor implements DataListener {
     @Override
     public void onTradeClose(Trade trade) {
         log.info("(Callback) Trade closed @ {} : id={}, profit={}, closePrice={}, stopLoss={}, takeProfit={}", trade.getCloseTime(), trade.getId(), trade.getProfit(), trade.getClosePrice(), trade.getStopLoss(), trade.getTakeProfit());
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Trade closed for strategy '%s' with profit: %s", trade.getId(), trade.getProfit()));
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Trade [%s] closed for strategy '%s' with profit '%s'", trade.getId(), strategyId, trade.getProfit()));
         strategy.onTradeClose(trade);
     }
 

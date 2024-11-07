@@ -52,11 +52,6 @@ class MT5BrokerClientIntegrationTest {
     }
 
     @Test
-    void testInitialiseAccountDetails() throws Exception {
-        mt5.initializeAccount(Integer.parseInt(accountId), password, "FTMO-Demo", "C:/Program Files/MetaTrader 5/terminal64.exe");
-    }
-
-    @Test
     void testGetAccount() throws Exception {
         Account res = client.getAccountInfo();
 

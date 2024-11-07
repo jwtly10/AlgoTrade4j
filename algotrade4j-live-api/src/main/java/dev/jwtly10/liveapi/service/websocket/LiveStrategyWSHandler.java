@@ -49,6 +49,8 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
         log.info("Received message: {} ", message.getPayload());
         String payload = message.getPayload();
         if (payload.startsWith("STRATEGY:")) {
+            // TODO DEBUG - Delete this log once issue fixed
+            log.debug("Received strategy message: {}", payload);
             String strategyId = payload.substring(9);
             log.info("Starting WS connection for live strategy: '{}'", strategyId);
             LiveExecutor executor = liveExecutorRepository.getStrategy(strategyId);
@@ -69,6 +71,8 @@ public class LiveStrategyWSHandler extends TextWebSocketHandler {
                 listener.subscribe(AsyncIndicatorsEvent.class);
                 listener.subscribe(AsyncTradesEvent.class);
                 sendInitialState(session, executor);
+                // TODO DEBUG - Delete this log once issue fixed
+                log.debug("Initial state send completed for strategy: {}", strategyId);
             } else {
                 try {
                     session.sendMessage(new TextMessage("ERROR:" + message));
