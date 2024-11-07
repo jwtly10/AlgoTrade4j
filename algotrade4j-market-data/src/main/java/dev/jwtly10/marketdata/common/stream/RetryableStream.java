@@ -77,6 +77,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
      */
     private void retryWithBackoff(StreamCallback<T> callback, long backoffMs) {
         if (!isRunning) {
+            log.warn("Stream attempted to retry when not running for class: {}", getClass().getSimpleName());
             return;
         }
 
@@ -86,7 +87,8 @@ public abstract class RetryableStream<T> implements Stream<T> {
             return;
         }
 
-        log.info("Attempting to connect stream for class: {} (retry {}/{})", getClass().getSimpleName(), retryCount + 1, MAX_RETRIES);
+        log.info("Connecting to stream for class: {} (attempt {}/{})", getClass().getSimpleName(), retryCount + 1, MAX_RETRIES);
+
         call = client.newCall(request);
         call.enqueue(new Callback() {
             @Override
@@ -100,13 +102,23 @@ public abstract class RetryableStream<T> implements Stream<T> {
                 if (response.isSuccessful()) {
                     log.info("Stream connection established successfully");
                     retryCount = 0;
+                } else {
+                    log.error("Stream connection failed with status code: {}", response.code());
+                    scheduleRetry(callback, retryCount, backoffMs);
+                    return;
                 }
+
                 try {
                     reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
                     String line;
                     while (isRunning && (line = reader.readLine()) != null) {
                         processLine(line, callback);
                     }
+
+                    if (isRunning) {
+                        log.warn("Stream loop ended while isRunning=True for class: {}", getClass().getSimpleName());
+                    }
+
                 } catch (Exception e) {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
                         log.debug("Stream was stopped internally, closing stream");

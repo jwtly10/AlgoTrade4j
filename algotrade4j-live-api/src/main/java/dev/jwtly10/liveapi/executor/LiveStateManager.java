@@ -83,7 +83,15 @@ public class LiveStateManager {
             }
 
             // Do stats calculations for the strategy, after everything has been updated and events fired
+            var startTime = System.currentTimeMillis();
             runPerformanceAnalysis();
+            var finishTime = System.currentTimeMillis();
+
+            // If it took more than 2 seconds to calculate stats, log it
+            if (finishTime - startTime > 2000) {
+                log.warn("Performance analysis took longer than 2 seconds: {}ms", finishTime - startTime);
+            }
+
             eventPublisher.publishEvent(new LiveAnalysisEvent(strategy.getStrategyId(), instrument, performanceAnalyser, accountManager.getAccount()));
 
             // Reset error notification count, alert if it was previously blocked
