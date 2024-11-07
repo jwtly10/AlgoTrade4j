@@ -34,14 +34,6 @@ public class MT5BrokerClient implements BrokerClient {
         this.defaultOandaAccountId = defaultOandaAccountId;
         this.BROKER = broker;
         this.accountZoneId = zoneId;
-
-        // On obj creation we initialise the account on the server
-        try {
-            client.initializeAccount(loginDetails.accountId(), loginDetails.password(), loginDetails.server(), loginDetails.path());
-        } catch (Exception e) {
-            log.error("Error fetching account info: {}", e.getMessage(), e);
-            throw new RuntimeException("Error initialising MT5 Account: " + e.getMessage());
-        }
     }
 
     @Override

@@ -37,15 +37,19 @@ public class MT5Client {
     }
 
     /**
-     * Initialise the account with the given credentials
-     * This is required before any other operations can be performed
-     *
      * @param accountId the account id of the mt5 terminal
      * @param password  the password of the mt5 terminal
      * @param server    the server name of the mt5 terminal
      * @param path      the path to the mt5 terminal64.exe
      * @throws Exception if the account cannot be initialised
+     * @deprecated - We now support account init directly from the adapter service, so we no longer need to initialise the account from the client
+     * Initialise the account with the given credentials
+     * This is required before any other operations can be performed
      */
+    @Deprecated(
+            since = "0.19",
+            forRemoval = true
+    )
     public void initializeAccount(int accountId, String password, String server, String path) throws Exception {
         log.info("Initializing MT5 account: {}", accountId);
         String url = String.format("%s/initialize", apiUrl);
