@@ -6,6 +6,7 @@ import dev.jwtly10.core.model.Trade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -235,6 +236,16 @@ public class PerformanceAnalyserTest {
         assertEquals(6.66, analyser.getMaxDrawdown(), 0.01);
     }
 
+
+    @Test
+    void testCanParseRiskFreeReturns() throws Exception {
+        // Can get the risk free rate for the year of 2023
+        LocalDate from = LocalDate.of(2023, 1, 1);
+        LocalDate to = LocalDate.of(2023, 12, 29);
+        var res = analyser.getRiskFreeRate(from, to);
+        System.out.println(res);
+    }
+
     @Test
     void testSharpeRatioWithConstantReturns() {
         Map<Integer, Trade> trades = new HashMap<>();
@@ -257,4 +268,5 @@ public class PerformanceAnalyserTest {
         trade.setCloseTime(closeTime);
         return trade;
     }
+
 }
