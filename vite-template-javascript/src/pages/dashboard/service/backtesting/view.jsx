@@ -10,13 +10,9 @@ import { Helmet } from 'react-helmet-async';
 import { config } from '@/config';
 import { dayjs } from '@/lib/dayjs';
 import { useStrategyControl } from '@/hooks/services/use-strategy-control';
-import { CurrentBalance } from '@/components/dashboard/crypto/current-balance';
 import { StrategyControl } from '@/components/dashboard/service/backtesting/strategy-control';
+import { CandlestickChart } from '@/components/dashboard/service/candlestick-chart';
 import { TradeList } from '@/components/dashboard/service/trade-list';
-
-
-
-
 
 const metadata = { title: `Crypto | Dashboard | ${config.site.name}` };
 
@@ -67,13 +63,7 @@ export function Page() {
                 xs: 12,
               }}
             >
-              <CurrentBalance
-                data={[
-                  { name: 'USD', value: 10076.81, color: 'var(--mui-palette-success-main)' },
-                  { name: 'BTC', value: 16213.2, color: 'var(--mui-palette-warning-main)' },
-                  { name: 'ETH', value: 9626.8, color: 'var(--mui-palette-primary-main)' },
-                ]}
-              />
+              <CandlestickChart backtestConfiguration={backtestConfiguration} />
             </Grid>
             <Grid
               size={{
