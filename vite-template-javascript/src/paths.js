@@ -53,6 +53,9 @@ export const paths = {
   },
   dashboard: {
     overview: '/dashboard',
+    admin: {
+      users: '/dashboard/admin/users',
+    },
     settings: {
       account: '/dashboard/settings/account',
       billing: '/dashboard/settings/billing',

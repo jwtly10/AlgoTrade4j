@@ -4,7 +4,7 @@ import { LogLevel } from '@/lib/logger';
 
 export const config = {
   site: {
-    name: 'Devias Kit Pro',
+    name: 'AlgoTrade4J',
     description: '',
     language: 'en',
     themeColor: '#090a0b',

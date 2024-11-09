@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class UserService {
                     userDTO.setFirstName(user.getFirstName());
                     userDTO.setLastName(user.getLastName());
                     userDTO.setRole(user.getRole().name());
-                    userDTO.setCreatedAt(user.getCreatedAt());
-                    userDTO.setUpdatedAt(user.getUpdatedAt());
+                    userDTO.setCreatedAt(ZonedDateTime.from(user.getCreatedAt().atZone(ZoneId.of("UTC"))));
+                    userDTO.setUpdatedAt(ZonedDateTime.from(user.getUpdatedAt().atZone(ZoneId.of("UTC"))));
                     return userDTO;
                 })
                 .sorted(Comparator.comparing(UserDTO::getId))

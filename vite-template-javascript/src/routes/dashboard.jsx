@@ -128,6 +128,18 @@ export const route = {
       },
     },
     {
+      path: 'admin/users',
+      children: [
+        {
+          index: true,
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/admin/users');
+            return { Component: Page };
+          },
+        },
+      ],
+    },
+    {
       path: 'customers',
       children: [
         {

@@ -1,5 +1,9 @@
 import { paths } from '@/paths';
 
+
+
+
+
 export const layoutConfig = {
   navItems: [
     {
@@ -11,6 +15,11 @@ export const layoutConfig = {
         { key: 'ecommerce', title: 'E-commerce', href: paths.dashboard.eCommerce, icon: 'cube' },
         { key: 'crypto', title: 'Crypto', href: paths.dashboard.crypto, icon: 'currency-eth' },
       ],
+    },
+    {
+      key: 'admin',
+      title: 'Admin',
+      items: [{ key: 'user', title: 'Users', href: paths.dashboard.admin.users, icon: 'users' }],
     },
     {
       key: 'general',
