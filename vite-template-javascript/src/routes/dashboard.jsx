@@ -24,6 +24,51 @@ export const route = {
       },
     },
     {
+      path: 'admin/users',
+      children: [
+        {
+          index: true,
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/admin/users/list');
+            return { Component: Page };
+          },
+        },
+        {
+          path: ':userId',
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/admin/users/details');
+            return { Component: Page };
+          },
+        },
+      ],
+    },
+    {
+      path: 'service',
+      children: [
+        {
+          path: 'backtesting',
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/service/backtesting/view');
+            return { Component: Page };
+          },
+        },
+        {
+          path: 'trading',
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/service/trading/list');
+            return { Component: Page };
+          },
+        },
+        {
+          path: 'optimisation',
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/service/optimisation/view');
+            return { Component: Page };
+          },
+        },
+      ],
+    },
+    {
       path: 'academy',
       children: [
         {
@@ -127,25 +172,7 @@ export const route = {
         return { Component: Page };
       },
     },
-    {
-      path: 'admin/users',
-      children: [
-        {
-          index: true,
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/admin/users/list');
-            return { Component: Page };
-          },
-        },
-        {
-          path: ':userId',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/admin/users/details');
-            return { Component: Page };
-          },
-        },
-      ],
-    },
+
     {
       path: 'customers',
       children: [

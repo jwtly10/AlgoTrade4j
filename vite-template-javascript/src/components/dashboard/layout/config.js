@@ -13,6 +13,15 @@ export const layoutConfig = {
       ],
     },
     {
+      key: 'Platforms',
+      title: 'Platforms',
+      items: [
+        { key: 'backtesting', title: 'Backtesting', href: paths.dashboard.service.backtesting, icon: 'chart-pie' },
+        { key: 'trading', title: 'Live Trading', href: paths.dashboard.service.trading, icon: 'chart-pie' },
+        { key: 'optimisation', title: 'Optimisation', href: paths.dashboard.service.optimisation, icon: 'gear' },
+      ],
+    },
+    {
       key: 'admin',
       title: 'Admin',
       items: [{ key: 'user', title: 'Users', href: paths.dashboard.admin.users.list, icon: 'users' }],

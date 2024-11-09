@@ -60,6 +60,11 @@ export const paths = {
         details: (userId) => `/dashboard/admin/users/${userId}`,
       },
     },
+    service: {
+      backtesting: '/dashboard/service/backtesting',
+      trading: '/dashboard/service/trading',
+      optimisation: '/dashboard/service/optimisation',
+    },
     settings: {
       account: '/dashboard/settings/account',
       billing: '/dashboard/settings/billing',
