@@ -23,15 +23,21 @@ import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 
+
+
 import { config } from '@/config';
 import { paths } from '@/paths';
-import { adminClient } from '@/lib/api/auth/admin-api-client';
+import { adminClient } from '@/lib/api/auth/admin-client';
 import { logger } from '@/lib/default-logger';
 import { RouterLink } from '@/components/core/link';
 import { PropertyItem } from '@/components/core/property-item';
 import { PropertyList } from '@/components/core/property-list';
 import LoginLogsTable from '@/components/dashboard/admin/users/login-logs';
 import UserActionLogsTable from '@/components/dashboard/admin/users/user-action-logs';
+
+
+
+
 
 const metadata = { title: `Details | Customers | Dashboard | ${config.site.name}` };
 
