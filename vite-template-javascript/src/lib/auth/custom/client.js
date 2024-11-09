@@ -59,11 +59,16 @@ class AuthClient {
   }
 
   async getUser() {
-    // Make API request
-
     try {
       const user = await internalAuthClient.verifyToken();
-      return { data: user };
+      return {
+        data: {
+          id: user.id,
+          avatar: '',
+          email: user.email,
+          name: user.firstName,
+        },
+      };
     } catch (error) {
       // TODO: CHeck what error was
       return { data: null };

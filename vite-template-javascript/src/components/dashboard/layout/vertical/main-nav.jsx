@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useDialog } from '@/hooks/use-dialog';
 import { usePopover } from '@/hooks/use-popover';
+import { useUser } from '@/hooks/use-user';
 
 import { ContactsPopover } from '../contacts-popover';
 import { languageFlags, LanguagePopover } from '../language-popover';
@@ -76,7 +77,6 @@ export function MainNav({ items }) {
               orientation="vertical"
               sx={{ borderColor: 'var(--MainNav-divider)', display: { xs: 'none', lg: 'block' } }}
             />
-            <LanguageSwitch />
             <UserButton />
           </Stack>
         </Box>
@@ -167,15 +167,9 @@ function LanguageSwitch() {
   );
 }
 
-const user = {
-  id: 'USR-000',
-  name: 'Sofia Rivers',
-  avatar: '/assets/avatar.png',
-  email: 'sofia@devias.io',
-};
-
 function UserButton() {
   const popover = usePopover();
+  const user = useUser();
 
   return (
     <React.Fragment>

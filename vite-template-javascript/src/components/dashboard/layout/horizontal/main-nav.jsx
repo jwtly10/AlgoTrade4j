@@ -25,6 +25,7 @@ import { isNavItemActive } from '@/lib/is-nav-item-active';
 import { useDialog } from '@/hooks/use-dialog';
 import { usePathname } from '@/hooks/use-pathname';
 import { usePopover } from '@/hooks/use-popover';
+import { useUser } from '@/hooks/use-user';
 import { Dropdown } from '@/components/core/dropdown/dropdown';
 import { DropdownPopover } from '@/components/core/dropdown/dropdown-popover';
 import { DropdownTrigger } from '@/components/core/dropdown/dropdown-trigger';
@@ -109,7 +110,7 @@ export function MainNav({ color = 'evident', items = [] }) {
               orientation="vertical"
               sx={{ borderColor: 'var(--MainNav-divider)', display: { xs: 'none', md: 'block' } }}
             />
-            <LanguageSwitch />
+            {/*<LanguageSwitch />*/}
             <UserButton />
           </Stack>
         </Box>
@@ -211,15 +212,10 @@ function LanguageSwitch() {
   );
 }
 
-const user = {
-  id: 'USR-000',
-  name: 'Sofia Rivers',
-  avatar: '/assets/avatar.png',
-  email: 'sofia@devias.io',
-};
-
 function UserButton() {
   const popover = usePopover();
+  const { user, isLoading } = useUser();
+  console.log('What is user', user);
 
   return (
     <React.Fragment>

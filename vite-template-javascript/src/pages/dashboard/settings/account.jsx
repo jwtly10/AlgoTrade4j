@@ -5,9 +5,6 @@ import { Helmet } from 'react-helmet-async';
 
 import { config } from '@/config';
 import { AccountDetails } from '@/components/dashboard/settings/account-details';
-import { DeleteAccount } from '@/components/dashboard/settings/delete-account';
-import { Privacy } from '@/components/dashboard/settings/privacy';
-import { ThemeSwitch } from '@/components/dashboard/settings/theme-switch';
 
 const metadata = { title: `Account | Settings | Dashboard | ${config.site.name}` };
 
@@ -23,9 +20,6 @@ export function Page() {
         </div>
         <Stack spacing={4}>
           <AccountDetails />
-          <ThemeSwitch />
-          <Privacy />
-          <DeleteAccount />
         </Stack>
       </Stack>
     </React.Fragment>

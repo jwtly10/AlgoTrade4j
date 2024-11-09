@@ -166,8 +166,8 @@ public class AuthController {
 
                             return ResponseEntity.ok(new LoginResponse(
                                     userDetails.getId(),
-                                    user.getFirstName(),
                                     userDetails.getUsername(),
+                                    user.getFirstName(),
                                     userDetails.getEmail(),
                                     role
                             ));

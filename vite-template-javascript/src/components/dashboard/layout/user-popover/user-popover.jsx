@@ -15,6 +15,7 @@ import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 import { config } from '@/config';
 import { paths } from '@/paths';
 import { AuthStrategy } from '@/lib/auth/strategy';
+import { useUser } from '@/hooks/use-user'; // const user = {
 import { RouterLink } from '@/components/core/link';
 
 import { Auth0SignOut } from './auth0-sign-out';
@@ -23,14 +24,9 @@ import { CustomSignOut } from './custom-sign-out';
 import { FirebaseSignOut } from './firebase-sign-out';
 import { SupabaseSignOut } from './supabase-sign-out';
 
-const user = {
-  id: 'USR-000',
-  name: 'Sofia Rivers',
-  avatar: '/assets/avatar.png',
-  email: 'sofia@devias.io',
-};
-
 export function UserPopover({ anchorEl, onClose, open }) {
+  const { user } = useUser();
+
   return (
     <Popover
       anchorEl={anchorEl}
@@ -53,18 +49,6 @@ export function UserPopover({ anchorEl, onClose, open }) {
             <UserIcon />
           </ListItemIcon>
           Account
-        </MenuItem>
-        <MenuItem component={RouterLink} href={paths.dashboard.settings.security} onClick={onClose}>
-          <ListItemIcon>
-            <LockKeyIcon />
-          </ListItemIcon>
-          Security
-        </MenuItem>
-        <MenuItem component={RouterLink} href={paths.dashboard.settings.billing} onClick={onClose}>
-          <ListItemIcon>
-            <CreditCardIcon />
-          </ListItemIcon>
-          Billing
         </MenuItem>
       </List>
       <Divider />
