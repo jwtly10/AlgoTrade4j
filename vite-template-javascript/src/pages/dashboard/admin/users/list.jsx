@@ -12,6 +12,7 @@ import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 
 import { config } from '@/config';
+import { paths } from '@/paths';
 import { adminClient } from '@/lib/api/auth/admin-api-client';
 import { UserFilters } from '@/components/dashboard/admin/users/user-filters';
 import { UserPagination } from '@/components/dashboard/admin/users/user-pagination';
@@ -55,7 +56,7 @@ export function Page() {
               <Typography variant="h4">Users</Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <Button startIcon={<PlusIcon />} variant="contained">
+              <Button href={paths.dashboard.admin.users.create} startIcon={<PlusIcon />} variant="contained">
                 Add
               </Button>
             </Box>
@@ -68,7 +69,7 @@ export function Page() {
                 <UserTable rows={filteredUsers} />
               </Box>
               <Divider />
-              <UserPagination count={filteredUsers.length + 100} page={0} />
+              <UserPagination count={filteredUsers.length} page={0} />
             </Card>
           </UserSelectionProvider>
         </Stack>
@@ -86,7 +87,7 @@ function useExtractSearchParams() {
     firstName: searchParams.get('firstName') || undefined,
     lastName: searchParams.get('lastName') || undefined,
     role: searchParams.get('role') || undefined,
-    sortDir: searchParams.get('sortDir') || undefined,
+    sortDir: searchParams.get('sortDir') || 'asc',
   };
 }
 

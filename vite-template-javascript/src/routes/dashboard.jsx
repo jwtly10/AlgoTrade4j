@@ -133,7 +133,14 @@ export const route = {
         {
           index: true,
           lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/admin/users');
+            const { Page } = await import('@/pages/dashboard/admin/users/list');
+            return { Component: Page };
+          },
+        },
+        {
+          path: ':userId',
+          lazy: async () => {
+            const { Page } = await import('@/pages/dashboard/admin/users/details');
             return { Component: Page };
           },
         },

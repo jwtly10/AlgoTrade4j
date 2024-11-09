@@ -34,6 +34,16 @@ export const adminClient = {
     }
   },
 
+  getUserDetails: async (userId) => {
+    const url = `${V1}/admin/user-details/${userId}`;
+    try {
+      const response = await mainInstance.get(url);
+      return handleResponse(response, url);
+    } catch (error) {
+      return handleError(error, url);
+    }
+  },
+
   updateUser: async (userId, userData) => {
     const url = `${V1}/admin/users/${userId}`;
     try {

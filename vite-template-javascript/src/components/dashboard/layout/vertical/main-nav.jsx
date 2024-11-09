@@ -71,7 +71,6 @@ export function MainNav({ items }) {
             sx={{ alignItems: 'center', flex: '1 1 auto', justifyContent: 'flex-end' }}
           >
             <NotificationsButton />
-            <ContactsButton />
             <Divider
               flexItem
               orientation="vertical"

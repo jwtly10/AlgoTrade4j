@@ -54,7 +54,11 @@ export const paths = {
   dashboard: {
     overview: '/dashboard',
     admin: {
-      users: '/dashboard/admin/users',
+      users: {
+        list: '/dashboard/admin/users',
+        create: '/dashboard/admin/users/create',
+        details: (userId) => `/dashboard/admin/users/${userId}`,
+      },
     },
     settings: {
       account: '/dashboard/settings/account',

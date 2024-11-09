@@ -1,9 +1,5 @@
 import { paths } from '@/paths';
 
-
-
-
-
 export const layoutConfig = {
   navItems: [
     {
@@ -19,7 +15,7 @@ export const layoutConfig = {
     {
       key: 'admin',
       title: 'Admin',
-      items: [{ key: 'user', title: 'Users', href: paths.dashboard.admin.users, icon: 'users' }],
+      items: [{ key: 'user', title: 'Users', href: paths.dashboard.admin.users.list, icon: 'users' }],
     },
     {
       key: 'general',

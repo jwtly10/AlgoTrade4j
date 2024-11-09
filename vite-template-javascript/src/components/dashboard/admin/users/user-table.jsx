@@ -24,8 +24,7 @@ const columns = [
           <Link
             color="inherit"
             component={RouterLink}
-            href={paths.dashboard.customers.details(row.id)}
-            // href={paths.dashboard.users.details(row.id)}
+            href={paths.dashboard.admin.users.details(row.id)}
             sx={{ whiteSpace: 'nowrap' }}
             variant="subtitle2"
           >

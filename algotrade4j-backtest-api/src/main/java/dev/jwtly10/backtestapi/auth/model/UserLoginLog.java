@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "user_login_log_tb")
@@ -30,7 +30,7 @@ public class UserLoginLog {
     private String userAgent;
 
     @Column(nullable = false)
-    private LocalDateTime loginTime;
+    private ZonedDateTime loginTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
