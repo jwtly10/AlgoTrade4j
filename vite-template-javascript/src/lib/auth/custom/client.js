@@ -1,5 +1,7 @@
 'use client';
 
+import { internalAuthClient } from '@/lib/api/auth/internal-auth-client';
+
 function generateToken() {
   const arr = new Uint8Array(12);
   window.crypto.getRandomValues(arr);
@@ -21,6 +23,7 @@ class AuthClient {
     // We do not handle the API, so we'll just generate a token and store it in localStorage.
     const token = generateToken();
     localStorage.setItem('custom-auth-token', token);
+    // TODO!
 
     return {};
   }
@@ -30,18 +33,20 @@ class AuthClient {
   }
 
   async signInWithPassword(params) {
-    const { email, password } = params;
+    const { username, password } = params;
 
-    // Make API request
-
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
-    }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
+    await internalAuthClient.login(username, password);
+    //
+    // // Make API request
+    //
+    // // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
+    // if (email !== 'sofia@devias.io' || password !== 'Secret1') {
+    //   return { error: 'Invalid credentials' };
+    // }
+    //
+    // const token = generateToken();
+    // localStorage.setItem('custom-auth-token', token);
+    //
     return {};
   }
 
@@ -56,19 +61,25 @@ class AuthClient {
   async getUser() {
     // Make API request
 
-    // We do not handle the API, so just check if we have a token in localStorage.
-    const token = localStorage.getItem('custom-auth-token');
-
-    if (!token) {
+    try {
+      const user = await internalAuthClient.verifyToken();
+      return { data: user };
+    } catch (error) {
+      // TODO: CHeck what error was
       return { data: null };
     }
 
-    return { data: user };
+    // // We do not handle the API, so just check if we have a token in localStorage.
+    // const token = localStorage.getItem('custom-auth-token');
+    //
+    // if (!token) {
+    //   return { data: null };
+    // }
+    //
   }
 
   async signOut() {
-    localStorage.removeItem('custom-auth-token');
-
+    await internalAuthClient.logout();
     return {};
   }
 }

@@ -351,7 +351,6 @@ public class PerformanceAnalyser {
         double annualizedStdDev = standardDeviation * Math.sqrt(252.0 / tradingDays);
 
         this.sharpeRatio = (annualizedReturn - riskFreeRate) / annualizedStdDev;
-        log.debug("Raw Sharpe Ratio: {}", this.sharpeRatio);
     }
 
     /*

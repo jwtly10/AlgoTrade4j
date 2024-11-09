@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
@@ -25,17 +24,12 @@ import { RouterLink } from '@/components/core/link';
 import { DynamicLogo } from '@/components/core/logo';
 import { toast } from '@/components/core/toaster';
 
-const oAuthProviders = [
-  { id: 'google', name: 'Google', logo: '/assets/logo-google.svg' },
-  { id: 'discord', name: 'Discord', logo: '/assets/logo-discord.svg' },
-];
-
 const schema = zod.object({
-  email: zod.string().min(1, { message: 'Email is required' }).email(),
+  username: zod.string().min(1, { message: 'Username is required' }),
   password: zod.string().min(1, { message: 'Password is required' }),
 });
 
-const defaultValues = { email: '', password: '' };
+const defaultValues = { username: '', password: '' };
 
 export function SignInForm() {
   const { checkSession } = useUser();
@@ -103,35 +97,16 @@ export function SignInForm() {
       </Stack>
       <Stack spacing={3}>
         <Stack spacing={2}>
-          {oAuthProviders.map((provider) => (
-            <Button
-              color="secondary"
-              disabled={isPending}
-              endIcon={<Box alt="" component="img" height={24} src={provider.logo} width={24} />}
-              key={provider.id}
-              onClick={() => {
-                onAuth(provider.id).catch(() => {
-                  // noop
-                });
-              }}
-              variant="outlined"
-            >
-              Continue with {provider.name}
-            </Button>
-          ))}
-        </Stack>
-        <Divider>or</Divider>
-        <Stack spacing={2}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
               <Controller
                 control={control}
-                name="email"
+                name="username"
                 render={({ field }) => (
-                  <FormControl error={Boolean(errors.email)}>
-                    <InputLabel>Email address</InputLabel>
-                    <OutlinedInput {...field} type="email" />
-                    {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}
+                  <FormControl error={Boolean(errors.username)}>
+                    <InputLabel>Username</InputLabel>
+                    <OutlinedInput {...field} type="text" />
+                    {errors.username ? <FormHelperText>{errors.username.message}</FormHelperText> : null}
                   </FormControl>
                 )}
               />
@@ -181,16 +156,6 @@ export function SignInForm() {
           </div>
         </Stack>
       </Stack>
-      <Alert color="warning">
-        Use{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          sofia@devias.io
-        </Typography>{' '}
-        with password{' '}
-        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          Secret1
-        </Typography>
-      </Alert>
     </Stack>
   );
 }
