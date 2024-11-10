@@ -14,7 +14,7 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { Eye, Gear, Play, Stop } from '@phosphor-icons/react';
+import { Eye, Gear, Play, Spinner, Stop } from '@phosphor-icons/react';
 import { Rocket as RocketIcon } from '@phosphor-icons/react/dist/ssr/Rocket';
 
 import { paths } from '@/paths';
@@ -37,7 +37,7 @@ const formatPercentage = (value) => {
   }).format(value / 100);
 };
 
-export function StrategyCard({ strategy }) {
+export function StrategyCard({ strategy, handleToggle, toggling }) {
   const { strategyName, stats, config, active, brokerAccount } = strategy;
 
   const isProfit = stats.profit >= 0;
@@ -164,9 +164,22 @@ export function StrategyCard({ strategy }) {
       </CardContent>
       <Divider />
       <CardActions>
-        <Button size="small" startIcon={active ? <Stop /> : <Play />} color={active ? 'error' : 'success'}>
-          {active ? 'Stop' : 'Start'}
-        </Button>
+        <>
+          {toggling ? (
+            <Button onClick={() => handleToggle(strategy)} disabled size="small" startIcon={<Spinner />} color="info">
+              Toggling
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleToggle(strategy)}
+              size="small"
+              startIcon={active ? <Stop /> : <Play />}
+              color={active ? 'error' : 'success'}
+            >
+              {active ? 'Stop' : 'Start'}
+            </Button>
+          )}
+        </>
         <Link
           color="inherit"
           component={RouterLink}

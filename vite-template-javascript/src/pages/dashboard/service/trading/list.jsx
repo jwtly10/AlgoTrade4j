@@ -6,19 +6,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
 import { Helmet } from 'react-helmet-async';
-
-
-
 import { config } from '@/config';
 import { liveClient } from '@/lib/api/auth/live-client';
-import { dayjs } from '@/lib/dayjs';
 import { logger } from '@/lib/default-logger';
-import { AccountUpgrade } from '@/components/dashboard/crypto/account-upgrade';
-import { CreditCard } from '@/components/dashboard/crypto/credit-card';
-import { CurrencyConverter } from '@/components/dashboard/crypto/currency-converter';
-import { CurrentBalance } from '@/components/dashboard/crypto/current-balance';
-import { DigitalWallet } from '@/components/dashboard/crypto/digital-wallet';
-import { Transactions } from '@/components/dashboard/crypto/transactions';
 import { StrategyCard } from '@/components/dashboard/service/trading/live-strategy-card';
 
 const metadata = { title: `Live Strategies | Dashboard | ${config.site.name}` };
@@ -26,6 +16,19 @@ const metadata = { title: `Live Strategies | Dashboard | ${config.site.name}` };
 export function Page() {
   const intervalRef = React.useRef(null);
   const [liveStrategies, setLiveStrategies] = React.useState([]);
+  const [idToggling, setIdToggling] = React.useState(null);
+
+  const handleToggle = async (strategy) => {
+    try {
+      setIdToggling(strategy.id);
+      await liveClient.toggleStrategy(strategy.id);
+      fetchLiveStrategies();
+      setIdToggling(null);
+    } catch (error) {
+      logger.error('Error toggling live strategy', error);
+    }
+  };
+
   React.useEffect(() => {
     fetchLiveStrategies();
 
@@ -76,7 +79,7 @@ export function Page() {
           <Grid container spacing={4} alignItems="start">
             {liveStrategies.map((strategy) => (
               <Grid size={{ xs: 12, md: 6, lg: 6 }} key={strategy.id}>
-                <StrategyCard strategy={strategy} />
+                <StrategyCard strategy={strategy} handleToggle={handleToggle} toggling={idToggling === strategy.id} />
               </Grid>
             ))}
           </Grid>

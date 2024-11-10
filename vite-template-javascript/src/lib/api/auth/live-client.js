@@ -17,18 +17,6 @@ const liveInstance = axios.create({
   withCredentials: true,
 });
 
-export const liveMonitorClient = {
-  monitor: async () => {
-    const url = `${V1}/monitor`;
-    try {
-      const response = await liveInstance.get(url);
-      return handleResponse(response, url);
-    } catch (error) {
-      return handleError(error, url);
-    }
-  },
-};
-
 export const liveClient = {
   getLiveStrategies: async () => {
     const url = `${V1}/live/strategies`;

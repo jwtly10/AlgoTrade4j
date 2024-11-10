@@ -36,7 +36,7 @@ export function LiveCandleStickChart({
     if (!liveConfiguration || !chartData || chartData.length === 0 || !readyToShowChart) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={100}>
-          <Typography color="text.secondary">Connected to live service ...</Typography>
+          <Typography color="text.secondary">Connecting to live service ...</Typography>
         </Box>
       );
     }
