@@ -63,7 +63,7 @@ export function StrategyControl({
               minWidth: { xs: '100%', sm: 300 },
             }}
           >
-            <InputLabel id="strategy-select-label">Select Strategy</InputLabel>
+            <InputLabel id="strategy-select-label">Select Strategy Class to Backtest</InputLabel>
             <Select
               labelId="strategy-select-label"
               value={selectedSystemStrategyClass}

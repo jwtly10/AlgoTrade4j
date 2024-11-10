@@ -1,3 +1,5 @@
+import { ChartLine, Repeat } from '@phosphor-icons/react';
+import { ClockCounterClockwise } from '@phosphor-icons/react/dist/ssr';
 import { AddressBook as AddressBookIcon } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { AlignLeft as AlignLeftIcon } from '@phosphor-icons/react/dist/ssr/AlignLeft';
 import { CalendarCheck as CalendarCheckIcon } from '@phosphor-icons/react/dist/ssr/CalendarCheck';
@@ -48,6 +50,9 @@ export const icons = {
   'sign-out': SignOutIcon,
   'text-align-left': TextAlignLeftIcon,
   'warning-diamond': WarningDiamondIcon,
+  'clock-counter-clockwise': ClockCounterClockwise,
+  'chart-line': ChartLine,
+  repeat: Repeat,
   cube: CubeIcon,
   file: FileIcon,
   gear: GearIcon,

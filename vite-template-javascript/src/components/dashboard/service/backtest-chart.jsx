@@ -10,13 +10,9 @@ import CardHeader from '@mui/material/CardHeader';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import { Grid } from '@mui/system';
-import { ArrowRight } from '@phosphor-icons/react';
-import { Wallet as WalletIcon } from '@phosphor-icons/react/dist/ssr/Wallet';
-
-
+import { ArrowRight, ChartLine } from '@phosphor-icons/react';
 
 import { TradingViewChart } from './tradingview-chart';
-
 
 export function CandlestickChart({
   backtestConfiguration,
@@ -240,7 +236,7 @@ export function CandlestickChart({
         }}
         avatar={
           <Avatar>
-            <WalletIcon fontSize="var(--Icon-fontSize)" />
+            <ChartLine fontSize="var(--Icon-fontSize)" />
           </Avatar>
         }
         title="Backtest Chart"

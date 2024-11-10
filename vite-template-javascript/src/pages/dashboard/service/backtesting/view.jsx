@@ -8,7 +8,6 @@ import { Helmet } from 'react-helmet-async';
 
 
 import { config } from '@/config';
-import { dayjs } from '@/lib/dayjs';
 import { useBacktest } from '@/hooks/services/use-backtest';
 import { useStrategyControl } from '@/hooks/services/use-strategy-control';
 import { AnalysisWidget } from '@/components/dashboard/service/analysis-widget';
@@ -58,11 +57,6 @@ export function Page() {
         }}
       >
         <Stack spacing={4}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
-            <Box sx={{ flex: '1 1 auto' }}>
-              <Typography variant="h4">Backtest</Typography>
-            </Box>
-          </Stack>
           <Grid container spacing={4} alignItems="start">
             <Grid
               size={{
