@@ -13,7 +13,7 @@ import { useLive } from '@/hooks/services/use-live';
 import { RouterLink } from '@/components/core/link';
 import { AnalysisWidget } from '@/components/dashboard/service/analysis-widget';
 import { LiveCandleStickChart } from '@/components/dashboard/service/live-chart';
-import { TradeList } from '@/components/dashboard/service/trade-list';
+import { LiveTradeList, TradeList } from '@/components/dashboard/service/trade-list';
 
 const metadata = { title: `Live Strategy Details | Live Trading | Dashboard | ${config.site.name}` };
 
@@ -68,8 +68,10 @@ export function Page() {
     if (!strategyId || !liveStrategyDetails) return;
 
     try {
+      logger.debug('Refreshing strategy:', liveStrategyDetails.strategyName);
       // Close existing socket connection
       if (socketRef.current) {
+        logger.debug('Closing existing socket connection');
         socketRef.current.close(1000, 'Refreshing connection');
         socketRef.current = null;
       }
@@ -81,17 +83,20 @@ export function Page() {
 
       // If strategy is active, reconnect socket
       if (updatedStrategy.active) {
+        logger.debug('Reconnecting socket for strategy:', updatedStrategy.strategyName);
         await viewStrategy(updatedStrategy.strategyName);
         setReadyToShowChart(true);
       }
+
+      logger.debug('Strategy refreshed:', updatedStrategy.strategyName);
     } catch (error) {
       logger.error('Error refreshing strategy:', error);
     }
   };
 
   const handleEditConfig = () => {
-    // Implement edit configuration logic
-    console.log('Editing configuration...');
+    // TODO: Implement editing configuration
+    logger.debug('Editing configuration...');
   };
 
   // Only fetch initial strategy details once on mount
@@ -99,6 +104,7 @@ export function Page() {
     let isMounted = true;
 
     const initializeStrategy = async () => {
+      logger.debug('Initializing strategy:', strategyId);
       if (!strategyId) return;
 
       try {
@@ -109,8 +115,11 @@ export function Page() {
         setReadyToShowChart(strategy.active);
 
         if (strategy.active) {
+          logger.debug('Connecting to live strategy:', strategy.strategyName);
           await viewStrategy(strategy.strategyName);
         }
+
+        logger.debug('Strategy initialized:', strategy.strategyName);
       } catch (error) {
         logger.error('Error initializing strategy:', error);
       }
@@ -121,13 +130,14 @@ export function Page() {
     return () => {
       isMounted = false;
       if (socketRef.current) {
+        logger.debug('Closing socket connection on unmount');
         socketRef.current.close(1000, 'Component unmounting');
         socketRef.current = null;
       }
       setIsConnectedToLive(false);
       setReadyToShowChart(false);
     };
-  }, [strategyId]); // Only depend on strategyId
+  }, [strategyId]);
 
   return (
     <React.Fragment>
@@ -172,9 +182,16 @@ export function Page() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Typography variant="h4" component="h1">
-                    {liveStrategyDetails.strategyName}
-                  </Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Typography variant="h4" component="h1">
+                      {liveStrategyDetails.strategyName}
+                    </Typography>
+                    <Chip
+                      label={liveStrategyDetails.active ? 'Active' : 'Inactive'}
+                      color={liveStrategyDetails.active ? 'success' : 'default'}
+                      size="small"
+                    />
+                  </Stack>
                   <Stack
                     direction="row"
                     spacing={1}
@@ -203,16 +220,9 @@ export function Page() {
                       </Button>
                     ) : null}
                     <Button variant="outlined" startIcon={<Gear />} onClick={handleEditConfig}>
-                      Edit Config
+                      Config
                     </Button>
                   </Stack>
-                </Stack>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Chip
-                    label={liveStrategyDetails.active ? 'Active' : 'Inactive'}
-                    color={liveStrategyDetails.active ? 'success' : 'default'}
-                    size="small"
-                  />
                 </Stack>
               </Stack>
             </Box>
@@ -238,7 +248,7 @@ export function Page() {
               <AnalysisWidget />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TradeList />
+              <LiveTradeList trades={trades} />
             </Grid>
           </Grid>
         </Stack>

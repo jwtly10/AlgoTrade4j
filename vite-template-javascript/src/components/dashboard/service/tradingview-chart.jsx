@@ -171,7 +171,6 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
     }
 
     try {
-      logger.debug('Setting data:', chartData);
       candlestickSeriesRef.current.setData(chartData);
     } catch (e) {
       logger.error('Failed to set data:', e);

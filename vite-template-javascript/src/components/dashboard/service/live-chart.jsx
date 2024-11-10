@@ -28,7 +28,9 @@ export function LiveCandleStickChart({
     if (!isRunningLive) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={100}>
-          <Typography color="text.secondary">Strategy is not active</Typography>
+          <Typography color="text.secondary">
+            We can&apos;t show data while the strategy is inactive. Please activate for live details.
+          </Typography>
         </Box>
       );
     }
@@ -36,7 +38,7 @@ export function LiveCandleStickChart({
     if (!liveConfiguration || !chartData || chartData.length === 0 || !readyToShowChart) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={100}>
-          <Typography color="text.secondary">Connecting to live service ...</Typography>
+          <Typography color="text.secondary">Connecting to live service. This may take a few moments ...</Typography>
         </Box>
       );
     }

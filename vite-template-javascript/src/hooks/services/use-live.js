@@ -72,7 +72,7 @@ export const useLive = () => {
       logger.debug('Bar series event');
       updateTradingViewChart(data);
     } else if (data.type === 'ALL_TRADES') {
-      logger.debug('All trades event');
+      logger.debug('All trades event', data);
       updateTradingViewChart(data);
     } else if (data.type === 'ALL_INDICATORS') {
       logger.debug('All indicator event');
