@@ -1,78 +1,179 @@
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardHeader from '@mui/material/CardHeader';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemText from '@mui/material/ListItemText';
-import Typography from '@mui/material/Typography';
-import { ArrowRight as ArrowRightIcon } from '@phosphor-icons/react/dist/ssr/ArrowRight';
-import { ArrowsDownUp as ArrowsDownUpIcon } from '@phosphor-icons/react/dist/ssr/ArrowsDownUp';
-import { TrendDown as TrendDownIcon } from '@phosphor-icons/react/dist/ssr/TrendDown';
-import { TrendUp as TrendUpIcon } from '@phosphor-icons/react/dist/ssr/TrendUp';
+import { Avatar, Box, Card, CardHeader, Chip, Collapse, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemText, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { ArrowsDownUp, CaretDown, CaretUp, TrendDown, TrendUp } from '@phosphor-icons/react';
+import dayjs from 'dayjs';
 
-import { dayjs } from '@/lib/dayjs';
 
-export function TradeList({ trades }) {
+
+
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  overflow: 'visible',
+  '& .MuiListItem-root': {
+    padding: theme.spacing(2),
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+      cursor: 'pointer',
+    },
+  },
+}));
+
+const TradeChip = styled(Chip)(({ theme, status }) => ({
+  borderRadius: theme.shape.borderRadius,
+  fontWeight: 600,
+  ...(status === 'OPEN' && {
+    backgroundColor: theme.palette.info.light,
+    color: theme.palette.info.contrastText,
+  }),
+  ...(status === 'CLOSE' && {
+    backgroundColor: theme.palette.grey[500],
+    color: theme.palette.common.white,
+  }),
+}));
+
+const ProfitTypography = styled(Typography)(({ theme, profit }) => ({
+  fontWeight: 600,
+  color: profit >= 0 ? theme.palette.success.main : theme.palette.error.main,
+}));
+
+function TradeListItem({ trade }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const isProfit = parseFloat(trade.profit) >= 0;
+
+  const formatDate = (timestamp) => {
+    return dayjs.unix(timestamp).format('MMM D, YYYY HH:mm:ss');
+  };
+
+  const detailRows = [
+    { label: 'Trade ID', value: trade.tradeId },
+    { label: 'Entry Price', value: trade.entry },
+    { label: 'Stop Loss', value: trade.stopLoss },
+    { label: 'Take Profit', value: trade.takeProfit },
+    { label: 'Close Price', value: trade.closePrice },
+    { label: 'Quantity', value: trade.quantity },
+    { label: 'Position Type', value: trade.position.toUpperCase() },
+  ];
+
   return (
-    <Card>
+    <>
+      <ListItem divider>
+        <ListItemAvatar>
+          <Avatar
+            sx={{
+              bgcolor: isProfit ? 'success.light' : 'error.light',
+              color: 'common.white',
+            }}
+          >
+            {isProfit ? <TrendUp weight="bold" size={24} /> : <TrendDown weight="bold" size={24} />}
+          </Avatar>
+        </ListItemAvatar>
+        <ListItemText
+          primary={
+            <Typography variant="subtitle1">
+              {trade.isLong ? 'BUY' : 'SELL'} {trade.instrument}
+            </Typography>
+          }
+          secondary={
+            <Typography variant="body2" color="text.secondary">
+              {formatDate(trade.openTime)}
+            </Typography>
+          }
+        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <TradeChip label={trade.action} status={trade.action} size="small" />
+          <ProfitTypography variant="subtitle1" profit={parseFloat(trade.profit)}>
+            {parseFloat(trade.profit) > 0 ? '+' : ''}
+            {trade.profit}
+          </ProfitTypography>
+          <IconButton size="small" onClick={() => setExpanded(!expanded)} aria-label="show more">
+            {expanded ? <CaretUp weight="bold" size={20} /> : <CaretDown weight="bold" size={20} />}
+          </IconButton>
+        </Box>
+      </ListItem>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <Box sx={{ margin: 2 }}>
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableBody>
+                {detailRows.map((row) => (
+                  <TableRow key={row.label}>
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 600 }}>
+                      {row.label}
+                    </TableCell>
+                    <TableCell align="right">{row.value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      </Collapse>
+    </>
+  );
+}
+
+export function TradeList({ trades = [], isBacktestRunning }) {
+  const [page, setPage] = React.useState(1);
+  const tradesPerPage = 5;
+
+  const sortedTrades = React.useMemo(() => {
+    return [...trades].sort((a, b) => b.openTime - a.openTime);
+  }, [trades]);
+
+  const totalPages = Math.ceil(sortedTrades.length / tradesPerPage);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
+
+  const displayedTrades = sortedTrades.slice((page - 1) * tradesPerPage, page * tradesPerPage);
+
+  if (!trades.length) {
+    return (
+      <StyledCard>
+        <CardHeader
+          avatar={
+            <Avatar>
+              <ArrowsDownUp weight="bold" size={24} />
+            </Avatar>
+          }
+          title="Recent Trades"
+          subheader={isBacktestRunning ? 'Backtest run in progress. Waiting for result.' : 'No data available'}
+        />
+        <Box sx={{ p: 2 }} />
+      </StyledCard>
+    );
+  }
+
+  return (
+    <StyledCard>
       <CardHeader
         avatar={
           <Avatar>
-            <ArrowsDownUpIcon fontSize="var(--Icon-fontSize)" />
+            <ArrowsDownUp weight="bold" size={24} />
           </Avatar>
         }
-        title="Transactions"
+        title="Recent Trades"
+        subheader={`Showing ${(page - 1) * tradesPerPage + 1}-${Math.min(
+          page * tradesPerPage,
+          sortedTrades.length
+        )} of ${sortedTrades.length} trades`}
       />
-      <List disablePadding sx={{ '& .MuiListItem-root': { py: 2 } }}>
-        {trades.map((trade) => (
-          <ListItem divider key={trade.id}>
-            <ListItemAvatar>
-              <Avatar
-                sx={{
-                  bgcolor: trade.type === 'add' ? 'var(--mui-palette-success-50)' : 'var(--mui-palette-error-50)',
-                  color: trade.type === 'add' ? 'var(--mui-palette-success-main)' : 'var(--mui-palette-error-main)',
-                }}
-              >
-                {trade.type === 'add' ? (
-                  <TrendUpIcon fontSize="var(--Icon-fontSize)" />
-                ) : (
-                  <TrendDownIcon fontSize="var(--Icon-fontSize)" />
-                )}
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              disableTypography
-              primary={<Typography variant="subtitle2">{trade.description}</Typography>}
-              secondary={
-                <Typography color="text.secondary" variant="body2">
-                  {dayjs(trade.createdAt).format('MM.DD.YYYY / hh:mm A')}
-                </Typography>
-              }
-            />
-            <div>
-              <Typography
-                color={trade.type === 'add' ? 'var(--mui-palette-success-main)' : 'var(--mui-palette-error-main)'}
-                sx={{ textAlign: 'right', whiteSpace: 'nowrap' }}
-                variant="subtitle2"
-              >
-                {trade.type === 'add' ? '+' : '-'} {trade.amount} {trade.currency}
-              </Typography>
-              <Typography color="text.secondary" sx={{ textAlign: 'right' }} variant="body2">
-                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(trade.balance)}
-              </Typography>
-            </div>
-          </ListItem>
+      <List disablePadding>
+        {displayedTrades.map((trade) => (
+          <TradeListItem key={trade.id} trade={trade} />
         ))}
       </List>
-      <CardActions>
-        <Button color="secondary" endIcon={<ArrowRightIcon />} size="small">
-          See all
-        </Button>
-      </CardActions>
-    </Card>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding: 2,
+        }}
+      >
+        <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" />
+      </Box>
+    </StyledCard>
   );
 }

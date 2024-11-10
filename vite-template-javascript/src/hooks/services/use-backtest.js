@@ -244,6 +244,7 @@ export const useBacktest = () => {
   );
 
   const setAnalysis = (data) => {
+    logger.debug('Analysis data:', data);
     setAnalysisData(data);
     setEquityHistory(data.equityHistory);
     saveAnalysisDataToLocalStorage(data);
@@ -266,6 +267,7 @@ export const useBacktest = () => {
   };
 
   const updateAccount = (data) => {
+    logger.debug('Account data:', data);
     const accountData = {
       initialBalance: data.account.initialBalance,
       balance: data.account.balance.toFixed(2),
