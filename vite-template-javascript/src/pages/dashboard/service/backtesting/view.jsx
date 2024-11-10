@@ -9,10 +9,15 @@ import { Helmet } from 'react-helmet-async';
 
 import { config } from '@/config';
 import { dayjs } from '@/lib/dayjs';
+import { useBacktest } from '@/hooks/services/use-backtest';
 import { useStrategyControl } from '@/hooks/services/use-strategy-control';
 import { StrategyControl } from '@/components/dashboard/service/backtesting/strategy-control';
 import { CandlestickChart } from '@/components/dashboard/service/candlestick-chart';
 import { TradeList } from '@/components/dashboard/service/trade-list';
+
+
+
+
 
 const metadata = { title: `Crypto | Dashboard | ${config.site.name}` };
 
@@ -24,6 +29,23 @@ export function Page() {
     backtestConfiguration,
     setBacktestConfiguration,
   } = useStrategyControl();
+
+  const {
+    isBacktestRunning,
+    account,
+    trades,
+    indicators,
+    chartData,
+    analysisData,
+    equityHistory,
+    logs,
+    backtestErrorMsg,
+    backtestProgress,
+    cachedBacktestConfiguration,
+    backtestStartTime,
+    startBacktest,
+    stopBacktest,
+  } = useBacktest();
 
   return (
     <React.Fragment>
@@ -56,14 +78,22 @@ export function Page() {
                 onSystemStrategyChange={onSystemStrategyChange}
                 backtestConfiguration={backtestConfiguration}
                 setBacktestConfiguration={setBacktestConfiguration}
+                startBacktest={startBacktest}
+                stopBacktest={stopBacktest}
+                isBacktestRunning={isBacktestRunning}
               />
             </Grid>
-            <Grid
-              size={{
-                xs: 12,
-              }}
-            >
-              <CandlestickChart backtestConfiguration={backtestConfiguration} />
+            <Grid size={{ xs: 12 }}>
+              <CandlestickChart
+                backtestConfiguration={cachedBacktestConfiguration}
+                chartData={chartData}
+                trades={trades}
+                indicators={indicators}
+                isBacktestRunning={isBacktestRunning}
+                backtestErrorMsg={backtestErrorMsg}
+                backtestProgress={backtestProgress}
+                backtestStartTime={backtestStartTime}
+              />
             </Grid>
             <Grid
               size={{

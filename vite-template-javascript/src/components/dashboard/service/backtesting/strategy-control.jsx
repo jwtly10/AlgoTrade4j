@@ -15,7 +15,10 @@ import { Play as PlayIcon } from '@phosphor-icons/react/dist/ssr/Play';
 
 import { logger } from '@/lib/default-logger';
 
+
+
 import { BacktestConfigurationDialog } from './configuration-dialog';
+
 
 export function StrategyControl({
   systemStrategies = [],
@@ -23,6 +26,9 @@ export function StrategyControl({
   selectedSystemStrategyClass = '',
   backtestConfiguration,
   setBacktestConfiguration,
+  startBacktest,
+  stopBacktest,
+  isBacktestRunning,
 }) {
   const [configOpen, setConfigOpen] = React.useState(false);
 
@@ -91,8 +97,9 @@ export function StrategyControl({
                 flex: { xs: 1, sm: 'none' },
               }}
               disabled={!selectedSystemStrategyClass}
+              onClick={() => (isBacktestRunning ? stopBacktest() : startBacktest(backtestConfiguration))}
             >
-              Start Strategy
+              {isBacktestRunning ? 'Stop Backtest' : 'Start Backtest'}
             </Button>
             <Button
               startIcon={<GearIcon weight="fill" />}

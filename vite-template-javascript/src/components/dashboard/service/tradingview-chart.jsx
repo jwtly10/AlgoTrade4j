@@ -12,7 +12,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
   const indicatorSeriesRef = useRef({});
 
   useEffect(() => {
-    if (!showChart || chartRef.current) {
+    if (!showChart || chartRef.current || !strategyConfig || chartData.length === 0) {
       return;
     }
 
@@ -170,10 +170,11 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
     }
 
     try {
+      logger.debug('Setting data:', chartData);
       candlestickSeriesRef.current.setData(chartData);
     } catch (e) {
       logger.error('Failed to set data:', e);
-      logger.debug(chartData);
+      logger.debug('Chart Data:', chartData);
     }
 
     // Update indicators
@@ -232,7 +233,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
       candlestickSeriesRef.current.setMarkers(allMarkers);
     } catch (e) {
       logger.error('Failed to set trade markers:', e);
-      logger.debug(allMarkers);
+      logger.debug('All Markers:', allMarkers);
     }
   }, [chartData, trades, indicators]);
 

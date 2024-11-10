@@ -36,7 +36,6 @@ export const useStrategyControl = () => {
   useEffect(() => {
     const setStrategiesInSystem = async () => {
       const res = await strategyClient.getStrategies();
-      setSystemStrategies(res);
 
       const lastUsedSystemStrat = localStorage.getItem('lastUsedSystemStrat');
 
@@ -46,6 +45,7 @@ export const useStrategyControl = () => {
           break;
         }
       }
+      setSystemStrategies(res);
     };
     setStrategiesInSystem();
   }, []);

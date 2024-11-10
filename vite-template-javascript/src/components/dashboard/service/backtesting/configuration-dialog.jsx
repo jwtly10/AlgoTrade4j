@@ -21,9 +21,18 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
+
 
 import { strategyClient } from '@/lib/api/auth/strategy-client';
 import { logger } from '@/lib/default-logger';
+
+
+
+
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -112,70 +121,107 @@ function ConfigurationField({ param, value, onChange }) {
 }
 
 function GeneralConfigSection({ config, onChange }) {
+  const handleDateChange = (field, date) => {
+    onChange('timeframe', {
+      ...config.timeframe,
+      [field]: date ? date.format('YYYY-MM-DDTHH:mm:ss[Z]') : '',
+    });
+  };
+
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Strategy Class"
-          value={config.strategyClass}
-          onChange={(e) => onChange('strategyClass', e.target.value)}
-          margin="normal"
-          variant="outlined"
-          disabled
-        />
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Strategy Class"
+            value={config.strategyClass}
+            onChange={(e) => onChange('strategyClass', e.target.value)}
+            margin="normal"
+            variant="outlined"
+            disabled
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Speed"
+            value={config.speed}
+            onChange={(e) => onChange('speed', e.target.value)}
+            disabled
+            type="text"
+            margin="normal"
+            variant="outlined"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Initial Cash"
+            value={config.initialCash}
+            onChange={(e) => onChange('initialCash', e.target.value)}
+            type="number"
+            margin="normal"
+            variant="outlined"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Spread</InputLabel>
+            <Select value={config.spread} onChange={(e) => onChange('spread', e.target.value)} label="Spread">
+              <MenuItem value="0">0</MenuItem>
+              <MenuItem value="5">5</MenuItem>
+              <MenuItem value="10">10</MenuItem>
+              <MenuItem value="30">30</MenuItem>
+              <MenuItem value="50">50</MenuItem>
+              <MenuItem value="100">100</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth margin="normal" variant="outlined">
+            <InputLabel>Period</InputLabel>
+            <Select value={config.period} onChange={(e) => onChange('period', e.target.value)} label="Period">
+              <MenuItem value="M1">M1</MenuItem>
+              <MenuItem value="M5">M5</MenuItem>
+              <MenuItem value="M15">M15</MenuItem>
+              <MenuItem value="M30">M30</MenuItem>
+              <MenuItem value="H1">H1</MenuItem>
+              <MenuItem value="H4">H4</MenuItem>
+              <MenuItem value="D">D</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <DatePicker
+            label="From Date"
+            value={config.timeframe?.from ? dayjs(config.timeframe.from) : null}
+            onChange={(date) => handleDateChange('from', date)}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                margin: 'normal',
+                variant: 'outlined',
+              },
+            }}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <DatePicker
+            label="To Date"
+            value={config.timeframe?.to ? dayjs(config.timeframe.to) : null}
+            onChange={(date) => handleDateChange('to', date)}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                margin: 'normal',
+                variant: 'outlined',
+              },
+            }}
+          />
+        </Grid>
       </Grid>
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Speed"
-          value={config.speed}
-          onChange={(e) => onChange('speed', e.target.value)}
-          disabled
-          type="text"
-          margin="normal"
-          variant="outlined"
-        />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <TextField
-          fullWidth
-          label="Initial Cash"
-          value={config.initialCash}
-          onChange={(e) => onChange('initialCash', e.target.value)}
-          type="number"
-          margin="normal"
-          variant="outlined"
-        />
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Spread</InputLabel>
-          <Select value={config.spread} onChange={(e) => onChange('spread', e.target.value)} label="Spread">
-            <MenuItem value="0">0</MenuItem>
-            <MenuItem value="5">5</MenuItem>
-            <MenuItem value="10">10</MenuItem>
-            <MenuItem value="30">30</MenuItem>
-            <MenuItem value="50">50</MenuItem>
-            <MenuItem value="100">100</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <FormControl fullWidth margin="normal" variant="outlined">
-          <InputLabel>Period</InputLabel>
-          <Select value={config.period} onChange={(e) => onChange('period', e.target.value)} label="Period">
-            <MenuItem value="M1">M1</MenuItem>
-            <MenuItem value="M5">M5</MenuItem>
-            <MenuItem value="M15">M15</MenuItem>
-            <MenuItem value="M30">M30</MenuItem>
-            <MenuItem value="H1">H1</MenuItem>
-            <MenuItem value="H4">H4</MenuItem>
-            <MenuItem value="D">D</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
-    </Grid>
+    </LocalizationProvider>
   );
 }
 
@@ -287,8 +333,13 @@ export function BacktestConfigurationDialog({ open, onClose, configuration, onSa
   };
 
   const handleSave = () => {
+    saveToLocalStorage();
     onSave(localConfig);
     onClose();
+  };
+
+  const saveToLocalStorage = () => {
+    localStorage.setItem(`strategyConfig_${localConfig.strategyClass}`, JSON.stringify(localConfig));
   };
 
   const groups = Object.keys(groupedParams);

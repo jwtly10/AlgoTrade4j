@@ -1,56 +1,67 @@
-import pako from 'pako';
+import axios from 'axios';
 
 import { logger } from '@/lib/default-logger';
 
-export const getWebSocketUrl = (url) => {
-  const parsedUrl = new URL(url);
-  const isLocalDev = parsedUrl.port === '8081';
+import { getWebSocketUrl, handleError, handleResponse, handleWSMessage } from '../utils';
 
-  if (isLocalDev) {
-    return `ws://${parsedUrl.host}/ws/v1`;
-  } else {
-    return `${parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsedUrl.host}/ws/v1`;
-  }
-};
+const MAIN_API_HOST = import.meta.env.VITE_MAIN_API_HOST || 'http://localhost:8080';
+const WS_BASE_URL = getWebSocketUrl(MAIN_API_HOST);
+const V1 = '/api/v1';
 
-export const handleWSMessage = (socket, onMessage, strategyId, resolve, reject) => {
-  socket.binaryType = 'arraybuffer';
+const mainInstance = axios.create({
+  baseURL: MAIN_API_HOST,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true,
+});
 
-  socket.onopen = () => {
-    socket.send(`STRATEGY:${strategyId}`);
-    resolve(socket);
-  };
+export const backtestClient = {
+  startBacktest: async (config, strategyId) => {
+    // Async flag is for the backtest to run in the background, and only emit results at the end
+    const runAsync = true;
+    // Show chart is a flagfor a headless backtest, where no chart data gets sent to the client
+    const showChart = true;
 
-  socket.onmessage = (event) => {
-    try {
-      const buffer = new Uint8Array(event.data);
-      const isCompressed = buffer[0] === 1;
-      const messageData = buffer.slice(1);
-
-      let jsonData;
-      if (isCompressed) {
-        const decompressedData = pako.inflate(messageData, { to: 'string' });
-        jsonData = JSON.parse(decompressedData);
-      } else {
-        try {
-          jsonData = JSON.parse(new TextDecoder().decode(messageData));
-        } catch (error) {
-          // If this fails, we should try reading the raw data
-          jsonData = JSON.parse(event.data);
-        }
-      }
-      onMessage(jsonData);
-    } catch (error) {
-      logger.error('Error processing WebSocket message:', error, event.data);
+    if (config.speed !== 'INSTANT') {
+      // For the AT4J Platform, we always run async
+      config.speed = 'INSTANT';
     }
-  };
 
-  socket.onerror = (error) => {
-    logger.error('WebSocket error:', error);
-    reject(error);
-  };
+    const url = `${V1}/strategies/start?strategyId=${strategyId}&async=${runAsync}&showChart=${showChart}`;
+    try {
+      const response = await mainInstance.post(url, config);
+      return handleResponse(response, url);
+    } catch (error) {
+      return handleError(error, url);
+    }
+  },
 
-  socket.onclose = () => {
-    logger.debug('WebSocket disconnected');
-  };
+  stopBacktest: async (strategyId) => {
+    const url = `${V1}/strategies/${strategyId}/stop`;
+    try {
+      const response = await mainInstance.post(url);
+      return handleResponse(response, url);
+    } catch (error) {
+      return handleError(error, url);
+    }
+  },
+
+  generateBacktestId: async (config) => {
+    logger.debug('generateBacktestId', config);
+    const url = `${V1}/strategies/generate-id`;
+    try {
+      const response = await mainInstance.post(url, config);
+      return handleResponse(response, url);
+    } catch (error) {
+      return handleError(error, url);
+    }
+  },
+
+  connectBacktestWS: (strategyId, onMessage) => {
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(`${WS_BASE_URL}/strategy-events`);
+      handleWSMessage(socket, onMessage, strategyId, resolve, reject);
+    });
+  },
 };

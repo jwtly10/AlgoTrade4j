@@ -8,9 +8,9 @@ export const getWebSocketUrl = (url) => {
 
   if (isLocalDev) {
     return `ws://${parsedUrl.host}/ws/v1`;
-  } else {
-    return `${parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsedUrl.host}/ws/v1`;
   }
+
+return `${parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsedUrl.host}/ws/v1`;
 };
 
 export const handleResponse = (response, url) => {
