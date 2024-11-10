@@ -13,6 +13,9 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
 
   useEffect(() => {
     if (!showChart || chartRef.current || !strategyConfig || chartData.length === 0) {
+      logger.debug(
+        `Not showing chart due to missing data: Showchart: ${showChart}, StrategyConfiguration undefined?: ${strategyConfig === undefined}, CharData Length: ${chartData.length}`
+      );
       return;
     }
 
@@ -58,12 +61,10 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
                 return `${month}-${day}`;
               } else if (hours % 12 === 0) {
                 return hours === 12 ? '12:00' : '00:00';
-              } else {
-                return `${hours}:00`;
               }
-            } else {
-              return `${hours}:${minutes}`;
+              return `${hours}:00`;
             }
+            return `${hours}:${minutes}`;
           }
 
           // Default case
@@ -89,7 +90,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
           top: 0.1,
           bottom: 0.1,
         },
-        minMove: minMove,
+        minMove,
         precision: pricePrecision,
       },
     });
@@ -138,7 +139,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
       priceFormat: {
         type: 'price',
         precision: pricePrecision,
-        minMove: minMove,
+        minMove,
       },
     });
 

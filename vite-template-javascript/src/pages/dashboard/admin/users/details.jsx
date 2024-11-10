@@ -35,10 +35,6 @@ import { PropertyList } from '@/components/core/property-list';
 import LoginLogsTable from '@/components/dashboard/admin/users/login-logs';
 import UserActionLogsTable from '@/components/dashboard/admin/users/user-action-logs';
 
-
-
-
-
 const metadata = { title: `Details | Customers | Dashboard | ${config.site.name}` };
 
 export function Page() {
@@ -48,13 +44,11 @@ export function Page() {
 
   React.useEffect(() => {
     async function fetchUserDetails() {
-      console.log('This is the userId: ', userId);
       if (!userId) return;
 
       try {
         const res = await adminClient.getUserDetails(userId);
         setUserDetails(res);
-        console.log(res);
       } catch (error) {
         logger.error(error);
       }

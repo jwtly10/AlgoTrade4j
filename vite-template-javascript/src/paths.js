@@ -62,7 +62,10 @@ export const paths = {
     },
     service: {
       backtesting: '/dashboard/service/backtesting',
-      trading: '/dashboard/service/trading',
+      trading: {
+        list: '/dashboard/service/trading',
+        details: (strategyId) => `/dashboard/service/trading/${strategyId}`,
+      },
       optimisation: '/dashboard/service/optimisation',
     },
     settings: {

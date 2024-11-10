@@ -54,10 +54,22 @@ export const route = {
         },
         {
           path: 'trading',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/service/trading/list');
-            return { Component: Page };
-          },
+          children: [
+            {
+              index: true,
+              lazy: async () => {
+                const { Page } = await import('@/pages/dashboard/service/trading/list');
+                return { Component: Page };
+              },
+            },
+            {
+              path: ':strategyId',
+              lazy: async () => {
+                const { Page } = await import('@/pages/dashboard/service/trading/details');
+                return { Component: Page };
+              },
+            },
+          ],
         },
         {
           path: 'optimisation',

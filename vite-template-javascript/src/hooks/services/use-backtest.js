@@ -5,10 +5,6 @@ import * as React from 'react';
 import { backtestClient } from '@/lib/api/auth/backtest-client';
 import { logger } from '@/lib/default-logger';
 
-
-
-
-
 export const useBacktest = () => {
   const socketRef = React.useRef(null);
   const [isBacktestRunning, setIsBacktestRunning] = React.useState(false);

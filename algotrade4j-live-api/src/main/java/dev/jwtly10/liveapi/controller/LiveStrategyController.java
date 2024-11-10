@@ -33,6 +33,12 @@ public class LiveStrategyController {
         return ResponseEntity.ok(liveStrategies);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<LiveStrategy> getLiveStrategy(@PathVariable("id") Long id) {
+        LiveStrategy liveStrategy = liveStrategyService.getLiveStrategy(id);
+        return ResponseEntity.ok(liveStrategy);
+    }
+
     @PostMapping
     @RateLimit(limit = 3)
     public ResponseEntity<LiveStrategy> createLiveStrategy(

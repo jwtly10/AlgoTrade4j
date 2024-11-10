@@ -1,9 +1,5 @@
 import { paths } from '@/paths';
 
-
-
-
-
 export const layoutConfig = {
   navItems: [
     {
@@ -26,7 +22,7 @@ export const layoutConfig = {
           href: paths.dashboard.service.backtesting,
           icon: 'clock-counter-clockwise',
         },
-        { key: 'trading', title: 'Live Trading', href: paths.dashboard.service.trading, icon: 'chart-line' },
+        { key: 'trading', title: 'Live Trading', href: paths.dashboard.service.trading.list, icon: 'chart-line' },
         { key: 'optimisation', title: 'Optimisation', href: paths.dashboard.service.optimisation, icon: 'repeat' },
       ],
     },

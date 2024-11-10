@@ -308,4 +308,10 @@ public class LiveStrategyService {
         log.info("Getting active live strategy with id: {}", strategyId);
         return liveStrategyRepository.findByIdAndActiveIsTrue(strategyId);
     }
+
+    public LiveStrategy getLiveStrategy(Long id) {
+        log.info("Getting live strategy with id: {}", id);
+        return liveStrategyRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
+    }
 }

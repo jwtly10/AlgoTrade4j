@@ -1,6 +1,9 @@
 import axios from 'axios';
 
+
+
 import { getWebSocketUrl, handleError, handleResponse, handleWSMessage } from '../utils';
+
 
 const LIVE_API_HOST = import.meta.env.VITE_LIVE_API_HOST || 'http://localhost:8081';
 const WS_BASE_URL = getWebSocketUrl(LIVE_API_HOST);
@@ -37,8 +40,8 @@ export const liveClient = {
     }
   },
 
-  getLiveStrategy: async (id) => {
-    const url = `${V1}/live/strategies/${id}`;
+  getLiveStrategy: async (strategyId) => {
+    const url = `${V1}/live/strategies/${strategyId}`;
     try {
       const response = await liveInstance.get(url);
       return handleResponse(response, url);
@@ -106,6 +109,13 @@ export const liveClient = {
       return handleError(error, url);
     }
   },
+
+  connectLiveWS: (strategyId, onMessage) => {
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(`${WS_BASE_URL}/live-strategy-events`);
+      handleWSMessage(socket, onMessage, strategyId, resolve, reject);
+    });
+  },
 };
 
 export const liveAccountClient = {
@@ -166,14 +176,5 @@ export const liveAccountClient = {
     } catch (error) {
       return handleError(error, url);
     }
-  },
-};
-
-export const liveWSClient = {
-  connectWebSocket: (strategyId, onMessage) => {
-    return new Promise((resolve, reject) => {
-      const socket = new WebSocket(`${WS_BASE_URL}/live-strategy-events`);
-      handleWSMessage(socket, onMessage, strategyId, resolve, reject);
-    });
   },
 };

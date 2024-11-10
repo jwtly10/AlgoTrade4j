@@ -11,10 +11,14 @@ import CardHeader from '@mui/material/CardHeader';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { Activity, Eye, Gear, Play, Stop } from '@phosphor-icons/react';
+import { Eye, Gear, Play, Stop } from '@phosphor-icons/react';
 import { Rocket as RocketIcon } from '@phosphor-icons/react/dist/ssr/Rocket';
+
+import { paths } from '@/paths';
+import { RouterLink } from '@/components/core/link';
 
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
@@ -163,9 +167,17 @@ export function StrategyCard({ strategy }) {
         <Button size="small" startIcon={active ? <Stop /> : <Play />} color={active ? 'error' : 'success'}>
           {active ? 'Stop' : 'Start'}
         </Button>
+        <Link
+          color="inherit"
+          component={RouterLink}
+          href={paths.dashboard.service.trading.details(strategy.id)}
+          sx={{ whiteSpace: 'nowrap' }}
+          variant="subtitle2"
+        >
           <Button size="small" startIcon={<Eye />} color="primary">
             View
           </Button>
+        </Link>
         <Button size="small" startIcon={<Gear />} color="primary">
           Configure
         </Button>

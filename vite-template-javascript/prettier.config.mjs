@@ -5,6 +5,7 @@ const config = {
   singleQuote: true,
   tabWidth: 2,
   trailingComma: 'es5',
+  importOrderSeparation: false,
   printWidth: 120,
   importOrder: [
     '^node:$',
@@ -30,7 +31,6 @@ const config = {
     '',
     '^[./]',
   ],
-  plugins: ['@ianvs/prettier-plugin-sort-imports'],
 };
 
 export default config;
