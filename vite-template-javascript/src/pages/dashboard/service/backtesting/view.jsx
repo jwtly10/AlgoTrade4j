@@ -7,8 +7,8 @@ import { Helmet } from 'react-helmet-async';
 import { config } from '@/config';
 import { useBacktest } from '@/hooks/services/use-backtest';
 import { useStrategyControl } from '@/hooks/services/use-strategy-control';
-import { AnalysisWidget } from '@/components/dashboard/service/analysis-widget';
-import { CandlestickChart } from '@/components/dashboard/service/backtest-chart';
+import { AnalysisWidget } from '@/components/dashboard/service/backtesting/analysis-widget';
+import { CandlestickChart } from '@/components/dashboard/service/backtesting/backtest-chart';
 import { StrategyControl } from '@/components/dashboard/service/backtesting/strategy-control';
 import { TradeList } from '@/components/dashboard/service/trade-list';
 

@@ -8,11 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import { ChartLine } from '@phosphor-icons/react';
-
-
-
-import { TradingViewChart } from './tradingview-chart';
-
+import TradingViewChart from '../tradingview-chart';
 
 export function LiveCandleStickChart({
   liveConfiguration,

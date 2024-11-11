@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import { Grid } from '@mui/system';
 import { ArrowRight, ChartLine } from '@phosphor-icons/react';
 
-import { TradingViewChart } from './tradingview-chart';
+import { TradingViewChart } from '../tradingview-chart';
 
 export function CandlestickChart({
   backtestConfiguration,

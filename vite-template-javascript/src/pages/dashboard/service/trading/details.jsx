@@ -11,9 +11,9 @@ import { liveClient } from '@/lib/api/auth/live-client';
 import { logger } from '@/lib/default-logger';
 import { useLive } from '@/hooks/services/use-live';
 import { RouterLink } from '@/components/core/link';
-import { AnalysisWidget } from '@/components/dashboard/service/analysis-widget';
-import { LiveCandleStickChart } from '@/components/dashboard/service/live-chart';
-import { LiveTradeList, TradeList } from '@/components/dashboard/service/trade-list';
+import { LiveCandleStickChart } from '@/components/dashboard/service/trading/live-chart';
+import { LiveTradeList } from '@/components/dashboard/service/trade-list';
+import { LiveTradingAnalysis } from '@/components/dashboard/service/trading/live-analysis-widget';
 
 const metadata = { title: `Live Strategy Details | Live Trading | Dashboard | ${config.site.name}` };
 
@@ -157,7 +157,12 @@ export function Page() {
             color="text.primary"
             component={RouterLink}
             href={paths.dashboard.service.trading.list}
-            sx={{ alignItems: 'center', display: 'inline-flex', gap: 1 }}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
+              width: 'fit-content', // This ensures the link only takes up as much width as needed
+            }}
             variant="subtitle2"
           >
             <ArrowLeftIcon fontSize="var(--icon-fontSize-md)" />
@@ -245,7 +250,7 @@ export function Page() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <AnalysisWidget />
+              <LiveTradingAnalysis data={analysisData} />
             </Grid>
             <Grid item xs={12} md={6}>
               <LiveTradeList trades={trades} />

@@ -60,6 +60,7 @@ export const useLive = () => {
     } else if (data.type === 'STRATEGY_STOP') {
       logger.debug('Strategy stop event');
     } else if (data.type === 'LIVE_ANALYSIS') {
+      logger.debug('Live analysis event', data);
       setAnalysis(data);
     } else if (data.type === 'TRADE' && data.action === 'UPDATE') {
       updateTrades(data);

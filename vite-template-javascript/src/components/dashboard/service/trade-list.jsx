@@ -57,14 +57,14 @@ const ProfitTypography = styled(Typography)(({ theme, profit }) => ({
   color: profit >= 0 ? theme.palette.success.main : theme.palette.error.main,
 }));
 
-const LiveTradeListItem = styled(ListItem)(({ theme, isLive }) => ({
-  ...(isLive && {
+const LiveTradeListItem = styled(ListItem)(({ theme, islive }) => ({
+  ...(islive && {
     borderLeft: `4px solid ${theme.palette.primary.main}`,
     backgroundColor: theme.palette.action.hover,
   }),
 }));
 
-function TradeListItem({ trade, isLive }) {
+function TradeListItem({ trade, islive }) {
   const [expanded, setExpanded] = React.useState(false);
   const isProfit = parseFloat(trade.profit) >= 0;
 
@@ -84,7 +84,7 @@ function TradeListItem({ trade, isLive }) {
 
   return (
     <>
-      <LiveTradeListItem divider isLive={isLive}>
+      <LiveTradeListItem divider islive={islive}>
         <ListItemAvatar>
           <Avatar
             sx={{
@@ -142,7 +142,7 @@ function TradeListItem({ trade, isLive }) {
   );
 }
 
-export function LiveTradeList({ trades = [], isLive = true, isBacktestRunning = false }) {
+export function LiveTradeList({ trades = [], islive = true, isBacktestRunning = false }) {
   const [activeTab, setActiveTab] = React.useState(0);
   const [page, setPage] = React.useState(1);
   const tradesPerPage = 5;
@@ -209,7 +209,7 @@ export function LiveTradeList({ trades = [], isLive = true, isBacktestRunning = 
               <ArrowsDownUp weight="bold" size={24} />
             </Avatar>
           }
-          title={isLive ? 'Live Trades' : 'Recent Trades'}
+          title={islive ? 'Live Trades' : 'Recent Trades'}
           subheader={isBacktestRunning ? 'Backtest run in progress. Waiting for result.' : 'No trades available'}
         />
         <Box sx={{ p: 2 }} />
@@ -225,7 +225,7 @@ export function LiveTradeList({ trades = [], isLive = true, isBacktestRunning = 
             <ArrowsDownUp weight="bold" size={24} />
           </Avatar>
         }
-        title={isLive ? 'Live Trades' : 'Recent Trades'}
+        title={islive ? 'Live Trades' : 'Recent Trades'}
         subheader={
           currentTrades.length > 0
             ? `Showing ${(page - 1) * tradesPerPage + 1}-${Math.min(
@@ -238,7 +238,7 @@ export function LiveTradeList({ trades = [], isLive = true, isBacktestRunning = 
         }
       />
 
-      {isLive ? (
+      {islive ? (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
           <Tabs value={activeTab} onChange={handleTabChange} aria-label="trade status tabs">
             <Tab label={`Open Trades (${openTrades.length})`} id="trades-tab-0" />
@@ -254,7 +254,7 @@ export function LiveTradeList({ trades = [], isLive = true, isBacktestRunning = 
               <TradeListItem
                 key={trade.id}
                 trade={trade}
-                isLive={!trade.closeTime && (!trade.closePrice || trade.closePrice === 0)}
+                islive={!trade.closeTime && (!trade.closePrice || trade.closePrice === 0)}
               />
             ))}
           </List>
