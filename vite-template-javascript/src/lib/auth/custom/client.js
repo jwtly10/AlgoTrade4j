@@ -2,51 +2,24 @@
 
 import { internalAuthClient } from '@/lib/api/auth/internal-auth-client';
 
-function generateToken() {
-  const arr = new Uint8Array(12);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
-}
-
-const user = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-};
-
 class AuthClient {
   async signUp(_) {
-    // Make API request
-
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-    // TODO!
-
-    return {};
+    return { error: 'Sign up not implemented yet' };
   }
 
   async signInWithOAuth(_) {
-    return { error: 'Social authentication not implemented' };
+    return { error: 'Social authentication not implemented yet' };
   }
 
   async signInWithPassword(params) {
     const { username, password } = params;
 
-    await internalAuthClient.login(username, password);
-    //
-    // // Make API request
-    //
-    // // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    // if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-    //   return { error: 'Invalid credentials' };
-    // }
-    //
-    // const token = generateToken();
-    // localStorage.setItem('custom-auth-token', token);
-    //
+    try {
+      await internalAuthClient.login(username, password);
+    } catch (error) {
+      return { error: error.message };
+    }
+
     return {};
   }
 
@@ -71,20 +44,19 @@ class AuthClient {
       };
     } catch (error) {
       // TODO: CHeck what error was
+
+      // Return null if no user
       return { data: null };
     }
-
-    // // We do not handle the API, so just check if we have a token in localStorage.
-    // const token = localStorage.getItem('custom-auth-token');
-    //
-    // if (!token) {
-    //   return { data: null };
-    // }
-    //
   }
 
   async signOut() {
-    await internalAuthClient.logout();
+    try {
+      await internalAuthClient.logout();
+    } catch (error) {
+      return { error: error.message };
+    }
+
     return {};
   }
 }

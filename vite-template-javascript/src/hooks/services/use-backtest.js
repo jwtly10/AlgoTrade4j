@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import { backtestClient } from '@/lib/api/auth/backtest-client';
 import { logger } from '@/lib/default-logger';
+import { toast } from 'react-toastify';
 
 export const useBacktest = () => {
   const socketRef = React.useRef(null);
@@ -57,7 +58,8 @@ export const useBacktest = () => {
           setCachedBacktestConfiguration(JSON.parse(localStratConfig));
           logger.debug('Loaded saved chart data');
         } catch (error) {
-          logger.error('Failed to parse saved chart data:', error);
+          toast.error(`Failed to load chart data from localstorage: ${error}`);
+          logger.error('Failed to load chart data from localstorage ', error);
         }
       }
     };
@@ -94,6 +96,7 @@ export const useBacktest = () => {
       localStorage.setItem('lastConfig', JSON.stringify(backtestConfiguration));
       setBacktestStartTime(Date.now());
     } catch (error) {
+      toast.error(`Failed to start strategy: ${error.message}`);
       logger.error('Failed to start strategy:', error);
       setBacktestErrorMsg('Failed to start strategy: ', error);
       setIsBacktestRunning(false);
@@ -114,6 +117,7 @@ export const useBacktest = () => {
         }
       }
     } catch (error) {
+      toast.error(`Failed to stop strategy: ${error.message}`);
       logger.error('Failed to stop strategy:', error);
     }
   };
@@ -277,6 +281,7 @@ export const useBacktest = () => {
     try {
       localStorage.setItem('chartData', JSON.stringify(data));
     } catch (error) {
+      toast.error(`Failed to save chart data to localstorage: ${error}`);
       logger.error('Failed to save chart data to localStorage:', error);
     }
   };
@@ -285,6 +290,7 @@ export const useBacktest = () => {
     try {
       localStorage.setItem('tradeData', JSON.stringify(data));
     } catch (error) {
+      toast.error(`Failed to save trade data to localstorage: ${error}`);
       logger.error('Failed to save trade data to localStorage:', error);
     }
   };
@@ -293,6 +299,7 @@ export const useBacktest = () => {
     try {
       localStorage.setItem('accountData', JSON.stringify(data));
     } catch (error) {
+      toast.error(`Failed to save account data to localstorage: ${error}`);
       logger.error('Failed to save account data to localStorage:', error);
     }
   };
@@ -301,6 +308,7 @@ export const useBacktest = () => {
     try {
       localStorage.setItem('indicatorData', JSON.stringify(data));
     } catch (error) {
+      toast.error(`Failed to save indicator data to localstorage: ${error}`);
       logger.error('Failed to save indicator data to localStorage:', error);
     }
   };
@@ -309,6 +317,7 @@ export const useBacktest = () => {
     try {
       localStorage.setItem('analysisData', JSON.stringify(data));
     } catch (error) {
+      toast.error(`Failed to save analysis data to localstorage: ${error}`);
       logger.error('Failed to save analysis data to localStorage:', error);
     }
   };

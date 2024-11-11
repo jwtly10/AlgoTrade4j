@@ -1,5 +1,5 @@
 'use client';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { toast, Toaster } from 'sonner';
-
-export { Toaster, toast };
+export { toast, ToastContainer };

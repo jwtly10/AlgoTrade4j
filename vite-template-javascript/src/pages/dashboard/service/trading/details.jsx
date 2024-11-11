@@ -14,14 +14,19 @@ import { RouterLink } from '@/components/core/link';
 import { LiveCandleStickChart } from '@/components/dashboard/service/trading/live-chart';
 import { LiveTradeList } from '@/components/dashboard/service/trade-list';
 import { LiveTradingAnalysis } from '@/components/dashboard/service/trading/live-analysis-widget';
+import { toast } from 'react-toastify';
+import StrategyConfigurationDialog from '@/components/dashboard/service/trading/live-strategy-configuration';
 
 const metadata = { title: `Live Strategy Details | Live Trading | Dashboard | ${config.site.name}` };
 
 export function Page() {
   const { strategyId } = useParams();
   const [liveStrategyDetails, setLiveStrategyDetails] = React.useState(null);
+  const [editableStrategy, setEditableStrategy] = React.useState(null);
   const [readyToShowChart, setReadyToShowChart] = React.useState(false);
   const [isToggling, setIsToggling] = React.useState(false);
+
+  const [configDialogOpen, setConfigDialogOpen] = React.useState(false);
 
   const {
     isConnectedToLive,
@@ -40,7 +45,7 @@ export function Page() {
 
     setIsToggling(true);
     try {
-      await liveClient.toggleStrategy(strategy.id);
+      await liveClient.toggleLiveStrategy(strategy.id);
 
       if (strategy.active) {
         logger.debug('Stopping live strategy:', strategy.strategyName);
@@ -58,9 +63,34 @@ export function Page() {
       setLiveStrategyDetails(updatedStrategy);
       setReadyToShowChart(updatedStrategy.active);
     } catch (error) {
+      toast.error(`Error toggling strategy: ${error.message}`);
       logger.error('Error toggling strategy:', error);
     } finally {
       setIsToggling(false);
+    }
+  };
+
+  const handleSaveStrategy = async (strategy) => {
+    if (!strategy) return;
+
+    try {
+      if (strategy.id) {
+        await liveClient.updateLiveStrategy(strategy);
+      } else {
+        logger.debug('This should not happen. Strategy ID is missing:', strategy);
+      }
+
+      toast.success('Live Strategy updated successfully');
+
+      // Update current strategy details
+      const updatedStrategy = await liveClient.getLiveStrategy(strategyId);
+      setLiveStrategyDetails(updatedStrategy);
+
+      setConfigDialogOpen(false);
+      fetch;
+    } catch (error) {
+      toast.error(`Error saving strategy: ${error.message}`);
+      logger.error('Error saving strategy:', error);
     }
   };
 
@@ -90,13 +120,27 @@ export function Page() {
 
       logger.debug('Strategy refreshed:', updatedStrategy.strategyName);
     } catch (error) {
+      toast.error(`Error refreshing strategy: ${error}`);
       logger.error('Error refreshing strategy:', error);
     }
   };
 
   const handleEditConfig = () => {
-    // TODO: Implement editing configuration
-    logger.debug('Editing configuration...');
+    logger.debug('Editing configuration...', liveStrategyDetails);
+
+    if (liveStrategyDetails) {
+      setConfigDialogOpen(true);
+      const e = {
+        id: liveStrategyDetails.id,
+        strategyName: liveStrategyDetails.strategyName,
+        brokerAccount: liveStrategyDetails.brokerAccount,
+        config: liveStrategyDetails.config,
+        telegramChatId: liveStrategyDetails.telegramChatId,
+        active: liveStrategyDetails.active,
+      };
+      logger.debug('Formatted Editable strategy:', e);
+      setEditableStrategy(e);
+    }
   };
 
   // Only fetch initial strategy details once on mount
@@ -121,6 +165,7 @@ export function Page() {
 
         logger.debug('Strategy initialized:', strategy.strategyName);
       } catch (error) {
+        toast.error(`Error initializing strategy: ${error}`);
         logger.error('Error initializing strategy:', error);
       }
     };
@@ -224,7 +269,12 @@ export function Page() {
                         Refresh Connection
                       </Button>
                     ) : null}
-                    <Button variant="outlined" startIcon={<Gear />} onClick={handleEditConfig}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Gear />}
+                      onClick={handleEditConfig}
+                      disabled={liveStrategyDetails.active}
+                    >
                       Config
                     </Button>
                   </Stack>
@@ -257,6 +307,14 @@ export function Page() {
             </Grid>
           </Grid>
         </Stack>
+        {liveStrategyDetails ? (
+          <StrategyConfigurationDialog
+            open={configDialogOpen}
+            onClose={() => setConfigDialogOpen(false)}
+            initialConfig={editableStrategy} // If null will trigger create mode
+            onSave={handleSaveStrategy}
+          />
+        ) : null}
       </Box>
     </React.Fragment>
   );

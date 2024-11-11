@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import { authClient } from '@/lib/auth/custom/client';
 import { logger } from '@/lib/default-logger';
+import { toast } from 'react-toastify';
 
 export const UserContext = React.createContext(undefined);
 
@@ -20,6 +21,8 @@ export function UserProvider({ children }) {
 
       if (error) {
         logger.error(error);
+        // Session is invalid
+        toast.error('Session is invalid. Please sign in again.');
         setState((prev) => ({ ...prev, user: null, error: 'Something went wrong', isLoading: false }));
         return;
       }

@@ -1,10 +1,9 @@
 'use client';
-
 import * as React from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '@/styles/global.css';
-
 import { config } from '@/config';
 import { applyDefaultSettings } from '@/lib/settings/apply-default-settings';
 import { getSettings as getPersistedSettings } from '@/lib/settings/get-settings';
@@ -15,7 +14,6 @@ import { I18nProvider } from '@/components/core/i18n-provider';
 import { LocalizationProvider } from '@/components/core/localization-provider';
 import { SettingsButton } from '@/components/core/settings/settings-button';
 import { ThemeProvider } from '@/components/core/theme-provider/theme-provider';
-import { Toaster } from '@/components/core/toaster';
 
 const metadata = { title: config.site.name };
 
@@ -37,7 +35,18 @@ export function Root({ children }) {
                 <ThemeProvider>
                   {children}
                   <SettingsButton />
-                  <Toaster position="bottom-right" />
+                  <ToastContainer
+                    position="top-right"
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                  />
                 </ThemeProvider>
               </I18nProvider>
             </SettingsProvider>

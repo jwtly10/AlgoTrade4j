@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { liveClient } from '@/lib/api/auth/live-client';
 import { logger } from '@/lib/default-logger';
+import { toast } from 'react-toastify';
 
 export const useLive = () => {
   const socketRef = React.useRef(null);
@@ -27,6 +28,7 @@ export const useLive = () => {
         socketRef.current.close(1000, 'New connection requested');
         socketRef.current = null;
       } catch (error) {
+        toast.error(`Error closing existing WebSocket: ${error}`);
         logger.error('Error closing existing WebSocket:', error);
       }
     }
@@ -45,6 +47,7 @@ export const useLive = () => {
       setIsConnectedToLive(true);
       return socketRef.current;
     } catch (error) {
+      toast.error(`Failed to view strategy: ${error}`);
       logger.error('Failed to view strategy:', error);
       setIsConnectedToLive(false);
     }

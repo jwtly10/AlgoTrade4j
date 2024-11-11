@@ -64,7 +64,7 @@ const LiveTradeListItem = styled(ListItem)(({ theme, islive }) => ({
   }),
 }));
 
-function TradeListItem({ trade, islive }) {
+function TradeListItem({ trade, islive = false }) {
   const [expanded, setExpanded] = React.useState(false);
   const isProfit = parseFloat(trade.profit) >= 0;
 

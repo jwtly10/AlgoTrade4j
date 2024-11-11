@@ -25,14 +25,8 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-
-
 import { strategyClient } from '@/lib/api/auth/strategy-client';
 import { logger } from '@/lib/default-logger';
-
-
-
-
 
 function TabPanel({ children, value, index, ...other }) {
   return (

@@ -1,6 +1,7 @@
 import pako from 'pako';
 
 import { logger } from '@/lib/default-logger';
+import { toast } from 'react-toastify';
 
 export const getWebSocketUrl = (url) => {
   const parsedUrl = new URL(url);
@@ -10,7 +11,7 @@ export const getWebSocketUrl = (url) => {
     return `ws://${parsedUrl.host}/ws/v1`;
   }
 
-return `${parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsedUrl.host}/ws/v1`;
+  return `${parsedUrl.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsedUrl.host}/ws/v1`;
 };
 
 export const handleResponse = (response, url) => {
@@ -69,6 +70,7 @@ export const handleWSMessage = (socket, onMessage, strategyId, resolve, reject) 
       }
       onMessage(jsonData);
     } catch (error) {
+      toast.error('Error processing WebSocket message');
       logger.error('Error processing WebSocket message:', error, event.data);
     }
   };

@@ -215,7 +215,6 @@ function LanguageSwitch() {
 function UserButton() {
   const popover = usePopover();
   const { user, isLoading } = useUser();
-  console.log('What is user', user);
 
   return (
     <React.Fragment>
@@ -293,15 +292,15 @@ function NavItem({ disabled, external, items, href, icon, label, matcher, pathna
         {...(isBranch
           ? { role: 'button' }
           : {
-              ...(href
-                ? {
-                    component: external ? 'a' : RouterLink,
-                    href,
-                    target: external ? '_blank' : undefined,
-                    rel: external ? 'noreferrer' : undefined,
-                  }
-                : { role: 'button' }),
-            })}
+            ...(href
+              ? {
+                component: external ? 'a' : RouterLink,
+                href,
+                target: external ? '_blank' : undefined,
+                rel: external ? 'noreferrer' : undefined,
+              }
+              : { role: 'button' }),
+          })}
         sx={{
           alignItems: 'center',
           borderRadius: 1,
@@ -401,15 +400,15 @@ function DropdownItem({ disabled, external, items, href, matcher, pathname, titl
         {...(isBranch
           ? { role: 'button' }
           : {
-              ...(href
-                ? {
-                    component: external ? 'a' : RouterLink,
-                    href,
-                    target: external ? '_blank' : undefined,
-                    rel: external ? 'noreferrer' : undefined,
-                  }
-                : { role: 'button' }),
-            })}
+            ...(href
+              ? {
+                component: external ? 'a' : RouterLink,
+                href,
+                target: external ? '_blank' : undefined,
+                rel: external ? 'noreferrer' : undefined,
+              }
+              : { role: 'button' }),
+          })}
         sx={{
           alignItems: 'center',
           borderRadius: 1,

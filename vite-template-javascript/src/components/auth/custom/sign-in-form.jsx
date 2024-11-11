@@ -45,22 +45,6 @@ export function SignInForm() {
     formState: { errors },
   } = useForm({ defaultValues, resolver: zodResolver(schema) });
 
-  const onAuth = React.useCallback(async (providerId) => {
-    setIsPending(true);
-
-    const { error } = await authClient.signInWithOAuth({ provider: providerId });
-
-    if (error) {
-      setIsPending(false);
-      toast.error(error);
-      return;
-    }
-
-    setIsPending(false);
-
-    // Redirect to OAuth provider
-  }, []);
-
   const onSubmit = React.useCallback(
     async (values) => {
       setIsPending(true);

@@ -12,6 +12,9 @@ import { logger } from '@/lib/default-logger';
 import { StrategyCard } from '@/components/dashboard/service/trading/live-strategy-card';
 import { brokerClient } from '@/lib/api/auth/broker-client';
 import BrokerAccountCard from '@/components/dashboard/service/trading/broker-card';
+import BrokerAccountModal from '@/components/dashboard/service/trading/broker-account-modal';
+import StrategyConfigurationDialog from '@/components/dashboard/service/trading/live-strategy-configuration';
+import { toast } from 'react-toastify';
 
 const metadata = { title: `Live Strategies | Dashboard | ${config.site.name}` };
 
@@ -21,12 +24,22 @@ export function Page() {
   const [brokerAccounts, setBrokerAccounts] = React.useState([]);
   const [idToggling, setIdToggling] = React.useState(null);
 
+  // Creating or editing strategies
+  const [liveStrategyModalOpen, setLiveStrategyModalOpen] = React.useState(false);
+  const [selectedStrategy, setSelectedStrategy] = React.useState(null);
+
+  // Creating or editing brokers
+  const [brokerModalOpen, setBrokerModalOpen] = React.useState(false);
+  const [selectedAccount, setSelectedAccount] = React.useState(null);
+  const [isSavingBroker, setIsSavingBroker] = React.useState(false);
+
   React.useEffect(() => {
     fetchLiveStrategies();
     fetchBrokerAccounts();
 
     intervalRef.current = setInterval(() => {
       fetchLiveStrategies();
+      fetchBrokerAccounts();
     }, 5000);
 
     return () => {
@@ -41,6 +54,7 @@ export function Page() {
       const res = await liveClient.getLiveStrategies();
       setLiveStrategies(res);
     } catch (error) {
+      toast.error(`Error getting live strategies: ${error.message}`);
       logger.error('Error getting live strategies from db', error);
     }
   };
@@ -50,23 +64,133 @@ export function Page() {
       const res = await brokerClient.getBrokerAccounts();
       setBrokerAccounts(res);
     } catch (error) {
+      toast.error(`Error getting broker accounts: ${error.message}`);
       logger.error('Error getting broker accounts', error);
     }
   };
 
-  const handleToggle = async (strategy) => {
+  const handleToggleStrategy = async (strategy) => {
     try {
       setIdToggling(strategy.id);
-      await liveClient.toggleStrategy(strategy.id);
+      await liveClient.toggleLiveStrategy(strategy.id);
+
+      if (strategy.active) {
+        toast.success(`Strategy ${strategy.strategyName} stopped successfully`);
+      } else {
+        toast.success(`Strategy ${strategy.strategyName} started successfully`);
+      }
+
       fetchLiveStrategies();
       setIdToggling(null);
     } catch (error) {
+      toast.error(`Error toggling live strategy: ${error.message}`);
       logger.error('Error toggling live strategy', error);
     }
   };
 
-  const handleEditBrokerAccount = (account) => {
-    logger.debug('Editing broker account', account);
+  const handleStrategyEditClick = (strategy) => {
+    logger.debug('Editing strategy:', strategy);
+    setSelectedStrategy(strategy);
+    setLiveStrategyModalOpen(true);
+  };
+
+  const handleStrategyCreateClick = () => {
+    logger.debug('Creating new strategy');
+    setSelectedStrategy(null);
+    setLiveStrategyModalOpen(true);
+  };
+
+  const handleDeleteStrategy = async (strategyConfig) => {
+    const confirm = window.confirm('Are you sure you want to delete this live strategy?');
+    if (!confirm) return;
+
+    logger.debug('Deleting strategy:', strategyConfig);
+
+    try {
+      await liveClient.deleteLiveStrategy(strategyConfig.id);
+      toast.success('Strategy deleted successfully');
+      await fetchLiveStrategies();
+      setSelectedStrategy(null);
+      setLiveStrategyModalOpen(false);
+      logger.debug('Strategy deleted successfully');
+    } catch (error) {
+      toast.error(`Error deleting strategy: ${error.message}`);
+      logger.error('Error deleting strategy', error);
+    }
+  };
+
+  const handleSaveStrategy = async (editConfig) => {
+    try {
+      if (selectedStrategy) {
+        logger.debug('Saving strategy:', editConfig);
+        await liveClient.updateLiveStrategy(editConfig);
+        toast.success('Strategy updated successfully');
+      } else {
+        logger.debug('Creating new strategy:', editConfig);
+        await liveClient.createLiveStrategy(editConfig);
+        toast.success('Strategy created successfully');
+      }
+      await fetchLiveStrategies();
+      setSelectedStrategy(null);
+      setLiveStrategyModalOpen(false);
+    } catch (error) {
+      toast.error(`Error saving strategy: ${error.message}`);
+      logger.error('Error saving strategy', error);
+    }
+  };
+
+  const handleBrokerEditClick = (account) => {
+    logger.debug('Editing account:', account);
+    setSelectedAccount(account);
+    setBrokerModalOpen(true);
+  };
+
+  const handleBrokerCreateClick = () => {
+    logger.debug('Creating new account');
+    setSelectedAccount(null);
+    setBrokerModalOpen(true);
+  };
+
+  const handleSaveBroker = async (formData) => {
+    logger.debug('Saving account:', formData);
+    setIsSavingBroker(true);
+    try {
+      if (selectedAccount) {
+        await brokerClient.updateBrokerAccount(selectedAccount.accountId, formData);
+        toast.success('Broker Account updated successfully');
+      } else {
+        await brokerClient.createBrokerAccount(formData);
+        toast.success('Broker Account created successfully');
+      }
+      await fetchBrokerAccounts();
+      setBrokerModalOpen(false);
+      setSelectedAccount(null);
+      logger.debug('Account saved successfully');
+    } catch (error) {
+      toast.error(`Error saving broker account: ${error.message}`);
+      logger.error('Error saving account', error);
+    } finally {
+      setIsSavingBroker(false);
+    }
+  };
+
+  const handleDeleteBroker = async (accountId) => {
+    const confirm = window.confirm('Are you sure you want to delete this broker account?');
+    if (!confirm) return;
+
+    logger.debug('Deleting account:', accountId);
+
+    try {
+      await brokerClient.deleteBrokerAccount(accountId);
+      toast.success('Account deleted successfully');
+      await fetchBrokerAccounts();
+      setBrokerModalOpen(false);
+      setSelectedAccount(null);
+      logger.debug('Broker Account deleted successfully');
+    } catch (error) {
+      toast.error(`Error deleting account: ${error.message}`);
+      logger.error('Error deleting account', error);
+    }
   };
 
   return (
@@ -88,7 +212,7 @@ export function Page() {
               <Typography variant="h4">Live Strategies</Typography>
             </Box>
             <div>
-              <Button startIcon={<PlusIcon />} variant="contained">
+              <Button startIcon={<PlusIcon />} variant="contained" onClick={handleStrategyCreateClick}>
                 New Live Strategy
               </Button>
             </div>
@@ -96,7 +220,12 @@ export function Page() {
           <Grid container spacing={4} alignItems="start">
             {liveStrategies.map((strategy) => (
               <Grid size={{ xs: 12, md: 6, lg: 6 }} key={strategy.id}>
-                <StrategyCard strategy={strategy} handleToggle={handleToggle} toggling={idToggling === strategy.id} />
+                <StrategyCard
+                  strategy={strategy}
+                  handleToggle={handleToggleStrategy}
+                  toggling={idToggling === strategy.id}
+                  onEdit={handleStrategyEditClick}
+                />
               </Grid>
             ))}
           </Grid>
@@ -105,8 +234,8 @@ export function Page() {
               <Typography variant="h4">Broker Accounts</Typography>
             </Box>
             <div>
-              <Button startIcon={<PlusIcon />} variant="contained">
-                New Broker Account
+              <Button startIcon={<PlusIcon />} variant="contained" onClick={handleBrokerCreateClick}>
+                New Broker
               </Button>
             </div>
           </Stack>
@@ -121,11 +250,26 @@ export function Page() {
                 }}
                 key={account.id}
               >
-                <BrokerAccountCard account={account} onEdit={handleEditBrokerAccount} />
+                <BrokerAccountCard account={account} onEdit={handleBrokerEditClick} />
               </Grid>
             ))}
           </Grid>
         </Stack>
+        <BrokerAccountModal
+          open={brokerModalOpen}
+          onClose={() => setBrokerModalOpen(false)}
+          account={selectedAccount} // null for create, account object for edit
+          onSave={handleSaveBroker}
+          onDelete={handleDeleteBroker}
+          isSaving={isSavingBroker}
+        />
+        <StrategyConfigurationDialog
+          open={liveStrategyModalOpen}
+          onClose={() => setLiveStrategyModalOpen(false)}
+          initialConfig={selectedStrategy} // If null will trigger create mode
+          onSave={handleSaveStrategy}
+          onDelete={handleDeleteStrategy}
+        />
       </Box>
     </React.Fragment>
   );
