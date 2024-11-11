@@ -13,13 +13,13 @@ export function CustomSignOut() {
 
   const handleSignOut = React.useCallback(async () => {
     try {
-      const { error } = await authClient.signOut();
+      await authClient.signOut();
 
-      if (error) {
-        logger.error('Sign out error', error);
-        toast.error('Something went wrong, unable to sign out');
-        return;
-      }
+      // if (error) {
+      //   logger.error('Sign out error', error);
+      //   toast.error('Something went wrong, unable to sign out');
+      //   return;
+      // }
 
       // Refresh the auth state
       await checkSession?.();

@@ -4,12 +4,20 @@ import React, { useEffect, useRef } from 'react';
 import { ColorType, createChart, CrosshairMode, TickMarkType } from 'lightweight-charts';
 
 import { logger } from '@/lib/default-logger';
+import { useColorScheme } from '@mui/material';
 
 export function TradingViewChart({ showChart, strategyConfig, chartData, trades, indicators }) {
   const chartContainerRef = useRef();
   const chartRef = useRef(null);
   const candlestickSeriesRef = useRef(null);
   const indicatorSeriesRef = useRef({});
+
+  const { colorScheme } = useColorScheme();
+
+  const colors = {
+    background: colorScheme === 'dark' ? '#121517' : '#FFFFFF',
+    textColor: colorScheme === 'dark' ? '#D9D9D9' : '#121212',
+  };
 
   useEffect(() => {
     if (!showChart || chartRef.current || !strategyConfig || chartData.length === 0) {
@@ -28,8 +36,8 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
       width: chartContainerRef.current.clientWidth,
       height: 500,
       layout: {
-        background: { type: ColorType.Solid, color: '#121212' },
-        textColor: '#D9D9D9',
+        background: { type: ColorType.Solid, color: colors.background },
+        textColor: colors.textColor,
       },
       timeScale: {
         timeVisible: true,

@@ -6,19 +6,21 @@ import { useColorScheme } from '@mui/material/styles';
 
 import { NoSsr } from '@/components/core/no-ssr';
 
-const HEIGHT = 60;
+const HEIGHT = 120;
 const WIDTH = 60;
+// const HEIGHT = 60;
+// const WIDTH = 60;
 
 export function Logo({ color = 'dark', emblem, height = HEIGHT, width = WIDTH }) {
   let url;
 
   if (emblem) {
-    url = color === 'light' ? '/assets/logo-emblem.svg' : '/assets/logo-emblem--dark.svg';
+    url = color === 'light' ? '/logo/logo-emblem.png' : '/logo/logo-emblem--dark.png';
   } else {
-    url = color === 'light' ? '/assets/logo.svg' : '/assets/logo--dark.svg';
+    url = color === 'light' ? '/logo/logo.png' : '/logo/logo--dark.png';
   }
 
-  return <Box alt="logo" component="img" height={height} src={url} width={width} />;
+  return <Box alt="logo" component="img" src={url} width={width} />;
 }
 
 export function DynamicLogo({ colorDark = 'light', colorLight = 'dark', height = HEIGHT, width = WIDTH, ...props }) {

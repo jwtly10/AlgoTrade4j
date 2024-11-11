@@ -12,7 +12,7 @@ import { CandlestickChart } from '@/components/dashboard/service/backtesting/bac
 import { StrategyControl } from '@/components/dashboard/service/backtesting/strategy-control';
 import { TradeList } from '@/components/dashboard/service/trade-list';
 
-const metadata = { title: `Crypto | Dashboard | ${config.site.name}` };
+const metadata = { title: `Backtesting | Dashboard | ${config.site.name}` };
 
 export function Page() {
   const {

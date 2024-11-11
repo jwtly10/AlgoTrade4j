@@ -103,25 +103,6 @@ export function SignUpForm() {
         </Typography>
       </Stack>
       <Stack spacing={3}>
-        <Stack spacing={2}>
-          {oAuthProviders.map((provider) => (
-            <Button
-              color="secondary"
-              disabled={isPending}
-              endIcon={<Box alt="" component="img" height={24} src={provider.logo} width={24} />}
-              key={provider.id}
-              onClick={() => {
-                onAuth(provider.id).catch(() => {
-                  // noop
-                });
-              }}
-              variant="outlined"
-            >
-              Continue with {provider.name}
-            </Button>
-          ))}
-        </Stack>
-        <Divider>or</Divider>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={2}>
             <Controller
@@ -168,31 +149,14 @@ export function SignUpForm() {
                 </FormControl>
               )}
             />
-            <Controller
-              control={control}
-              name="terms"
-              render={({ field }) => (
-                <div>
-                  <FormControlLabel
-                    control={<Checkbox {...field} />}
-                    label={
-                      <React.Fragment>
-                        I have read the <Link>terms and conditions</Link>
-                      </React.Fragment>
-                    }
-                  />
-                  {errors.terms ? <FormHelperText error>{errors.terms.message}</FormHelperText> : null}
-                </div>
-              )}
-            />
             {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}
-            <Button disabled={isPending} type="submit" variant="contained">
+            <Button disabled={true} type="submit" variant="contained">
               Create account
             </Button>
           </Stack>
         </form>
       </Stack>
-      <Alert color="warning">Created users are not persisted</Alert>
+      <Alert color="warning">Signups are currently disabled</Alert>
     </Stack>
   );
 }

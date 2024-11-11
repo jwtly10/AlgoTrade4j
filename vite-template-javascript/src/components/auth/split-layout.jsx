@@ -20,8 +20,8 @@ export function SplitLayout({ children }) {
           <Stack spacing={1}>
             <Typography variant="h4">Welcome to AlgoTrade4J</Typography>
             <Typography color="text.secondary">
-              A professional template that comes with ready-to-use MUI components developed with one common goal in
-              mind, help you build faster & beautiful applications.
+              AlgoTrade4j: An extensible, event-driven Trading Platform for backtesting, optimising and live trading
+              algorithmic/automated strategies
             </Typography>
           </Stack>
         </Stack>

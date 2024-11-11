@@ -54,7 +54,6 @@ export function SideNav({ color = 'evident', items = [] }) {
             <Logo color={logoColor} height={32} width={122} />
           </Box>
         </div>
-        <WorkspacesSwitch />
       </Stack>
       <Box
         component="nav"
@@ -146,26 +145,26 @@ function NavItem({
       <Box
         {...(isBranch
           ? {
-              onClick: () => {
+            onClick: () => {
+              setOpen(!open);
+            },
+            onKeyUp: (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
                 setOpen(!open);
-              },
-              onKeyUp: (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  setOpen(!open);
-                }
-              },
-              role: 'button',
-            }
+              }
+            },
+            role: 'button',
+          }
           : {
-              ...(href
-                ? {
-                    component: external ? 'a' : RouterLink,
-                    href,
-                    target: external ? '_blank' : undefined,
-                    rel: external ? 'noreferrer' : undefined,
-                  }
-                : { role: 'button' }),
-            })}
+            ...(href
+              ? {
+                component: external ? 'a' : RouterLink,
+                href,
+                target: external ? '_blank' : undefined,
+                rel: external ? 'noreferrer' : undefined,
+              }
+              : { role: 'button' }),
+          })}
         sx={{
           alignItems: 'center',
           borderRadius: 1,

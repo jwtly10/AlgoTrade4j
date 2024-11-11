@@ -17,7 +17,6 @@ import { RouterLink } from '@/components/core/link';
 import { Logo } from '@/components/core/logo';
 
 import { icons } from './nav-icons';
-import { WorkspacesSwitch } from './workspaces-switch';
 
 export function MobileNav({ items = [], open, onClose }) {
   const pathname = usePathname();
@@ -65,7 +64,6 @@ export function MobileNav({ items = [], open, onClose }) {
             <Logo color="light" height={32} width={122} />
           </Box>
         </div>
-        <WorkspacesSwitch />
       </Stack>
       <Box component="nav" sx={{ flex: '1 1 auto', p: 2 }}>
         {renderNavGroups({ items, onClose, pathname })}
@@ -149,29 +147,29 @@ function NavItem({
       <Box
         {...(isBranch
           ? {
-              onClick: () => {
+            onClick: () => {
+              setOpen(!open);
+            },
+            onKeyUp: (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
                 setOpen(!open);
-              },
-              onKeyUp: (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  setOpen(!open);
-                }
-              },
-              role: 'button',
-            }
+              }
+            },
+            role: 'button',
+          }
           : {
-              ...(href
-                ? {
-                    component: external ? 'a' : RouterLink,
-                    href,
-                    target: external ? '_blank' : undefined,
-                    rel: external ? 'noreferrer' : undefined,
-                    onClick: () => {
-                      onClose?.();
-                    },
-                  }
-                : { role: 'button' }),
-            })}
+            ...(href
+              ? {
+                component: external ? 'a' : RouterLink,
+                href,
+                target: external ? '_blank' : undefined,
+                rel: external ? 'noreferrer' : undefined,
+                onClick: () => {
+                  onClose?.();
+                },
+              }
+              : { role: 'button' }),
+          })}
         sx={{
           alignItems: 'center',
           borderRadius: 1,

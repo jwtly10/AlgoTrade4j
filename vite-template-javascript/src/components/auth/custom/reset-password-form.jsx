@@ -1,51 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useForm } from 'react-hook-form';
-import { z as zod } from 'zod';
 
 import { paths } from '@/paths';
-import { authClient } from '@/lib/auth/custom/client';
 import { RouterLink } from '@/components/core/link';
 import { DynamicLogo } from '@/components/core/logo';
-
-const schema = zod.object({ email: zod.string().min(1, { message: 'Email is required' }).email() });
-
-const defaultValues = { email: '' };
+import { Link } from '@mui/material';
 
 export function ResetPasswordForm() {
-  const [isPending, setIsPending] = React.useState(false);
-
-  const {
-    control,
-    handleSubmit,
-    setError,
-    formState: { errors },
-  } = useForm({ defaultValues, resolver: zodResolver(schema) });
-
-  const onSubmit = React.useCallback(
-    async (values) => {
-      setIsPending(true);
-
-      const { error } = await authClient.resetPassword(values);
-
-      if (error) {
-        setError('root', { type: 'server', message: error });
-        setIsPending(false);
-        return;
-      }
-
-      setIsPending(false);
-
-      // Redirect to confirm password reset
-    },
-    [setError]
-  );
-
   return (
     <Stack spacing={4}>
       <div>
@@ -54,28 +19,16 @@ export function ResetPasswordForm() {
         </Box>
       </div>
       <Typography variant="h5">Reset password</Typography>
+
       <Typography color="text.secondary" variant="body2">
         Get in contact with us to reset your password.
       </Typography>
-      {/*<form onSubmit={handleSubmit(onSubmit)}>*/}
-      {/*  <Stack spacing={2}>*/}
-      {/*    <Controller*/}
-      {/*      control={control}*/}
-      {/*      name="email"*/}
-      {/*      render={({ field }) => (*/}
-      {/*        <FormControl error={Boolean(errors.email)}>*/}
-      {/*          <InputLabel>Email address</InputLabel>*/}
-      {/*          <OutlinedInput {...field} type="email" />*/}
-      {/*          {errors.email ? <FormHelperText>{errors.email.message}</FormHelperText> : null}*/}
-      {/*        </FormControl>*/}
-      {/*      )}*/}
-      {/*    />*/}
-      {/*    {errors.root ? <Alert color="error">{errors.root.message}</Alert> : null}*/}
-      {/*    <Button disabled={isPending} type="submit" variant="contained">*/}
-      {/*      Send recovery link*/}
-      {/*    </Button>*/}
-      {/*  </Stack>*/}
-      {/*</form>*/}
+
+      <Link component={RouterLink} href={paths.auth.custom.signIn} sx={{ color: 'inherit', fontSize: '0.875rem' }}>
+        <Typography color="text.secondary" variant="body2">
+          Go back to login
+        </Typography>
+      </Link>
     </Stack>
   );
 }

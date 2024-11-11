@@ -23,8 +23,6 @@ import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 
-
-
 import { config } from '@/config';
 import { paths } from '@/paths';
 import { adminClient } from '@/lib/api/auth/admin-client';
@@ -35,7 +33,7 @@ import { PropertyList } from '@/components/core/property-list';
 import LoginLogsTable from '@/components/dashboard/admin/users/login-logs';
 import UserActionLogsTable from '@/components/dashboard/admin/users/user-action-logs';
 
-const metadata = { title: `Details | Customers | Dashboard | ${config.site.name}` };
+const metadata = { title: `Details | Users | Dashboard | ${config.site.name}` };
 
 export function Page() {
   const { userId } = useParams();

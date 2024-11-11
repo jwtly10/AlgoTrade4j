@@ -38,7 +38,7 @@ export function Page() {
                 variant="subtitle2"
               >
                 <ArrowLeftIcon fontSize="var(--icon-fontSize-md)" />
-                Customers
+                Users
               </Link>
             </div>
             <div>

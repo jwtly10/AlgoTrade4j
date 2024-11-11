@@ -1,6 +1,8 @@
 'use client';
 
 import { internalAuthClient } from '@/lib/api/auth/internal-auth-client';
+import { logger } from '@/lib/default-logger';
+import { toast } from 'react-toastify';
 
 class AuthClient {
   async signUp(_) {
@@ -43,8 +45,9 @@ class AuthClient {
         },
       };
     } catch (error) {
+      logger.error('Error getting user', error);
       // TODO: CHeck what error was
-
+      // toast.error(`Error getting user: ${error.message}`);
       // Return null if no user
       return { data: null };
     }
