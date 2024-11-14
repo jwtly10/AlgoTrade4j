@@ -18,7 +18,7 @@ import { useUser } from '@/hooks/use-user';
 
 export function AccountDetails() {
   const { user, isLoading } = useUser();
-  console.log(user);
+  logger.debug(user);
 
   return (
     <Card>

@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -11,14 +9,8 @@ import Stack from '@mui/material/Stack';
 import { Gear as GearIcon } from '@phosphor-icons/react/dist/ssr/Gear';
 import { Play as PlayIcon } from '@phosphor-icons/react/dist/ssr/Play';
 
-
-
 import { logger } from '@/lib/default-logger';
-
-
-
-import { BacktestConfigurationDialog } from './configuration-dialog';
-
+import BacktestConfigurationDialog from '@/components/dashboard/service/backtesting/backtest-configuration-dialog';
 
 export function StrategyControl({
   systemStrategies = [],
@@ -39,6 +31,7 @@ export function StrategyControl({
   const handleConfigSave = (newConfig) => {
     logger.debug(`Saving new config: ${JSON.stringify(newConfig, null, 2)}`);
     setBacktestConfiguration(newConfig);
+    setConfigOpen(false);
   };
 
   return (
@@ -115,12 +108,14 @@ export function StrategyControl({
         </Stack>
       </Card>
 
-      <BacktestConfigurationDialog
-        open={configOpen}
-        onClose={() => setConfigOpen(false)}
-        configuration={backtestConfiguration}
-        onSave={handleConfigSave}
-      />
+      {configOpen && (
+        <BacktestConfigurationDialog
+          open={configOpen}
+          onClose={() => setConfigOpen(false)}
+          backtestConfig={backtestConfiguration}
+          onSave={handleConfigSave}
+        />
+      )}
     </>
   );
 }

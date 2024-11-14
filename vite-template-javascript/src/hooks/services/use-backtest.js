@@ -1,7 +1,5 @@
 import * as React from 'react';
 
-
-
 import { backtestClient } from '@/lib/api/auth/backtest-client';
 import { logger } from '@/lib/default-logger';
 import { toast } from 'react-toastify';
@@ -98,7 +96,7 @@ export const useBacktest = () => {
     } catch (error) {
       toast.error(`Failed to start strategy: ${error.message}`);
       logger.error('Failed to start strategy:', error);
-      setBacktestErrorMsg('Failed to start strategy: ', error);
+      setBacktestErrorMsg(`Failed to start strategy: ${error.message}`);
       setIsBacktestRunning(false);
     }
   };
