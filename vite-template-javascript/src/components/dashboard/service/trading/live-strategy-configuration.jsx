@@ -211,7 +211,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
       fullWidth
       PaperProps={{
         sx: {
-          height: selectedStrategy ? '90vh' : 'auto',
+          height: selectedStrategy ? '70vh' : 'auto',
           display: 'flex',
           flexDirection: 'column',
         },
@@ -453,10 +453,11 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                           </MenuItem>
                           {accounts.map((account) => (
                             <MenuItem key={account.accountId} value={account.accountId}>
-                              {`${account.brokerName} - ${account.brokerType} - ${account.brokerEnv} - $${parseFloat(account.initialBalance)
+                              {`${account.brokerName} - ${account.brokerType} - ${account.brokerEnv} - $${
+                                parseFloat(account.initialBalance)
                                   ? parseFloat(account.initialBalance).toLocaleString()
                                   : account.initialBalance
-                                }`}
+                              }`}
                             </MenuItem>
                           ))}
                         </Select>

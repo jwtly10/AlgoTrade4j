@@ -1,26 +1,28 @@
 'use client';
 import * as React from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Button,
-  MenuItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
-  Stack,
-  Card,
-  CardHeader,
-  CardContent,
-  Typography,
   IconButton,
+  MenuItem,
+  TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
-import { Info, Spinner } from '@phosphor-icons/react';
+import { Info, X } from '@phosphor-icons/react';
 import { brokerClient } from '@/lib/api/auth/broker-client';
 import { logger } from '@/lib/default-logger';
 import { toast } from 'react-toastify';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import Box from '@mui/material/Box';
+import FormHelperText from '@mui/material/FormHelperText';
+import CircularProgress from '@mui/material/CircularProgress';
 
 function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, isSaving = false }) {
   const isCreating = !account;
@@ -232,247 +234,223 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 1,
-          p: 2,
+          height: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
-      <DialogTitle variant="h5">{isCreating ? 'Create New Broker Account' : 'Edit Broker Account'}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={3}>
-          <Card>
-            <CardHeader title="Broker Information" sx={{ pb: 1 }} titleTypographyProps={{ variant: 'h6' }} />
-            <CardContent>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={0.5}>
-                    <Typography color="text.secondary" variant="caption">
-                      Broker Name
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={formData.brokerName}
-                      onChange={handleChange('brokerName')}
-                      onBlur={handleBlur('brokerName')}
-                      variant="outlined"
-                      placeholder="Enter broker name"
-                      error={touched.brokerName && Boolean(errors.brokerName)}
-                      helperText={touched.brokerName && errors.brokerName}
-                    />
-                  </Stack>
+      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography>{isCreating ? 'Create New Broker Account' : 'Edit Broker Account'}</Typography>
+        <IconButton onClick={onClose} size="small" aria-label="close">
+          <X />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers sx={{ p: 0, display: 'flex', overflow: 'hidden' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', p: 3 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Broker Name</InputLabel>
+                <TextField
+                  fullWidth
+                  value={formData.brokerName}
+                  onChange={handleChange('brokerName')}
+                  onBlur={handleBlur('brokerName')}
+                  placeholder="Enter broker name"
+                  error={touched.brokerName && Boolean(errors.brokerName)}
+                  helperText={touched.brokerName && errors.brokerName}
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Broker Type</InputLabel>
+                <Select
+                  value={formData.brokerType}
+                  onChange={handleChange('brokerType')}
+                  onBlur={handleBlur('brokerType')}
+                  disabled={!isCreating}
+                  error={touched.brokerType && Boolean(errors.brokerType)}
+                  label="Broker Type"
+                >
+                  <MenuItem value="" disabled>
+                    <em>Select a Broker</em>
+                  </MenuItem>
+                  {brokerTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {touched.brokerType && errors.brokerType && <FormHelperText error>{errors.brokerType}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Environment</InputLabel>
+                <Select
+                  value={formData.brokerEnv}
+                  onChange={handleChange('brokerEnv')}
+                  onBlur={handleBlur('brokerEnv')}
+                  error={touched.brokerEnv && Boolean(errors.brokerEnv)}
+                  label="Environment"
+                >
+                  <MenuItem value="" disabled>
+                    <em>Select an Environment</em>
+                  </MenuItem>
+                  <MenuItem value="LIVE">LIVE</MenuItem>
+                  <MenuItem value="DEMO">DEMO</MenuItem>
+                </Select>
+                {touched.brokerEnv && errors.brokerEnv && <FormHelperText error>{errors.brokerEnv}</FormHelperText>}
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Initial Balance</InputLabel>
+                <TextField
+                  type="number"
+                  value={formData.initialBalance}
+                  onChange={handleChange('initialBalance')}
+                  onBlur={handleBlur('initialBalance')}
+                  placeholder="Enter initial balance"
+                  error={touched.initialBalance && Boolean(errors.initialBalance)}
+                  helperText={touched.initialBalance && errors.initialBalance}
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Account ID</InputLabel>
+                <TextField
+                  value={formData.accountId}
+                  onChange={handleChange('accountId')}
+                  onBlur={handleBlur('accountId')}
+                  disabled={!isCreating}
+                  placeholder="Enter account ID"
+                  error={touched.accountId && Boolean(errors.accountId)}
+                  helperText={touched.accountId && errors.accountId}
+                />
+              </FormControl>
+            </Grid>
+
+            {/* MT5 Credentials Section */}
+            {formData.brokerType.includes('MT5') && (
+              <>
+                <Grid item xs={12}>
+                  <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
+                    MT5 Credentials
+                  </Typography>
                 </Grid>
+
+                {isCreating && (
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>MT5 Password</InputLabel>
+                      <TextField
+                        type="password"
+                        value={formData.mt5Credentials.password}
+                        onChange={handleMT5Change('password')}
+                        onBlur={handleBlur('mt5Credentials.password')}
+                        placeholder="Enter MT5 password"
+                        error={touched?.mt5Credentials?.password && Boolean(errors['mt5Credentials.password'])}
+                        helperText={touched?.mt5Credentials?.password && errors['mt5Credentials.password']}
+                        InputProps={{
+                          endAdornment: (
+                            <Tooltip title="Password cannot be changed once set">
+                              <IconButton size="small">
+                                <Info size={20} />
+                              </IconButton>
+                            </Tooltip>
+                          ),
+                        }}
+                      />
+                    </FormControl>
+                  </Grid>
+                )}
+
                 <Grid item xs={12} md={6}>
-                  <Stack spacing={0.5}>
-                    <Typography color="text.secondary" variant="caption">
-                      Broker Type
-                    </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel>MT5 Server</InputLabel>
                     <TextField
-                      fullWidth
-                      select
-                      size="small"
-                      value={formData.brokerType}
-                      onChange={handleChange('brokerType')}
-                      onBlur={handleBlur('brokerType')}
-                      variant="outlined"
-                      disabled={!isCreating}
-                      error={touched.brokerType && Boolean(errors.brokerType)}
-                      helperText={touched.brokerType && errors.brokerType}
+                      value={formData.mt5Credentials.server}
+                      onChange={handleMT5Change('server')}
+                      onBlur={handleBlur('mt5Credentials.server')}
+                      placeholder="Enter MT5 server"
+                      error={touched?.mt5Credentials?.server && Boolean(errors['mt5Credentials.server'])}
+                      helperText={touched?.mt5Credentials?.server && errors['mt5Credentials.server']}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>MT5 Path</InputLabel>
+                    <TextField
+                      value={formData.mt5Credentials.path}
+                      onChange={handleMT5Change('path')}
+                      onBlur={handleBlur('mt5Credentials.path')}
+                      placeholder="Enter MT5 path"
+                      error={touched?.mt5Credentials?.path && Boolean(errors['mt5Credentials.path'])}
+                      helperText={touched?.mt5Credentials?.path && errors['mt5Credentials.path']}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>MT5 Timezone</InputLabel>
+                    <Select
+                      value={formData.mt5Credentials.timezone}
+                      onChange={handleMT5Change('timezone')}
+                      onBlur={handleBlur('mt5Credentials.timezone')}
+                      placeholder="Select timezone"
+                      error={touched?.mt5Credentials?.timezone && Boolean(errors['mt5Credentials.timezone'])}
+                      label="MT5 Timezone"
                     >
-                      {brokerTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
+                      {timezones.map((tz) => (
+                        <MenuItem key={tz.zoneId} value={tz.name}>
+                          {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}
                         </MenuItem>
                       ))}
-                    </TextField>
-                  </Stack>
+                    </Select>
+                    {touched?.mt5Credentials?.timezone && errors['mt5Credentials.timezone'] && (
+                      <FormHelperText error>{errors['mt5Credentials.timezone']}</FormHelperText>
+                    )}
+                  </FormControl>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={0.5}>
-                    <Typography color="text.secondary" variant="caption">
-                      Environment
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      select
-                      size="small"
-                      value={formData.brokerEnv}
-                      onChange={handleChange('brokerEnv')}
-                      onBlur={handleBlur('brokerEnv')}
-                      variant="outlined"
-                      error={touched.brokerEnv && Boolean(errors.brokerEnv)}
-                      helperText={touched.brokerEnv && errors.brokerEnv}
-                    >
-                      <MenuItem value="LIVE">LIVE</MenuItem>
-                      <MenuItem value="DEMO">DEMO</MenuItem>
-                    </TextField>
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={0.5}>
-                    <Typography color="text.secondary" variant="caption">
-                      Initial Balance
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="number"
-                      value={formData.initialBalance}
-                      onChange={handleChange('initialBalance')}
-                      onBlur={handleBlur('initialBalance')}
-                      variant="outlined"
-                      placeholder="Enter initial balance"
-                      error={touched.initialBalance && Boolean(errors.initialBalance)}
-                      helperText={touched.initialBalance && errors.initialBalance}
-                    />
-                  </Stack>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Stack spacing={0.5}>
-                    <Typography color="text.secondary" variant="caption">
-                      Account ID
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      value={formData.accountId}
-                      onChange={handleChange('accountId')}
-                      onBlur={handleBlur('accountId')}
-                      variant="outlined"
-                      disabled={!isCreating}
-                      placeholder="Enter account ID"
-                      error={touched.accountId && Boolean(errors.accountId)}
-                      helperText={touched.accountId && errors.accountId}
-                    />
-                  </Stack>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {formData.brokerType.includes('MT5') && (
-            <Card>
-              <CardHeader title="MT5 Credentials" sx={{ pb: 1 }} titleTypographyProps={{ variant: 'h6' }} />
-              <CardContent>
-                <Grid container spacing={3}>
-                  {isCreating ? (
-                    <Grid item xs={12} md={6}>
-                      <Stack spacing={0.5}>
-                        <Typography color="text.secondary" variant="caption">
-                          MT5 Password
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          size="small"
-                          type="password"
-                          value={formData.mt5Credentials.password}
-                          onChange={handleMT5Change('password')}
-                          onBlur={handleBlur('mt5Credentials.password')}
-                          variant="outlined"
-                          placeholder="Enter MT5 password"
-                          error={touched?.mt5Credentials?.password && Boolean(errors['mt5Credentials.password'])}
-                          helperText={touched?.mt5Credentials?.password && errors['mt5Credentials.password']}
-                          InputProps={{
-                            endAdornment: (
-                              <Tooltip title="Password cannot be changed once set">
-                                <IconButton size="small">
-                                  <Info size={20} />
-                                </IconButton>
-                              </Tooltip>
-                            ),
-                          }}
-                        />
-                      </Stack>
-                    </Grid>
-                  ) : null}
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={0.5}>
-                      <Typography color="text.secondary" variant="caption">
-                        MT5 Server
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        value={formData.mt5Credentials.server}
-                        onChange={handleMT5Change('server')}
-                        onBlur={handleBlur('mt5Credentials.server')}
-                        variant="outlined"
-                        placeholder="Enter MT5 server"
-                        error={touched?.mt5Credentials?.server && Boolean(errors['mt5Credentials.server'])}
-                        helperText={touched?.mt5Credentials?.server && errors['mt5Credentials.server']}
-                      />
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={0.5}>
-                      <Typography color="text.secondary" variant="caption">
-                        MT5 Path
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        value={formData.mt5Credentials.path}
-                        onChange={handleMT5Change('path')}
-                        onBlur={handleBlur('mt5Credentials.path')}
-                        variant="outlined"
-                        placeholder="Enter MT5 path"
-                        error={touched?.mt5Credentials?.path && Boolean(errors['mt5Credentials.path'])}
-                        helperText={touched?.mt5Credentials?.path && errors['mt5Credentials.path']}
-                      />
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Stack spacing={0.5}>
-                      <Typography color="text.secondary" variant="caption">
-                        MT5 Timezone
-                      </Typography>
-                      <TextField
-                        fullWidth
-                        select
-                        size="small"
-                        value={formData.mt5Credentials.timezone}
-                        onChange={handleMT5Change('timezone')}
-                        onBlur={handleBlur('mt5Credentials.timezone')}
-                        variant="outlined"
-                        placeholder="Select timezone"
-                        error={touched?.mt5Credentials?.timezone && Boolean(errors['mt5Credentials.timezone'])}
-                        helperText={touched?.mt5Credentials?.timezone && errors['mt5Credentials.timezone']}
-                      >
-                        {timezones.map((tz) => (
-                          <MenuItem key={tz.zoneId} value={tz.name}>
-                            {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          )}
-        </Stack>
+              </>
+            )}
+          </Grid>
+        </Box>
       </DialogContent>
-      <DialogActions sx={{ pt: 3 }}>
-        <Button onClick={onClose} variant="outlined" disabled={isSaving}>
+
+      <DialogActions sx={{ p: 2 }}>
+        {!isCreating && (
+          <Button onClick={() => onDelete(formData.accountId)} disabled={isSaving} color="error">
+            Delete
+          </Button>
+        )}
+        <Button onClick={onClose} disabled={isSaving}>
           Cancel
         </Button>
         <Button
-          onClick={handleSubmit}
           variant="contained"
+          onClick={handleSubmit}
           disabled={isSaving}
-          startIcon={isSaving ? <Spinner weight="bold" className="animate-spin" /> : null}
+          startIcon={isSaving ? <CircularProgress size={24} /> : null}
         >
-          {isSaving ? 'Saving...' : isCreating ? 'Create Account' : 'Save Changes'}
+          {isSaving ? 'Saving...' : isCreating ? 'Create Account' : 'Update Account'}
         </Button>
-        {!isCreating && (
-          <Button onClick={() => onDelete(formData.accountId)} variant="contained" color="error" disabled={isSaving}>
-            Delete Account
-          </Button>
-        )}
       </DialogActions>
     </Dialog>
   );
