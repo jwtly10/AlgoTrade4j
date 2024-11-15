@@ -1,4 +1,4 @@
-import { ChartLine, Repeat } from '@phosphor-icons/react';
+import { ChartLine, NewspaperClipping, Repeat } from '@phosphor-icons/react';
 import { ClockCounterClockwise } from '@phosphor-icons/react/dist/ssr';
 import { AddressBook as AddressBookIcon } from '@phosphor-icons/react/dist/ssr/AddressBook';
 import { AlignLeft as AlignLeftIcon } from '@phosphor-icons/react/dist/ssr/AlignLeft';
@@ -52,6 +52,7 @@ export const icons = {
   'warning-diamond': WarningDiamondIcon,
   'clock-counter-clockwise': ClockCounterClockwise,
   'chart-line': ChartLine,
+  newspaper: NewspaperClipping,
   repeat: Repeat,
   cube: CubeIcon,
   file: FileIcon,

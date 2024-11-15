@@ -7,6 +7,7 @@ export const layoutConfig = {
       title: 'Dashboards',
       items: [
         { key: 'overview', title: 'Overview', href: paths.dashboard.overview, icon: 'house' },
+        { key: 'news', title: 'Economic Calendar', href: paths.dashboard.news, icon: 'newspaper' },
         { key: 'analytics', title: 'Analytics', href: paths.dashboard.analytics, icon: 'chart-pie' },
         { key: 'ecommerce', title: 'E-commerce', href: paths.dashboard.eCommerce, icon: 'cube' },
         { key: 'crypto', title: 'Crypto', href: paths.dashboard.crypto, icon: 'currency-eth' },
@@ -16,13 +17,13 @@ export const layoutConfig = {
       key: 'Platforms',
       title: 'Platforms',
       items: [
+        { key: 'trading', title: 'Live Trading', href: paths.dashboard.service.trading.list, icon: 'chart-line' },
         {
           key: 'backtesting',
           title: 'Backtesting',
           href: paths.dashboard.service.backtesting,
           icon: 'clock-counter-clockwise',
         },
-        { key: 'trading', title: 'Live Trading', href: paths.dashboard.service.trading.list, icon: 'chart-line' },
         { key: 'optimisation', title: 'Optimisation', href: paths.dashboard.service.optimisation, icon: 'repeat' },
       ],
     },

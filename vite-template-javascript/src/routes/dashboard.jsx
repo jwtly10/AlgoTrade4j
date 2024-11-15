@@ -100,6 +100,13 @@ export const route = {
       ],
     },
     {
+      path: 'news',
+      lazy: async () => {
+        const { Page } = await import('@/pages/dashboard/news');
+        return { Component: Page };
+      },
+    },
+    {
       path: 'analytics',
       lazy: async () => {
         const { Page } = await import('@/pages/dashboard/analytics');

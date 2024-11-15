@@ -15,18 +15,35 @@ import { Warning as WarningIcon } from '@phosphor-icons/react/dist/ssr/Warning';
 import { Helmet } from 'react-helmet-async';
 
 import { config } from '@/config';
-import { dayjs } from '@/lib/dayjs';
-import { AppChat } from '@/components/dashboard/overview/app-chat';
-import { AppLimits } from '@/components/dashboard/overview/app-limits';
-import { AppUsage } from '@/components/dashboard/overview/app-usage';
-import { Events } from '@/components/dashboard/overview/events';
 import { HelperWidget } from '@/components/dashboard/overview/helper-widget';
-import { Subscriptions } from '@/components/dashboard/overview/subscriptions';
 import { Summary } from '@/components/dashboard/overview/summary';
+import ServiceHealth from '@/components/dashboard/overview/service-health';
+import { liveOverviewClient } from '@/lib/api/overview-client';
+import { RouterLink } from '@/components/core/link';
+
+import { toast } from 'react-toastify';
+import { RecentActivityCard } from '@/components/dashboard/overview/recent-activity';
+import { NewsWidget } from '@/components/dashboard/overview/news-widget';
+import { paths } from '@/paths';
 
 const metadata = { title: `Overview | Dashboard | ${config.site.name}` };
 
 export function Page() {
+  const [recentActivities, setRecentActivities] = React.useState([]);
+
+  React.useEffect(() => {
+    async function fetchRecentActivities() {
+      try {
+        const data = await liveOverviewClient.getRecentActivities();
+        setRecentActivities(data);
+      } catch (error) {
+        toast(`Failed to fetch recent activities: ${error.message}`);
+      }
+    }
+
+    fetchRecentActivities();
+  }, []);
+
   return (
     <React.Fragment>
       <Helmet>
@@ -52,240 +69,80 @@ export function Page() {
             </div>
           </Stack>
           <Grid container spacing={4}>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <Summary amount={31} diff={15} icon={ListChecksIcon} title="Tickets" trend="up" />
+            <Grid size={{ md: 4, xs: 12 }}>
+              <ServiceHealth />
             </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <Summary amount={240} diff={5} icon={UsersIcon} title="Sign ups" trend="down" />
+            <Grid size={{ md: 4, xs: 12 }}>
+              <NewsWidget />
             </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
+            <Grid size={{ md: 4, xs: 12 }}>
+              <RecentActivityCard recentActivities={recentActivities} />
+            </Grid>
+            <Grid size={{ md: 4, xs: 12 }}>
+              <Summary amount={5} diff={15} icon={ListChecksIcon} title="Live Strategies" trend="up" />
+            </Grid>
+            <Grid size={{ md: 4, xs: 12 }}>
+              <Summary amount={240} diff={5} icon={UsersIcon} title="Todays Performance" trend="down" />
+            </Grid>
+            <Grid size={{ md: 4, xs: 12 }}>
               <Summary amount={21} diff={12} icon={WarningIcon} title="Open issues" trend="up" />
             </Grid>
-            <Grid
-              size={{
-                md: 8,
-                xs: 12,
-              }}
-            >
-              <AppUsage
-                data={[
-                  { name: 'Jan', v1: 36, v2: 19 },
-                  { name: 'Feb', v1: 45, v2: 23 },
-                  { name: 'Mar', v1: 26, v2: 12 },
-                  { name: 'Apr', v1: 39, v2: 20 },
-                  { name: 'May', v1: 26, v2: 12 },
-                  { name: 'Jun', v1: 42, v2: 31 },
-                  { name: 'Jul', v1: 38, v2: 19 },
-                  { name: 'Aug', v1: 39, v2: 20 },
-                  { name: 'Sep', v1: 37, v2: 18 },
-                  { name: 'Oct', v1: 41, v2: 22 },
-                  { name: 'Nov', v1: 45, v2: 24 },
-                  { name: 'Dec', v1: 23, v2: 17 },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <Subscriptions
-                subscriptions={[
-                  {
-                    id: 'supabase',
-                    title: 'Supabase',
-                    icon: '/assets/company-avatar-5.png',
-                    costs: '$599',
-                    billingCycle: 'year',
-                    status: 'paid',
-                  },
-                  {
-                    id: 'vercel',
-                    title: 'Vercel',
-                    icon: '/assets/company-avatar-4.png',
-                    costs: '$20',
-                    billingCycle: 'month',
-                    status: 'expiring',
-                  },
-                  {
-                    id: 'auth0',
-                    title: 'Auth0',
-                    icon: '/assets/company-avatar-3.png',
-                    costs: '$20-80',
-                    billingCycle: 'month',
-                    status: 'canceled',
-                  },
-                  {
-                    id: 'google_cloud',
-                    title: 'Google Cloud',
-                    icon: '/assets/company-avatar-2.png',
-                    costs: '$100-200',
-                    billingCycle: 'month',
-                    status: 'paid',
-                  },
-                  {
-                    id: 'stripe',
-                    title: 'Stripe',
-                    icon: '/assets/company-avatar-1.png',
-                    costs: '$70',
-                    billingCycle: 'month',
-                    status: 'paid',
-                  },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <AppChat
-                messages={[
-                  {
-                    id: 'MSG-001',
-                    content: 'Hello, we spoke earlier on the phone',
-                    author: { name: 'Alcides Antonio', avatar: '/assets/avatar-10.png', status: 'online' },
-                    createdAt: dayjs().subtract(2, 'minute').toDate(),
-                  },
-                  {
-                    id: 'MSG-002',
-                    content: 'Is the job still available?',
-                    author: { name: 'Marcus Finn', avatar: '/assets/avatar-9.png', status: 'offline' },
-                    createdAt: dayjs().subtract(56, 'minute').toDate(),
-                  },
-                  {
-                    id: 'MSG-003',
-                    content: "What is a screening task? I'd like to",
-                    author: { name: 'Carson Darrin', avatar: '/assets/avatar-3.png', status: 'online' },
-                    createdAt: dayjs().subtract(3, 'hour').subtract(23, 'minute').toDate(),
-                  },
-                  {
-                    id: 'MSG-004',
-                    content: 'Still waiting for feedback',
-                    author: { name: 'Fran Perez', avatar: '/assets/avatar-5.png', status: 'online' },
-                    createdAt: dayjs().subtract(8, 'hour').subtract(6, 'minute').toDate(),
-                  },
-                  {
-                    id: 'MSG-005',
-                    content: 'Need more information about campaigns',
-                    author: { name: 'Jie Yan', avatar: '/assets/avatar-8.png', status: 'offline' },
-                    createdAt: dayjs().subtract(10, 'hour').subtract(18, 'minute').toDate(),
-                  },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <Events
-                events={[
-                  {
-                    id: 'EV-004',
-                    title: 'Meeting with partners',
-                    description: '17:00 to 18:00',
-                    createdAt: dayjs().add(1, 'day').toDate(),
-                  },
-                  {
-                    id: 'EV-003',
-                    title: 'Interview with Jonas',
-                    description: '15:30 to 16:45',
-                    createdAt: dayjs().add(4, 'day').toDate(),
-                  },
-                  {
-                    id: 'EV-002',
-                    title: "Doctor's appointment",
-                    description: '12:30 to 15:30',
-                    createdAt: dayjs().add(4, 'day').toDate(),
-                  },
-                  {
-                    id: 'EV-001',
-                    title: 'Weekly meeting',
-                    description: '09:00 to 09:30',
-                    createdAt: dayjs().add(7, 'day').toDate(),
-                  },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <AppLimits usage={80} />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
+
+            <Grid size={{ md: 4, xs: 12 }}>
               <HelperWidget
                 action={
-                  <Button color="secondary" endIcon={<ArrowRightIcon />} size="small">
-                    Search jobs
+                  <Button
+                    component={RouterLink}
+                    href={paths.dashboard.service.backtesting}
+                    color="secondary"
+                    endIcon={<ArrowRightIcon />}
+                    size="small"
+                  >
+                    Backtest Strategies
                   </Button>
                 }
-                description="Search for jobs that match your skills and apply to them directly."
+                description="Run backtests on your strategies to see how they would have performed in the past."
                 icon={BriefcaseIcon}
-                label="Jobs"
-                title="Find your dream job"
+                label="Backtest"
+                title="Backtest your strategies"
               />
             </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
+            <Grid size={{ md: 4, xs: 12 }}>
               <HelperWidget
                 action={
-                  <Button color="secondary" endIcon={<ArrowRightIcon />} size="small">
-                    Help center
+                  <Button
+                    component={RouterLink}
+                    href={paths.dashboard.service.optimisation}
+                    color="secondary"
+                    endIcon={<ArrowRightIcon />}
+                    size="small"
+                  >
+                    Optimise Strategies
                   </Button>
                 }
-                description="Find answers to your questions and get in touch with our team."
+                description="Run simulations with various parameters to see how your strategies would perform."
                 icon={InfoIcon}
-                label="Help center"
-                title="Need help figuring things out?"
+                label="Optimisation"
+                title="Optimise your strategies"
               />
             </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
+            <Grid size={{ md: 4, xs: 12 }}>
               <HelperWidget
                 action={
-                  <Button color="secondary" endIcon={<ArrowRightIcon />} size="small">
-                    Documentation
+                  <Button
+                    component={RouterLink}
+                    href={paths.dashboard.service.trading.list}
+                    color="secondary"
+                    endIcon={<ArrowRightIcon />}
+                    size="small"
+                  >
+                    Live Trade
                   </Button>
                 }
-                description="Learn how to get started with our product and make the most of it."
+                description="Trade live with your backtested strategies to grow real accounts."
                 icon={FileCodeIcon}
-                label="Documentation"
-                title="Explore documentation"
+                label="Live Trade"
+                title="Trade live with your strategies"
               />
             </Grid>
           </Grid>
