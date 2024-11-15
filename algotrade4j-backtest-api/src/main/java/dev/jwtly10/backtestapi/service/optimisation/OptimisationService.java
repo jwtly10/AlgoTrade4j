@@ -14,7 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,8 +43,8 @@ public class OptimisationService {
         // Save task
         task.setConfig(config);
         task.setState(OptimisationState.PENDING);
-        task.setCreatedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
+        task.setCreatedAt(ZonedDateTime.now());
+        task.setUpdatedAt(ZonedDateTime.now());
         task = taskRepository.save(task);
 
         // Save task against user

@@ -1,24 +1,59 @@
+'use client';
+
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import IconButton from '@mui/material/IconButton';
+import LinearProgress from '@mui/material/LinearProgress';
 import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
+import { Eye, Faders, ShareNetwork, TrashSimple } from '@phosphor-icons/react';
 import { Helmet } from 'react-helmet-async';
+import Chip from '@mui/material/Chip';
 
 import { config } from '@/config';
+import { useOptimisation } from '@/hooks/services/use-optimisation';
 import { dayjs } from '@/lib/dayjs';
-import { AccountUpgrade } from '@/components/dashboard/crypto/account-upgrade';
-import { CreditCard } from '@/components/dashboard/crypto/credit-card';
-import { CurrencyConverter } from '@/components/dashboard/crypto/currency-converter';
-import { CurrentBalance } from '@/components/dashboard/crypto/current-balance';
-import { DigitalWallet } from '@/components/dashboard/crypto/digital-wallet';
-import { Transactions } from '@/components/dashboard/crypto/transactions';
+import Alert from '@mui/material/Alert';
+import { AlertTitle } from '@mui/lab';
+import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation-modal';
 
-const metadata = { title: `Crypto | Dashboard | ${config.site.name}` };
+const metadata = { title: `Optimization Tasks | Dashboard | ${config.site.name}` };
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'PENDING':
+      return 'default';
+    case 'RUNNING':
+      return 'primary';
+    case 'COMPLETED':
+      return 'success';
+    case 'FAILED':
+      return 'error';
+    default:
+      return 'default';
+  }
+};
+
+const ITEMS_PER_PAGE = 5;
 
 export function Page() {
+  const { optimisationTasks, isLoading, fetchOptimisationTasks } = useOptimisation();
+  const [visibleItems, setVisibleItems] = React.useState(ITEMS_PER_PAGE);
+
+  const [showNewJobDialog, setShowNewJobDialog] = React.useState(false);
+
+  const handleShowMore = () => {
+    setVisibleItems((prev) => prev + ITEMS_PER_PAGE);
+  };
+
+  const visibleTasks = optimisationTasks.slice(0, visibleItems);
+  const hasMoreItems = visibleItems < optimisationTasks.length;
+
   return (
     <React.Fragment>
       <Helmet>
@@ -35,141 +70,179 @@ export function Page() {
         <Stack spacing={4}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
             <Box sx={{ flex: '1 1 auto' }}>
-              <Typography variant="h4">Crypto</Typography>
+              <Typography variant="h4">Optimization Jobs</Typography>
             </Box>
             <div>
-              <Button startIcon={<PlusIcon />} variant="contained">
-                Add wallet
+              <Button
+                startIcon={<PlusIcon />}
+                variant="contained"
+                color="primary"
+                onClick={() => setShowNewJobDialog(true)}
+              >
+                New Optimization Job
               </Button>
             </div>
           </Stack>
           <Grid container spacing={4}>
             <Grid size={12}>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gap: 3,
-                  gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', xl: '1fr 1fr 1fr 500px' },
-                }}
-              >
-                <DigitalWallet
-                  amount={0.7568}
-                  color="var(--mui-palette-primary-main)"
-                  currency="BTC"
-                  data={[
-                    56, 61, 64, 60, 63, 61, 60, 68, 66, 64, 77, 60, 65, 51, 72, 80, 74, 67, 77, 83, 94, 95, 89, 100, 94,
-                    104, 101, 105, 104, 103, 107, 120,
-                  ]}
-                  diff={34.1}
-                  trend="up"
-                  value={16213.2}
-                />
-
-                <DigitalWallet
-                  amount={2.0435}
-                  color="var(--mui-palette-primary-main)"
-                  currency="ETH"
-                  data={[
-                    65, 64, 70, 76, 82, 80, 85, 78, 82, 95, 93, 80, 112, 102, 105, 95, 98, 102, 104, 99, 101, 100, 109,
-                    106, 111, 105, 108, 102, 118, 129,
-                  ]}
-                  diff={14.2}
-                  trend="up"
-                  value={9626.8}
-                />
-                <DigitalWallet
-                  amount={25.1602}
-                  color="var(--mui-palette-primary-main)"
-                  currency="BNB"
-                  data={[
-                    99, 101, 104, 98, 99, 99, 102, 103, 100, 101, 99, 101, 101, 98, 95, 97, 98, 92, 94, 93, 95, 82, 78,
-                    75, 80, 78, 76, 54, 45, 32, 31, 27,
-                  ]}
-                  diff={18}
-                  trend="down"
-                  value={6640}
-                />
-                <CreditCard
-                  card={{
-                    id: 'CRD-001',
-                    brand: 'mastercard',
-                    cardNumber: '5823 4492 2385 1102',
-                    expiryDate: '05/28',
-                    holderName: 'Sofia Rivers',
-                  }}
-                />
+              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr 1fr' } }}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Total Jobs
+                    </Typography>
+                    <Typography variant="h4">{optimisationTasks ? optimisationTasks.length : 0}</Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Running Jobs
+                    </Typography>
+                    <Typography variant="h4">
+                      {optimisationTasks ? optimisationTasks.filter((task) => task.state == 'RUNNING').length : 0}
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Failed Jobs Today
+                    </Typography>
+                    <Typography variant="h4">
+                      {optimisationTasks
+                        ? optimisationTasks.filter((task) => {
+                            return task.state == 'FAILED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
+                          }).length
+                        : 0}
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Completed Jobs Today
+                    </Typography>
+                    <Typography variant="h4">
+                      {optimisationTasks
+                        ? optimisationTasks.filter((task) => {
+                            return task.state == 'COMPLETED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
+                          }).length
+                        : 0}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Box>
             </Grid>
-            <Grid
-              size={{
-                md: 8,
-                xs: 12,
-              }}
-            >
-              <CurrentBalance
-                data={[
-                  { name: 'USD', value: 10076.81, color: 'var(--mui-palette-success-main)' },
-                  { name: 'BTC', value: 16213.2, color: 'var(--mui-palette-warning-main)' },
-                  { name: 'ETH', value: 9626.8, color: 'var(--mui-palette-primary-main)' },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <CurrencyConverter />
-            </Grid>
-            <Grid
-              size={{
-                md: 8,
-                xs: 12,
-              }}
-            >
-              <Transactions
-                transactions={[
-                  {
-                    id: 'TX-003',
-                    description: 'Buy BTC',
-                    type: 'add',
-                    balance: 643,
-                    currency: 'BTC',
-                    amount: 0.2105,
-                    createdAt: dayjs().subtract(2, 'day').subtract(1, 'hour').subtract(32, 'minute').toDate(),
-                  },
-                  {
-                    id: 'TX-002',
-                    description: 'Buy BTC',
-                    type: 'add',
-                    balance: 2344,
-                    currency: 'BTC',
-                    amount: 0.1337,
-                    createdAt: dayjs().subtract(3, 'day').subtract(1, 'hour').subtract(43, 'minute').toDate(),
-                  },
-                  {
-                    id: 'TX-001',
-                    description: 'Sell BTC',
-                    type: 'sub',
-                    balance: 4805,
-                    currency: 'BTC',
-                    amount: 0.2105,
-                    createdAt: dayjs().subtract(6, 'day').subtract(1, 'hour').subtract(32, 'minute').toDate(),
-                  },
-                ]}
-              />
-            </Grid>
-            <Grid
-              size={{
-                md: 4,
-                xs: 12,
-              }}
-            >
-              <AccountUpgrade />
+            <Grid size={12}>
+              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '1fr' } }}>
+                {visibleTasks.map((task) => (
+                  <Card key={task.id}>
+                    <CardContent>
+                      <Stack spacing={2}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="h6">{task.config.strategyClass}</Typography>
+                          <Chip label={task.state} color={getStatusColor(task.state)} size="small" />
+                        </Stack>
+
+                        <Stack spacing={1}>
+                          <Typography variant="body2" color="textSecondary">
+                            Task ID: {task.id}
+                          </Typography>
+                          {task.progressInfo && task.progressInfo !== 'null' && (
+                            <>
+                              <Box sx={{ width: '100%' }}>
+                                <LinearProgress
+                                  variant="determinate"
+                                  value={task.progressInfo.percentage}
+                                  sx={{ height: 8, borderRadius: 4 }}
+                                />
+                              </Box>
+                              <Stack direction="row" justifyContent="space-between">
+                                <Stack direction="row" spacing={2}>
+                                  <Typography variant="body2" color="textSecondary">
+                                    Completed: {task.progressInfo.completedTasks}
+                                  </Typography>
+                                  <Typography variant="body2" color="textSecondary">
+                                    Remaining: {task.progressInfo.remainingTasks}
+                                  </Typography>
+                                </Stack>
+                                <Typography variant="body2">
+                                  {task.progressInfo.percentage.toFixed(1)}%
+                                  {task.progressInfo.estimatedTimeMs > 0 && (
+                                    <Typography component="span" variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                                      ({Math.ceil(task.progressInfo.estimatedTimeMs / 1000 / 60)} min remaining)
+                                    </Typography>
+                                  )}
+                                </Typography>
+                              </Stack>
+                            </>
+                          )}
+                          {task.state === 'FAILED' && (
+                            <Alert
+                              severity="error"
+                              variant="outlined"
+                              sx={{
+                                '& .MuiAlert-message': {
+                                  width: '100%',
+                                },
+                              }}
+                            >
+                              <AlertTitle>Task Failed</AlertTitle>
+                              {task.errorMessage}
+                            </Alert>
+                          )}
+                        </Stack>
+
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Box flex={1}>
+                            <Typography variant="body2" color="textSecondary">
+                              Started:{' '}
+                              {task.createdAt ? dayjs(task.createdAt * 1000).format('MMM D, YYYY h:mm A') : '-'}
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              Last Updated:{' '}
+                              {task.updatedAt ? dayjs(task.updatedAt * 1000).format('MMM D, YYYY h:mm A') : '-'}
+                            </Typography>
+                          </Box>
+                          <Stack direction="row" spacing={1}>
+                            <IconButton size="small" title="Share">
+                              <ShareNetwork />
+                            </IconButton>
+                            <IconButton size="small" title="View Results">
+                              <Eye />
+                            </IconButton>
+                            <IconButton size="small" title="Configuration">
+                              <Faders />
+                            </IconButton>
+                            <IconButton size="small" title="Delete">
+                              <TrashSimple />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+                {hasMoreItems && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Button variant="outlined" onClick={handleShowMore} sx={{ minWidth: 200 }}>
+                      Show More
+                    </Button>
+                  </Box>
+                )}
+              </Box>
             </Grid>
           </Grid>
         </Stack>
+
+        {showNewJobDialog && (
+          <OptimisationConfigurationDialog
+            open={showNewJobDialog}
+            onClose={() => setShowNewJobDialog(false)}
+            onSubmit={(config) => console.log(`Submitted config ${config}`)}
+          />
+        )}
       </Box>
     </React.Fragment>
   );
