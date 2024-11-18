@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Card,
+  CardActions,
   CardContent,
   CardHeader,
   IconButton,
@@ -14,9 +15,11 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import { CaretDown, DotsThree, Folder } from '@phosphor-icons/react';
+import { ArrowRight, CaretDown, DotsThree, Folder } from '@phosphor-icons/react';
 import { useToast } from '@/hooks/use-toast';
 import { newsClient } from '@/lib/api/overview-client';
+import { RouterLink } from '@/components/core/link';
+import { paths } from '@/paths';
 
 export function NewsWidget() {
   const [newsData, setNewsData] = React.useState([]);
@@ -70,7 +73,7 @@ export function NewsWidget() {
           <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
             <Folder size={16} weight="fill" color={impactColors[event.impact]} />
           </Box>
-          <Typography sx={{ mr: 1, fontSize: '1rem' }}>{countryIcons[event.country]}</Typography>
+          <Typography sx={{ mr: 1, fontSize: '1.5rem' }}>{countryIcons[event.country]}</Typography>
           <ListItemText
             primary={
               <Typography variant="body2" noWrap>
@@ -88,14 +91,7 @@ export function NewsWidget() {
 
   return (
     <Card>
-      <CardHeader
-        title="Upcoming events"
-        action={
-          <IconButton>
-            <DotsThree weight="bold" />
-          </IconButton>
-        }
-      />
+      <CardHeader title="Upcoming events" />
       <CardContent sx={{ p: 0 }}>
         {newsData.length > 0 ? (
           <>
@@ -130,6 +126,17 @@ export function NewsWidget() {
           </Box>
         )}
       </CardContent>
+      <CardActions>
+        <Button
+          component={RouterLink}
+          href={paths.dashboard.news}
+          color="secondary"
+          endIcon={<ArrowRight weight="bold" />}
+          size="small"
+        >
+          View all events
+        </Button>
+      </CardActions>
     </Card>
   );
 }

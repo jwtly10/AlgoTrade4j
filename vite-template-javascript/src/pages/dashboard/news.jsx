@@ -11,17 +11,18 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { MultiSelect } from '@/components/core/multi-select';
 import { Folder } from '@phosphor-icons/react/dist/ssr/Folder';
 import { CaretDown } from '@phosphor-icons/react/dist/ssr/CaretDown';
 import { useToast } from '@/hooks/use-toast';
 import { newsClient } from '@/lib/api/overview-client';
 import { Helmet } from 'react-helmet-async';
 import { FunnelSimple, X } from '@phosphor-icons/react';
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 const NewsItem = ({ event }) => {
   const [expanded, setExpanded] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(false);
+  const isPastEvent = new Date(event.date * 1000) < new Date();
 
   React.useEffect(() => {
     const checkMobile = () => {
@@ -101,6 +102,7 @@ const NewsItem = ({ event }) => {
           '&:hover': {
             bgcolor: 'action.hover',
           },
+          color: isPastEvent ? 'text.disabled' : 'inherit',
         }}
       >
         <Typography color="text.secondary" variant="body2">
@@ -208,28 +210,24 @@ const countryOptions = [
 ];
 
 const FilterSection = ({ countryFilter, impactFilter, setCountryFilter, setImpactFilter }) => {
-  const hasCountryFilters = countryFilter.length > 0;
-  const hasImpactFilters = impactFilter.length > 0;
-
   return (
     <Card elevation={0} sx={{ bgcolor: 'background.default' }}>
       <CardContent>
         <Stack spacing={3}>
-          {/* Filters Header */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <FunnelSimple size={20} />
             <Typography variant="subtitle1" fontWeight={600}>
               Filters
             </Typography>
-            {(hasCountryFilters || hasImpactFilters) && (
+            {(countryFilter || impactFilter) && (
               <Button
                 variant="outlined"
                 color="inherit"
                 size="small"
                 startIcon={<X size={16} />}
                 onClick={() => {
-                  setCountryFilter([]);
-                  setImpactFilter([]);
+                  setCountryFilter('');
+                  setImpactFilter('');
                 }}
                 sx={{
                   ml: 'auto',
@@ -244,7 +242,6 @@ const FilterSection = ({ countryFilter, impactFilter, setCountryFilter, setImpac
             )}
           </Box>
 
-          {/* Filter Controls */}
           <Box
             sx={{
               display: 'grid',
@@ -253,20 +250,33 @@ const FilterSection = ({ countryFilter, impactFilter, setCountryFilter, setImpac
               alignItems: 'start',
             }}
           >
-            <MultiSelect
-              label={`Country${hasCountryFilters ? ' *' : ''}`}
-              options={countryOptions}
-              value={countryFilter}
-              onChange={setCountryFilter}
-              sx={{ minWidth: 200 }}
-            />
-            <MultiSelect
-              label={`Impact${hasImpactFilters ? ' *' : ''}`}
-              options={impactOptions}
-              value={impactFilter}
-              onChange={setImpactFilter}
-              sx={{ minWidth: 200 }}
-            />
+            <FormControl fullWidth>
+              <InputLabel>Country</InputLabel>
+              <Select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} label="Country">
+                <MenuItem value="" disabled>
+                  <em>Filter on country</em>
+                </MenuItem>
+                {countryOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel>Impact</InputLabel>
+              <Select value={impactFilter} onChange={(e) => setImpactFilter(e.target.value)} label="Impact">
+                <MenuItem value="" disabled>
+                  <em>Filter on impact</em>
+                </MenuItem>
+                {impactOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Stack>
       </CardContent>
@@ -277,8 +287,8 @@ const FilterSection = ({ countryFilter, impactFilter, setCountryFilter, setImpac
 export function Page() {
   const { toast } = useToast();
   const [newsData, setNewsData] = React.useState([]);
-  const [countryFilter, setCountryFilter] = React.useState([]);
-  const [impactFilter, setImpactFilter] = React.useState([]);
+  const [countryFilter, setCountryFilter] = React.useState('');
+  const [impactFilter, setImpactFilter] = React.useState('');
 
   React.useEffect(() => {
     const fetchNews = async () => {
@@ -296,8 +306,8 @@ export function Page() {
 
   const groupedEvents = React.useMemo(() => {
     const filtered = newsData.filter((item) => {
-      const matchesCountry = countryFilter.length === 0 || countryFilter.includes(item.country);
-      const matchesImpact = impactFilter.length === 0 || impactFilter.includes(item.impact);
+      const matchesCountry = !countryFilter || item.country === countryFilter;
+      const matchesImpact = !impactFilter || item.impact === impactFilter;
       return matchesCountry && matchesImpact;
     });
 

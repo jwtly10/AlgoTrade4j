@@ -20,7 +20,7 @@ import { useOptimisation } from '@/hooks/services/use-optimisation';
 import { dayjs } from '@/lib/dayjs';
 import Alert from '@mui/material/Alert';
 import { AlertTitle } from '@mui/lab';
-import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation-modal';
+import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation';
 
 const metadata = { title: `Optimization Tasks | Dashboard | ${config.site.name}` };
 
@@ -51,6 +51,10 @@ export function Page() {
     setVisibleItems((prev) => prev + ITEMS_PER_PAGE);
   };
 
+  const handleSubmitOptimisation = () => {
+    toast.success('Optimization job submitted successfully');
+  };
+
   const visibleTasks = optimisationTasks.slice(0, visibleItems);
   const hasMoreItems = visibleItems < optimisationTasks.length;
 
@@ -68,6 +72,11 @@ export function Page() {
         }}
       >
         <Stack spacing={4}>
+          <Alert severity="warning" sx={{ width: '100%' }}>
+            <AlertTitle>Optimisation Jobs</AlertTitle>
+            Optimisation jobs have been paused while we work on some backend improvements for performance and
+            reliability. Please check back later.
+          </Alert>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
             <Box sx={{ flex: '1 1 auto' }}>
               <Typography variant="h4">Optimization Jobs</Typography>
@@ -78,6 +87,7 @@ export function Page() {
                 variant="contained"
                 color="primary"
                 onClick={() => setShowNewJobDialog(true)}
+                disabled
               >
                 New Optimization Job
               </Button>
@@ -236,13 +246,13 @@ export function Page() {
           </Grid>
         </Stack>
 
-        {showNewJobDialog && (
+        {showNewJobDialog ? (
           <OptimisationConfigurationDialog
             open={showNewJobDialog}
             onClose={() => setShowNewJobDialog(false)}
-            onSubmit={(config) => console.log(`Submitted config ${config}`)}
+            onSubmit={handleSubmitOptimisation}
           />
-        )}
+        ) : null}
       </Box>
     </React.Fragment>
   );

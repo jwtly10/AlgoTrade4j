@@ -1,12 +1,10 @@
 import React from 'react';
 import {
-  Avatar,
   Button,
   Card,
   CardActions,
   CardHeader,
   Divider,
-  IconButton,
   List,
   ListItem,
   ListItemAvatar,
@@ -14,25 +12,13 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import { ArrowRight, ClockCounterClockwise, DotsThree } from '@phosphor-icons/react';
+import { ArrowRight, ClockCounterClockwise } from '@phosphor-icons/react';
 import { dayjs } from '@/lib/dayjs';
 
 export function RecentActivityCard({ recentActivities }) {
   return (
     <Card>
-      <CardHeader
-        action={
-          <IconButton>
-            <DotsThree weight="bold" />
-          </IconButton>
-        }
-        avatar={
-          <Avatar>
-            <ClockCounterClockwise weight="bold" />
-          </Avatar>
-        }
-        title="Recent Activity"
-      />
+      <CardHeader title="Recent Activity" />
       <List
         disablePadding
         sx={{
@@ -51,7 +37,7 @@ export function RecentActivityCard({ recentActivities }) {
               <ListItemText
                 sx={{ pr: 2 }}
                 primary={
-                  <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
                     {activity.description}
                   </Typography>
                 }

@@ -1,21 +1,21 @@
-import React, {useEffect, useState} from 'react';
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.jsx";
-import {AlertTriangle, CheckCircle2, RefreshCw, XCircle} from 'lucide-react';
-import {Button} from "@/components/ui/button.jsx";
-import {useToast} from "@/hooks/use-toast";
-import {systemClient} from "@/api/systemClient.js";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.jsx';
+import { AlertTriangle, CheckCircle2, RefreshCw, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button.jsx';
+import { useToast } from '@/hooks/use-toast';
+import { systemClient } from '@/api/systemClient.js';
 
-const StatusIndicator = ({status, label}) => {
+const StatusIndicator = ({ status, label }) => {
     const getStatusIcon = () => {
         switch (status) {
             case 'UP':
-                return <CheckCircle2 className="w-5 h-5 text-green-500"/>;
+                return <CheckCircle2 className="w-5 h-5 text-green-500" />;
             case 'DOWN':
-                return <XCircle className="w-5 h-5 text-red-500"/>;
+                return <XCircle className="w-5 h-5 text-red-500" />;
             case 'UNKNOWN':
-                return <AlertTriangle className="w-5 h-5 text-gray-400"/>;
+                return <AlertTriangle className="w-5 h-5 text-gray-400" />;
             default:
-                return <AlertTriangle className="w-5 h-5 text-gray-400"/>;
+                return <AlertTriangle className="w-5 h-5 text-gray-400" />;
         }
     };
 
@@ -38,11 +38,15 @@ const StatusIndicator = ({status, label}) => {
                 {getStatusIcon()}
                 <span className="font-medium">{label}</span>
             </div>
-            <div className={`text-sm ${
-                status === 'UP' ? 'text-green-500' :
-                    status === 'DOWN' ? 'text-red-500' :
-                        'text-gray-400'
-            }`}>
+            <div
+                className={`text-sm ${
+                    status === 'UP'
+                        ? 'text-green-500'
+                        : status === 'DOWN'
+                          ? 'text-red-500'
+                          : 'text-gray-400'
+                }`}
+            >
                 {getStatusDisplay(status)}
             </div>
         </div>
@@ -53,10 +57,10 @@ const SystemHealthCard = () => {
     const [health, setHealth] = useState({
         api: 'UNKNOWN',
         live: 'UNKNOWN',
-        mt5: 'UNKNOWN'
+        mt5: 'UNKNOWN',
     });
     const [isLoading, setIsLoading] = useState(false);
-    const {toast} = useToast();
+    const { toast } = useToast();
 
     const fetchHealthStatus = async () => {
         setIsLoading(true);
@@ -78,12 +82,12 @@ const SystemHealthCard = () => {
 
         const apiStatus = await fetchEndpoint(systemClient.mainHealth, 'Backtest API Service');
         const liveStatus = await fetchEndpoint(systemClient.liveHealth, 'Live Trading Service');
-        const mt5Status = await fetchEndpoint(systemClient.mt5Health, 'MT5 Gateway Adapter');
+        const mt5Status = await fetchEndpoint(systemClient.mt5Health, 'MT5 Service');
 
         setHealth({
             api: apiStatus,
             live: liveStatus,
-            mt5: mt5Status
+            mt5: mt5Status,
         });
 
         setIsLoading(false);
@@ -95,26 +99,25 @@ const SystemHealthCard = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const allHealthy = Object.values(health).every(status => status === 'UP');
+    const allHealthy = Object.values(health).every((status) => status === 'UP');
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">System Health</CardTitle>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={fetchHealthStatus}
-                    disabled={isLoading}
-                >
-                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}/>
+                <Button variant="ghost" size="sm" onClick={fetchHealthStatus} disabled={isLoading}>
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                 </Button>
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">
-                    <div className={`p-3 mb-4 rounded-lg ${
-                        allHealthy ? 'bg-green-100 dark:bg-green-900/20' : 'bg-yellow-100 dark:bg-yellow-900/20'
-                    }`}>
+                    <div
+                        className={`p-3 mb-4 rounded-lg ${
+                            allHealthy
+                                ? 'bg-green-100 dark:bg-green-900/20'
+                                : 'bg-yellow-100 dark:bg-yellow-900/20'
+                        }`}
+                    >
                         <p className="text-sm font-medium">
                             {allHealthy
                                 ? '✨ All systems are operational'
@@ -122,9 +125,9 @@ const SystemHealthCard = () => {
                         </p>
                     </div>
 
-                    <StatusIndicator status={health.api} label="Backtest API Service"/>
-                    <StatusIndicator status={health.live} label="Live Trading Service"/>
-                    <StatusIndicator status={health.mt5} label="MT5 Gateway Adapter"/>
+                    <StatusIndicator status={health.api} label="Backtest API Service" />
+                    <StatusIndicator status={health.live} label="Live Trading Service" />
+                    <StatusIndicator status={health.mt5} label="MT5 Service" />
                 </div>
             </CardContent>
         </Card>

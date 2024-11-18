@@ -100,11 +100,7 @@ const ServiceHealth = () => {
   return (
     <Card>
       <CardHeader
-        title={
-          <Typography variant="h6" fontWeight="bold">
-            System Health
-          </Typography>
-        }
+        title="System Health"
         action={
           <IconButton onClick={fetchHealthStatus} disabled={isLoading}>
             <ArrowsClockwise
@@ -123,7 +119,7 @@ const ServiceHealth = () => {
         <List disablePadding>
           <StatusIndicator status={health.api} label="Backtest API Service" />
           <StatusIndicator status={health.live} label="Live Trading Service" />
-          <StatusIndicator status={health.mt5} label="MT5 Gateway Adapter" />
+          <StatusIndicator status={health.mt5} label="MT5 Adapter Service" />
         </List>
       </CardContent>
     </Card>

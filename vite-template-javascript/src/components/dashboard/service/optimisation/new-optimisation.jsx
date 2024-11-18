@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
@@ -8,39 +9,39 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  Grid,
   IconButton,
   InputLabel,
-  List,
-  ListItemButton,
-  ListItemText,
   MenuItem,
-  Paper,
   Select,
-  Tab,
-  Tabs,
-  TextField,
-  Tooltip,
   Typography,
+  useColorScheme,
 } from '@mui/material';
+import { X } from '@phosphor-icons/react';
+import { toast } from 'react-toastify';
+import JSONInput from 'react-json-editor-ajrm';
+import locale from 'react-json-editor-ajrm/locale/en';
 import { strategyClient } from '@/lib/api/auth/strategy-client';
 import { logger } from '@/lib/default-logger';
-import { Info, X } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
-import { brokerClient } from '@/lib/api/auth/broker-client';
+import { optimisationClient } from '@/lib/api/optimisation-client';
 
 function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [strategies, setStrategies] = useState([]);
-  const [activeTab, setActiveTab] = useState();
-  const [activeGroup, setActiveGroup] = useState('');
   const [instruments, setInstruments] = useState([]);
+  const [jsonError, setJsonError] = useState(null);
+  const [errMessage, setErrMessage] = useState(null);
+
+  const { colorScheme } = useColorScheme();
+  const colors = {
+    background: colorScheme === 'dark' ? '#121517' : '#FFFFFF',
+    textColor: colorScheme === 'dark' ? '#D9D9D9' : '#121212',
+  };
 
   const defaultConfig = {
     strategyClass: 'DJATRStrategy',
     instrument: 'NAS100USD',
-    period: 900,
+    period: 'M15',
     spread: 10,
     speed: 'INSTANT',
     initialCash: 10000,
@@ -48,9 +49,9 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
       {
         value: '300',
         name: 'stopLossTicks',
-        start: '1', // Defaults set manually
-        end: '1', // Defaults set manually
-        step: '1', // Defaults set manually
+        start: '1',
+        end: '1',
+        step: '1',
         selected: false,
         stringList: null,
       },
@@ -62,25 +63,22 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
   };
   const [config, setConfig] = useState(defaultConfig);
 
-  // On load clear anything that might be in the dialog
-  // and get the base data for this dialog to work
   useEffect(() => {
-    setSelectedStrategy('');
-    fetchBaseData();
+    if (open) {
+      setSelectedStrategy('');
+      fetchBaseData();
+    }
   }, [open]);
 
   const fetchBaseData = async () => {
     setLoading(true);
     try {
-      const [strategiesResponse, instrumentsResponse, accountsResponse] = await Promise.all([
+      const [strategiesResponse, instrumentsResponse] = await Promise.all([
         strategyClient.getStrategies(),
         strategyClient.getInstruments(),
-        brokerClient.getBrokerAccounts(),
       ]);
-
       setStrategies(strategiesResponse);
       setInstruments(instrumentsResponse);
-      setAccounts(accountsResponse);
     } catch (err) {
       toast.error(`Error fetching base data: ${err.message}`);
       logger.error('Error fetching base data:', err);
@@ -88,64 +86,81 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
     setLoading(false);
   };
 
-  const getDefaultStrategyRunParams = async (strategyClass) => {
+  const handleStrategyChange = async (e) => {
+    const stratClass = e.target.value;
+    setSelectedStrategy(stratClass);
     setLoading(true);
+
     try {
-      const params = await strategyClient.getDefaultParamsForStrategyClass(strategyClass);
-      return params;
+      const defaultParams = await strategyClient.getDefaultParamsForStrategyClass(stratClass);
+
+      // Fill default run params with defaults
+      const runParams = defaultParams.map((param) => ({
+        name: param.name,
+        description: param.description,
+        value: param.value,
+        defaultValue: param.value,
+        group: param.group,
+        start: '1',
+        end: '1',
+        step: '1',
+        selected: false,
+        stringList: '',
+      }));
+
+      setConfig((prev) => ({
+        ...prev,
+        strategyClass: stratClass,
+        runParams,
+      }));
     } catch (error) {
       toast.error(`Error fetching strategy params: ${error.message}`);
-      logger.error('Error fetching strategy params:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleJsonChange = ({ jsObject, error }) => {
+    if (error) {
+      setJsonError(error);
+    } else {
+      setJsonError(null);
+      setConfig(jsObject);
     }
   };
 
   const handleSave = async () => {
+    if (jsonError) {
+      toast.error('Please fix JSON errors before submitting');
+      return;
+    }
+
     setLoading(true);
+
+    try {
+      const res = optimisationClient.queueOptimisation(config);
+    } catch (error) {
+      // The api provides validation, so we can use this to validate the form before closing
+      if (error.message) {
+        setErrMessage(error.message);
+      } else {
+        toast('Error submitting job', error);
+      }
+
+      // Then just return out
+      setLoading(false);
+      return;
+    }
+
     try {
       await onSubmit(config);
+      onClose();
+      setLoading(false);
     } catch (error) {
       toast.error(`Error saving strategy: ${error.message}`);
       logger.error('Error saving strategy:', error);
-    } finally {
       setLoading(false);
     }
-  };
-
-  // If we change the strategy, we have to default to the new strategy's parameters
-  const handleStrategyChange = async (e) => {
-    const stratClass = e.target.value;
-    setSelectedStrategy(stratClass);
-
-    if (stratClass) {
-      const defaultParams = await getDefaultStrategyRunParams(stratClass);
-      // Note we only set the parameter config on the strategy change
-      // Since we have no way to transfer data between strategies, we have to accept them as new almost
-      setConfig((prev) => ({
-        ...prev,
-        config: {
-          ...prev.config,
-          strategyClass: stratClass,
-          runParams: defaultParams,
-        },
-      }));
-    }
-  };
-
-  const groupedParams = groupParams(config.config.runParams);
-
-  const isValid = () => {
-    if (!selectedStrategy) return false;
-    if (!config.strategyName) return false;
-    if (!config.config?.instrumentData.internalSymbol) return false;
-    if (!config.config?.period) return false;
-    if (!config.brokerAccount?.accountId) return false;
-
-    // Check if all required parameters have values
-    const allParamsSet = config.config.runParams.every((param) => param.value !== undefined && param.value !== '');
-
-    return allParamsSet;
   };
 
   return (
@@ -156,277 +171,81 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
       fullWidth
       PaperProps={{
         sx: {
-          height: selectedStrategy ? '70vh' : 'auto',
+          height: 'auto',
           display: 'flex',
           flexDirection: 'column',
         },
       }}
     >
       <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography>{initialConfig ? 'Edit Strategy Configuration' : 'Create New Strategy'}</Typography>
+        <Typography>Configuration Optimisation Job</Typography>
         <IconButton onClick={onClose} size="small" aria-label="close">
           <X />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ p: 0, display: 'flex', overflow: 'hidden' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-          <Box
-            sx={{
-              p: 3,
-              borderBottom: selectedStrategy ? 1 : 0,
-              borderColor: 'divider',
-              pt: initialConfig ? 2 : 3,
-              pb: initialConfig ? 2 : 3,
-            }}
-          >
-            {!initialConfig ? (
-              <FormControl fullWidth sx={{ mb: selectedStrategy ? 3 : 0 }}>
-                <InputLabel>Strategy Class</InputLabel>
-                <Select value={selectedStrategy} onChange={handleStrategyChange} label="Strategy CLass">
-                  <MenuItem value="" disabled>
-                    <em>Select a strategy class to configure</em>
-                  </MenuItem>
-                  {strategies.map((strategy) => (
-                    <MenuItem key={strategy} value={strategy}>
-                      {strategy}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            ) : null}
-            {selectedStrategy ? (
-              <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-                <Tab label="Parameters" />
-                <Tab label="Run Configuration" />
-                <Tab label="Broker Configuration" />
-              </Tabs>
-            ) : null}
-          </Box>
-
-          {selectedStrategy ? (
-            <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-              {/* Parameters Tab */}
-              {activeTab === 0 && (
-                <Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
-                  {/* Sidebar */}
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      width: 150,
-                      borderRight: 1,
-                      borderColor: 'divider',
-                      overflow: 'auto',
-                    }}
-                  >
-                    <List>
-                      {Object.keys(groupedParams).map((group) => (
-                        <ListItemButton
-                          key={group}
-                          selected={activeGroup === group}
-                          onClick={() => setActiveGroup(group)}
-                        >
-                          <ListItemText primary={group} />
-                        </ListItemButton>
-                      ))}
-                    </List>
-                  </Paper>
-
-                  {/* Parameters Content */}
-                  <Box sx={{ flex: 1, p: 3, overflow: 'auto' }}>
-                    {activeGroup ? (
-                      <Grid container spacing={3}>
-                        {groupedParams[activeGroup]?.map((param) => (
-                          <Grid item xs={12} md={6} key={param.name}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              {param.type === 'enum' ? (
-                                <FormControl fullWidth>
-                                  <InputLabel>{param.name}</InputLabel>
-                                  <Select
-                                    value={param.value || ''}
-                                    onChange={(e) => handleParamChange(param.name, e.target.value)}
-                                    label={param.name}
-                                  >
-                                    {param.enumValues?.map((value) => (
-                                      <MenuItem key={value} value={value}>
-                                        {value}
-                                      </MenuItem>
-                                    ))}
-                                  </Select>
-                                </FormControl>
-                              ) : (
-                                <TextField
-                                  fullWidth
-                                  label={param.name}
-                                  value={param.value || ''}
-                                  onChange={(e) => handleParamChange(param.name, e.target.value)}
-                                  placeholder={`Enter ${param.type} value`}
-                                  type={param.type === 'int' || param.type === 'double' ? 'number' : 'text'}
-                                />
-                              )}
-                              <Tooltip title={param.description || 'No description available'}>
-                                <IconButton size="small">
-                                  <Info />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    ) : null}
-                  </Box>
-                </Box>
-              )}
-
-              {/* Run Configuration Tab */}
-              {activeTab === 1 && (
-                <Box sx={{ p: 3, width: '100%' }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Strategy Name"
-                        value={config.strategyName}
-                        placeholder="Enter a name for this strategy"
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            strategyName: e.target.value,
-                          }))
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        label="Telegram Chat ID"
-                        value={config.telegramChatId}
-                        placeholder="Enter the Telegram Chat ID to send notifications to"
-                        onChange={(e) =>
-                          setConfig((prev) => ({
-                            ...prev,
-                            telegramChatId: e.target.value,
-                          }))
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Instrument</InputLabel>
-                        <Select
-                          value={config.config.instrumentData.internalSymbol}
-                          onChange={(e) =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              config: {
-                                ...prev.config,
-                                instrumentData: {
-                                  ...prev.config.instrumentData,
-                                  internalSymbol: e.target.value,
-                                },
-                              },
-                            }))
-                          }
-                          label="Instrument"
-                        >
-                          <MenuItem value="" disabled>
-                            <em>Select an instrument</em>
-                          </MenuItem>
-                          {instruments.map((instrument) => (
-                            <MenuItem key={instrument.internalSymbol} value={instrument.internalSymbol}>
-                              {instrument.internalSymbol}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Period</InputLabel>
-                        <Select
-                          value={config.config.period}
-                          onChange={(e) =>
-                            setConfig((prev) => ({
-                              ...prev,
-                              config: {
-                                ...prev.config,
-                                period: e.target.value,
-                              },
-                            }))
-                          }
-                          label="Period"
-                        >
-                          <MenuItem value="" disabled>
-                            <em>Select a period</em>
-                          </MenuItem>
-                          {['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D'].map((period) => (
-                            <MenuItem key={period} value={period}>
-                              {period}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-
-              {/* Broker Configuration Tab */}
-              {activeTab === 2 && (
-                <Box sx={{ p: 3, width: '100%' }}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel>Broker Account</InputLabel>
-                        <Select
-                          value={config.brokerAccount.accountId}
-                          onChange={(e) => {
-                            const selectedAccount = accounts.find((account) => account.accountId === e.target.value);
-                            setConfig((prev) => ({
-                              ...prev,
-                              brokerAccount: selectedAccount,
-                              config: {
-                                ...prev.config,
-                                initialCash: selectedAccount.initialBalance,
-                              },
-                            }));
-                          }}
-                          label="Broker Account"
-                        >
-                          <MenuItem value="" disabled>
-                            <em>Select a broker account</em>
-                          </MenuItem>
-                          {accounts.map((account) => (
-                            <MenuItem key={account.accountId} value={account.accountId}>
-                              {`${account.brokerName} - ${account.brokerType} - ${account.brokerEnv} - $${
-                                parseFloat(account.initialBalance)
-                                  ? parseFloat(account.initialBalance).toLocaleString()
-                                  : account.initialBalance
-                              }`}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </Box>
-              )}
-            </Box>
-          ) : null}
+      <DialogContent dividers sx={{ p: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+          <FormControl fullWidth>
+            <InputLabel>Strategy Class</InputLabel>
+            <Select value={selectedStrategy} onChange={handleStrategyChange} label="Strategy Class">
+              <MenuItem value="" disabled>
+                <em>Select a strategy class to configure</em>
+              </MenuItem>
+              {strategies.map((strategy) => (
+                <MenuItem key={strategy} value={strategy}>
+                  {strategy}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
+
+        {selectedStrategy ? (
+          <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+            {errMessage ? (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {`Error submitting job: ${errMessage}`}
+              </Alert>
+            ) : null}
+            <JSONInput
+              id="json-editor"
+              locale={locale}
+              placeholder={config}
+              height="100%"
+              width="100%"
+              onChange={handleJsonChange}
+              style={{
+                body: {
+                  fontSize: '14px',
+                  //   backgroundColor: colors.background,
+                  borderRadius: '10px',
+                  padding: '5px',
+                },
+                contentBox: {
+                  borderRadius: '10px',
+                },
+              }}
+              theme={colorScheme === 'dark' ? '' : 'light_mitsuketa_tribute'} // Use default in dark mode
+            />
+          </Box>
+        ) : null}
       </DialogContent>
 
       <DialogActions sx={{ p: 2 }}>
-        {initialConfig && (
-          <Button onClick={() => onDelete(config)} disabled={loading} color="error">
-            Delete
-          </Button>
-        )}
+        <Typography color="error" sx={{ flex: 1, pl: 2 }}>
+          {jsonError && 'Invalid JSON configuration'}
+        </Typography>
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSave} disabled={loading || !isValid()}>
-          {loading ? <CircularProgress size={24} /> : initialConfig ? 'Update Strategy' : 'Create Strategy'}
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={loading || jsonError || !selectedStrategy}
+          startIcon={loading && <CircularProgress size={20} />}
+        >
+          Submit Optimisation Job
         </Button>
       </DialogActions>
     </Dialog>
