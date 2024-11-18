@@ -116,7 +116,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
                     }
 
                     if (isRunning) {
-                        log.warn("Stream loop ended while isRunning=True for class: {}", getClass().getSimpleName());
+                        log.warn("Stream loop ended while isRunning=True");
                     }
 
                 } catch (Exception e) {

@@ -2,6 +2,7 @@ package dev.jwtly10.backtestapi.controller.users;
 
 import dev.jwtly10.backtestapi.auth.model.LoginResponse;
 import dev.jwtly10.backtestapi.auth.model.SignupRequest;
+import dev.jwtly10.backtestapi.auth.model.UserLoginLog;
 import dev.jwtly10.backtestapi.auth.service.UserLoginLogService;
 import dev.jwtly10.backtestapi.auth.service.UserService;
 import dev.jwtly10.shared.auth.model.Role;
@@ -10,6 +11,8 @@ import dev.jwtly10.shared.auth.model.dto.UserDTO;
 import dev.jwtly10.shared.config.ratelimit.RateLimit;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
+import dev.jwtly10.shared.tracking.TrackingService;
+import dev.jwtly10.shared.tracking.UserActionLog;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +29,12 @@ public class AdminController {
 
     private final UserService userService;
     private final UserLoginLogService userLoginLogService;
+    private final TrackingService trackingService;
 
-    public AdminController(UserService userService, UserLoginLogService userLoginLogService) {
+    public AdminController(UserService userService, UserLoginLogService userLoginLogService, TrackingService trackingService) {
         this.userService = userService;
         this.userLoginLogService = userLoginLogService;
+        this.trackingService = trackingService;
     }
 
     @PostMapping("/users")
@@ -41,6 +46,7 @@ public class AdminController {
                     newUser.getId(),
                     newUser.getUsername(),
                     newUser.getFirstName(),
+                    newUser.getLastName(),
                     newUser.getEmail(),
                     newUser.getRole().name()));
         } catch (Exception e) {
@@ -104,6 +110,20 @@ public class AdminController {
     public ResponseEntity<?> getUserLoginLogs(@PathVariable("userId") Long userId) {
         try {
             return ResponseEntity.ok(userLoginLogService.getUserLoginLogs(userId));
+        } catch (Exception e) {
+            throw new ApiException(e.getMessage(), ErrorType.INTERNAL_ERROR);
+        }
+    }
+
+    // Utility to prevent needing multiple requests
+    @GetMapping("/user-details/{userId}")
+    public ResponseEntity<?> getUserDetails(@PathVariable("userId") Long userId) {
+        try {
+            UserDTO user = userService.getUserDTO(userId);
+            List<UserLoginLog> loginLogs = userLoginLogService.getRecentUserLogins(userId, 100);
+            List<UserActionLog> actions = trackingService.getRecentTrackingEventsForUser(userId, 100);
+
+            return ResponseEntity.ok(Map.of("user", user, "loginLogs", loginLogs, "actions", actions));
         } catch (Exception e) {
             throw new ApiException(e.getMessage(), ErrorType.INTERNAL_ERROR);
         }

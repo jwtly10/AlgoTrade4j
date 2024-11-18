@@ -605,7 +605,7 @@ export const useBacktest = () => {
         });
         setIndicators({});
         setAnalysisData(null);
-        setEquityHistory([]);
+    setEquityHistory([]);
 
         // Get the class of the strategy
         let stratClass;

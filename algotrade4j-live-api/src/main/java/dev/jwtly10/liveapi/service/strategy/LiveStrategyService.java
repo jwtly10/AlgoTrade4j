@@ -181,7 +181,7 @@ public class LiveStrategyService {
         // Validate live strategy configuration
         LiveStrategy existingStrategy = liveStrategyRepository.findByStrategyName(strategy.getStrategyName()).orElse(null);
         if (existingStrategy != null) {
-            throw new ApiException("Strategy with the same name already exists", ErrorType.BAD_REQUEST);
+            throw new ApiException("Strategy with the same name already exists (It may be hidden/deleted)", ErrorType.BAD_REQUEST);
         }
 
         try {
@@ -285,7 +285,7 @@ public class LiveStrategyService {
 
         LiveStrategy existingStrategy = liveStrategyRepository.findByStrategyName(updatedStratConfig.getStrategyName()).orElse(null);
         if (existingStrategy != null && !existingStrategy.getId().equals(id)) {
-            throw new ApiException("Strategy with the same name already exists", ErrorType.BAD_REQUEST);
+            throw new ApiException("Strategy with the same name already exists (It may be hidden/deleted)", ErrorType.BAD_REQUEST);
         }
 
         try {
@@ -307,5 +307,11 @@ public class LiveStrategyService {
     public Optional<LiveStrategy> getActiveStrategy(Long strategyId) {
         log.info("Getting active live strategy with id: {}", strategyId);
         return liveStrategyRepository.findByIdAndActiveIsTrue(strategyId);
+    }
+
+    public LiveStrategy getLiveStrategy(Long id) {
+        log.info("Getting live strategy with id: {}", id);
+        return liveStrategyRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Live strategy not found", ErrorType.NOT_FOUND));
     }
 }
