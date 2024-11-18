@@ -17,8 +17,7 @@ import { User as UserIcon } from '@phosphor-icons/react/dist/ssr/User';
 import { useUser } from '@/hooks/use-user';
 
 export function AccountDetails() {
-  const { user, isLoading } = useUser();
-  logger.debug(user);
+  const { user } = useUser();
 
   return (
     <Card>
@@ -35,11 +34,11 @@ export function AccountDetails() {
           <Stack spacing={2}>
             <FormControl disabled>
               <InputLabel>Full name</InputLabel>
-              <OutlinedInput defaultValue={user.name} name={user.name} />
+              <OutlinedInput defaultValue={user?.name} name={user?.name} />
             </FormControl>
             <FormControl disabled>
               <InputLabel>Email address</InputLabel>
-              <OutlinedInput name="email" type="email" value={user.email} />
+              <OutlinedInput name="email" type="email" value={user?.email} />
             </FormControl>
           </Stack>
           <FormHelperText>Please contact us to change your details</FormHelperText>

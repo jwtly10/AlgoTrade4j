@@ -6,6 +6,6 @@ import { route as samplesRoute } from './samples';
 import { route as supabaseRoute } from './supabase';
 
 export const route = {
-  path: 'auth',
+  path: '',
   children: [auth0Route, cognitoRoute, customRoute, firebaseRoute, samplesRoute, supabaseRoute],
 };

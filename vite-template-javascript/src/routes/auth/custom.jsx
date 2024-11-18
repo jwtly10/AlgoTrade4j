@@ -5,7 +5,7 @@ import { AuthStrategy } from '@/lib/auth/strategy';
 import { StrategyGuard } from '@/components/auth/strategy-guard';
 
 export const route = {
-  path: 'custom',
+  path: '',
   element: (
     <StrategyGuard expected={AuthStrategy.CUSTOM}>
       <Outlet />
