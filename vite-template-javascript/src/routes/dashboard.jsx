@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Layout as DashboardLayout } from '@/components/dashboard/layout/layout';
 import { Layout as SettingsLayout } from '@/components/dashboard/settings/layout';
+import { ProtectedRoute } from '@/routes/protected';
 
 export const route = {
   path: 'dashboard',
@@ -25,17 +26,36 @@ export const route = {
           index: true,
           lazy: async () => {
             const { Page } = await import('@/pages/dashboard/admin/users/list');
-            return { Component: Page };
+            return {
+              Component: () => (
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <Page />
+                </ProtectedRoute>
+              ),
+            };
           },
         },
         {
           path: ':userId',
           lazy: async () => {
             const { Page } = await import('@/pages/dashboard/admin/users/details');
-            return { Component: Page };
+            return {
+              Component: () => (
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <Page />
+                </ProtectedRoute>
+              ),
+            };
           },
         },
       ],
+    },
+    {
+      path: 'news',
+      lazy: async () => {
+        const { Page } = await import('@/pages/dashboard/news');
+        return { Component: Page };
+      },
     },
     {
       path: 'service',
@@ -54,14 +74,26 @@ export const route = {
               index: true,
               lazy: async () => {
                 const { Page } = await import('@/pages/dashboard/service/trading/list');
-                return { Component: Page };
+                return {
+                  Component: () => (
+                    <ProtectedRoute allowedRoles={['LIVE_VIEWER', 'ADMIN']}>
+                      <Page />
+                    </ProtectedRoute>
+                  ),
+                };
               },
             },
             {
               path: ':strategyId',
               lazy: async () => {
                 const { Page } = await import('@/pages/dashboard/service/trading/details');
-                return { Component: Page };
+                return {
+                  Component: () => (
+                    <ProtectedRoute allowedRoles={['LIVE_VIEWER', 'ADMIN']}>
+                      <Page />
+                    </ProtectedRoute>
+                  ),
+                };
               },
             },
           ],
@@ -90,50 +122,7 @@ export const route = {
             return { Component: Page };
           },
         },
-        {
-          path: 'billing',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/settings/billing');
-            return { Component: Page };
-          },
-        },
-        {
-          path: 'notifications',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/settings/notifications');
-            return { Component: Page };
-          },
-        },
-        {
-          path: 'security',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/settings/security');
-            return { Component: Page };
-          },
-        },
-        {
-          path: 'team',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/settings/team');
-            return { Component: Page };
-          },
-        },
-        {
-          path: 'integrations',
-          lazy: async () => {
-            const { Page } = await import('@/pages/dashboard/settings/integrations');
-            return { Component: Page };
-          },
-        },
       ],
-    },
-
-    {
-      path: 'news',
-      lazy: async () => {
-        const { Page } = await import('@/pages/dashboard/news');
-        return { Component: Page };
-      },
     },
   ],
 };

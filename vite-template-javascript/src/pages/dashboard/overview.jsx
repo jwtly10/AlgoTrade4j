@@ -25,11 +25,13 @@ import { toast } from 'react-toastify';
 import { RecentActivityCard } from '@/components/dashboard/overview/recent-activity';
 import { NewsWidget } from '@/components/dashboard/overview/news-widget';
 import { paths } from '@/paths';
+import { useUser } from '@/hooks/use-user';
 
 const metadata = { title: `Overview | Dashboard | ${config.site.name}` };
 
 export function Page() {
   const [recentActivities, setRecentActivities] = React.useState([]);
+  const { user } = useUser();
 
   React.useEffect(() => {
     async function fetchRecentActivities() {
@@ -60,7 +62,7 @@ export function Page() {
         <Stack spacing={4}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
             <Box sx={{ flex: '1 1 auto' }}>
-              <Typography variant="h4">Overview</Typography>
+              <Typography variant="h4">{`Welcome back, ${user?.firstName}`}</Typography>
             </Box>
             <div>
               <Button startIcon={<PlusIcon />} variant="contained">

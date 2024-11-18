@@ -21,6 +21,13 @@ export const routes = [
         },
       },
       {
+        path: 'insufficient-permissions',
+        lazy: async () => {
+          const { Page } = await import('@/pages/errors/insufficient-permissions');
+          return { Component: Page };
+        },
+      },
+      {
         path: 'not-authorized',
         lazy: async () => {
           const { Page } = await import('@/pages/errors/not-authorized');

@@ -98,7 +98,7 @@ export function ChatProvider({
           throw new Error(`Contact with id "${params.recipientId}" not found`);
         }
 
-        participants.push({ id: contact.id, name: contact.name, avatar: contact.avatar });
+        participants.push({ id: contact.id, fullName: contact.name, avatar: contact.avatar });
       } else {
         params.recipientIds.forEach((recipientId) => {
           const contact = contacts.find((contact) => contact.id === recipientId);
@@ -107,7 +107,7 @@ export function ChatProvider({
             throw new Error(`Contact with id "${recipientId}" not found`);
           }
 
-          participants.push({ id: contact.id, name: contact.name, avatar: contact.avatar });
+          participants.push({ id: contact.id, fullName: contact.name, avatar: contact.avatar });
         });
       }
 

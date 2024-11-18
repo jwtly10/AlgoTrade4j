@@ -46,6 +46,7 @@ public class AdminController {
                     newUser.getId(),
                     newUser.getUsername(),
                     newUser.getFirstName(),
+                    newUser.getLastName(),
                     newUser.getEmail(),
                     newUser.getRole().name()));
         } catch (Exception e) {

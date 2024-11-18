@@ -2,7 +2,6 @@
 
 import { internalAuthClient } from '@/lib/api/auth/internal-auth-client';
 import { logger } from '@/lib/default-logger';
-import { toast } from 'react-toastify';
 
 class AuthClient {
   async signUp(_) {
@@ -36,12 +35,16 @@ class AuthClient {
   async getUser() {
     try {
       const user = await internalAuthClient.verifyToken();
+
       return {
         data: {
           id: user.id,
           avatar: '',
           email: user.email,
-          name: user.firstName,
+          fullName: `${user.firstName} ${user.lastName}`,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
         },
       };
     } catch (error) {

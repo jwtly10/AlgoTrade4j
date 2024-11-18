@@ -35,7 +35,7 @@ export function UserPopover({ anchorEl, onClose, open }) {
       transformOrigin={{ horizontal: 'right', vertical: 'top' }}
     >
       <Box sx={{ p: 2 }}>
-        <Typography>{user?.name}</Typography>
+        <Typography>{user?.fullName}</Typography>
         <Typography color="text.secondary" variant="body2">
           {user?.email}
         </Typography>

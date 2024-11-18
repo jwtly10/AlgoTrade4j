@@ -34,7 +34,7 @@ export function AccountDetails() {
           <Stack spacing={2}>
             <FormControl disabled>
               <InputLabel>Full name</InputLabel>
-              <OutlinedInput defaultValue={user?.name} name={user?.name} />
+              <OutlinedInput defaultValue={user?.fullName} name={user?.fullName} />
             </FormControl>
             <FormControl disabled>
               <InputLabel>Email address</InputLabel>
