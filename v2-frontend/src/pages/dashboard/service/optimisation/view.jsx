@@ -22,7 +22,7 @@ import Alert from '@mui/material/Alert';
 import { AlertTitle } from '@mui/lab';
 import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation';
 
-const metadata = { title: `Optimization Tasks | Dashboard | ${config.site.name}` };
+const metadata = { title: `Optimisation Tasks | Dashboard | ${config.site.name}` };
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -79,7 +79,7 @@ export function Page() {
           </Alert>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
             <Box sx={{ flex: '1 1 auto' }}>
-              <Typography variant="h4">Optimization Jobs</Typography>
+              <Typography variant="h4">Optimisation Jobs</Typography>
             </Box>
             <div>
               <Button
@@ -89,7 +89,7 @@ export function Page() {
                 onClick={() => setShowNewJobDialog(true)}
                 disabled
               >
-                New Optimization Job
+                New Optimirsation Job
               </Button>
             </div>
           </Stack>

@@ -38,7 +38,7 @@ function SignUpView({setUser, onSuccess}) {
     };
 
     const isSignUpEnabled = import.meta.env.VITE_ENABLE_SIGNUP === 'true';
-    if (!isSignUpEnabled) {
+    if (isSignUpEnabled) {
         return (
             <Card className="text-center p-6 border-0 shadow-none">
                 <p className="text-muted-foreground mt-10 mb-10">

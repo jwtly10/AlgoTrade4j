@@ -15,6 +15,8 @@ import BrokerAccountCard from '@/components/dashboard/service/trading/broker-car
 import BrokerAccountModal from '@/components/dashboard/service/trading/broker-account-modal';
 import StrategyConfigurationDialog from '@/components/dashboard/service/trading/live-strategy-configuration';
 import { toast } from 'react-toastify';
+import Card from "@mui/material/Card";
+import {Buildings} from "@phosphor-icons/react";
 
 const metadata = { title: `Live Strategies | Dashboard | ${config.site.name}` };
 
@@ -217,17 +219,49 @@ export function Page() {
               </Button>
             </div>
           </Stack>
-          <Grid container spacing={4} alignItems="start">
-            {liveStrategies.map((strategy) => (
-              <Grid size={{ xs: 12, md: 6, lg: 6 }} key={strategy.id}>
-                <StrategyCard
-                  strategy={strategy}
-                  handleToggle={handleToggleStrategy}
-                  toggling={idToggling === strategy.id}
-                  onEdit={handleStrategyEditClick}
-                />
+          <Grid container spacing={2}>
+            {liveStrategies.length === 0 ? (
+              <Grid item xs={12}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 4,
+                    textAlign: 'center',
+                    minHeight: 200
+                  }}
+                >
+                  <Buildings
+                    size={48}
+                    weight="light"
+                    style={{
+                      marginBottom: 16,
+                      opacity: 0.6
+                    }}
+                  />
+                  <Typography variant="h6" gutterBottom>
+                    No Live Strategies
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Configure your first Live Strategy to get started
+                  </Typography>
+                </Card>
               </Grid>
-            ))}
+            ) : (
+              liveStrategies.map((strategy) => (
+                <Grid item xs={12} md={6} lg={6} key={strategy.id}>
+                  <StrategyCard
+                    strategy={strategy}
+                    handleToggle={handleToggleStrategy}
+                    toggling={idToggling === strategy.id}
+                    onEdit={handleStrategyEditClick}
+                  />
+                </Grid>
+              ))
+            )}
           </Grid>
           <Stack direction={{ xs: 'row', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start', mt: 6 }}>
             <Box sx={{ flex: '1 1 auto' }}>
@@ -240,19 +274,47 @@ export function Page() {
             </div>
           </Stack>
           <Grid container spacing={2}>
-            {brokerAccounts.map((account) => (
-              <Grid
-                size={{
-                  xs: 12,
-                  sm: 6,
-                  md: 4,
-                  lg: 3,
-                }}
-                key={account.id}
-              >
-                <BrokerAccountCard account={account} onEdit={handleBrokerEditClick} />
+            {brokerAccounts.length === 0 ? (
+              <Grid item xs={12}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 4,
+                    textAlign: 'center',
+                    minHeight: 200
+                  }}
+                >
+                  <Buildings
+                    size={48}
+                    weight="light"
+                    style={{
+                      marginBottom: 16,
+                      opacity: 0.6
+                    }}
+                  />
+                  <Typography variant="h6" gutterBottom>
+                    No Broker Accounts
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Add your first broker account to get started
+                  </Typography>
+                </Card>
               </Grid>
-            ))}
+            ) : (
+              brokerAccounts.map((account) => (
+                <Grid
+                  item
+                  xs={12}
+                  key={account.id}
+                >
+                  <BrokerAccountCard account={account} onEdit={handleBrokerEditClick} />
+                </Grid>
+              ))
+            )}
           </Grid>
         </Stack>
         <BrokerAccountModal
