@@ -23,7 +23,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { strategyClient } from '@/lib/api/auth/strategy-client';
+import { strategyClient } from '@/lib/api/clients/strategy-client';
 import { logger } from '@/lib/default-logger';
 import { Info, X } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';

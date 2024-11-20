@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 
 
-import { strategyClient } from '@/lib/api/auth/strategy-client';
+import { strategyClient } from '@/lib/api/clients/strategy-client';
 import { logger } from '@/lib/default-logger';
 
 

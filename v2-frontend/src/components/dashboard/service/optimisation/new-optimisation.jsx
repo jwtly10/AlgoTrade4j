@@ -20,9 +20,9 @@ import { X } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 import JSONInput from 'react-json-editor-ajrm';
 import locale from 'react-json-editor-ajrm/locale/en';
-import { strategyClient } from '@/lib/api/auth/strategy-client';
+import { strategyClient } from '@/lib/api/clients/strategy-client';
 import { logger } from '@/lib/default-logger';
-import { optimisationClient } from '@/lib/api/optimisation-client';
+import { optimisationClient } from '@/lib/api/clients/optimisation-client';
 
 function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
   const [loading, setLoading] = useState(false);

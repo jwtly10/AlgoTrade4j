@@ -25,7 +25,7 @@ import { useParams } from 'react-router-dom';
 
 import { config } from '@/config';
 import { paths } from '@/paths';
-import { adminClient } from '@/lib/api/auth/admin-client';
+import { adminClient } from '@/lib/api/clients/admin-client';
 import { logger } from '@/lib/default-logger';
 import { RouterLink } from '@/components/core/link';
 import { PropertyItem } from '@/components/core/property-item';

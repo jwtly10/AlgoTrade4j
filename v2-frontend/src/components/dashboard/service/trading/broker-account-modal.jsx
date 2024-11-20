@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { Info, X } from '@phosphor-icons/react';
-import { brokerClient } from '@/lib/api/auth/broker-client';
+import { brokerClient } from '@/lib/api/clients/broker-client';
 import { logger } from '@/lib/default-logger';
 import { toast } from 'react-toastify';
 import FormControl from '@mui/material/FormControl';

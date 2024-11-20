@@ -1,6 +1,6 @@
 'use client';
 
-import { internalAuthClient } from '@/lib/api/auth/internal-auth-client';
+import { internalAuthClient } from '@/lib/api/clients/auth/internal-auth-client';
 import { logger } from '@/lib/default-logger';
 
 class AuthClient {

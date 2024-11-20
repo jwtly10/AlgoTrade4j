@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import { Folder } from '@phosphor-icons/react/dist/ssr/Folder';
 import { CaretDown } from '@phosphor-icons/react/dist/ssr/CaretDown';
 import { useToast } from '@/hooks/use-toast';
-import { newsClient } from '@/lib/api/overview-client';
+import { newsClient } from '@/lib/api/clients/overview-client';
 import { Helmet } from 'react-helmet-async';
 import { FunnelSimple, X } from '@phosphor-icons/react';
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material';

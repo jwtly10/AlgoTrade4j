@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { liveClient } from '@/lib/api/auth/live-client';
+import { liveClient } from '@/lib/api/clients/live-client';
 import { logger } from '@/lib/default-logger';
 import { toast } from 'react-toastify';
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { toast } from 'react-toastify';
-import { optimisationClient } from '@/lib/api/optimisation-client';
+import { optimisationClient } from '@/lib/api/clients/optimisation-client';
 import { logger } from '@/lib/default-logger';
 
 const POLL_INTERVAL = 5000; // 5 seconds

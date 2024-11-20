@@ -18,7 +18,7 @@ import { config } from '@/config';
 import { HelperWidget } from '@/components/dashboard/overview/helper-widget';
 import { Summary } from '@/components/dashboard/overview/summary';
 import ServiceHealth from '@/components/dashboard/overview/service-health';
-import { liveOverviewClient } from '@/lib/api/overview-client';
+import { liveOverviewClient } from '@/lib/api/clients/overview-client';
 import { RouterLink } from '@/components/core/link';
 
 import { toast } from 'react-toastify';
@@ -64,11 +64,6 @@ export function Page() {
             <Box sx={{ flex: '1 1 auto' }}>
               <Typography variant="h4">{`Welcome back, ${user?.firstName}`}</Typography>
             </Box>
-            <div>
-              <Button startIcon={<PlusIcon />} variant="contained">
-                Dashboard
-              </Button>
-            </div>
           </Stack>
           <Grid container spacing={4}>
             <Grid size={{ md: 4, xs: 12 }}>

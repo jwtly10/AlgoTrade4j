@@ -15,7 +15,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { config } from '@/config';
 import { paths } from '@/paths';
-import { adminClient } from '@/lib/api/auth/admin-client';
+import { adminClient } from '@/lib/api/clients/admin-client';
 import { UserFilters } from '@/components/dashboard/admin/users/user-filters';
 import { UserPagination } from '@/components/dashboard/admin/users/user-pagination';
 import { UserSelectionProvider } from '@/components/dashboard/admin/users/user-selection-context';

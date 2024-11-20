@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Card, CardContent, CardHeader, IconButton, List, ListItem, Typography } from '@mui/material';
 import { ArrowsClockwise, CheckCircle, Warning, XCircle } from '@phosphor-icons/react';
-import { systemClient } from '@/lib/api/system-client';
+import { systemClient } from '@/lib/api/clients/system-client';
 
 const StatusIndicator = ({ status, label }) => {
   const getStatusIcon = () => {

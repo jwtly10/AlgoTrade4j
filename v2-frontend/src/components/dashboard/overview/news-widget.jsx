@@ -17,14 +17,14 @@ import {
 } from '@mui/material';
 import { ArrowRight, CaretDown, DotsThree, Folder } from '@phosphor-icons/react';
 import { useToast } from '@/hooks/use-toast';
-import { newsClient } from '@/lib/api/overview-client';
+import { newsClient } from '@/lib/api/clients/overview-client';
 import { RouterLink } from '@/components/core/link';
 import { paths } from '@/paths';
+import {toast} from "react-toastify";
 
 export function NewsWidget() {
   const [newsData, setNewsData] = React.useState([]);
   const [expanded, setExpanded] = React.useState(false);
-  const { toast } = useToast();
 
   React.useEffect(() => {
     const fetchNews = async () => {

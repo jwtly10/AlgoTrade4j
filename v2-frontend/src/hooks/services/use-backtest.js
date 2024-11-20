@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { backtestClient } from '@/lib/api/auth/backtest-client';
+import { backtestClient } from '@/lib/api/clients/backtest-client';
 import { logger } from '@/lib/default-logger';
 import { toast } from 'react-toastify';
 

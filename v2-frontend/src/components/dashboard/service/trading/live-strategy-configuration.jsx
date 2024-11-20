@@ -23,8 +23,8 @@ import {
   DialogActions,
   CircularProgress,
 } from '@mui/material';
-import { strategyClient } from '@/lib/api/auth/strategy-client';
-import { brokerClient } from '@/lib/api/auth/broker-client';
+import { strategyClient } from '@/lib/api/clients/strategy-client';
+import { brokerClient } from '@/lib/api/clients/broker-client';
 import { logger } from '@/lib/default-logger';
 import { Info, X } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';

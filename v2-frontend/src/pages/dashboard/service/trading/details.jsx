@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 
 import { config } from '@/config';
 import { paths } from '@/paths';
-import { liveClient } from '@/lib/api/auth/live-client';
+import { liveClient } from '@/lib/api/clients/live-client';
 import { logger } from '@/lib/default-logger';
 import { useLive } from '@/hooks/services/use-live';
 import { RouterLink } from '@/components/core/link';
