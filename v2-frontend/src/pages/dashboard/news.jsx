@@ -170,7 +170,7 @@ const DaySection = ({ date, events }) => {
       <CardHeader
         sx={{
           py: 2,
-          bgcolor: 'grey.50',
+          bgcolor: 'background.paper',
           '& .MuiCardHeader-content': { overflow: 'hidden' },
         }}
         title={
