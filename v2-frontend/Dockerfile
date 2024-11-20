@@ -3,32 +3,30 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
-
 COPY . .
 
-ARG NEXT_PUBLIC_NODE_ENV=production
-ARG NEXT_PUBLIC_ENABLE_DEBUG_LOGS=false
-ARG NEXT_PUBLIC_ENABLE_SIGNUP=false
-ARG NEXT_PUBLIC_MAIN_API_HOST=https://api.algotrade4j.trade
-ARG NEXT_PUBLIC_LIVE_API_HOST=https://live-api.algotrade4j.trade
+ARG VITE_NODE_ENV=prod
+ARG VITE_LOG_LEVEL=WARN
+# TODO: Note this is not used anymore - we use VITE_LOG_LEVEL
+ARG VITE_ENABLE_DEBUG_LOGS=false
+ARG VITE_ENABLE_SIGNUP=false
+ARG VITE_MAIN_API_HOST=https://api.algotrade4j.trade
+ARG VITE_LIVE_API_HOST=https://live-api.algotrade4j.trade
 
-ENV NEXT_PUBLIC_NODE_ENV=${NEXT_PUBLIC_NODE_ENV}
-ENV NEXT_PUBLIC_ENABLE_DEBUG_LOGS=${NEXT_PUBLIC_ENABLE_DEBUG_LOGS}
-ENV NEXT_PUBLIC_ENABLE_SIGNUP=${NEXT_PUBLIC_ENABLE_SIGNUP}
-ENV NEXT_PUBLIC_MAIN_API_HOST=${NEXT_PUBLIC_MAIN_API_HOST}
-ENV NEXT_PUBLIC_LIVE_API_HOST=${NEXT_PUBLIC_LIVE_API_HOST}
+ENV VITE_NODE_ENV=${VITE_NODE_ENV}
+ENV VITE_SITE_URL=https://algotrade4j.trade
+# TODO: Note this is not used anymore - we have just hardcoded the signup to be disabled
+ENV VITE_LOG_LEVEL=${VITE_LOG_LEVEL}
+ENV VITE_ENABLE_SIGNUP=${VITE_ENABLE_SIGNUP}
+ENV VITE_MAIN_API_HOST=${VITE_MAIN_API_HOST}
+ENV VITE_LIVE_API_HOST=${VITE_LIVE_API_HOST}
 
 RUN npm run build
 
-FROM node:20-alpine
-WORKDIR /app
+# Serve vite app with nginx
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-EXPOSE 3000
-
-# Start the application
-CMD ["node", "server.js"]
+COPY frontend-nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

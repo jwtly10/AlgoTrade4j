@@ -96,11 +96,11 @@ jobs:
           push: true
           tags: joshwatley/algotrade4j-frontend:latest
           build-args: |
-            NEXT_PUBLIC_NODE_ENV=${{ vars.VITE_NODE_ENV }}
-            NEXT_PUBLIC_ENABLE_DEBUG_LOGS=${{ vars.VITE_ENABLE_DEBUG_LOGS }}
-            NEXT_PUBLIC_ENABLE_SIGNUP=${{ vars.VITE_ENABLE_SIGNUP }}
-            NEXT_PUBLIC_MAIN_API_HOST=${{ vars.VITE_MAIN_API_HOST }}
-            NEXT_PUBLIC_LIVE_API_HOST=${{ vars.VITE_LIVE_API_HOST }}     
+            VITE_NODE_ENV=${{ vars.VITE_NODE_ENV }}
+            VITE_ENABLE_SIGNUP=${{ vars.VITE_ENABLE_SIGNUP }}
+            VITE_MAIN_API_HOST=${{ vars.VITE_MAIN_API_HOST }}
+            VITE_LIVE_API_HOST=${{ vars.VITE_LIVE_API_HOST }}     
+            VITE_LOG_LEVEL=${{ vars.VITE_LOG_LEVEL }}
 
   deploy:
     needs: build-and-push
@@ -145,7 +145,6 @@ jobs:
             export SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}
             export SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}
             export ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}}
-            export GRAFANA_API_KEY=${{secrets.GRAFANA_API_KEY}}
             export TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
             export TELEGRAM_SYSTEM_CHAT_ID=${{secrets.TELEGRAM_SYSTEM_CHAT_ID}}
             export VITE_NODE_ENV=${{vars.VITE_NODE_ENV}}
