@@ -3,7 +3,7 @@ package dev.jwtly10.shared.auth.model.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /*
  * Data Transfer Object for User
@@ -18,6 +18,6 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String role;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 }

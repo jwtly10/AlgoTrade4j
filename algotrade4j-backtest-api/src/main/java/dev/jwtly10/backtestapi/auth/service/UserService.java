@@ -6,10 +6,13 @@ import dev.jwtly10.shared.auth.model.dto.UserDTO;
 import dev.jwtly10.shared.auth.repository.UserRepository;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -25,20 +28,29 @@ public class UserService {
 
     public List<UserDTO> getAllUsersDTO() {
         return userRepository.findAll().stream()
-                .map(user -> {
-                    UserDTO userDTO = new UserDTO();
-                    userDTO.setId(user.getId());
-                    userDTO.setUsername(user.getUsername());
-                    userDTO.setEmail(user.getEmail());
-                    userDTO.setFirstName(user.getFirstName());
-                    userDTO.setLastName(user.getLastName());
-                    userDTO.setRole(user.getRole().name());
-                    userDTO.setCreatedAt(user.getCreatedAt());
-                    userDTO.setUpdatedAt(user.getUpdatedAt());
-                    return userDTO;
-                })
+                .map(this::getUserDTO)
                 .sorted(Comparator.comparing(UserDTO::getId))
                 .toList();
+    }
+
+    public UserDTO getUserDTO(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("User not found", ErrorType.NOT_FOUND));
+        return getUserDTO(user);
+    }
+
+    @NotNull
+    private UserDTO getUserDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setRole(user.getRole().name());
+        userDTO.setCreatedAt(ZonedDateTime.from(user.getCreatedAt().atZone(ZoneId.of("UTC"))));
+        userDTO.setUpdatedAt(ZonedDateTime.from(user.getUpdatedAt().atZone(ZoneId.of("UTC"))));
+        return userDTO;
     }
 
     public User updateUser(Long userId, User updatedUser) {

@@ -120,6 +120,7 @@ public class AuthController {
                     userDetails.getId(),
                     userDetails.getUsername(),
                     user.getFirstName(),
+                    user.getLastName(),
                     userDetails.getEmail(),
                     role));
         } catch (BadCredentialsException e) {
@@ -166,8 +167,9 @@ public class AuthController {
 
                             return ResponseEntity.ok(new LoginResponse(
                                     userDetails.getId(),
-                                    user.getFirstName(),
                                     userDetails.getUsername(),
+                                    user.getFirstName(),
+                                    user.getLastName(),
                                     userDetails.getEmail(),
                                     role
                             ));

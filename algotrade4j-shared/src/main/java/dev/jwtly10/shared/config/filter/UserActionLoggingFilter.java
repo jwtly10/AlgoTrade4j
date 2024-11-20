@@ -23,7 +23,10 @@ public class UserActionLoggingFilter extends OncePerRequestFilter {
             "/api/v1/auth/verify",
             "/api/v1/monitor",
             "/health",
-            "/api/v1/live/strategies"
+            // Endpoints used for polling
+            "/api/v1/live/strategies",
+            "/api/v1/accounts"
+
     );
 
     @Override

@@ -30,7 +30,7 @@ public class NewsController {
     public List<ForexFactoryNews> getForexFactoryNews() {
         try {
             if (Arrays.asList(environment.getActiveProfiles()).contains("dev")) {
-                log.debug("Using mocked ForexFactory news data");
+                log.debug("Using mocked ForexFactory news data in dev spring profile");
                 return forexFactoryClient.getMockedNews();
             }
             return forexFactoryClient.getThisWeeksNews();

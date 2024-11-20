@@ -3,11 +3,15 @@ package dev.jwtly10.core.analysis;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.Trade;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 /**
  * PerformanceAnalyser class is responsible for calculating the performance metrics of the trading strategy.
@@ -40,6 +44,7 @@ import java.util.Map;
  * Sharpe Ratio
  */
 @Data
+@Slf4j
 public class PerformanceAnalyser {
     // Equity History
     private final List<EquityPoint> equityHistory = new ArrayList<>();
@@ -48,7 +53,6 @@ public class PerformanceAnalyser {
     // Stats
     private int ticksModelled = 0;
     private double sharpeRatio = 0;
-    private double riskFreeRate = 0.02; // Assuming 2% annual risk-free rate
 
     // Balance stats
     private double initialDeposit = 0;
@@ -146,9 +150,10 @@ public class PerformanceAnalyser {
                 this.totalNetProfit / totalTrades;
     }
 
-    /*
+    /**
      * Calculate the trade statistics of the trading strategy
-     * @param trades The trades executed by the strategy
+     *
+     * @ param closedTrades The trades executed by the strategy
      */
     private void calculateTradeStats(List<Trade> closedTrades) {
         for (Trade trade : closedTrades) {
@@ -172,9 +177,11 @@ public class PerformanceAnalyser {
                 (this.totalShortWinningTrades / (double) this.totalClosedShortTrades) * 100;
     }
 
-    /*
+    /**
      * Calculate the trade return statistics of the trading strategy
-     * @param trades The trades executed by the strategy
+     *
+     * @param closeTrades The closed trades executed by the strategy
+     * @param openTrades  The open trades executed by the strategy
      */
     private void calculateTradeReturnStats(List<Trade> closeTrades, List<Trade> openTrades) {
         this.openTradeProfit = openTrades.stream()
@@ -218,9 +225,10 @@ public class PerformanceAnalyser {
                 totalLosingTrades / losingTradesCount;
     }
 
-    /*
+    /**
      * Calculate the consecutive statistics of the trading strategy
-     * @param trades The trades executed by the strategy
+     *
+     * @param closedTrades The trades executed by the strategy
      */
     private void calculateConsecutiveStats(List<Trade> closedTrades) {
         int consecutiveWins = 0;
@@ -293,11 +301,27 @@ public class PerformanceAnalyser {
             return;
         }
 
-        double totalReturn = closedTrades.stream()
-                .mapToDouble(Trade::getProfit)
-                .sum();
+        LocalDate earliestDate = null;
+        LocalDate latestDate = null;
+        double totalReturn = 0;
+        int count = 0;
 
-        double averageReturn = totalReturn / closedTrades.size();
+        // TODO: This calculation still seems wrong. Need to review
+        for (Trade trade : closedTrades) {
+            LocalDate closeDate = trade.getCloseTime().toLocalDate();
+
+            if (earliestDate == null || closeDate.isBefore(earliestDate)) {
+                earliestDate = closeDate;
+            }
+            if (latestDate == null || closeDate.isAfter(latestDate)) {
+                latestDate = closeDate;
+            }
+
+            totalReturn += trade.getProfit();
+            count++;
+        }
+
+        double averageReturn = totalReturn / count;
 
         double sumSquaredDeviations = closedTrades.stream()
                 .mapToDouble(trade -> {
@@ -308,11 +332,25 @@ public class PerformanceAnalyser {
 
         double standardDeviation = Math.sqrt(sumSquaredDeviations / closedTrades.size());
 
+        double riskFreeRate = 0.0;
+        try {
+            riskFreeRate = getRiskFreeRate(earliestDate, latestDate);
+        } catch (Exception e) {
+            log.error("Failed to get risk free rate", e);
+        }
+
         if (standardDeviation == 0) {
             this.sharpeRatio = 0;
         } else {
-            this.sharpeRatio = (averageReturn - this.riskFreeRate) / standardDeviation;
+            this.sharpeRatio = (averageReturn - riskFreeRate) / standardDeviation;
         }
+
+        long tradingDays = ChronoUnit.DAYS.between(earliestDate, latestDate);
+
+        double annualizedReturn = averageReturn * (252.0 / tradingDays);
+        double annualizedStdDev = standardDeviation * Math.sqrt(252.0 / tradingDays);
+
+        this.sharpeRatio = (annualizedReturn - riskFreeRate) / annualizedStdDev;
     }
 
     /*
@@ -336,6 +374,65 @@ public class PerformanceAnalyser {
         if (drawdown > maxDrawdown) {
             maxDrawdown = drawdown;
         }
+    }
+
+
+    /**
+     * Given two dates, will approximate the risk-free rate in that timeframe given the
+     * FRED 3-Month Treasury Bill Secondary Market Rate, Discount Basis
+     * <a href="https://fred.stlouisfed.org/series/DTB3">(DRT3)</a>
+     *
+     * <p>
+     * This data is held locally in algotrade4j-core/src/main/resources/DTB3.csv
+     * </p>
+     *
+     * @param from the start date to start calculating the risk-free ratio from
+     * @param to   the end date to end calculating the risk-free ratio from
+     * @return the risk-free ratio double
+     * @throws Exception if parsing file or external data source fails
+     */
+    public Double getRiskFreeRate(LocalDate from, LocalDate to) throws Exception {
+        // TODO: Refactor this to get the data more efficiently. It should be cached daily at minimum even if its not a manual file that we are updating
+        Map<LocalDate, Double> rates = parseRatesFromFREDFile("DTB3.csv");
+        return rates.entrySet().stream()
+                .filter(entry -> entry.getKey().isAfter(from) && entry.getKey().isBefore(to))
+                .mapToDouble(Map.Entry::getValue)
+                .average()
+                .orElse(0.0);
+    }
+
+    private Map<LocalDate, Double> parseRatesFromFREDFile(String fileName) throws Exception {
+        var path = Paths.get(Objects.requireNonNull(PerformanceAnalyser.class.getResource("/" + fileName)).toURI());
+        var parsed = Files.readString(path);
+
+        Map<LocalDate, Double> rates = new HashMap<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        String[] lines = parsed.split("\n");
+
+        // i=1 as we skip the header line
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+
+            String[] split = line.split(",");
+            if (split.length != 2) continue;
+
+            String dateStr = split[0];
+            String rateStr = split[1];
+
+            if (!rateStr.equals(".")) {
+                try {
+                    LocalDate date = LocalDate.parse(dateStr, formatter);
+                    Double rate = Double.parseDouble(rateStr);
+                    rates.put(date, rate);
+                } catch (Exception e) {
+                    log.error("Failed to parse LocalDate/Rate in line {}", line, e);
+                }
+            }
+
+        }
+        return rates;
     }
 
     public record EquityPoint(double equity, ZonedDateTime timestamp) {

@@ -59,6 +59,11 @@ public class TrackingService {
         return userActionLogRepository.findByUserId(userId);
     }
 
+    public List<UserActionLog> getRecentTrackingEventsForUser(Long userId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        return userActionLogRepository.findTopNByUserId(userId, pageRequest).getContent();
+    }
+
     public List<UserActionLog> getAllTrackingEvents() {
         return userActionLogRepository.findAll();
     }

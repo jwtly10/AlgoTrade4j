@@ -104,6 +104,7 @@ public class BrokerAccountService {
         foundAccount.setAccountId(broker.getAccountId().trim());
         foundAccount.setBrokerName(broker.getBrokerName());
         foundAccount.setBrokerType(broker.getBrokerType());
+        foundAccount.setBrokerEnv(broker.getBrokerEnv());
         foundAccount.setInitialBalance(broker.getInitialBalance());
 
         if (broker.getMt5Credentials() != null) {
@@ -124,7 +125,7 @@ public class BrokerAccountService {
     }
 
     public List<BrokerAccount> getAccounts() {
-        return brokerAccountRepository.findByActiveIsTrue();
+        return brokerAccountRepository.findByActiveIsTrueOrderByIdDesc();
     }
 
     @Transactional

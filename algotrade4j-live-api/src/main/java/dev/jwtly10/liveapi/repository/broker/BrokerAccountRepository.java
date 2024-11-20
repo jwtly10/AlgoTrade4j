@@ -11,5 +11,7 @@ public interface BrokerAccountRepository extends JpaRepository<BrokerAccount, Lo
 
     List<BrokerAccount> findByActiveIsTrue();
 
+    List<BrokerAccount> findByActiveIsTrueOrderByIdDesc();
+
     void deleteByAccountId(String accountId);
 }

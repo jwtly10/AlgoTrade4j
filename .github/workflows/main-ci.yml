@@ -92,15 +92,15 @@ jobs:
       - name: Build and push Frontend image
         uses: docker/build-push-action@v2
         with:
-          context: ./algotrade4j-frontend
+          context: ./v2-frontend
           push: true
           tags: joshwatley/algotrade4j-frontend:latest
           build-args: |
             VITE_NODE_ENV=${{ vars.VITE_NODE_ENV }}
-            VITE_ENABLE_DEBUG_LOGS=${{ vars.VITE_ENABLE_DEBUG_LOGS }}
             VITE_ENABLE_SIGNUP=${{ vars.VITE_ENABLE_SIGNUP }}
             VITE_MAIN_API_HOST=${{ vars.VITE_MAIN_API_HOST }}
             VITE_LIVE_API_HOST=${{ vars.VITE_LIVE_API_HOST }}     
+            VITE_LOG_LEVEL=${{ vars.VITE_LOG_LEVEL }}
 
   deploy:
     needs: build-and-push
@@ -145,7 +145,6 @@ jobs:
             export SPRING_DATASOURCE_USERNAME=${{secrets.SPRING_DATASOURCE_USERNAME}}
             export SPRING_DATASOURCE_PASSWORD=${{secrets.SPRING_DATASOURCE_PASSWORD}}
             export ADDITIONAL_JAVA_OPTS=${{vars.ADDITIONAL_JAVA_OPTS}}
-            export GRAFANA_API_KEY=${{secrets.GRAFANA_API_KEY}}
             export TELEGRAM_BOT_TOKEN=${{secrets.TELEGRAM_BOT_TOKEN}}
             export TELEGRAM_SYSTEM_CHAT_ID=${{secrets.TELEGRAM_SYSTEM_CHAT_ID}}
             export VITE_NODE_ENV=${{vars.VITE_NODE_ENV}}
