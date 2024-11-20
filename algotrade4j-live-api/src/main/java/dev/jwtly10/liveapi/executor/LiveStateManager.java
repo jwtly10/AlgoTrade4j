@@ -100,7 +100,7 @@ public class LiveStateManager {
             }
             errorNotificationCount = 0;
         } catch (Exception e) {
-            log.error("Error updating state for strategy: {}", strategy, e);
+            log.error("Error updating state for strategy ID: {}", strategy.getStrategyId(), e);
 
             if (errorNotificationCount < MAX_ERROR_NOTIFICATIONS) {
                 notifier.sendSysErrorNotification("Error updating state for strategy (#" + errorNotificationCount + "): " + strategy.getStrategyId(), e, true);

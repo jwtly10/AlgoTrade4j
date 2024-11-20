@@ -110,20 +110,46 @@ public abstract class RetryableStream<T> implements Stream<T> {
 
                 try {
                     reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
-                    String line;
+                    String line = "";
+                    log.debug("Starting stream read loop");
                     while (isRunning && (line = reader.readLine()) != null) {
                         processLine(line, callback);
                     }
 
+                    // TODO: Remove this.
+                    // These log messages are to debug an issue we have in production with the stream ending unexpectedly
+                    // Its very hard to debug as it only happens after a number of hours running, so this is a temporary
+                    // measure to try and get more information.
+                    // 20/11 I believe the issue is because for some reason the stream is being closed by the server
+                    // and we still think its running so getting to this point in this try statement is unexpected
+                    // and we should retry
+                    if (!isRunning) {
+                        log.debug("Stream loop ended because isRunning=false");
+                    } else if (line == null) {
+                        log.debug("Stream loop ended because readLine() returned null");
+                    } else {
+                        log.debug("Stream loop ended for unknown reason. isRunning={}, line={}", isRunning, line);
+                    }
+
                     if (isRunning) {
-                        log.warn("Stream loop ended while isRunning=True");
+                        log.warn("Stream loop ended while isRunning=True - this indicates an unexpected disconnection");
+                        // You might also want to add connection state info here
+                        log.debug("Connection state - call.isCanceled(): {}", call.isCanceled());
+                        try {
+                            log.debug("Reader state - reader.ready(): {}", reader.ready());
+                        } catch (IOException e) {
+                            log.debug("Reader is in error state: {}", e.getMessage());
+                        }
+
+                        // isRunning means we expect the stream to be running, so we should retry
+                        scheduleRetry(callback, retryCount, backoffMs);
                     }
 
                 } catch (Exception e) {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
                         log.debug("Stream was stopped internally, closing stream");
                     } else {
-                        log.error("Error processing stream: {}", e.getMessage(), e);
+                        log.error("Error processing stream: '{}'", e.getMessage(), e);
                     }
                     scheduleRetry(callback, retryCount, backoffMs);
                 } finally {
