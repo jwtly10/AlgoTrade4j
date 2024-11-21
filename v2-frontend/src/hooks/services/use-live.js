@@ -20,6 +20,16 @@ export const useLive = () => {
   // Log state
   const [logs, setLogs] = React.useState([]);
 
+  const clearData = () => {
+    setChartData([]);
+    setTrades([]);
+    setTradeIdMap(new Map());
+    tradeCounterRef.current = 1;
+    setIndicators({});
+    setLogs([]);
+    setAnalysisData({});
+  }
+
   // Strategy id is the STRING id of the strategy
   const viewStrategy = async (strategyId) => {
     if (socketRef.current) {
@@ -341,5 +351,6 @@ export const useLive = () => {
     socketRef,
     setIsConnectedToLive,
     viewStrategy,
+    clearData,
   };
 };

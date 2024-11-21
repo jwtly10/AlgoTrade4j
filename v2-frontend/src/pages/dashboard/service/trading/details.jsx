@@ -38,6 +38,7 @@ export function Page() {
     socketRef,
     setIsConnectedToLive,
     viewStrategy,
+    clearData
   } = useLive();
 
   const handleToggle = async (strategy) => {
@@ -54,6 +55,7 @@ export function Page() {
           socketRef.current = null;
         }
         setIsConnectedToLive(false);
+        clearData();
       } else {
         logger.debug('Starting live strategy:', strategy.strategyName);
         await viewStrategy(strategy.strategyName);
@@ -62,6 +64,7 @@ export function Page() {
       const updatedStrategy = await liveClient.getLiveStrategy(strategy.id);
       setLiveStrategyDetails(updatedStrategy);
       setReadyToShowChart(updatedStrategy.active);
+
     } catch (error) {
       toast.error(`Error toggling strategy: ${error.message}`);
       logger.error('Error toggling strategy:', error);
@@ -265,7 +268,7 @@ export function Page() {
                       </Button>
                     )}
                     {liveStrategyDetails.active ? (
-                      <Button variant="outlined" startIcon={<ArrowClockwise />} onClick={handleRefresh}>
+                      <Button variant="outlined" startIcon={<ArrowClockwise />} onClick={handleRefresh} disabled={isToggling}>
                         Refresh Connection
                       </Button>
                     ) : null}
@@ -273,6 +276,7 @@ export function Page() {
                       variant="outlined"
                       startIcon={<Gear />}
                       onClick={handleEditConfig}
+                      disabled={isToggling}
                     >
                       Config
                     </Button>
