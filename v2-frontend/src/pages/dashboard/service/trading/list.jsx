@@ -87,6 +87,8 @@ export function Page() {
     } catch (error) {
       toast.error(`Error toggling live strategy: ${error.message}`);
       logger.error('Error toggling live strategy', error);
+      await fetchLiveStrategies();
+      setIdToggling(null)
     }
   };
 
@@ -331,6 +333,7 @@ export function Page() {
           initialConfig={selectedStrategy} // If null will trigger create mode
           onSave={handleSaveStrategy}
           onDelete={handleDeleteStrategy}
+          preventEdit={selectedStrategy && selectedStrategy.active}
         />
       </Box>
     </React.Fragment>

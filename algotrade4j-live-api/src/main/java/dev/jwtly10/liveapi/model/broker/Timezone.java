@@ -12,6 +12,7 @@ public enum Timezone {
     TOKYO("Asia/Tokyo"),
     SYDNEY("Australia/Sydney"),
     MOSCOW("Europe/Moscow"),
+    BUCHAREST("Europe/Bucharest"),
     DUBAI("Asia/Dubai");
 
     private final String zoneId;

@@ -45,9 +45,9 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
     initialBalance: '',
     active: true,
     mt5Credentials: {
-      server: '',
-      path: '',
-      password: '',
+      server: 'deprecated',
+      path: 'deprecated',
+      password: 'deprecated',
       timezone: '',
     },
   });
@@ -79,20 +79,21 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
     }
 
     // MT5 specific validation
-    if (formData.brokerType.includes('MT5')) {
-      if (!formData.mt5Credentials.server.trim()) {
-        newErrors['mt5Credentials.server'] = 'MT5 server is required';
-      }
-      if (!formData.mt5Credentials.path.trim()) {
-        newErrors['mt5Credentials.path'] = 'MT5 path is required';
-      }
-      if (isCreating && !formData.mt5Credentials.password.trim()) {
-        newErrors['mt5Credentials.password'] = 'MT5 password is required';
-      }
-      if (!formData.mt5Credentials.timezone) {
-        newErrors['mt5Credentials.timezone'] = 'Timezone is required';
-      }
-    }
+    // No longer need to do this
+    // if (formData.brokerType.includes('MT5')) {
+    //   if (!formData.mt5Credentials.server.trim()) {
+    //     newErrors['mt5Credentials.server'] = 'MT5 server is required';
+    //   }
+    //   if (!formData.mt5Credentials.path.trim()) {
+    //     newErrors['mt5Credentials.path'] = 'MT5 path is required';
+    //   }
+    //   if (isCreating && !formData.mt5Credentials.password.trim()) {
+    //     newErrors['mt5Credentials.password'] = 'MT5 password is required';
+    //   }
+    //   if (!formData.mt5Credentials.timezone) {
+    //     newErrors['mt5Credentials.timezone'] = 'Timezone is required';
+    //   }
+    // }
 
     return newErrors;
   };
@@ -107,9 +108,9 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
       initialBalance: '',
       active: true,
       mt5Credentials: {
-        server: '',
-        path: '',
-        password: '',
+        server: 'deprecated',
+        path: 'deprecated',
+        password: 'deprecated',
         timezone: '',
       },
     });
@@ -120,10 +121,10 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
       setFormData({
         ...account,
         mt5Credentials: account.mt5Credentials || {
-          server: '',
-          path: '',
-          password: '',
-          timezone: '',
+          server: 'deprecated',
+          path: 'deprecated',
+          password: 'deprecated',
+          timezone: 'deprecated',
         },
       });
     }
@@ -214,9 +215,9 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
         accountId: true,
         initialBalance: true,
         mt5Credentials: {
-          server: true,
-          path: true,
-          password: true,
+          server: false,
+          path: false,
+          password: false,
           timezone: true,
         },
       });
@@ -348,63 +349,63 @@ function BrokerAccountModal({ open, onClose, account = null, onSave, onDelete, i
               <>
                 <Grid item xs={12}>
                   <Typography variant="h6" sx={{ mb: 2, mt: 2 }}>
-                    MT5 Credentials
+                    MT5 Timezone data
                   </Typography>
                 </Grid>
 
-                {isCreating && (
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>MT5 Password</InputLabel>
-                      <TextField
-                        type="password"
-                        value={formData.mt5Credentials.password}
-                        onChange={handleMT5Change('password')}
-                        onBlur={handleBlur('mt5Credentials.password')}
-                        placeholder="Enter MT5 password"
-                        error={touched?.mt5Credentials?.password && Boolean(errors['mt5Credentials.password'])}
-                        helperText={touched?.mt5Credentials?.password && errors['mt5Credentials.password']}
-                        InputProps={{
-                          endAdornment: (
-                            <Tooltip title="Password cannot be changed once set">
-                              <IconButton size="small">
-                                <Info size={20} />
-                              </IconButton>
-                            </Tooltip>
-                          ),
-                        }}
-                      />
-                    </FormControl>
-                  </Grid>
-                )}
+                {/*{isCreating && (*/}
+                {/*  <Grid item xs={12} md={6}>*/}
+                {/*    <FormControl fullWidth>*/}
+                {/*      <InputLabel>MT5 Password</InputLabel>*/}
+                {/*      <TextField*/}
+                {/*        type="password"*/}
+                {/*        value={formData.mt5Credentials.password}*/}
+                {/*        onChange={handleMT5Change('password')}*/}
+                {/*        onBlur={handleBlur('mt5Credentials.password')}*/}
+                {/*        placeholder="Enter MT5 password"*/}
+                {/*        error={touched?.mt5Credentials?.password && Boolean(errors['mt5Credentials.password'])}*/}
+                {/*        helperText={touched?.mt5Credentials?.password && errors['mt5Credentials.password']}*/}
+                {/*        InputProps={{*/}
+                {/*          endAdornment: (*/}
+                {/*            <Tooltip title="Password cannot be changed once set">*/}
+                {/*              <IconButton size="small">*/}
+                {/*                <Info size={20} />*/}
+                {/*              </IconButton>*/}
+                {/*            </Tooltip>*/}
+                {/*          ),*/}
+                {/*        }}*/}
+                {/*      />*/}
+                {/*    </FormControl>*/}
+                {/*  </Grid>*/}
+                {/*)}*/}
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>MT5 Server</InputLabel>
-                    <TextField
-                      value={formData.mt5Credentials.server}
-                      onChange={handleMT5Change('server')}
-                      onBlur={handleBlur('mt5Credentials.server')}
-                      placeholder="Enter MT5 server"
-                      error={touched?.mt5Credentials?.server && Boolean(errors['mt5Credentials.server'])}
-                      helperText={touched?.mt5Credentials?.server && errors['mt5Credentials.server']}
-                    />
-                  </FormControl>
-                </Grid>
+                {/*<Grid item xs={12} md={6}>*/}
+                {/*  <FormControl fullWidth>*/}
+                {/*    <InputLabel>MT5 Server</InputLabel>*/}
+                {/*    <TextField*/}
+                {/*      value={formData.mt5Credentials.server}*/}
+                {/*      onChange={handleMT5Change('server')}*/}
+                {/*      onBlur={handleBlur('mt5Credentials.server')}*/}
+                {/*      placeholder="Enter MT5 server"*/}
+                {/*      error={touched?.mt5Credentials?.server && Boolean(errors['mt5Credentials.server'])}*/}
+                {/*      helperText={touched?.mt5Credentials?.server && errors['mt5Credentials.server']}*/}
+                {/*    />*/}
+                {/*  </FormControl>*/}
+                {/*</Grid>*/}
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>MT5 Path</InputLabel>
-                    <TextField
-                      value={formData.mt5Credentials.path}
-                      onChange={handleMT5Change('path')}
-                      onBlur={handleBlur('mt5Credentials.path')}
-                      placeholder="Enter MT5 path"
-                      error={touched?.mt5Credentials?.path && Boolean(errors['mt5Credentials.path'])}
-                      helperText={touched?.mt5Credentials?.path && errors['mt5Credentials.path']}
-                    />
-                  </FormControl>
-                </Grid>
+                {/*<Grid item xs={12} md={6}>*/}
+                {/*  <FormControl fullWidth>*/}
+                {/*    <InputLabel>MT5 Path</InputLabel>*/}
+                {/*    <TextField*/}
+                {/*      value={formData.mt5Credentials.path}*/}
+                {/*      onChange={handleMT5Change('path')}*/}
+                {/*      onBlur={handleBlur('mt5Credentials.path')}*/}
+                {/*      placeholder="Enter MT5 path"*/}
+                {/*      error={touched?.mt5Credentials?.path && Boolean(errors['mt5Credentials.path'])}*/}
+                {/*      helperText={touched?.mt5Credentials?.path && errors['mt5Credentials.path']}*/}
+                {/*    />*/}
+                {/*  </FormControl>*/}
+                {/*</Grid>*/}
 
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth>

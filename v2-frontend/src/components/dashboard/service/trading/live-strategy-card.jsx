@@ -209,24 +209,11 @@ export function StrategyCard({ strategy, handleToggle, toggling, onEdit }) {
           startIcon={<Gear />}
           color="primary"
           onClick={() => onEdit(strategy)}
-          disabled={strategy.active || toggling}
+          disabled={toggling}
         >
           Configure
         </Button>
       </CardActions>
     </Card>
-  );
-}
-
-// Usage example:
-export function StrategyDirectory({ strategies }) {
-  return (
-    <Grid container spacing={3}>
-      {strategies.map((strategy) => (
-        <Grid item xs={12} md={6} lg={4} key={strategy.id}>
-          <StrategyCard strategy={strategy} />
-        </Grid>
-      ))}
-    </Grid>
   );
 }

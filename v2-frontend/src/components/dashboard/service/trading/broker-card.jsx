@@ -72,34 +72,34 @@ export default function BrokerAccountCard({ account, onEdit }) {
             </Grid>
           </Grid>
 
-          {account.mt5Credentials ? (
-            <>
-              <Divider sx={{ my: 1 }} />
-              <Stack spacing={1}>
-                <Typography variant="subtitle2" color="text.secondary">
-                  MT5 Details
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <Stack spacing={0.5}>
-                      <Typography color="text.secondary" variant="caption">
-                        Server
-                      </Typography>
-                      <Typography variant="body2">{account.mt5Credentials.server}</Typography>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Stack spacing={0.5}>
-                      <Typography color="text.secondary" variant="caption">
-                        Timezone
-                      </Typography>
-                      <Typography variant="body2">{account.mt5Credentials.timezone}</Typography>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </Stack>
-            </>
-          ) : null}
+          {/*{account.mt5Credentials ? (*/}
+          {/*  <>*/}
+          {/*    <Divider sx={{ my: 1 }} />*/}
+          {/*    <Stack spacing={1}>*/}
+          {/*      <Typography variant="subtitle2" color="text.secondary">*/}
+          {/*        MT5 Details*/}
+          {/*      </Typography>*/}
+          {/*      <Grid container spacing={2}>*/}
+          {/*        <Grid item xs={6}>*/}
+          {/*          <Stack spacing={0.5}>*/}
+          {/*            <Typography color="text.secondary" variant="caption">*/}
+          {/*              Server*/}
+          {/*            </Typography>*/}
+          {/*            <Typography variant="body2">{account.mt5Credentials.server}</Typography>*/}
+          {/*          </Stack>*/}
+          {/*        </Grid>*/}
+          {/*        <Grid item xs={6}>*/}
+          {/*          <Stack spacing={0.5}>*/}
+          {/*            <Typography color="text.secondary" variant="caption">*/}
+          {/*              Timezone*/}
+          {/*            </Typography>*/}
+          {/*            <Typography variant="body2">{account.mt5Credentials.timezone}</Typography>*/}
+          {/*          </Stack>*/}
+          {/*        </Grid>*/}
+          {/*      </Grid>*/}
+          {/*    </Stack>*/}
+          {/*  </>*/}
+          {/*) : null}*/}
         </Stack>
       </CardContent>
       <Divider />

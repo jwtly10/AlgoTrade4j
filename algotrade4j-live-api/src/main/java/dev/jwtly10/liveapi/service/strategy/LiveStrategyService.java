@@ -117,7 +117,10 @@ public class LiveStrategyService {
             }
         }
 
-        return liveStrategies;
+        // TODO: Do this in at db level but return ordered by id asc, no need to do this here. Just being lazy
+        return liveStrategies.stream().sorted(
+                (s1, s2) -> (int) (s1.getId() - s2.getId())
+        ).toList();
     }
 
     public List<LiveStrategy> getNonHiddenLiveStrategies() {

@@ -336,95 +336,96 @@ const LiveBrokerModal = ({open, onClose}) => {
             </Card>
 
             {/* Section 2: MT5 Credentials (conditional) */}
-            {(mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType).startsWith('MT5') && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>MT5 Credentials</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <>
-                                {(mode !== 'edit' && (
-                                    <div className="space-y-2">
-                                        <div className="flex items-center space-x-2">
-                                            <Label htmlFor="mt5Password">MT5 Password</Label>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                        >
-                                                            <InfoIcon className="h-3 w-3"/>
-                                                            <span className="sr-only">Info</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" align="start">
-                                                        You will not be able to see or change the password once it's set. You will need to delete and re-enter.
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Input
-                                                id="mt5Password"
-                                                value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}
-                                                onChange={(e) => handleMt5InputChange('password', e.target.value)}
-                                                type="password"
-                                                placeholder="Enter MT5 password"
-                                                autoComplete="off"
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </>
+            {/* We dont need to do this anymore!*/}
+            {/*{(mode === 'edit' ? editingAccount?.brokerType : newAccount.brokerType).startsWith('MT5') && (*/}
+            {/*    <Card>*/}
+            {/*        <CardHeader>*/}
+            {/*            <CardTitle>MT5 Credentials</CardTitle>*/}
+            {/*        </CardHeader>*/}
+            {/*        <CardContent className="space-y-4">*/}
+            {/*            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">*/}
+            {/*                <>*/}
+            {/*                    {(mode !== 'edit' && (*/}
+            {/*                        <div className="space-y-2">*/}
+            {/*                            <div className="flex items-center space-x-2">*/}
+            {/*                                <Label htmlFor="mt5Password">MT5 Password</Label>*/}
+            {/*                                <TooltipProvider>*/}
+            {/*                                    <Tooltip>*/}
+            {/*                                        <TooltipTrigger asChild>*/}
+            {/*                                            <Button*/}
+            {/*                                                variant="ghost"*/}
+            {/*                                                size="icon"*/}
+            {/*                                            >*/}
+            {/*                                                <InfoIcon className="h-3 w-3"/>*/}
+            {/*                                                <span className="sr-only">Info</span>*/}
+            {/*                                            </Button>*/}
+            {/*                                        </TooltipTrigger>*/}
+            {/*                                        <TooltipContent side="top" align="start">*/}
+            {/*                                            You will not be able to see or change the password once it's set. You will need to delete and re-enter.*/}
+            {/*                                        </TooltipContent>*/}
+            {/*                                    </Tooltip>*/}
+            {/*                                </TooltipProvider>*/}
+            {/*                            </div>*/}
+            {/*                            <div className="flex items-center space-x-2">*/}
+            {/*                                <Input*/}
+            {/*                                    id="mt5Password"*/}
+            {/*                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.password : newAccount.mt5Credentials?.password}*/}
+            {/*                                    onChange={(e) => handleMt5InputChange('password', e.target.value)}*/}
+            {/*                                    type="password"*/}
+            {/*                                    placeholder="Enter MT5 password"*/}
+            {/*                                    autoComplete="off"*/}
+            {/*                                />*/}
+            {/*                            </div>*/}
+            {/*                        </div>*/}
+            {/*                    ))}*/}
+            {/*                </>*/}
 
-                            <div className="space-y-2 mt-3">
-                                <Label htmlFor="mt5Server">MT5 Server</Label>
-                                <Input
-                                    id="mt5Server"
-                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.server : newAccount.mt5Credentials?.server}
-                                    onChange={(e) => handleMt5InputChange('server', e.target.value)}
-                                    type="text"
-                                    placeholder="Enter MT5 server"
-                                    autoComplete="off"
-                                />
-                            </div>
+            {/*                <div className="space-y-2 mt-3">*/}
+            {/*                    <Label htmlFor="mt5Server">MT5 Server</Label>*/}
+            {/*                    <Input*/}
+            {/*                        id="mt5Server"*/}
+            {/*                        value={mode === 'edit' ? editingAccount?.mt5Credentials?.server : newAccount.mt5Credentials?.server}*/}
+            {/*                        onChange={(e) => handleMt5InputChange('server', e.target.value)}*/}
+            {/*                        type="text"*/}
+            {/*                        placeholder="Enter MT5 server"*/}
+            {/*                        autoComplete="off"*/}
+            {/*                    />*/}
+            {/*                </div>*/}
 
-                            <div className="space-y-2">
-                                <Label htmlFor="mt5Path">MT5 Path</Label>
-                                <Input
-                                    id="mt5Path"
-                                    value={mode === 'edit' ? editingAccount?.mt5Credentials?.path : newAccount.mt5Credentials?.path}
-                                    onChange={(e) => handleMt5InputChange('path', e.target.value)}
-                                    type="text"
-                                    placeholder="Enter MT5 path"
-                                    autoComplete="off"
-                                />
-                            </div>
+            {/*                <div className="space-y-2">*/}
+            {/*                    <Label htmlFor="mt5Path">MT5 Path</Label>*/}
+            {/*                    <Input*/}
+            {/*                        id="mt5Path"*/}
+            {/*                        value={mode === 'edit' ? editingAccount?.mt5Credentials?.path : newAccount.mt5Credentials?.path}*/}
+            {/*                        onChange={(e) => handleMt5InputChange('path', e.target.value)}*/}
+            {/*                        type="text"*/}
+            {/*                        placeholder="Enter MT5 path"*/}
+            {/*                        autoComplete="off"*/}
+            {/*                    />*/}
+            {/*                </div>*/}
 
-                            <div className="space-y-2">
-                                <Label htmlFor="mt5Timezone">MT5 Timezone</Label>
-                                <Select
-                                    value={mode === 'edit' ? findTimezoneByCode(editingAccount?.mt5Credentials?.timezone) : findTimezoneByCode(newAccount?.mt5Credentials?.timezone)}
-                                    onValueChange={(value) => handleMt5InputChange('timezone', value)}
-                                >
-                                    <SelectTrigger id="mt5Timezone">
-                                        <SelectValue placeholder="Select timezone"/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {timezones.map((tz, index) => (
-                                            <SelectItem key={index} value={tz}>
-                                                {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/*                <div className="space-y-2">*/}
+            {/*                    <Label htmlFor="mt5Timezone">MT5 Timezone</Label>*/}
+            {/*                    <Select*/}
+            {/*                        value={mode === 'edit' ? findTimezoneByCode(editingAccount?.mt5Credentials?.timezone) : findTimezoneByCode(newAccount?.mt5Credentials?.timezone)}*/}
+            {/*                        onValueChange={(value) => handleMt5InputChange('timezone', value)}*/}
+            {/*                    >*/}
+            {/*                        <SelectTrigger id="mt5Timezone">*/}
+            {/*                            <SelectValue placeholder="Select timezone"/>*/}
+            {/*                        </SelectTrigger>*/}
+            {/*                        <SelectContent>*/}
+            {/*                            {timezones.map((tz, index) => (*/}
+            {/*                                <SelectItem key={index} value={tz}>*/}
+            {/*                                    {`${tz.name} (${getCurrentTimeByZone(tz.zoneId)})`}*/}
+            {/*                                </SelectItem>*/}
+            {/*                            ))}*/}
+            {/*                        </SelectContent>*/}
+            {/*                    </Select>*/}
+            {/*                </div>*/}
+            {/*            </div>*/}
+            {/*        </CardContent>*/}
+            {/*    </Card>*/}
+            {/*)}*/}
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-2 pt-4">
