@@ -140,7 +140,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
                         // You might also want to add connection state info here
                         log.debug("Connection state - call.isCanceled(): {}. For class: {}", call.isCanceled(), streamClassName);
                         try {
-                            log.debug("Reader state - reader.ready(): {}. For class: ", reader.ready(), streamClassName);
+                            log.debug("Reader state - reader.ready(): {}. For class: {} ", reader.ready(), streamClassName);
                         } catch (IOException e) {
                             log.debug("Reader is in error state: {}. For class: {}", e.getMessage(), streamClassName);
                         }
