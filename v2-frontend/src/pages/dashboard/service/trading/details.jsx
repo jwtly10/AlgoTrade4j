@@ -273,7 +273,6 @@ export function Page() {
                       variant="outlined"
                       startIcon={<Gear />}
                       onClick={handleEditConfig}
-                      disabled={liveStrategyDetails.active}
                     >
                       Config
                     </Button>
@@ -313,6 +312,7 @@ export function Page() {
             onClose={() => setConfigDialogOpen(false)}
             initialConfig={editableStrategy} // If null will trigger create mode
             onSave={handleSaveStrategy}
+            preventEdit={liveStrategyDetails.active}
           />
         ) : null}
       </Box>

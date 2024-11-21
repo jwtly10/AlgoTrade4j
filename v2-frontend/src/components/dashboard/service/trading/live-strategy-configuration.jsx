@@ -29,7 +29,7 @@ import { logger } from '@/lib/default-logger';
 import { Info, X } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 
-function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSave, onDelete }) {
+function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSave, onDelete, preventEdit = false}) {
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [strategies, setStrategies] = useState([]);
@@ -236,7 +236,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
             }}
           >
             {!initialConfig ? (
-              <FormControl fullWidth sx={{ mb: selectedStrategy ? 3 : 0 }}>
+              <FormControl fullWidth sx={{ mb: selectedStrategy ? 3 : 0 }} disabled={preventEdit}>
                 <InputLabel>Strategy Class</InputLabel>
                 <Select value={selectedStrategy} onChange={handleStrategyChange} label="Strategy CLass">
                   <MenuItem value="" disabled>
@@ -301,6 +301,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                                     value={param.value || ''}
                                     onChange={(e) => handleParamChange(param.name, e.target.value)}
                                     label={param.name}
+                                    disabled={preventEdit}
                                   >
                                     {param.enumValues?.map((value) => (
                                       <MenuItem key={value} value={value}>
@@ -317,6 +318,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                                   onChange={(e) => handleParamChange(param.name, e.target.value)}
                                   placeholder={`Enter ${param.type} value`}
                                   type={param.type === 'int' || param.type === 'double' ? 'number' : 'text'}
+                                  disabled={preventEdit}
                                 />
                               )}
                               <Tooltip title={param.description || 'No description available'}>
@@ -343,6 +345,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                         label="Strategy Name"
                         value={config.strategyName}
                         placeholder="Enter a name for this strategy"
+                        disabled={preventEdit}
                         onChange={(e) =>
                           setConfig((prev) => ({
                             ...prev,
@@ -357,6 +360,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                         label="Telegram Chat ID"
                         value={config.telegramChatId}
                         placeholder="Enter the Telegram Chat ID to send notifications to"
+                        disabled={preventEdit}
                         onChange={(e) =>
                           setConfig((prev) => ({
                             ...prev,
@@ -370,6 +374,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                         <InputLabel>Instrument</InputLabel>
                         <Select
                           value={config.config.instrumentData.internalSymbol}
+                          disabled={preventEdit}
                           onChange={(e) =>
                             setConfig((prev) => ({
                               ...prev,
@@ -399,6 +404,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                       <FormControl fullWidth>
                         <InputLabel>Period</InputLabel>
                         <Select
+                          disabled={preventEdit}
                           value={config.config.period}
                           onChange={(e) =>
                             setConfig((prev) => ({
@@ -434,6 +440,7 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
                       <FormControl fullWidth>
                         <InputLabel>Broker Account</InputLabel>
                         <Select
+                          disabled={preventEdit}
                           value={config.brokerAccount.accountId}
                           onChange={(e) => {
                             const selectedAccount = accounts.find((account) => account.accountId === e.target.value);
@@ -473,14 +480,14 @@ function StrategyConfigurationDialog({ open, onClose, initialConfig = null, onSa
 
       <DialogActions sx={{ p: 2 }}>
         {initialConfig && (
-          <Button onClick={() => onDelete(config)} disabled={loading} color="error">
+          <Button onClick={() => onDelete(config)} disabled={loading || preventEdit} color="error">
             Delete
           </Button>
         )}
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSave} disabled={loading || !isValid()}>
+        <Button variant="contained" onClick={handleSave} disabled={loading || !isValid() || preventEdit}>
           {loading ? <CircularProgress size={24} /> : initialConfig ? 'Update Strategy' : 'Create Strategy'}
         </Button>
       </DialogActions>

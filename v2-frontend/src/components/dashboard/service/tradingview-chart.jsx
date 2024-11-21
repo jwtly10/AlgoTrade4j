@@ -17,6 +17,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
   const colors = {
     background: colorScheme === 'dark' ? '#121517' : '#FFFFFF',
     textColor: colorScheme === 'dark' ? '#D9D9D9' : '#121212',
+    watermark: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)': 'rgba(0,0,0,0.1)',
   };
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export function TradingViewChart({ showChart, strategyConfig, chartData, trades,
         },
       },
       watermark: {
-        color: 'rgba(255, 255, 255, 0.1)',
+        color: colors.watermark,
         visible: true,
         text: chartData.length > 0 ? `${instrument.internalSymbol}, ${period}` : '',
         fontSize: 80,
