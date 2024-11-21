@@ -30,6 +30,9 @@ public abstract class RetryableStream<T> implements Stream<T> {
     protected volatile boolean isRunning = false;
     private int retryCount = 0;
 
+    private final String streamClassName;
+
+
     /**
      * Constructor for RetryableStream.
      *
@@ -43,6 +46,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
         this.request = request;
         this.objectMapper = objectMapper;
         this.timer = timer;
+        this.streamClassName = getClass().getSimpleName();
     }
 
     /**
@@ -63,7 +67,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
      */
     @Override
     public void start(StreamCallback<T> callback) {
-        log.info("Starting stream for class: {}", getClass().getSimpleName());
+        log.info("Starting stream for class: {}", streamClassName);
 
         isRunning = true;
         retryWithBackoff(callback, INITIAL_BACKOFF_MS);
@@ -77,33 +81,33 @@ public abstract class RetryableStream<T> implements Stream<T> {
      */
     private void retryWithBackoff(StreamCallback<T> callback, long backoffMs) {
         if (!isRunning) {
-            log.warn("Stream attempted to retry when not running for class: {}", getClass().getSimpleName());
+            log.warn("Stream attempted to retry when not running for class: {}", streamClassName);
             return;
         }
 
         if (retryCount >= MAX_RETRIES) {
-            log.error("Max retries reached for class: {}", getClass().getSimpleName());
+            log.error("Max retries reached for class: {}", streamClassName);
             callback.onError(new Exception("Max retries reached"));
             return;
         }
 
-        log.info("Connecting to stream for class: {} (attempt {}/{})", getClass().getSimpleName(), retryCount + 1, MAX_RETRIES);
+        log.info("Connecting to stream for class: {} (attempt {}/{})", streamClassName, retryCount + 1, MAX_RETRIES);
 
         call = client.newCall(request);
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                log.error("Stream connection failed for class: {}", getClass().getSimpleName(), e);
+                log.error("Stream connection failed for class: {}", streamClassName, e);
                 scheduleRetry(callback, retryCount, backoffMs);
             }
 
             @Override
             public void onResponse(Call call, Response response) {
                 if (response.isSuccessful()) {
-                    log.info("Stream connection established successfully");
+                    log.info("Stream connection established successfully for class: {}", streamClassName);
                     retryCount = 0;
                 } else {
-                    log.error("Stream connection failed with status code: {}", response.code());
+                    log.error("Stream connection failed with status code: {} for class: {}", response.code(), streamClassName);
                     scheduleRetry(callback, retryCount, backoffMs);
                     return;
                 }
@@ -111,7 +115,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
                 try {
                     reader = new BufferedReader(new InputStreamReader(response.body().byteStream()));
                     String line = "";
-                    log.debug("Starting stream read loop");
+                    log.debug("Starting stream read loop for class: {}", streamClassName);
                     while (isRunning && (line = reader.readLine()) != null) {
                         processLine(line, callback);
                     }
@@ -124,21 +128,21 @@ public abstract class RetryableStream<T> implements Stream<T> {
                     // and we still think its running so getting to this point in this try statement is unexpected
                     // and we should retry
                     if (!isRunning) {
-                        log.debug("Stream loop ended because isRunning=false");
+                        log.debug("Stream loop ended because isRunning=false for class: {}", streamClassName);
                     } else if (line == null) {
-                        log.debug("Stream loop ended because readLine() returned null");
+                        log.debug("Stream loop ended because readLine() returned null for class: {}", streamClassName);
                     } else {
-                        log.debug("Stream loop ended for unknown reason. isRunning={}, line={}", isRunning, line);
+                        log.debug("Stream loop ended for unknown reason. isRunning={}, line={} for class: {}", isRunning, line, streamClassName);
                     }
 
                     if (isRunning) {
-                        log.warn("Stream loop ended while isRunning=True - this indicates an unexpected disconnection");
+                        log.warn("Stream loop ended while isRunning=True - this indicates an unexpected disconnection for class: {}", streamClassName);
                         // You might also want to add connection state info here
-                        log.debug("Connection state - call.isCanceled(): {}", call.isCanceled());
+                        log.debug("Connection state - call.isCanceled(): {}. For class: {}", call.isCanceled(), streamClassName);
                         try {
-                            log.debug("Reader state - reader.ready(): {}", reader.ready());
+                            log.debug("Reader state - reader.ready(): {}. For class: ", reader.ready(), streamClassName);
                         } catch (IOException e) {
-                            log.debug("Reader is in error state: {}", e.getMessage());
+                            log.debug("Reader is in error state: {}. For class: {}", e.getMessage(), streamClassName);
                         }
 
                         // isRunning means we expect the stream to be running, so we should retry
@@ -147,9 +151,9 @@ public abstract class RetryableStream<T> implements Stream<T> {
 
                 } catch (Exception e) {
                     if (e.getMessage().contains("stream was reset: CANCEL")) {
-                        log.debug("Stream was stopped internally, closing stream");
+                        log.debug("Stream was stopped internally, closing stream for class: {}", streamClassName);
                     } else {
-                        log.error("Error processing stream: '{}'", e.getMessage(), e);
+                        log.error("Error processing stream for class: {}: '{}'", streamClassName, e.getMessage(), e);
                     }
                     scheduleRetry(callback, retryCount, backoffMs);
                 } finally {
@@ -184,7 +188,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
 
         retryCount++;
         long nextBackoffMs = Math.min(backoffMs * 2, MAX_BACKOFF_MS);
-        log.info("Scheduling retry {} in {} ms for class: {}", retryCount + 1, backoffMs, getClass().getSimpleName());
+        log.info("Scheduling retry {} in {} ms for class: {}", retryCount + 1, backoffMs, streamClassName);
 
 
         timer.schedule(new TimerTask() {
@@ -200,7 +204,7 @@ public abstract class RetryableStream<T> implements Stream<T> {
      */
     @Override
     public void close() {
-        log.info("Manually closing stream for class: {}", getClass().getSimpleName());
+        log.info("Manually closing stream for class: {}", streamClassName);
         isRunning = false;
         if (call != null) {
             call.cancel();
@@ -214,12 +218,12 @@ public abstract class RetryableStream<T> implements Stream<T> {
      * @param closeable The Closeable resource.
      */
     private void closeQuietly(Closeable closeable) {
-        log.info("Closing resource quietly for class: {}", getClass().getSimpleName());
+        log.info("Closing resource quietly for class: {}", streamClassName);
         if (closeable != null) {
             try {
                 closeable.close();
             } catch (IOException e) {
-                log.error("Error closing resource for class: {}", getClass().getSimpleName(), e);
+                log.error("Error closing resource for class: {}", streamClassName, e);
             }
         }
     }
