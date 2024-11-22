@@ -1,11 +1,9 @@
-package dev.jwtly10.marketdata.news.forexfactory;
+package dev.jwtly10.core.external.news.forexfactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**

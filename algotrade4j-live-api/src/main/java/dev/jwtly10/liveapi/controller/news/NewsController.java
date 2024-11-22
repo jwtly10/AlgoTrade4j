@@ -1,7 +1,7 @@
 package dev.jwtly10.liveapi.controller.news;
 
-import dev.jwtly10.marketdata.news.forexfactory.ForexFactoryClient;
-import dev.jwtly10.marketdata.news.forexfactory.ForexFactoryNews;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryNews;
 import dev.jwtly10.shared.exception.ApiException;
 import dev.jwtly10.shared.exception.ErrorType;
 import lombok.extern.slf4j.Slf4j;

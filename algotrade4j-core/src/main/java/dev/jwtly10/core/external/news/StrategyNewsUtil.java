@@ -1,5 +1,7 @@
-package dev.jwtly10.marketdata.news.forexfactory;
+package dev.jwtly10.core.external.news;
 
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryNews;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 

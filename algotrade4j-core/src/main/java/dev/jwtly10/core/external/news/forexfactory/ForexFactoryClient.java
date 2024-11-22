@@ -1,4 +1,4 @@
-package dev.jwtly10.marketdata.news.forexfactory;
+package dev.jwtly10.core.external.news.forexfactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;

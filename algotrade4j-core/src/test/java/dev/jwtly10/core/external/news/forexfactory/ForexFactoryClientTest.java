@@ -1,7 +1,10 @@
-package dev.jwtly10.marketdata.news.forexfactory;
+package dev.jwtly10.core.external.news.forexfactory;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -43,4 +46,39 @@ class ForexFactoryClientTest {
         assertEquals("", res.getFirst().previous());
     }
 
+    @Test
+    void getADaysUSDNews() throws IOException, URISyntaxException {
+        ForexFactorySearchParams searchParams = ForexFactorySearchParams.builder()
+                .country("USD")
+                .date(LocalDate.of(2024, 11, 5))
+                .impact(ForexFactoryNews.Impact.LOW)
+                .build();
+
+
+        var client = new ForexFactoryClient();
+
+        var res = client.searchMockedNews(searchParams);
+
+        res.forEach(newsItem -> {
+                    System.out.printf("""
+                                    ================================
+                                    Title: %s,
+                                    Country: %s,
+                                    Date: %s,
+                                    Impact: %s,
+                                    Forecast: %s,
+                                    Previous: %s
+                                    ================================
+                                    """,
+                            newsItem.title(),
+                            newsItem.country(),
+                            newsItem.date(),
+                            newsItem.impact().getValue(),
+                            newsItem.forecast(),
+                            newsItem.previous());
+                }
+        );
+
+        assertEquals(2, res.size(), "There should have been only 2 news events on 2024-11-05");
+    }
 }

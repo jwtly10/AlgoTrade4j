@@ -1,5 +1,6 @@
-package dev.jwtly10.marketdata.news.forexfactory;
+package dev.jwtly10.core.external.news;
 
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryNews;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
