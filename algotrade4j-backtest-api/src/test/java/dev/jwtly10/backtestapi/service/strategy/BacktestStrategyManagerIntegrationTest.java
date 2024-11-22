@@ -11,6 +11,7 @@ import dev.jwtly10.core.event.types.AccountEvent;
 import dev.jwtly10.core.event.types.BarEvent;
 import dev.jwtly10.core.event.types.StrategyStopEvent;
 import dev.jwtly10.core.event.types.TradeEvent;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.marketdata.impl.oanda.OandaClient;
 import lombok.Getter;
@@ -19,7 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 
 import java.time.ZoneId;
@@ -43,8 +46,12 @@ class BacktestStrategyManagerIntegrationTest {
 
     private BacktestStrategyManager backtestStrategyManager;
 
+    @Mock
+    private ForexFactoryClient forexFactoryClient;
+
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
         String apiKey = System.getenv("OANDA_API_KEY");
         String baseUrl = "https://api-fxpractice.oanda.com";
         assertNotNull(apiKey, "OANDA_API_KEY environment variable must be set");
@@ -54,7 +61,7 @@ class BacktestStrategyManagerIntegrationTest {
         eventPublisher = new InMemoryEventPublisher("int-test-strategy-id");
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         OandaClient oandaClient = new OandaClient(baseUrl, apiKey, objectMapper);
-        backtestStrategyManager = new BacktestStrategyManager(eventPublisher, oandaClient, env);
+        backtestStrategyManager = new BacktestStrategyManager(eventPublisher, oandaClient, env, forexFactoryClient);
     }
 
     @Test

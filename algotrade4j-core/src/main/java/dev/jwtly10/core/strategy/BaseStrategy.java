@@ -6,6 +6,7 @@ import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
@@ -45,6 +46,10 @@ public abstract class BaseStrategy implements Strategy {
      */
     protected EventPublisher eventPublisher;
     /**
+     * The news util used by the strategy.
+     */
+    private StrategyNewsUtil strategyNewsUtil;
+    /**
      * The trade manager used by the strategy.
      */
     private TradeManager tradeManager;
@@ -56,12 +61,10 @@ public abstract class BaseStrategy implements Strategy {
      * The account manager used by the strategy.
      */
     private AccountManager accountManager;
-
     /**
      * The performance analyser used by the strategy.
      */
     private PerformanceAnalyser performanceAnalyser;
-
     /**
      * The external notifier used by the strategy.
      */
@@ -158,6 +161,30 @@ public abstract class BaseStrategy implements Strategy {
             eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error opening short trade: %s ", e.getMessage()));
             return Optional.empty();
         }
+    }
+
+    /**
+     * Closes all open trades for the strategy.
+     *
+     * @param reason the reason for closing the trades
+     */
+    public void manuallyCloseAllOpenPositions(String reason) {
+        var trades = tradeManager.getOpenTrades();
+        // If no trades are open we can return, don't bother logging
+        if (trades.isEmpty()) {
+            return;
+        }
+        log.info("Strategy requested to manually close all trades for reason: {}", reason);
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Manually closing all trades for strategy '%s' for reason: %s", strategyId, reason));
+        for (Trade trade : trades.values()) {
+            try {
+                tradeManager.closePosition(trade.getId(), true);
+            } catch (Exception e) {
+                sysErrorNotif("Error closing trade for strategy '" + strategyId + "'", e);
+                eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.ERROR, "Error closing trade: %s ", e.getMessage()));
+            }
+        }
+        sysAllPositionsClosedNotif(reason);
     }
 
     /**
@@ -319,7 +346,7 @@ public abstract class BaseStrategy implements Strategy {
      * @param eventPublisher the event publisher
      */
     @Override
-    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier) {
+    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil) {
         this.barSeries = series;
         this.dataManager = dataManager;
         this.accountManager = accountManager;
@@ -327,6 +354,7 @@ public abstract class BaseStrategy implements Strategy {
         this.eventPublisher = eventPublisher;
         this.SYMBOL = dataManager.getInstrument();
         this.performanceAnalyser = performanceAnalyser;
+        this.strategyNewsUtil = strategyNewsUtil;
         if (notifier == null) {
             log.warn("Notifier is null. Notifications will not be sent for strategy '{}'", strategyId);
         }
@@ -537,6 +565,19 @@ public abstract class BaseStrategy implements Strategy {
                     trade.getId(),
                     trade.getInstrument(),
                     trade.getEntryPrice().doubleValue()
+            );
+
+            notifier.sendSysNotification(message, true);
+        }
+    }
+
+    private void sysAllPositionsClosedNotif(String reason) {
+        if (useSystemNotifications && notifier != null) {
+            String message = String.format(
+                    "🔒 <b>All positions closed for '%s' !</b>\n" +
+                            "<b>Reason:</b> '%s'\n",
+                    strategyId,
+                    reason
             );
 
             notifier.sendSysNotification(message, true);

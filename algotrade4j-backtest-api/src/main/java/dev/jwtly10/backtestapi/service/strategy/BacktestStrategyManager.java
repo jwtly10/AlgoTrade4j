@@ -11,6 +11,8 @@ import dev.jwtly10.core.data.DataSpeed;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.*;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.BaseStrategy;
@@ -53,11 +55,13 @@ public class BacktestStrategyManager {
     private final Broker BACKTEST_BROKER = Broker.OANDA;
 
     private final Environment environment;
+    private final ForexFactoryClient forexFactoryClient;
 
-    public BacktestStrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment) {
+    public BacktestStrategyManager(EventPublisher eventPublisher, OandaClient oandaClient, Environment environment, ForexFactoryClient forexFactoryClient) {
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.environment = environment;
+        this.forexFactoryClient = forexFactoryClient;
     }
 
     public void startStrategy(StrategyConfig config, String strategyId) {
@@ -119,7 +123,9 @@ public class BacktestStrategyManager {
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
-        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager);
+        StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil(forexFactoryClient, false);
+
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager, strategyNewsUtil);
         executor.initialise();
         dataManager.addDataListener(executor);
 

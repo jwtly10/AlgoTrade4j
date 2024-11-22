@@ -8,6 +8,7 @@ import dev.jwtly10.core.event.types.AccountEvent;
 import dev.jwtly10.core.event.types.AnalysisEvent;
 import dev.jwtly10.core.event.types.LogEvent;
 import dev.jwtly10.core.event.types.StrategyStopEvent;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
@@ -44,14 +45,17 @@ class BacktestExecutorTest {
     private PerformanceAnalyser performanceAnalyser;
     @Mock
     private RiskManager riskManager;
+    private StrategyNewsUtil strategyNewsUtil;
 
     private BacktestExecutor backtestExecutor;
+
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        this.strategyNewsUtil = new StrategyNewsUtil();
         when(strategy.getStrategyId()).thenReturn("testStrategy");
-        backtestExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager);
+        backtestExecutor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager, strategyNewsUtil);
     }
 
     @Test

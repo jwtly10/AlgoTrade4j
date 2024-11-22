@@ -90,7 +90,7 @@ public class ForexFactoryClient {
      * @throws IOException        if resource file is not found
      */
     public List<ForexFactoryNews> getMockedNews() throws URISyntaxException, IOException {
-        log.info("Fetching mocked news from ForexFactory");
+        log.trace("Fetching mocked news from ForexFactory");
         var path = Paths.get(Objects.requireNonNull(ForexFactoryClient.class.getResource("/forex_factory_mocked_news.json")).toURI());
         var parsed = Files.readString(path);
 

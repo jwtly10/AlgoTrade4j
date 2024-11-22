@@ -5,6 +5,7 @@ import dev.jwtly10.core.analysis.PerformanceAnalyser;
 import dev.jwtly10.core.data.DataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Bar;
@@ -33,8 +34,9 @@ public interface Strategy {
      * @param eventPublisher      The EventPublisher instance for publishing events.
      * @param performanceAnalyser The PerformanceAnalyser instance for analysing strategy performance.
      * @param notifier            The Notifier instance for sending notifications. Can be null for strategies that do not require notifications (backtesting)
+     * @param strategyNewsUtil    The strategy news util instance for accessing news data from the strategy
      */
-    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier);
+    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil);
 
     /**
      * Called once after the strategy processing ends.

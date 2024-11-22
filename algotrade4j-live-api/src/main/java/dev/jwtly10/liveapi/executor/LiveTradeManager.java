@@ -146,6 +146,7 @@ public class LiveTradeManager implements TradeManager {
 
     @Override
     public void closePosition(Integer tradeId, boolean manual) throws Exception {
+        log.info("Closing position: tradeId={}, manual={}", tradeId, manual);
         brokerClient.closeTrade(tradeId);
     }
 

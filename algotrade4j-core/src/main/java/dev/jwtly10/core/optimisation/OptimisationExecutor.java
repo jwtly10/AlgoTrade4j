@@ -9,6 +9,7 @@ import dev.jwtly10.core.event.types.AnalysisEvent;
 import dev.jwtly10.core.exception.BacktestExecutorException;
 import dev.jwtly10.core.execution.BacktestExecutor;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
@@ -41,9 +42,10 @@ public class OptimisationExecutor {
     private final StrategyFactory strategyFactory;
     private final ExecutorFactory executorFactory;
     private final DataManagerFactory dataManagerFactory;
+    private final StrategyNewsUtil strategyNewsUtil;
+    private final Broker BROKER;
     private OptimisationProgress progress;
     private volatile boolean running = false;
-    private final Broker BROKER;
 
 
     /**
@@ -60,7 +62,9 @@ public class OptimisationExecutor {
             Consumer<OptimisationProgress> progressCallback,
             StrategyFactory strategyFactory,
             ExecutorFactory executorFactory,
-            DataManagerFactory dataManagerFactory) {
+            DataManagerFactory dataManagerFactory,
+            StrategyNewsUtil strategyNewsUtil
+    ) {
         this.BROKER = broker;
         this.resultCallback = resultCallback;
         this.progressCallback = progressCallback;
@@ -71,6 +75,7 @@ public class OptimisationExecutor {
         this.strategyFactory = strategyFactory;
         this.executorFactory = executorFactory;
         this.dataManagerFactory = dataManagerFactory;
+        this.strategyNewsUtil = strategyNewsUtil;
     }
 
     /**
@@ -184,7 +189,7 @@ public class OptimisationExecutor {
             try {
                 ParameterHandler.validateRunParameters(strategy, parameterCombination);
                 strategy.setParameters(parameterCombination);
-                BacktestExecutor executor = executorFactory.createExecutor(BROKER, strategy, id, dataManager, eventPublisher, config.getInitialCash());
+                BacktestExecutor executor = executorFactory.createExecutor(BROKER, strategy, id, dataManager, eventPublisher, strategyNewsUtil, config.getInitialCash());
                 executor.initialise();
                 dataManager.addDataListener(executor);
 

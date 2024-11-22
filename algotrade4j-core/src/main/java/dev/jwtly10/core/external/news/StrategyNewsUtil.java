@@ -3,12 +3,12 @@ package dev.jwtly10.core.external.news;
 import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.external.news.forexfactory.ForexFactoryNews;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * StrategyNewsUtil is a layer of abstraction over the news data we collect each day
@@ -26,9 +26,11 @@ public class StrategyNewsUtil {
     }
 
     /**
-     * THIS CONSTRUCTOR IS ONLY USED FOR TESTING - DO NOT USE IN PRODUCTION
-     * This constructor is used to inject a mock Forex Factory for testing purposes
+     * THIS CONSTRUCTOR IS ONLY USED FOR TESTING OR BACKTESTING
+     * This constructor is used to create a StrategyNewsUtil object that will use mocked data, and WILL NOT BE TRIGGERED.
+     * Backtesting does not have access to news data, so we can't make trading decisions based on this.
      */
+
     public StrategyNewsUtil() {
         this.forexFactoryClient = new ForexFactoryClient();
         this.useMockedData = true;
@@ -39,15 +41,14 @@ public class StrategyNewsUtil {
      *
      * @param country   the currency country code to get the next high impact event for
      * @param currentDt the current date and time
-     * @return the news event that is the next high impact event for the given country, or null if none (or backtesting)
+     * @return optional of the news event that is the next high impact event for the given country, or empty if none (or backtesting)
      * @throws IOException if there is an error fetching the news data
      */
-    @Nullable
-    public ForexFactoryNews getNextHighImpactEvent(String country, ZonedDateTime currentDt) throws IOException {
+    public Optional<ForexFactoryNews> getNextHighImpactEvent(String country, ZonedDateTime currentDt) throws IOException {
         // During backtesting we do not have news data so this logic does not work
         // To prevent unexpected logic during a backtest, we will return null so the user can't do any action on news
         if (!isLive) {
-            return null;
+            return Optional.empty();
         }
 
         List<ForexFactoryNews> allNews = getNews();
@@ -61,7 +62,11 @@ public class StrategyNewsUtil {
             }
         }
 
-        return nextHighImpactEvent;
+        if (nextHighImpactEvent == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(nextHighImpactEvent);
     }
 
     /**
@@ -69,15 +74,14 @@ public class StrategyNewsUtil {
      *
      * @param country   the currency country code to get the next high impact event for
      * @param currentDt the current date and time
-     * @return the news event that is the last high impact event for the given country, or null if none (or backtesting)
+     * @return optional of the news event that is the last high impact event for the given country, or empty if none (or backtesting)
      * @throws IOException if there is an error fetching the news data
      */
-    @Nullable
-    public ForexFactoryNews getLastHighImpactEvent(String country, ZonedDateTime currentDt) throws IOException {
+    public Optional<ForexFactoryNews> getLastHighImpactEvent(String country, ZonedDateTime currentDt) throws IOException {
         // During backtesting we do not have news data so this logic does not work
         // To prevent unexpected logic during a backtest, we will return null so the user can't do any action on news
         if (!isLive) {
-            return null;
+            return Optional.empty();
         }
 
         List<ForexFactoryNews> allNews = getNews();
@@ -91,8 +95,11 @@ public class StrategyNewsUtil {
             }
         }
 
-        return lastHighImpactEvent;
+        if (lastHighImpactEvent == null) {
+            return Optional.empty();
+        }
 
+        return Optional.of(lastHighImpactEvent);
     }
 
     private List<ForexFactoryNews> getNews() throws IOException {

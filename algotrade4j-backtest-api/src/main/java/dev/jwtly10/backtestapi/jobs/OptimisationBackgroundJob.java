@@ -10,6 +10,8 @@ import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.SyncEventPublisher;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.optimisation.OptimisationConfig;
 import dev.jwtly10.core.optimisation.OptimisationExecutor;
@@ -50,6 +52,7 @@ public class OptimisationBackgroundJob {
     private final OandaClient oandaClient;
 
     private final Broker OPTIMISATION_BROKER = Broker.OANDA; // TODO:  Should have factory pattern for this, but we will use OANDA for now
+    private final ForexFactoryClient forexFactoryClient;
 
     public OptimisationBackgroundJob(
             OptimisationTaskService taskService,
@@ -58,8 +61,8 @@ public class OptimisationBackgroundJob {
             StrategyFactory strategyFactory,
             ExecutorFactory executorFactory,
             DataManagerFactory dataManagerFactory,
-            OandaClient oandaClient
-    ) {
+            OandaClient oandaClient,
+            ForexFactoryClient forexFactoryClient) {
         this.taskService = taskService;
         this.resultService = resultService;
         this.taskSemaphore = new Semaphore(maxConcurrentTasks);
@@ -67,6 +70,7 @@ public class OptimisationBackgroundJob {
         this.executorFactory = executorFactory;
         this.dataManagerFactory = dataManagerFactory;
         this.oandaClient = oandaClient;
+        this.forexFactoryClient = forexFactoryClient;
     }
 
 
@@ -141,6 +145,8 @@ public class OptimisationBackgroundJob {
             resultService.saveOptimisationResult(task.getId(), runResult);
         };
 
+        StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil(forexFactoryClient, false);
+
         Consumer<OptimisationProgress> progressCallback = progress -> {
             taskService.updateProgress(task.getId(), new ProgressInfo(
                     progress.getProgressPercentage(),
@@ -158,7 +164,8 @@ public class OptimisationBackgroundJob {
                 progressCallback,
                 strategyFactory,
                 executorFactory,
-                dataManagerFactory
+                dataManagerFactory,
+                strategyNewsUtil
         );
     }
 

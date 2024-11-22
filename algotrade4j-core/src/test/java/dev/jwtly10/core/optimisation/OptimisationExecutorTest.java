@@ -4,6 +4,7 @@ import dev.jwtly10.core.data.DataManagerFactory;
 import dev.jwtly10.core.data.DataProvider;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.ExecutorFactory;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.strategy.StrategyFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.verify;
 
 class OptimisationExecutorTest {
 
+    private final Broker TEST_BROKER = Broker.OANDA;
     @Mock
     private EventPublisher eventPublisher;
     @Mock
@@ -37,18 +39,15 @@ class OptimisationExecutorTest {
     private ExecutorFactory executorFactory;
     @Mock
     private DataManagerFactory dataManagerFactory;
-
     private OptimisationExecutor optimisationExecutor;
-
-
-    private final Broker TEST_BROKER = Broker.OANDA;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil();
         optimisationExecutor = new OptimisationExecutor(
                 TEST_BROKER, eventPublisher, dataProvider, resultCallback, progressCallback,
-                strategyFactory, executorFactory, dataManagerFactory
+                strategyFactory, executorFactory, dataManagerFactory, strategyNewsUtil
         );
     }
 

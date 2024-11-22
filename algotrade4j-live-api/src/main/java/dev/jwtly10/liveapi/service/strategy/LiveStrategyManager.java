@@ -5,6 +5,8 @@ import dev.jwtly10.core.account.DefaultAccountManager;
 import dev.jwtly10.core.data.DefaultDataManager;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.execution.TradeManager;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
+import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
@@ -54,14 +56,16 @@ public class LiveStrategyManager {
     private final BrokerClientFactory brokerClientFactory;
 
     private final LiveStrategyService liveStrategyService;
+    private final ForexFactoryClient forexFactoryClient;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService, BrokerClientFactory brokerClientFactory) {
+    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService, BrokerClientFactory brokerClientFactory, ForexFactoryClient forexFactoryClient) {
         this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
         this.telegramNotifier = telegramNotifier;
         this.liveStrategyService = liveStrategyService;
         this.brokerClientFactory = brokerClientFactory;
+        this.forexFactoryClient = forexFactoryClient;
     }
 
     /**
@@ -256,6 +260,8 @@ public class LiveStrategyManager {
 
         strategyInstance.setNotificationChatId(liveStrategy.getTelegramChatId());
 
+        StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil(forexFactoryClient, true);
+
         LiveExecutor executor = new LiveExecutor(
                 strategyInstance,
                 tradeManager,
@@ -265,7 +271,8 @@ public class LiveStrategyManager {
                 liveStateManager,
                 riskManager,
                 telegramNotifier,
-                liveStrategyService
+                liveStrategyService,
+                strategyNewsUtil
         );
 
         executor.initialise();

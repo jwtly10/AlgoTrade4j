@@ -1,6 +1,9 @@
 # Welcome to AlgoTrade4j
 
-🏗️ Note: This project is currently a work in progress and not yet ready for production live trading use 🏗️
+🏗️ Note:
+
+- This project is currently a work in progress and not yet ready for production live trading use.
+- As of 2024-11-22, this documentation is out of date and will be updated soon.
 
 ## Introduction
 

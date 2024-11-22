@@ -8,6 +8,7 @@ import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.*;
 import dev.jwtly10.core.event.types.async.*;
 import dev.jwtly10.core.exception.BacktestExecutorException;
+import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
@@ -41,7 +42,17 @@ public class BacktestExecutor implements DataListener {
     @Setter
     private volatile boolean initialised = false;
 
-    public BacktestExecutor(Strategy strategy, TradeManager tradeManager, TradeStateManager tradeStateManager, AccountManager accountManager, DataManager dataManager, BarSeries barSeries, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, RiskManager riskManager) {
+    public BacktestExecutor(Strategy strategy,
+                            TradeManager tradeManager,
+                            TradeStateManager tradeStateManager,
+                            AccountManager accountManager,
+                            DataManager dataManager,
+                            BarSeries barSeries,
+                            EventPublisher eventPublisher,
+                            PerformanceAnalyser performanceAnalyser,
+                            RiskManager riskManager,
+                            StrategyNewsUtil strategyNewsUtil
+    ) {
         this.strategyId = strategy.getStrategyId();
         this.strategy = strategy;
         this.dataManager = dataManager;
@@ -52,7 +63,7 @@ public class BacktestExecutor implements DataListener {
         this.performanceAnalyser = performanceAnalyser;
         this.riskManager = riskManager;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser, null);
+        strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, performanceAnalyser, null, strategyNewsUtil);
     }
 
     @Override

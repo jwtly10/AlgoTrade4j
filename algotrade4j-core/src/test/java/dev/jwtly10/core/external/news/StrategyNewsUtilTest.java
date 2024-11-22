@@ -42,7 +42,9 @@ class StrategyNewsUtilTest {
     void getNextHighImpactEvent() throws IOException {
         // 2024-11-05T15:11:00[UTC] Should return the presidential election as the next event
         ZonedDateTime mockNow = ZonedDateTime.parse("2024-11-05T15:11:00Z");
-        ForexFactoryNews nextHighImpactEvent = util.getNextHighImpactEvent("USD", mockNow);
+        ForexFactoryNews nextHighImpactEvent = util.getNextHighImpactEvent("USD", mockNow).orElseThrow(
+                () -> new IllegalStateException("Expected a high impact event")
+        );
 
         assertNotNull(nextHighImpactEvent);
 
@@ -55,7 +57,9 @@ class StrategyNewsUtilTest {
     void getLastHighImpactEvent() throws IOException {
         // 2024-11-05T15:11:00[UTC] Should return the presidential election as the next event
         ZonedDateTime mockNow = ZonedDateTime.parse("2024-11-05T15:11:00Z");
-        ForexFactoryNews nextHighImpactEvent = util.getLastHighImpactEvent("USD", mockNow);
+        ForexFactoryNews nextHighImpactEvent = util.getLastHighImpactEvent("USD", mockNow).orElseThrow(
+                () -> new IllegalStateException("Expected a high impact event")
+        );
 
         assertNotNull(nextHighImpactEvent);
 
