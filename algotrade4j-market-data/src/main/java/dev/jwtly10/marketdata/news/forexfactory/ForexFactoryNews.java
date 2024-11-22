@@ -2,9 +2,12 @@ package dev.jwtly10.marketdata.news.forexfactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import dev.jwtly10.marketdata.news.GenericNewsEvent;
+import dev.jwtly10.marketdata.news.NewsImpact;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 /**
  * Represents news from ForexFactory.
@@ -87,5 +90,32 @@ public record ForexFactoryNews(
         public String toString() {
             return value;
         }
+    }
+
+    public NewsImpact convertImpact(){
+        switch (impact.value) {
+            case "Medium":
+                return NewsImpact.MEDIUM;
+            case "High":
+                return NewsImpact.HIGH;
+            default:
+                // TODO: Does this work? Are there any dangerous events that are not marked as HIGH?
+                return NewsImpact.LOW;
+        }
+    }
+
+    /**
+     * Converts the ForexFactoryNews to a GenericNewsEvent.
+     *
+     * @return The GenericNewsEvent.
+     */
+    public GenericNewsEvent toGenericNewsEvent(){
+        return new GenericNewsEvent(
+                country,
+                convertImpact(),
+                title,
+                ZonedDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC)
+        );
+
     }
 }
