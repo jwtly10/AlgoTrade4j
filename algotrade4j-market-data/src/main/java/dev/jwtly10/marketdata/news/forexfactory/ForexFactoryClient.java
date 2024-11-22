@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -22,8 +24,9 @@ import java.util.stream.Collectors;
 public class ForexFactoryClient {
 
     private final OkHttpClient httpClient;
+    private final Duration cacheExpiry = Duration.ofHours(3);
     private List<ForexFactoryNews> cachedNews;
-    private LocalDate lastFetchDate;
+    private ZonedDateTime lastFetchDate;
 
     public ForexFactoryClient(OkHttpClient httpClient) {
         this.httpClient = httpClient;
@@ -101,17 +104,19 @@ public class ForexFactoryClient {
 
     /**
      * Fetches news from ForexFactory for the current week.
-     * Note this data is cached each day, this is due to the harsh rate limits of the ForexFactory URL.
-     * <p>
+     * Note this data is cached for 3 hours, to allow for the harsh rate limits of FF.
+     * Cache will automatically be invalidated each day, to ensure the latest news is fetched for any on new day logic
      * Data shouldn't change day by day, but in case predictions or severity of news changes, this method will fetch the latest data each day
      *
      * @return List of news items
      * @throws IOException should http req fail
      */
     public List<ForexFactoryNews> getThisWeeksNews() throws IOException {
-        LocalDate today = LocalDate.now();
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC"));
 
-        if (cachedNews != null && lastFetchDate != null && lastFetchDate.isEqual(today)) {
+        // If we have cached news, and it's not expired, return it
+        if (cachedNews != null && lastFetchDate != null && lastFetchDate.plus(cacheExpiry).isAfter(now)) {
+            log.debug("Returning cached news from ForexFactory");
             return cachedNews;
         }
 
@@ -132,11 +137,12 @@ public class ForexFactoryClient {
                     .registerModule(new JavaTimeModule())
                     .configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
 
-            cachedNews = objectMapper.readValue(response, new TypeReference<>() {
+            List<ForexFactoryNews> news = objectMapper.readValue(response, new TypeReference<>() {
             });
-            lastFetchDate = today;
 
-            return cachedNews;
+            // Update Cache and return the news
+            lastFetchDate = now;
+            return cachedNews = news != null ? news : List.of();
         } catch (IOException e) {
             log.error("Failed to fetch new data from ForexFactory: {}", e.getMessage(), e);
             throw e;

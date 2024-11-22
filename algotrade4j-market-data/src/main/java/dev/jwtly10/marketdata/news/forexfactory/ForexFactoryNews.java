@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 /**
  * Represents news from ForexFactory.
@@ -19,7 +21,7 @@ import java.time.ZoneOffset;
 public record ForexFactoryNews(
         String title,
         String country,
-        OffsetDateTime date,
+        ZonedDateTime date,
         Impact impact,
         String forecast,
         String previous
@@ -31,7 +33,7 @@ public record ForexFactoryNews(
      */
     public ForexFactoryNews {
         // Convert date to UTC
-        date = date.withOffsetSameInstant(ZoneOffset.UTC);
+        date = date.withZoneSameInstant(ZoneId.of("UTC"));
     }
 
     /**
