@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Box,
   Button,
@@ -23,17 +23,17 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { strategyClient } from '@/lib/api/clients/strategy-client';
-import { logger } from '@/lib/default-logger';
-import { Info, X } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import {strategyClient} from '@/lib/api/clients/strategy-client';
+import {logger} from '@/lib/default-logger';
+import {Info, X} from '@phosphor-icons/react';
+import {toast} from 'react-toastify';
+import {DatePicker} from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
 
-function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, onDelete }) {
+function BacktestConfigurationDialog({open, onClose, backtestConfig, onSave, onDelete}) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [activeGroup, setActiveGroup] = useState('');
@@ -103,10 +103,10 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
 
   const handleParamChange = (paramName, value) => {
     logger.debug('Changing param', paramName, value);
-    logger.debug(config.runParams.map((param) => (param.name === paramName ? { ...param, value } : param)));
+    logger.debug(config.runParams.map((param) => (param.name === paramName ? {...param, value} : param)));
     setConfig((prev) => ({
       ...prev,
-      runParams: prev.runParams.map((param) => (param.name === paramName ? { ...param, value } : param)),
+      runParams: prev.runParams.map((param) => (param.name === paramName ? {...param, value} : param)),
     }));
   };
 
@@ -152,15 +152,15 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
         },
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle sx={{m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <Typography>Edit Backtest Configuration</Typography>
         <IconButton onClick={onClose} size="small" aria-label="close">
-          <X />
+          <X/>
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ p: 0, display: 'flex', overflow: 'hidden' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+      <DialogContent dividers sx={{p: 0, display: 'flex', overflow: 'hidden'}}>
+        <Box sx={{display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
           <Box
             sx={{
               p: 3,
@@ -171,15 +171,15 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
             }}
           >
             <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-              <Tab label="Parameters" />
-              <Tab label="Run Configuration" />
+              <Tab label="Parameters"/>
+              <Tab label="Run Configuration"/>
             </Tabs>
           </Box>
 
-          <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          <Box sx={{flex: 1, display: 'flex', overflow: 'hidden'}}>
             {/* Parameters Tab */}
             {activeTab === 0 && (
-              <Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
+              <Box sx={{display: 'flex', width: '100%', height: '100%'}}>
                 {/* Sidebar */}
                 <Paper
                   elevation={0}
@@ -197,19 +197,19 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
                         selected={activeGroup === group}
                         onClick={() => setActiveGroup(group)}
                       >
-                        <ListItemText primary={group} />
+                        <ListItemText primary={group}/>
                       </ListItemButton>
                     ))}
                   </List>
                 </Paper>
 
                 {/* Parameters Content */}
-                <Box sx={{ flex: 1, p: 3, overflow: 'auto' }}>
+                <Box sx={{flex: 1, p: 3, overflow: 'auto'}}>
                   {activeGroup ? (
                     <Grid container spacing={3}>
                       {groupParams()[activeGroup]?.map((param) => (
                         <Grid item xs={12} md={6} key={param.name}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                             {param.type === 'enum' ? (
                               <FormControl fullWidth>
                                 <InputLabel>{param.name}</InputLabel>
@@ -237,7 +237,7 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
                             )}
                             <Tooltip title={param.description || 'No description available'}>
                               <IconButton size="small">
-                                <Info />
+                                <Info/>
                               </IconButton>
                             </Tooltip>
                           </Box>
@@ -251,12 +251,12 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
 
             {/* Run Configuration Tab */}
             {activeTab === 1 && (
-              <Box sx={{ p: 3, width: '100%' }}>
+              <Box sx={{p: 3, width: '100%'}}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Intial Cash"
+                      label="Initial Cash"
                       value={config.initialCash || ''}
                       onChange={(e) => {
                         setConfig((prev) => ({
@@ -402,12 +402,12 @@ function BacktestConfigurationDialog({ open, onClose, backtestConfig, onSave, on
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
+      <DialogActions sx={{p: 2}}>
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
         <Button variant="contained" onClick={handleSave} disabled={loading || !isValid()}>
-          {loading ? <CircularProgress size={24} /> : 'Save'}
+          {loading ? <CircularProgress size={24}/> : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
