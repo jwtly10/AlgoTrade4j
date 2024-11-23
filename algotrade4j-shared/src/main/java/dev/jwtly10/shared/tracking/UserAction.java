@@ -7,7 +7,7 @@ public enum UserAction {
     BACKTEST_RUN,
 
     OPTIMISATION_RUN,
-    OPTIMISATION_RESULTS,
+    //    OPTIMISATION_RESULTS, // Removed this as is not relevant
     OPTIMISATION_DELETE,
 
     LIVE_STRATEGY_CREATE,

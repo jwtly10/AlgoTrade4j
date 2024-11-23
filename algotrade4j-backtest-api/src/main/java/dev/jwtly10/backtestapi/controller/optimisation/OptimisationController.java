@@ -76,8 +76,6 @@ public class OptimisationController {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         log.debug("Getting results for task: {} for user: {}", taskId, currentUserId);
 
-        trackingService.track(currentUserId, UserAction.OPTIMISATION_RESULTS, Map.of("taskId", taskId));
-
         try {
             List<OptimisationResultDTO> results = optimisationService.getResultsForTask(taskId, currentUserId);
             return ResponseEntity.ok(results);
