@@ -78,6 +78,18 @@ class OptimisationExecutorTest {
     }
 
     @Test
+    void generateParameterCombinationsEdgeCase() {
+        // String stringList is a String, we should make sure we handle the case if the StringList is empty rather than null
+        List<ParameterRange> parameterRanges = List.of(
+                new ParameterRange("default_value", "SMA1", "10", "60", "5", true, ""),
+                new ParameterRange("default_value", "SMA2", "20", "30", "5", true, "")
+        );
+        List<Map<String, String>> combinations = optimisationExecutor.generateParameterCombinations(parameterRanges);
+
+        assertEquals(33, combinations.size());
+    }
+
+    @Test
     void generateParameterCombinationsOneStep() {
         List<ParameterRange> parameterRanges = List.of(
                 new ParameterRange("default_value", "SMA1", "10", "10", "10", true, null),

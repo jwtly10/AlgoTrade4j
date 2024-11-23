@@ -314,7 +314,7 @@ public class OptimisationExecutor {
                 // Use the realtime value configured, since we are not optimising for this parameter
                 currentCombination.put(range.getName(), range.getValue());
                 generateCombinationsRecursive(parameterRanges, index + 1, currentCombination, combinations);
-            } else if (range.getStringList() != null) {
+            } else if (range.getStringList() != null && !range.getStringList().isEmpty()) { // Only do this logic if the string list is not empty
                 // This is an enum or string parameter, so we parse the string list and generate combinations
                 String[] values = range.getStringList().split(",");
                 for (int i = 0; i < values.length; i++) {
