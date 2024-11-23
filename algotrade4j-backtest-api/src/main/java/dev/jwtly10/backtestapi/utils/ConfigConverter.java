@@ -39,7 +39,7 @@ public class ConfigConverter {
                 runParam.getValue(),
                 runParam.getName(),
                 runParam.getStart(),
-                runParam.getStop(),
+                runParam.getEnd(),
                 runParam.getStep(),
                 runParam.getSelected(),
                 runParam.getStringList()

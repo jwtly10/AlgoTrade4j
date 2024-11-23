@@ -95,7 +95,7 @@ public class StrategyConfig {
         private String defaultValue;
         private String group;
         private String start;
-        private String stop;
+        private String end;
         private String step;
         private Boolean selected;
         // Used for enum/string types, comma separated list of values

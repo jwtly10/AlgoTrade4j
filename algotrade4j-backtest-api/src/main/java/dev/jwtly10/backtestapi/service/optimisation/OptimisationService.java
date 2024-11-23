@@ -34,10 +34,15 @@ public class OptimisationService {
 
     @Transactional
     public OptimisationTask queueOptimisation(StrategyConfig strategyConfig, Long userId) throws JsonProcessingException {
-        validateOptimisationConfig(strategyConfig);
 
         // Convert config
-        OptimisationConfig config = ConfigConverter.convertToOptimisationConfig(strategyConfig);
+        OptimisationConfig config = null;
+        try {
+            config = validateOptimisationConfig(strategyConfig);
+        } catch (Exception e) {
+            throw new StrategyManagerException("Error converting config: " + e.getMessage(), ErrorType.BAD_REQUEST);
+        }
+
         OptimisationTask task = new OptimisationTask();
 
         // Save task
@@ -145,8 +150,9 @@ public class OptimisationService {
         );
     }
 
-    private void validateOptimisationConfig(StrategyConfig config) throws IllegalArgumentException {
+    private OptimisationConfig validateOptimisationConfig(StrategyConfig config) throws IllegalArgumentException {
         OptimisationConfig optimisationConfig = ConfigConverter.convertToOptimisationConfig(config);
         optimisationConfig.validate();
+        return optimisationConfig;
     }
 }

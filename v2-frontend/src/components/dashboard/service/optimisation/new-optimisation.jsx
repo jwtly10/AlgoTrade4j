@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   Box,
@@ -16,15 +16,14 @@ import {
   Typography,
   useColorScheme,
 } from '@mui/material';
-import { X } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
-import JSONInput from 'react-json-editor-ajrm';
-import locale from 'react-json-editor-ajrm/locale/en';
-import { strategyClient } from '@/lib/api/clients/strategy-client';
-import { logger } from '@/lib/default-logger';
-import { optimisationClient } from '@/lib/api/clients/optimisation-client';
+import {X} from '@phosphor-icons/react';
+import {toast} from 'react-toastify';
+import {strategyClient} from '@/lib/api/clients/strategy-client';
+import {logger} from '@/lib/default-logger';
+import {optimisationClient} from '@/lib/api/clients/optimisation-client';
+import Editor from '@monaco-editor/react';
 
-function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
+function OptimisationConfigurationDialog({open, onClose}) {
   const [loading, setLoading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('');
   const [strategies, setStrategies] = useState([]);
@@ -32,7 +31,7 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
   const [jsonError, setJsonError] = useState(null);
   const [errMessage, setErrMessage] = useState(null);
 
-  const { colorScheme } = useColorScheme();
+  const {colorScheme} = useColorScheme();
   const colors = {
     background: colorScheme === 'dark' ? '#121517' : '#FFFFFF',
     textColor: colorScheme === 'dark' ? '#D9D9D9' : '#121212',
@@ -40,22 +39,14 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
 
   const defaultConfig = {
     strategyClass: 'DJATRStrategy',
-    instrument: 'NAS100USD',
+    instrumentData: {
+      internalSymbol: 'NAS100USD'
+    },
     period: 'M15',
     spread: 10,
     speed: 'INSTANT',
     initialCash: 10000,
-    parameterRanges: [
-      {
-        value: '300',
-        name: 'stopLossTicks',
-        start: '1',
-        end: '1',
-        step: '1',
-        selected: false,
-        stringList: null,
-      },
-    ],
+    runParams: [],
     timeframe: {
       from: '2024-10-04T00:00:00Z',
       to: '2024-10-20T00:00:00Z',
@@ -90,6 +81,8 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
     const stratClass = e.target.value;
     setSelectedStrategy(stratClass);
     setLoading(true);
+    setErrMessage(null)
+    setJsonError(null)
 
     try {
       const defaultParams = await strategyClient.getDefaultParamsForStrategyClass(stratClass);
@@ -108,24 +101,19 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
         stringList: '',
       }));
 
-      setConfig((prev) => ({
-        ...prev,
+      // For a better XP we will hide some settings from the user, as these are defaulted
+      const currentConfig = {...config};
+      delete currentConfig.speed;
+
+      setConfig({
+        ...currentConfig,
         strategyClass: stratClass,
         runParams,
-      }));
+      });
     } catch (error) {
       toast.error(`Error fetching strategy params: ${error.message}`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleJsonChange = ({ jsObject, error }) => {
-    if (error) {
-      setJsonError(error);
-    } else {
-      setJsonError(null);
-      setConfig(jsObject);
     }
   };
 
@@ -137,30 +125,29 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
 
     setLoading(true);
 
+    const fixedConfig = {...config};
+    fixedConfig.speed = "INSTANT";
+
+    logger.debug("Submitting optimisation job with fixed config", fixedConfig);
     try {
-      const res = optimisationClient.queueOptimisation(config);
+      await optimisationClient.queueOptimisation(fixedConfig);
     } catch (error) {
+      logger.error('Error submitting job:', error);
       // The api provides validation, so we can use this to validate the form before closing
       if (error.message) {
         setErrMessage(error.message);
-      } else {
-        toast('Error submitting job', error);
       }
+
+      toast.error(`Error submitting job: ${error.message}`);
 
       // Then just return out
       setLoading(false);
       return;
     }
 
-    try {
-      await onSubmit(config);
-      onClose();
-      setLoading(false);
-    } catch (error) {
-      toast.error(`Error saving strategy: ${error.message}`);
-      logger.error('Error saving strategy:', error);
-      setLoading(false);
-    }
+    setLoading(false)
+    toast.success("Optimisation job submitted successfully");
+    onClose();
   };
 
   return (
@@ -177,15 +164,15 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
         },
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle sx={{m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
         <Typography>Configuration Optimisation Job</Typography>
         <IconButton onClick={onClose} size="small" aria-label="close">
-          <X />
+          <X/>
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers sx={{ p: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+      <DialogContent dividers sx={{p: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+        <Box sx={{p: 3, borderBottom: 1, borderColor: 'divider'}}>
           <FormControl fullWidth>
             <InputLabel>Strategy Class</InputLabel>
             <Select value={selectedStrategy} onChange={handleStrategyChange} label="Strategy Class">
@@ -202,38 +189,67 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
         </Box>
 
         {selectedStrategy ? (
-          <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+          <Box sx={{flex: 1, overflow: 'auto', p: 3}}>
+            <Alert severity="warning" sx={{mb: 3}}>
+              <div className="mb-2">
+                Optimisation is an advanced feature of Algotrade4j. It allows you to fine-tune strategies by running 1000s of simulations with all combinations of parameters.
+              </div>
+
+              <div className="mt-3 mb-2">
+                <strong>Current Configuration Rules:</strong>
+              </div>
+
+              <ul className="list-disc pl-6">
+                <li>
+                  Supported '<code>instrumentData.internalSymbols</code>': {instruments.map((i) => i.internalSymbol).join(', ')}
+                </li>
+                <li>
+                  Supported '<code>period</code>': {['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D'].map((i) => i).join(', ')}
+                </li>
+                <li>
+                  Maximum parallel simulations: 1000
+                </li>
+                <li>
+                  Optimisation jobs may take a few minutes to run all simulations
+                </li>
+              </ul>
+
+              <div className="mt-3 text-sm">
+                <strong>Note:</strong> Only advanced users should use this feature. Incorrect configuration may lead to suboptimal results.
+              </div>
+            </Alert>
             {errMessage ? (
-              <Alert severity="error" sx={{ mb: 3 }}>
+              <Alert severity="error" sx={{mb: 3}}>
                 {`Error submitting job: ${errMessage}`}
               </Alert>
             ) : null}
-            <JSONInput
-              id="json-editor"
-              locale={locale}
-              placeholder={config}
-              height="100%"
-              width="100%"
-              onChange={handleJsonChange}
-              style={{
-                body: {
-                  fontSize: '14px',
-                  //   backgroundColor: colors.background,
-                  borderRadius: '10px',
-                  padding: '5px',
-                },
-                contentBox: {
-                  borderRadius: '10px',
-                },
+            <Editor
+              height="500px"
+              defaultLanguage="json"
+              theme={colorScheme === 'dark' ? 'vs-dark' : 'light'}
+              value={JSON.stringify(config, null, 2)}
+              onChange={(value) => {
+                try {
+                  const parsed = JSON.parse(value);
+                  setConfig(parsed);
+                  setJsonError(null);
+                } catch (err) {
+                  setJsonError(err.message);
+                }
               }}
-              theme={colorScheme === 'dark' ? '' : 'light_mitsuketa_tribute'} // Use default in dark mode
+              options={{
+                minimap: {enabled: false},
+                formatOnPaste: true,
+                formatOnType: true,
+                automaticLayout: true,
+              }}
             />
           </Box>
         ) : null}
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
-        <Typography color="error" sx={{ flex: 1, pl: 2 }}>
+      <DialogActions sx={{p: 2}}>
+        <Typography color="error" sx={{flex: 1, pl: 2}}>
           {jsonError && 'Invalid JSON configuration'}
         </Typography>
         <Button onClick={onClose} disabled={loading}>
@@ -243,7 +259,7 @@ function OptimisationConfigurationDialog({ open, onClose, onSubmit }) {
           variant="contained"
           onClick={handleSave}
           disabled={loading || jsonError || !selectedStrategy}
-          startIcon={loading && <CircularProgress size={20} />}
+          startIcon={loading && <CircularProgress size={20}/>}
         >
           Submit Optimisation Job
         </Button>

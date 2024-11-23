@@ -10,19 +10,20 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
-import { Plus as PlusIcon } from '@phosphor-icons/react/dist/ssr/Plus';
-import { Eye, Faders, ShareNetwork, TrashSimple } from '@phosphor-icons/react';
-import { Helmet } from 'react-helmet-async';
+import {Plus as PlusIcon} from '@phosphor-icons/react/dist/ssr/Plus';
+import {Eye, Faders, ShareNetwork, TrashSimple} from '@phosphor-icons/react';
+import {Helmet} from 'react-helmet-async';
 import Chip from '@mui/material/Chip';
 
-import { config } from '@/config';
-import { useOptimisation } from '@/hooks/services/use-optimisation';
-import { dayjs } from '@/lib/dayjs';
+import {config} from '@/config';
+import {useOptimisation} from '@/hooks/services/use-optimisation';
+import {dayjs} from '@/lib/dayjs';
 import Alert from '@mui/material/Alert';
-import { AlertTitle } from '@mui/lab';
+import {AlertTitle} from '@mui/lab';
 import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation';
+import {toast} from "react-toastify";
 
-const metadata = { title: `Optimisation Tasks | Dashboard | ${config.site.name}` };
+const metadata = {title: `Optimisation Tasks | Dashboard | ${config.site.name}`};
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -42,17 +43,13 @@ const getStatusColor = (status) => {
 const ITEMS_PER_PAGE = 5;
 
 export function Page() {
-  const { optimisationTasks, isLoading, fetchOptimisationTasks } = useOptimisation();
+  const {optimisationTasks, isLoading, fetchOptimisationTasks} = useOptimisation();
   const [visibleItems, setVisibleItems] = React.useState(ITEMS_PER_PAGE);
 
   const [showNewJobDialog, setShowNewJobDialog] = React.useState(false);
 
   const handleShowMore = () => {
     setVisibleItems((prev) => prev + ITEMS_PER_PAGE);
-  };
-
-  const handleSubmitOptimisation = () => {
-    toast.success('Optimization job submitted successfully');
   };
 
   const visibleTasks = optimisationTasks.slice(0, visibleItems);
@@ -72,30 +69,24 @@ export function Page() {
         }}
       >
         <Stack spacing={4}>
-          <Alert severity="warning" sx={{ width: '100%' }}>
-            <AlertTitle>Optimisation Jobs</AlertTitle>
-            Optimisation jobs have been paused while we work on some backend improvements for performance and
-            reliability. Please check back later.
-          </Alert>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
-            <Box sx={{ flex: '1 1 auto' }}>
+          <Stack direction={{xs: 'column', sm: 'row'}} spacing={3} sx={{alignItems: 'flex-start'}}>
+            <Box sx={{flex: '1 1 auto'}}>
               <Typography variant="h4">Optimisation Jobs</Typography>
             </Box>
             <div>
               <Button
-                startIcon={<PlusIcon />}
+                startIcon={<PlusIcon/>}
                 variant="contained"
                 color="primary"
                 onClick={() => setShowNewJobDialog(true)}
-                disabled
               >
-                New Optimirsation Job
+                New Optimisation Job
               </Button>
             </div>
           </Stack>
           <Grid container spacing={4}>
             <Grid size={12}>
-              <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr 1fr' } }}>
+              <Box sx={{display: 'grid', gap: 2, gridTemplateColumns: {xs: '1fr', md: '1fr 1fr 1fr 1fr'}}}>
                 <Card>
                   <CardContent>
                     <Typography color="textSecondary" gutterBottom>
@@ -122,8 +113,8 @@ export function Page() {
                     <Typography variant="h4">
                       {optimisationTasks
                         ? optimisationTasks.filter((task) => {
-                            return task.state == 'FAILED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
-                          }).length
+                          return task.state == 'FAILED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
+                        }).length
                         : 0}
                     </Typography>
                   </CardContent>
@@ -136,8 +127,8 @@ export function Page() {
                     <Typography variant="h4">
                       {optimisationTasks
                         ? optimisationTasks.filter((task) => {
-                            return task.state == 'COMPLETED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
-                          }).length
+                          return task.state == 'COMPLETED' && dayjs(task.updatedAt * 1000).isSame(dayjs(), 'day');
+                        }).length
                         : 0}
                     </Typography>
                   </CardContent>
@@ -145,14 +136,14 @@ export function Page() {
               </Box>
             </Grid>
             <Grid size={12}>
-              <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', md: '1fr' } }}>
+              <Box sx={{display: 'grid', gap: 3, gridTemplateColumns: {xs: '1fr', md: '1fr'}}}>
                 {visibleTasks.map((task) => (
                   <Card key={task.id}>
                     <CardContent>
                       <Stack spacing={2}>
                         <Stack direction="row" justifyContent="space-between" alignItems="center">
                           <Typography variant="h6">{task.config.strategyClass}</Typography>
-                          <Chip label={task.state} color={getStatusColor(task.state)} size="small" />
+                          <Chip label={task.state} color={getStatusColor(task.state)} size="small"/>
                         </Stack>
 
                         <Stack spacing={1}>
@@ -161,11 +152,11 @@ export function Page() {
                           </Typography>
                           {task.progressInfo && task.progressInfo !== 'null' && (
                             <>
-                              <Box sx={{ width: '100%' }}>
+                              <Box sx={{width: '100%'}}>
                                 <LinearProgress
                                   variant="determinate"
                                   value={task.progressInfo.percentage}
-                                  sx={{ height: 8, borderRadius: 4 }}
+                                  sx={{height: 8, borderRadius: 4}}
                                 />
                               </Box>
                               <Stack direction="row" justifyContent="space-between">
@@ -180,7 +171,7 @@ export function Page() {
                                 <Typography variant="body2">
                                   {task.progressInfo.percentage.toFixed(1)}%
                                   {task.progressInfo.estimatedTimeMs > 0 && (
-                                    <Typography component="span" variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                                    <Typography component="span" variant="body2" color="textSecondary" sx={{ml: 1}}>
                                       ({Math.ceil(task.progressInfo.estimatedTimeMs / 1000 / 60)} min remaining)
                                     </Typography>
                                   )}
@@ -217,16 +208,16 @@ export function Page() {
                           </Box>
                           <Stack direction="row" spacing={1}>
                             <IconButton size="small" title="Share">
-                              <ShareNetwork />
+                              <ShareNetwork/>
                             </IconButton>
                             <IconButton size="small" title="View Results">
-                              <Eye />
+                              <Eye/>
                             </IconButton>
                             <IconButton size="small" title="Configuration">
-                              <Faders />
+                              <Faders/>
                             </IconButton>
                             <IconButton size="small" title="Delete">
-                              <TrashSimple />
+                              <TrashSimple/>
                             </IconButton>
                           </Stack>
                         </Stack>
@@ -235,8 +226,8 @@ export function Page() {
                   </Card>
                 ))}
                 {hasMoreItems && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                    <Button variant="outlined" onClick={handleShowMore} sx={{ minWidth: 200 }}>
+                  <Box sx={{display: 'flex', justifyContent: 'center', mt: 3}}>
+                    <Button variant="outlined" onClick={handleShowMore} sx={{minWidth: 200}}>
                       Show More
                     </Button>
                   </Box>
@@ -250,7 +241,6 @@ export function Page() {
           <OptimisationConfigurationDialog
             open={showNewJobDialog}
             onClose={() => setShowNewJobDialog(false)}
-            onSubmit={handleSubmitOptimisation}
           />
         ) : null}
       </Box>
