@@ -72,13 +72,7 @@ export function Page() {
                 systemStrategies={systemStrategies}
                 selectedSystemStrategyClass={selectedSystemStrategyClass}
                 onSystemStrategyChange={onSystemStrategyChange}
-                backtestConfiguration={() => {
-                  if (pendingNewConfig || !lastRunBacktestConfig) {
-                    return backtestConfiguration
-                  } else {
-                    return lastRunBacktestConfig
-                  }
-                }}
+                backtestConfiguration={pendingNewConfig || !lastRunBacktestConfig ? backtestConfiguration : lastRunBacktestConfig}
                 setBacktestConfiguration={handleBacktestConfigChange}
                 startBacktest={startBacktest}
                 stopBacktest={stopBacktest}
