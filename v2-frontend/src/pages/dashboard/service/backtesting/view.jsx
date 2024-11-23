@@ -11,6 +11,7 @@ import {AnalysisWidget} from '@/components/dashboard/service/backtesting/analysi
 import {CandlestickChart} from '@/components/dashboard/service/backtesting/backtest-chart';
 import {StrategyControl} from '@/components/dashboard/service/backtesting/strategy-control';
 import {TradeList} from '@/components/dashboard/service/trade-list';
+import {logger} from "@/lib/default-logger";
 
 const metadata = {title: `Backtesting | Dashboard | ${config.site.name}`};
 
@@ -71,7 +72,13 @@ export function Page() {
                 systemStrategies={systemStrategies}
                 selectedSystemStrategyClass={selectedSystemStrategyClass}
                 onSystemStrategyChange={onSystemStrategyChange}
-                backtestConfiguration={pendingNewConfig ? backtestConfiguration : lastRunBacktestConfig}
+                backtestConfiguration={() => {
+                  if (pendingNewConfig || !lastRunBacktestConfig) {
+                    return backtestConfiguration
+                  } else {
+                    return lastRunBacktestConfig
+                  }
+                }}
                 setBacktestConfiguration={handleBacktestConfigChange}
                 startBacktest={startBacktest}
                 stopBacktest={stopBacktest}
