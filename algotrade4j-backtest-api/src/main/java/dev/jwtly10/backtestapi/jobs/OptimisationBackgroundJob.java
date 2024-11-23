@@ -124,6 +124,12 @@ public class OptimisationBackgroundJob {
     private void completeTask(OptimisationTask task) {
         task.setState(OptimisationState.COMPLETED);
         taskService.save(task);
+
+        log.info("Optimisation task id: {} completed successfully", task.getId());
+
+        // Set some basic stats
+        // At this point the task should have some results, so we can calculate some basic stats
+        taskService.setBasicStats(task.getId());
     }
 
     private void runOptimisation(OptimisationConfig config, OptimisationTask task) throws Exception {

@@ -39,6 +39,10 @@ public class OptimisationTask {
     @Column(nullable = false)
     private OptimisationState state;
 
+    @Column(name = "res_summary", columnDefinition = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private OptimisationResultSummary resultSummary;
+
     @Column(name = "error_message")
     private String errorMessage;
 

@@ -11,9 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class OptimisationTaskService {
     private final OptimisationTaskRepository taskRepository;
+    private final OptimisationResultService resultService;
 
-    public OptimisationTaskService(OptimisationTaskRepository taskRepository) {
+    public OptimisationTaskService(OptimisationTaskRepository taskRepository, OptimisationResultService resultService) {
         this.taskRepository = taskRepository;
+        this.resultService = resultService;
     }
 
     public void save(OptimisationTask task) {
@@ -34,6 +36,19 @@ public class OptimisationTaskService {
         }
 
         task.setProgressInfo(progress);
+        taskRepository.save(task);
+    }
+
+    /**
+     * Figures out and sets basic stats for the task
+     *
+     * @param taskId The task id
+     */
+    public void setBasicStats(long taskId) {
+        OptimisationTask task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("OptimisationTask not found with id: " + taskId));
+
+        task.setResultSummary(resultService.getSummary(taskId));
         taskRepository.save(task);
     }
 }

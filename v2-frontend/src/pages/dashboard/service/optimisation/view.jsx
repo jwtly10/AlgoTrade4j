@@ -22,6 +22,8 @@ import Alert from '@mui/material/Alert';
 import {AlertTitle} from '@mui/lab';
 import OptimisationConfigurationDialog from '@/components/dashboard/service/optimisation/new-optimisation';
 import {toast} from "react-toastify";
+import {logger} from "@/lib/default-logger";
+import OptimisationResults from "@/components/dashboard/service/optimisation/view-results";
 
 const metadata = {title: `Optimisation Tasks | Dashboard | ${config.site.name}`};
 
@@ -47,10 +49,18 @@ export function Page() {
   const [visibleItems, setVisibleItems] = React.useState(ITEMS_PER_PAGE);
 
   const [showNewJobDialog, setShowNewJobDialog] = React.useState(false);
+  const [showResultsDialog, setShowResultsDialog] = React.useState(false);
+  const [selectedTask, setSelectedTask] = React.useState(null);
 
   const handleShowMore = () => {
     setVisibleItems((prev) => prev + ITEMS_PER_PAGE);
   };
+
+  const handleViewResultsClick = (task) => {
+    logger.debug('View Results Clicked for task id', task.id);
+    setSelectedTask(task);
+    setShowResultsDialog(true);
+  }
 
   const visibleTasks = optimisationTasks.slice(0, visibleItems);
   const hasMoreItems = visibleItems < optimisationTasks.length;
@@ -150,6 +160,7 @@ export function Page() {
                           <Typography variant="body2" color="textSecondary">
                             Task ID: {task.id}
                           </Typography>
+
                           {task.progressInfo && task.progressInfo !== 'null' && (
                             <>
                               <Box sx={{width: '100%'}}>
@@ -179,6 +190,37 @@ export function Page() {
                               </Stack>
                             </>
                           )}
+
+                          {task.state === 'COMPLETED' && task.resultSummary && (
+                            <Alert
+                              severity={
+                                task.resultSummary.successfulRuns === 0 ? 'error' :
+                                  task.resultSummary.failedRuns > 0 ? 'warning' :
+                                    'success'
+                              }
+                              variant="outlined"
+                              sx={{
+                                '& .MuiAlert-message': {
+                                  width: '100%',
+                                },
+                              }}
+                            >
+                              <AlertTitle>
+                                {task.resultSummary.successfulRuns === 0 ? 'Optimisation Failed' :
+                                  task.resultSummary.failedRuns > 0 ? 'Optimisation Completed with Failures' :
+                                    'Optimisation Completed Successfully'}
+                              </AlertTitle>
+                              {task.resultSummary.successfulRuns === 0 ? (
+                                `All ${task.resultSummary.totalCombinations} combinations failed to run`
+                              ) : (
+                                <>
+                                  Successfully ran {task.resultSummary.successfulRuns} out of {task.resultSummary.totalCombinations} combinations
+                                  {task.resultSummary.failedRuns > 0 && ` (${task.resultSummary.failedRuns} failed)`}
+                                </>
+                              )}
+                            </Alert>
+                          )}
+
                           {task.state === 'FAILED' && (
                             <Alert
                               severity="error"
@@ -189,7 +231,7 @@ export function Page() {
                                 },
                               }}
                             >
-                              <AlertTitle>Task Failed</AlertTitle>
+                              <AlertTitle>Optimisation Failed</AlertTitle>
                               {task.errorMessage}
                             </Alert>
                           )}
@@ -210,7 +252,9 @@ export function Page() {
                             <IconButton size="small" title="Share">
                               <ShareNetwork/>
                             </IconButton>
-                            <IconButton size="small" title="View Results">
+                            <IconButton disabled={task.state !== "COMPLETED"} size="small" title="View Results" onClick={() => {
+                              handleViewResultsClick(task);
+                            }}>
                               <Eye/>
                             </IconButton>
                             <IconButton size="small" title="Configuration">
@@ -241,6 +285,16 @@ export function Page() {
           <OptimisationConfigurationDialog
             open={showNewJobDialog}
             onClose={() => setShowNewJobDialog(false)}
+          />
+        ) : null}
+        {showResultsDialog ? (
+          <OptimisationResults
+            task={selectedTask}
+            open={showResultsDialog}
+            onClose={() => {
+              setShowResultsDialog(false)
+              setSelectedTask(null)
+            }}
           />
         ) : null}
       </Box>

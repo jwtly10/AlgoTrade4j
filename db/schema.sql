@@ -40,6 +40,7 @@ CREATE TABLE optimisation_task_tb
     config        JSON        NOT NULL,
     progress_info JSON,
     state         VARCHAR(20) NOT NULL,
+    res_summary   JSON,
     error_message TEXT,
     created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
