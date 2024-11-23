@@ -2,17 +2,17 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import Stack from '@mui/material/Stack';
-import { Helmet } from 'react-helmet-async';
+import {Helmet} from 'react-helmet-async';
 
-import { config } from '@/config';
-import { useBacktest } from '@/hooks/services/use-backtest';
-import { useStrategyControl } from '@/hooks/services/use-strategy-control';
-import { AnalysisWidget } from '@/components/dashboard/service/backtesting/analysis-widget';
-import { CandlestickChart } from '@/components/dashboard/service/backtesting/backtest-chart';
-import { StrategyControl } from '@/components/dashboard/service/backtesting/strategy-control';
-import { TradeList } from '@/components/dashboard/service/trade-list';
+import {config} from '@/config';
+import {useBacktest} from '@/hooks/services/use-backtest';
+import {useStrategyControl} from '@/hooks/services/use-strategy-control';
+import {AnalysisWidget} from '@/components/dashboard/service/backtesting/analysis-widget';
+import {CandlestickChart} from '@/components/dashboard/service/backtesting/backtest-chart';
+import {StrategyControl} from '@/components/dashboard/service/backtesting/strategy-control';
+import {TradeList} from '@/components/dashboard/service/trade-list';
 
-const metadata = { title: `Backtesting | Dashboard | ${config.site.name}` };
+const metadata = {title: `Backtesting | Dashboard | ${config.site.name}`};
 
 export function Page() {
   const {
@@ -34,11 +34,18 @@ export function Page() {
     logs,
     backtestErrorMsg,
     backtestProgress,
-    cachedBacktestConfiguration,
+    lastRunBacktestConfig,
     backtestStartTime,
     startBacktest,
     stopBacktest,
   } = useBacktest();
+
+  const [pendingNewConfig, setPendingNewConfig] = React.useState(false);
+
+  const handleBacktestConfigChange = (newConfig) => {
+    setBacktestConfiguration(newConfig);
+    setPendingNewConfig(true);
+  }
 
   return (
     <React.Fragment>
@@ -64,16 +71,16 @@ export function Page() {
                 systemStrategies={systemStrategies}
                 selectedSystemStrategyClass={selectedSystemStrategyClass}
                 onSystemStrategyChange={onSystemStrategyChange}
-                backtestConfiguration={backtestConfiguration}
-                setBacktestConfiguration={setBacktestConfiguration}
+                backtestConfiguration={pendingNewConfig ? backtestConfiguration : lastRunBacktestConfig}
+                setBacktestConfiguration={handleBacktestConfigChange}
                 startBacktest={startBacktest}
                 stopBacktest={stopBacktest}
                 isBacktestRunning={isBacktestRunning}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{xs: 12}}>
               <CandlestickChart
-                backtestConfiguration={cachedBacktestConfiguration}
+                backtestConfiguration={lastRunBacktestConfig}
                 chartData={chartData}
                 trades={trades}
                 indicators={indicators}
@@ -89,7 +96,7 @@ export function Page() {
                 xs: 12,
               }}
             >
-              <AnalysisWidget data={analysisData} accountData={account} isBacktestRunning={isBacktestRunning} />
+              <AnalysisWidget data={analysisData} accountData={account} isBacktestRunning={isBacktestRunning}/>
             </Grid>
             <Grid
               size={{
@@ -97,7 +104,7 @@ export function Page() {
                 xs: 12,
               }}
             >
-              <TradeList trades={trades} isBacktestRunning={isBacktestRunning} />
+              <TradeList trades={trades} isBacktestRunning={isBacktestRunning}/>
             </Grid>
           </Grid>
         </Stack>

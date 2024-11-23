@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import { backtestClient } from '@/lib/api/clients/backtest-client';
-import { logger } from '@/lib/default-logger';
-import { toast } from 'react-toastify';
+import {backtestClient} from '@/lib/api/clients/backtest-client';
+import {logger} from '@/lib/default-logger';
+import {toast} from 'react-toastify';
 
 export const useBacktest = () => {
   const socketRef = React.useRef(null);
@@ -27,7 +27,7 @@ export const useBacktest = () => {
   const [backtestProgress, setBacktestProgress] = React.useState(null);
   const [backtestStartTime, setBacktestStartTime] = React.useState(null);
 
-  const [cachedBacktestConfiguration, setCachedBacktestConfiguration] = React.useState(null);
+  const [lastRunBacktestConfig, setLastRunBacktestConfig] = React.useState(null);
 
   React.useEffect(() => {
     const loadSavedBacktestRunData = () => {
@@ -53,7 +53,7 @@ export const useBacktest = () => {
           setIndicators(JSON.parse(localIndicatorData));
           setAnalysisData(JSON.parse(localAnalysisData));
           setEquityHistory(JSON.parse(localAnalysisData).equityHistory);
-          setCachedBacktestConfiguration(JSON.parse(localStratConfig));
+          setLastRunBacktestConfig(JSON.parse(localStratConfig));
           logger.debug('Loaded saved chart data');
         } catch (error) {
           toast.error(`Failed to load chart data from localstorage: ${error}`);
@@ -83,7 +83,7 @@ export const useBacktest = () => {
     try {
       logger.debug('Starting strategy with config:', backtestConfiguration);
       const generatedIdForClass = await backtestClient.generateBacktestId(backtestConfiguration);
-      setCachedBacktestConfiguration(backtestConfiguration);
+      setLastRunBacktestConfig(backtestConfiguration);
       logger.debug('Generated ID for class:', generatedIdForClass);
 
       socketRef.current = await backtestClient.connectBacktestWS(generatedIdForClass, handleBacktestWebSocketMessage);
@@ -178,7 +178,7 @@ export const useBacktest = () => {
     setBacktestErrorMsg('');
     setTrades([]);
     setTradeIdMap(new Map());
-    setCachedBacktestConfiguration(null);
+    setLastRunBacktestConfig(null);
     tradeCounterRef.current = 1;
     setIndicators({});
     setLogs([]);
@@ -331,7 +331,7 @@ export const useBacktest = () => {
     logs,
     backtestErrorMsg,
     backtestProgress,
-    cachedBacktestConfiguration,
+    lastRunBacktestConfig,
     backtestStartTime,
     startBacktest,
     stopBacktest,

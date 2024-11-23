@@ -1,12 +1,8 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
 
-
-import { strategyClient } from '@/lib/api/clients/strategy-client';
-import { logger } from '@/lib/default-logger';
-
-
-
+import {strategyClient} from '@/lib/api/clients/strategy-client';
+import {logger} from '@/lib/default-logger';
 
 
 export const useStrategyControl = () => {
