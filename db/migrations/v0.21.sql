@@ -28,3 +28,8 @@ END;
 $$;
 
 CALL update_res_summary();
+
+-- Delete removed state
+delete
+from user_action_log_tb
+where action = 'OPTIMISATION_RESULTS'
