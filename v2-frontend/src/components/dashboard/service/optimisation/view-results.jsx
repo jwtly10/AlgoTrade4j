@@ -300,7 +300,7 @@ function OptimisationResults({task, open, onClose}) {
       fullWidth
       PaperProps={{
         sx: {
-          height: '60vh',
+          height: '90vh',
         }
       }}
     >
