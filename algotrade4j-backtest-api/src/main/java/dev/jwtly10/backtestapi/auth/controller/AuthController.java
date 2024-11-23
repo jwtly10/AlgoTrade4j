@@ -140,6 +140,7 @@ public class AuthController {
         jwtCookie.setSecure(true);
         jwtCookie.setMaxAge(0);
         jwtCookie.setPath("/");
+        jwtCookie.setDomain(".algotrade4j.trade");
 
         response.addCookie(jwtCookie);
 
