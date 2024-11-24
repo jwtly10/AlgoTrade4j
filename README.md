@@ -12,7 +12,10 @@ Full application documentation can be found [here](https://jwtly10.github.io/Alg
 
 Here is a small video demo of the system.
 
-https://github.com/user-attachments/assets/c7d43939-a11e-43c9-8fb5-55c20b5dcdff
+
+https://github.com/user-attachments/assets/4f776ac3-4672-47d6-9e1d-1b7011a23936
+
+
 
 ## Roadmap:
 
