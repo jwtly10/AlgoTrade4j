@@ -116,7 +116,7 @@ public class ForexFactoryClient {
 
         // If we have cached news, and it's not expired, return it
         if (cachedNews != null && lastFetchDate != null && lastFetchDate.plus(cacheExpiry).isAfter(now)) {
-            log.debug("Returning cached news from ForexFactory");
+            log.trace("Returning cached news from ForexFactory");
             return cachedNews;
         }
 
