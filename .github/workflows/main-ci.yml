@@ -92,7 +92,7 @@ jobs:
       - name: Build and push Frontend image
         uses: docker/build-push-action@v2
         with:
-          context: ./v2-frontend
+          context: ./algotrade4j-frontend
           push: true
           tags: joshwatley/algotrade4j-frontend:latest
           build-args: |
@@ -157,6 +157,8 @@ jobs:
             export DEFAULT_OANDA_ACCOUNT_ID=${{secrets.DEFAULT_OANDA_ACCOUNT_ID}}
             export MT5_API_URL=${{secrets.MT5_API_URL}}
             export MT5_API_KEY=${{secrets.MT5_API_KEY}}
+            export RISK_MANAGEMENT_API_URL=${{secrets.RISK_MANAGEMENT_API_URL}}
+            export RISK_MANAGEMENT_API_KEY=${{secrets.RISK_MANAGEMENT_API_KEY}}
             export SECURITY_ENCRYPTION_KEY=${{secrets.SECURITY_ENCRYPTION_KEY}}
             
             docker compose pull

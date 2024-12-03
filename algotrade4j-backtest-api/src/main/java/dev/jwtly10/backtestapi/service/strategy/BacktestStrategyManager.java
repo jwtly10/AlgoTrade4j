@@ -14,7 +14,7 @@ import dev.jwtly10.core.execution.*;
 import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.BacktestRiskManager;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
@@ -117,15 +117,16 @@ public class BacktestStrategyManager {
         }
 
         AccountManager accountManager = new DefaultAccountManager(config.getInitialCash(), config.getInitialCash(), config.getInitialCash());
-        RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, from);
 
-        TradeManager tradeManager = new BacktestTradeManager(BACKTEST_BROKER, currentTick, barSeries, strategy.getStrategyId(), eventPublisher, riskManager);
+        TradeManager tradeManager = new BacktestTradeManager(BACKTEST_BROKER, currentTick, barSeries, strategy.getStrategyId(), eventPublisher);
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
+        BacktestRiskManager backtestRiskManager = new BacktestRiskManager();
+
         StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil(forexFactoryClient, false);
 
-        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager, strategyNewsUtil);
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, backtestRiskManager, performanceAnalyser, strategyNewsUtil);
         executor.initialise();
         dataManager.addDataListener(executor);
 
@@ -231,7 +232,6 @@ public class BacktestStrategyManager {
         }
         return true;
     }
-
 
     /**
      * <p>

@@ -3,8 +3,6 @@ package dev.jwtly10.core.indicators;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.risk.RiskProfile;
-import dev.jwtly10.core.risk.RiskProfileConfig;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,11 +76,6 @@ class IndicatorUtilsTest {
         @Override
         public void onTick(Tick tick, Bar currentBar) {
             // Not needed for this test
-        }
-
-        @Override
-        public RiskProfileConfig getRiskProfileConfig() {
-            return RiskProfile.NONE.getConfig();
         }
 
         @Override

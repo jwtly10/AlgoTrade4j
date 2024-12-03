@@ -9,7 +9,7 @@ import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.model.Broker;
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Tick;
-import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.BacktestRiskManager;
 import dev.jwtly10.core.strategy.Strategy;
 
 public class DefaultExecutorFactory implements ExecutorFactory {
@@ -21,9 +21,9 @@ public class DefaultExecutorFactory implements ExecutorFactory {
                 initialCash,
                 initialCash
         );
-        RiskManager riskManager = new RiskManager(strategy.getRiskProfileConfig(), accountManager, dataManager.getFrom());
+        BacktestRiskManager riskManagementService = new BacktestRiskManager();
 
-        TradeManager tradeManager = new BacktestTradeManager(broker, currentTick, dataManager.getBarSeries(), id, eventPublisher, riskManager);
+        TradeManager tradeManager = new BacktestTradeManager(broker, currentTick, dataManager.getBarSeries(), id, eventPublisher);
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(id, eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
         return new BacktestExecutor(
@@ -34,8 +34,8 @@ public class DefaultExecutorFactory implements ExecutorFactory {
                 dataManager,
                 dataManager.getBarSeries(),
                 eventPublisher,
+                riskManagementService,
                 performanceAnalyser,
-                riskManager,
                 strategyNewsUtil
         );
     }

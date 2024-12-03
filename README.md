@@ -40,7 +40,7 @@ https://github.com/user-attachments/assets/4f776ac3-4672-47d6-9e1d-1b7011a23936
 - Robust authentication and authorization system
 - Separate live service for live trading, supporting independent scaling
 - External integrations to make development easier and abstract MetaTrader internals.
-
+- Additional complimentary services built with Golang easy deployment and scaling
 ## Currently Supported Broker Integrations
 
 - Oanda - https://developer.oanda.com/rest-live-v20/introduction/
@@ -53,12 +53,15 @@ The framework consists of 5 main components:
 1. `Core Module`: Contains the main trading logic, event system and implemented defaults
 2. `Backtest-api Module`: A Spring REST API for handling backtesting operations and core system operations
 3. `Live-api Module`: A Spring service for live trading, and other broker related operations
-4. `Market-data Module`: Manages the integration with external market data providers.
-5. `Frontend React Module`: A React-based frontend providing a base user interface for interacting with the system.
+4. `Market-data Module`: Manages the integration with external market data providers
+5. `Frontend React Module`: A React-based frontend providing a base user interface for interacting with the system
 
-And there a few external custom add-ons:
+There are a few complimentary services built with Golang to facilitate extra data tracking and :
 
-- [jwtly10/Algotrade4j_mt5](https://github.com/jwtly10/algotrade4j_mt5) - Broker adapter for MT5
+- [jwtly10/at4j-risk-manager](https://github.com/jwtly10/at4j-risk-manager) - A risk management service for tracking and managing risk across all brokers
+- [jwtly10/at4j-mt5-adapter](https://github.com/jwtly10/at4j-mt5-adapter) - Broker adapter for MT5
+
+and a Python SDK:
 - [jwtly10/Algotrade4j_py](https://github.com/jwtly10/algotrade4j_py) - Python SDK for AT4J market data, direct support for [backtesting.py](https://github.com/kernc/backtesting.py)
 
 This is a high-level overview of the framework and how it handles strategies:

@@ -13,7 +13,7 @@ import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.risk.RiskManager;
+import dev.jwtly10.core.risk.RiskManagementService;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.liveapi.exception.LiveExecutorException;
@@ -42,7 +42,6 @@ public class LiveExecutor implements DataListener {
     private final DataManager dataManager;
     private final String strategyId;
     private final LiveStateManager liveStateManager;
-    private final RiskManager riskManager;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final Notifier notifier;
 
@@ -56,7 +55,7 @@ public class LiveExecutor implements DataListener {
                         DataManager dataManager,
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
-                        RiskManager riskManager,
+                        RiskManagementService riskManagementService,
                         Notifier notifier,
                         LiveStrategyService liveStrategyService,
                         StrategyNewsUtil strategyNewsUtil
@@ -68,11 +67,10 @@ public class LiveExecutor implements DataListener {
         this.eventPublisher = eventPublisher;
         this.strategyId = strategy.getStrategyId();
         this.liveStateManager = liveStateManager;
-        this.riskManager = riskManager;
         this.notifier = notifier;
         this.liveStrategyService = liveStrategyService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null, notifier, strategyNewsUtil);
+        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, riskManagementService, null, notifier, strategyNewsUtil);
     }
 
     @Override
@@ -113,7 +111,6 @@ public class LiveExecutor implements DataListener {
         try {
             tradeManager.setCurrentTick(tick);
             eventPublisher.publishEvent(new BarEvent(strategyId, currentBar.getInstrument(), currentBar));
-            riskManager.check(tick, tradeManager);
 
             strategy.onTick(tick, currentBar);
         } catch (Exception e) {
