@@ -12,7 +12,6 @@ import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
 import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.risk.RiskManagementService;
-import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
 import dev.jwtly10.core.strategy.StrategyFactory;
@@ -264,8 +263,7 @@ public class LiveStrategyManager {
 
         // Init with an empty account
         AccountManager accountManager = new DefaultAccountManager(0, 0, 0);
-        RiskManager riskManager = new RiskManager(strategyInstance.getRiskProfileConfig(), accountManager, ZonedDateTime.now());
-        TradeManager tradeManager = new LiveTradeManager(brokerClient, riskManager);
+        TradeManager tradeManager = new LiveTradeManager(brokerClient);
         // Set, so we have the ability to stop the strategy in case of background processes
         tradeManager.setDataManager(dataManager);
 
@@ -284,7 +282,6 @@ public class LiveStrategyManager {
                 dataManager,
                 eventPublisher,
                 liveStateManager,
-                riskManager,
                 riskManagementService,
                 telegramNotifier,
                 liveStrategyService,

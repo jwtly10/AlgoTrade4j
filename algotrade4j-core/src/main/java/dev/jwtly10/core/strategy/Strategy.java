@@ -13,7 +13,6 @@ import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.core.risk.RiskManagementService;
-import dev.jwtly10.core.risk.RiskProfileConfig;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -134,11 +133,4 @@ public interface Strategy {
      * @return if system notifications are enabled
      */
     boolean canUseSystemNotifications();
-
-    /**
-     * Get the risk profile configuration for the strategy
-     *
-     * @return The risk profile configuration
-     */
-    RiskProfileConfig getRiskProfileConfig();
 }

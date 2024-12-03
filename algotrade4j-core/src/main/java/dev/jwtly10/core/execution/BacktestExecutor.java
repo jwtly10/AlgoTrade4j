@@ -13,7 +13,6 @@ import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
 import dev.jwtly10.core.risk.BacktestRiskManager;
-import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
 import lombok.Getter;
@@ -35,7 +34,6 @@ public class BacktestExecutor implements DataListener {
     private final EventPublisher eventPublisher;
     private final TradeManager tradeManager;
     private final TradeStateManager tradeStateManager;
-    private final RiskManager riskManager;
     private final PerformanceAnalyser performanceAnalyser;
     private final BacktestRiskManager riskManagementService;
     @Getter
@@ -53,7 +51,6 @@ public class BacktestExecutor implements DataListener {
                             EventPublisher eventPublisher,
                             BacktestRiskManager riskManagementService,
                             PerformanceAnalyser performanceAnalyser,
-                            RiskManager riskManager,
                             StrategyNewsUtil strategyNewsUtil
     ) {
         this.strategyId = strategy.getStrategyId();
@@ -64,7 +61,6 @@ public class BacktestExecutor implements DataListener {
         this.accountManager = accountManager;
         this.tradeManager = tradeManager;
         this.performanceAnalyser = performanceAnalyser;
-        this.riskManager = riskManager;
         this.riskManagementService = riskManagementService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
         strategy.onInit(barSeries, dataManager, accountManager, tradeManager, eventPublisher, riskManagementService, performanceAnalyser, null, strategyNewsUtil);

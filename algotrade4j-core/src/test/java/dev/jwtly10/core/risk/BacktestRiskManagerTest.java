@@ -1,9 +1,8 @@
-package dev.jwtly10.core.execution;
+package dev.jwtly10.core.risk;
 
 import dev.jwtly10.core.model.DefaultTick;
 import dev.jwtly10.core.model.Instrument;
 import dev.jwtly10.core.model.Number;
-import dev.jwtly10.core.risk.BacktestRiskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

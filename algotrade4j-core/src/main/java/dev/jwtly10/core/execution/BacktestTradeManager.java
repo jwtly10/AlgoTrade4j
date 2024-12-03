@@ -3,11 +3,8 @@ package dev.jwtly10.core.execution;
 import dev.jwtly10.core.event.EventPublisher;
 import dev.jwtly10.core.event.types.TradeEvent;
 import dev.jwtly10.core.exception.InvalidTradeException;
-import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.risk.RiskManager;
-import dev.jwtly10.core.risk.RiskStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +22,20 @@ public class BacktestTradeManager implements TradeManager {
     private final Map<Integer, Trade> allTrades;
     @Getter
     private final ConcurrentHashMap<Integer, Trade> openTrades;
-    private final RiskManager riskManager;
     private final EventPublisher eventPublisher;
     private final BarSeries barSeries;
+    private final Broker BROKER;
     private Consumer<Trade> onTradeCloseCallback;
     @Setter
     private Tick currentTick;
 
-    private final Broker BROKER;
-
-    public BacktestTradeManager(Broker broker, Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher, RiskManager riskManager) {
+    public BacktestTradeManager(Broker broker, Tick currentTick, BarSeries barSeries, String strategyId, EventPublisher eventPublisher) {
         this.allTrades = new HashMap<>();
         this.openTrades = new ConcurrentHashMap<>();
         this.eventPublisher = eventPublisher;
         this.strategyId = strategyId;
         this.barSeries = barSeries;
         this.currentTick = currentTick;
-        this.riskManager = riskManager;
         this.BROKER = broker;
     }
 
@@ -81,11 +75,6 @@ public class BacktestTradeManager implements TradeManager {
         log.trace("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 params.isLong() ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());
-
-        RiskStatus risk = riskManager.canTrade();
-        if (risk.isRiskViolated()) {
-            throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
-        }
 
         Number entryPrice = params.getEntryPrice();
         if (!entryPrice.isEquals(currentTick.getAsk()) || !entryPrice.isEquals(currentTick.getBid())) {

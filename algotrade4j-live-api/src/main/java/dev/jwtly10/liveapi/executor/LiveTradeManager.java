@@ -1,12 +1,9 @@
 package dev.jwtly10.liveapi.executor;
 
 import dev.jwtly10.core.data.DataManager;
-import dev.jwtly10.core.exception.RiskManagerException;
 import dev.jwtly10.core.execution.TradeManager;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
-import dev.jwtly10.core.risk.RiskManager;
-import dev.jwtly10.core.risk.RiskStatus;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.TradeDTO;
 import dev.jwtly10.marketdata.common.stream.Stream;
@@ -26,7 +23,6 @@ public class LiveTradeManager implements TradeManager {
 
     private final ExecutorService executorService;
     private final BrokerClient brokerClient;
-    private final RiskManager riskManager;
     private DataManager dataManager = null;
     private Stream<List<TradeDTO>> transactionStream;
     private Consumer<Trade> onTradeCloseCallback;
@@ -36,9 +32,8 @@ public class LiveTradeManager implements TradeManager {
 
     private Tick currentTick;
 
-    public LiveTradeManager(BrokerClient brokerClient, RiskManager riskManager) {
+    public LiveTradeManager(BrokerClient brokerClient) {
         this.brokerClient = brokerClient;
-        this.riskManager = riskManager;
         this.executorService = Executors.newVirtualThreadPerTaskExecutor();
     }
 
@@ -127,11 +122,6 @@ public class LiveTradeManager implements TradeManager {
     }
 
     private Trade openPosition(TradeParameters params) throws Exception {
-        RiskStatus risk = riskManager.canTrade();
-        if (risk.isRiskViolated()) {
-            throw new RiskManagerException(String.format("Can't open trade due to risk violation: %s", risk.getReason()));
-        }
-
         log.info("Opening {} position for instrument: {}, stopLoss={}, riskRatio={}, riskPercentage={}, balanceToRisk={}",
                 params.isLong() ? "long" : "short", params.getInstrument(), params.getStopLoss(), params.getRiskRatio(),
                 params.getRiskPercentage(), params.getBalanceToRisk());

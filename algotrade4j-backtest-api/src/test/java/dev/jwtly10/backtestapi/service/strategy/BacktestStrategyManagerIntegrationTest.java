@@ -66,7 +66,7 @@ class BacktestStrategyManagerIntegrationTest {
 
     @Test
     @Timeout(30)
-    void testBacktestRunWithNoRiskProfile() throws InterruptedException {
+    void runBasicBacktest() throws InterruptedException {
         StrategyConfig config = new StrategyConfig();
         config.setStrategyClass("IntegrationTestStrategy");
 
@@ -100,9 +100,7 @@ class BacktestStrategyManagerIntegrationTest {
 
                         new StrategyConfig.RunParameter("tradeDirection", "ANY"),
                         new StrategyConfig.RunParameter("startTradeTime", "9"),
-                        new StrategyConfig.RunParameter("endTradeTime", "20"),
-
-                        new StrategyConfig.RunParameter("riskProfile", "NONE")
+                        new StrategyConfig.RunParameter("endTradeTime", "20")
                 )
         );
 
@@ -176,79 +174,7 @@ class BacktestStrategyManagerIntegrationTest {
         assert Math.abs(profitPercentage - 192.68) < epsilon : "Profit percentage should be ~= 192.68%";
     }
 
-    /**
-     * A simple test to view quickly, how risk management can affect trades.
-     * This is not the best test, but allows an easy way to validate that logic has not changed.
-     * Note, any changes to the IntegrationTest risk profile will cause this to fail
-     */
-    @Test
-    @Timeout(30)
-    void testBacktestRunWithMFFRiskProfile() throws InterruptedException {
-        StrategyConfig config = new StrategyConfig();
-        config.setStrategyClass("IntegrationTestStrategy");
-        InstrumentConfig instrumentConfig = Instrument.NAS100USD.getBrokerConfig(Broker.OANDA);
-        config.setInstrumentData(new InstrumentData(
-                Instrument.NAS100USD.name(),
-                instrumentConfig.getSymbol(),
-                instrumentConfig.getDecimalPlaces(),
-                instrumentConfig.getMinimumMove()
-        ));
-        config.setPeriod(Period.M5);
-        config.setSpread(10);
-        config.setSpeed(DataSpeed.INSTANT);
-        config.setInitialCash(10000);
-        config.setTimeframe(new Timeframe(
-                ZonedDateTime.of(2023, 1, 15, 0, 0, 0, 0, ZoneId.of("UTC")),
-                ZonedDateTime.of(2023, 1, 20, 0, 0, 0, 0, ZoneId.of("UTC"))
-        ));
-        config.setRunParams(
-                List.of(
-                        new StrategyConfig.RunParameter("stopLossTicks", "300"),
-                        new StrategyConfig.RunParameter("riskRatio", "5"),
-                        new StrategyConfig.RunParameter("riskPercentage", "1"),
-                        new StrategyConfig.RunParameter("balanceToRisk", "10000"),
-
-                        new StrategyConfig.RunParameter("atrLength", "14"),
-                        new StrategyConfig.RunParameter("atrSensitivity", "0.6"),
-                        new StrategyConfig.RunParameter("relativeSize", "2"),
-                        new StrategyConfig.RunParameter("shortSMALength", "50"),
-                        new StrategyConfig.RunParameter("longSMALength", "0"),
-
-                        new StrategyConfig.RunParameter("tradeDirection", "ANY"),
-                        new StrategyConfig.RunParameter("startTradeTime", "9"),
-                        new StrategyConfig.RunParameter("endTradeTime", "20"),
-
-                        new StrategyConfig.RunParameter("riskProfile", "INTEGRATION_TEST")
-                )
-        );
-
-        String strategyId = "int-test-strategy-id";
-
-        backtestStrategyManager.startStrategy(config, strategyId);
-
-        // Wait for strategy to stop
-        assertTrue(eventPublisher.awaitStrategyStop(30000), "Strategy did not complete in time");
-
-        List<BaseEvent> capturedEvents = eventPublisher.getEvents();
-        assertFalse(capturedEvents.isEmpty(), "No events were published");
-
-
-        List<AccountEvent> accountEvents = capturedEvents.stream()
-                .filter(e -> e instanceof AccountEvent)
-                .map(e -> (AccountEvent) e)
-                .toList();
-
-        // get the last account event
-
-        AccountEvent accountEvent = accountEvents.getLast();
-
-        log.info("Account Balance: {}", accountEvent.getAccount().getBalance());
-
-        // A crude assert, just to ensure logic hasn't changed
-        assertEquals(9096.912700000004, accountEvent.getAccount().getBalance(), "Balance should be 9096.0");
-    }
-
-    private class InMemoryEventPublisher implements EventPublisher {
+    private static class InMemoryEventPublisher implements EventPublisher {
         @Getter
         private final List<BaseEvent> events = new ArrayList<>();
         private final String expectedStrategyId;
