@@ -92,7 +92,7 @@ jobs:
       - name: Build and push Frontend image
         uses: docker/build-push-action@v2
         with:
-          context: ./v2-frontend
+          context: ./algotrade4j-frontend
           push: true
           tags: joshwatley/algotrade4j-frontend:latest
           build-args: |

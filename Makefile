@@ -16,7 +16,7 @@ run-live:
 	mvn spring-boot:run -pl algotrade4j-live-api
 
 run-frontend:
-	cd v2-frontend && npm run dev
+	cd algotrade4j-frontend && npm run dev
 
 deploy-mkdocs:
 	mkdocs gh-deploy
