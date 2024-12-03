@@ -24,30 +24,21 @@ const navItems = [
     key: 'group-0',
     items: [
       { key: 'home', title: 'Home', href: paths.home },
-      { key: 'components', title: 'Components', href: paths.components.index },
       {
         key: 'dashboard',
         title: 'Dashboard',
         items: [
           { key: 'overview', title: 'Overview', href: paths.dashboard.overview },
-          { key: 'analytics', title: 'Customers', href: paths.dashboard.customers.list },
-          { key: 'logistics', title: 'Logistics', href: paths.dashboard.logistics.metrics },
           { key: 'settings', title: 'Settings', href: paths.dashboard.settings.account },
-          { key: 'file-storage', title: 'File storage', href: paths.dashboard.fileStorage },
         ],
       },
       {
         key: 'marketing',
         title: 'Marketing',
         items: [
-          { key: 'blog', title: 'Blog', href: paths.dashboard.blog.list },
-          { key: 'pricing', title: 'Pricing', href: paths.pricing },
-          { key: 'contact', title: 'Contact', href: paths.contact },
-          { key: 'checkout', title: 'Checkout', href: paths.checkout },
           { key: 'error', title: 'Error', href: paths.notFound },
         ],
       },
-      { key: 'docs', title: 'Docs', href: paths.docs, external: true },
     ],
   },
 ];
