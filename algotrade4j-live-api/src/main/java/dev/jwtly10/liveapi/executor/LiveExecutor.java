@@ -13,6 +13,7 @@ import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.indicators.IndicatorUtils;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManagementService;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.ParameterHandler;
 import dev.jwtly10.core.strategy.Strategy;
@@ -57,6 +58,7 @@ public class LiveExecutor implements DataListener {
                         EventPublisher eventPublisher,
                         LiveStateManager liveStateManager,
                         RiskManager riskManager,
+                        RiskManagementService riskManagementService,
                         Notifier notifier,
                         LiveStrategyService liveStrategyService,
                         StrategyNewsUtil strategyNewsUtil
@@ -72,7 +74,7 @@ public class LiveExecutor implements DataListener {
         this.notifier = notifier;
         this.liveStrategyService = liveStrategyService;
         tradeManager.setOnTradeCloseCallback(this::onTradeClose);
-        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, null, notifier, strategyNewsUtil);
+        strategy.onInit(dataManager.getBarSeries(), dataManager, accountManager, tradeManager, eventPublisher, riskManagementService, null, notifier, strategyNewsUtil);
     }
 
     @Override

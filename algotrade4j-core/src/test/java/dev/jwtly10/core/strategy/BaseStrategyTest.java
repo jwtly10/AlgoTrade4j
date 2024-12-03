@@ -9,6 +9,7 @@ import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManagementService;
 import dev.jwtly10.core.risk.RiskProfile;
 import dev.jwtly10.core.risk.RiskProfileConfig;
 import lombok.Getter;
@@ -36,6 +37,8 @@ class BaseStrategyTest {
     private EventPublisher mockEventPublisher;
     @Mock
     private PerformanceAnalyser mockPerformanceAnalyser;
+    @Mock
+    private RiskManagementService mockRiskManager;
 
     private TestStrategy testStrategy;
     private StrategyNewsUtil strategyNewsUtil;
@@ -55,7 +58,7 @@ class BaseStrategyTest {
 
     @Test
     void testOnInit() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
 
         assertEquals(mockBarSeries, testStrategy.getBarSeries());
         assertEquals(mockDataManager, testStrategy.getDataManager());
@@ -74,7 +77,7 @@ class BaseStrategyTest {
 
     @Test
     void testCreateIndicator() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         var indicator = testStrategy.getTestIndicator();
@@ -93,7 +96,7 @@ class BaseStrategyTest {
 
     @Test
     void testGBPUSDLongStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.GBPUSD;
@@ -113,7 +116,7 @@ class BaseStrategyTest {
      */
     @Test
     void testGBPUSDRealLongStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.GBPUSD;
@@ -129,7 +132,7 @@ class BaseStrategyTest {
 
     @Test
     void testGBPUSDShortStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.GBPUSD;
@@ -149,7 +152,7 @@ class BaseStrategyTest {
      */
     @Test
     void testNAS100USDRealLongStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.NAS100USD;
@@ -166,7 +169,7 @@ class BaseStrategyTest {
 
     @Test
     void testNAS100USDLongStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.NAS100USD;
@@ -182,7 +185,7 @@ class BaseStrategyTest {
 
     @Test
     void testNAS100USDShortStopLoss() {
-        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockPerformanceAnalyser, null, strategyNewsUtil);
+        testStrategy.onInit(mockBarSeries, mockDataManager, mockAccountManager, mockTradeManager, mockEventPublisher, mockRiskManager, mockPerformanceAnalyser, null, strategyNewsUtil);
         when(mockTradeManager.getBroker()).thenReturn(Broker.OANDA);
 
         Instrument instrument = Instrument.NAS100USD;

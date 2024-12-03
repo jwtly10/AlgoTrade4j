@@ -11,6 +11,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.DefaultBarSeries;
 import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.risk.RiskManagementService;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.DefaultStrategyFactory;
 import dev.jwtly10.core.strategy.Strategy;
@@ -23,6 +24,8 @@ import dev.jwtly10.liveapi.model.strategy.LiveStrategy;
 import dev.jwtly10.liveapi.model.strategy.LiveStrategyConfig;
 import dev.jwtly10.liveapi.repository.LiveExecutorRepository;
 import dev.jwtly10.liveapi.service.broker.BrokerClientFactory;
+import dev.jwtly10.liveapi.service.risk.LiveRiskManager;
+import dev.jwtly10.liveapi.service.risk.RiskManagementServiceClient;
 import dev.jwtly10.marketdata.common.BrokerClient;
 import dev.jwtly10.marketdata.common.ClientCallback;
 import dev.jwtly10.marketdata.common.LiveExternalDataProvider;
@@ -53,12 +56,21 @@ public class LiveStrategyManager {
     private final LiveExecutorRepository liveExecutorRepository;
     private final OandaClient oandaClient;
     private final TelegramNotifier telegramNotifier;
-    private final BrokerClientFactory brokerClientFactory;
-
     private final LiveStrategyService liveStrategyService;
-    private final ForexFactoryClient forexFactoryClient;
 
-    public LiveStrategyManager(EventPublisher eventPublisher, LiveExecutorRepository liveExecutorRepository, OandaClient oandaClient, TelegramNotifier telegramNotifier, LiveStrategyService liveStrategyService, BrokerClientFactory brokerClientFactory, ForexFactoryClient forexFactoryClient) {
+    private final BrokerClientFactory brokerClientFactory;
+    private final ForexFactoryClient forexFactoryClient;
+    private final RiskManagementServiceClient riskManagementServiceClient;
+
+    public LiveStrategyManager(EventPublisher eventPublisher,
+                               LiveExecutorRepository liveExecutorRepository,
+                               OandaClient oandaClient,
+                               TelegramNotifier telegramNotifier,
+                               LiveStrategyService liveStrategyService,
+                               BrokerClientFactory brokerClientFactory,
+                               ForexFactoryClient forexFactoryClient,
+                               RiskManagementServiceClient riskManagementServiceClient
+    ) {
         this.liveExecutorRepository = liveExecutorRepository;
         this.eventPublisher = eventPublisher;
         this.oandaClient = oandaClient;
@@ -66,6 +78,7 @@ public class LiveStrategyManager {
         this.liveStrategyService = liveStrategyService;
         this.brokerClientFactory = brokerClientFactory;
         this.forexFactoryClient = forexFactoryClient;
+        this.riskManagementServiceClient = riskManagementServiceClient;
     }
 
     /**
@@ -256,6 +269,8 @@ public class LiveStrategyManager {
         // Set, so we have the ability to stop the strategy in case of background processes
         tradeManager.setDataManager(dataManager);
 
+        RiskManagementService riskManagementService = new LiveRiskManager(riskManagementServiceClient, brokerConfig.getAccountId());
+
         LiveStateManager liveStateManager = new LiveStateManager(brokerClient, accountManager, tradeManager, eventPublisher, strategyInstance, config.getInstrumentData().getInstrument(), liveStrategyService, telegramNotifier);
 
         strategyInstance.setNotificationChatId(liveStrategy.getTelegramChatId());
@@ -270,6 +285,7 @@ public class LiveStrategyManager {
                 eventPublisher,
                 liveStateManager,
                 riskManager,
+                riskManagementService,
                 telegramNotifier,
                 liveStrategyService,
                 strategyNewsUtil

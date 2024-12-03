@@ -12,6 +12,7 @@ import dev.jwtly10.core.model.Bar;
 import dev.jwtly10.core.model.BarSeries;
 import dev.jwtly10.core.model.Tick;
 import dev.jwtly10.core.model.Trade;
+import dev.jwtly10.core.risk.RiskManagementService;
 import dev.jwtly10.core.risk.RiskProfileConfig;
 
 import java.time.ZonedDateTime;
@@ -32,11 +33,12 @@ public interface Strategy {
      * @param accountManager      The AccountManager instance for managing account balances.
      * @param tradeManager        The TradeManager instance for executing trades.
      * @param eventPublisher      The EventPublisher instance for publishing events.
+     * @param riskManager         The RiskManagementService instance for managing risk.
      * @param performanceAnalyser The PerformanceAnalyser instance for analysing strategy performance.
      * @param notifier            The Notifier instance for sending notifications. Can be null for strategies that do not require notifications (backtesting)
      * @param strategyNewsUtil    The strategy news util instance for accessing news data from the strategy
      */
-    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil);
+    void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, RiskManagementService riskManager, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil);
 
     /**
      * Called once after the strategy processing ends.

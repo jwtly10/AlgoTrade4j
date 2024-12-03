@@ -14,6 +14,7 @@ import dev.jwtly10.core.execution.*;
 import dev.jwtly10.core.external.news.StrategyNewsUtil;
 import dev.jwtly10.core.external.news.forexfactory.ForexFactoryClient;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.BacktestRiskManager;
 import dev.jwtly10.core.risk.RiskManager;
 import dev.jwtly10.core.strategy.BaseStrategy;
 import dev.jwtly10.core.strategy.ParameterHandler;
@@ -123,9 +124,11 @@ public class BacktestStrategyManager {
         TradeStateManager tradeStateManager = new BacktestTradeStateManager(strategy.getStrategyId(), eventPublisher);
         PerformanceAnalyser performanceAnalyser = new PerformanceAnalyser();
 
+        BacktestRiskManager backtestRiskManager = new BacktestRiskManager();
+
         StrategyNewsUtil strategyNewsUtil = new StrategyNewsUtil(forexFactoryClient, false);
 
-        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, performanceAnalyser, riskManager, strategyNewsUtil);
+        BacktestExecutor executor = new BacktestExecutor(strategy, tradeManager, tradeStateManager, accountManager, dataManager, barSeries, eventPublisher, backtestRiskManager, performanceAnalyser, riskManager, strategyNewsUtil);
         executor.initialise();
         dataManager.addDataListener(executor);
 
@@ -231,7 +234,6 @@ public class BacktestStrategyManager {
         }
         return true;
     }
-
 
     /**
      * <p>

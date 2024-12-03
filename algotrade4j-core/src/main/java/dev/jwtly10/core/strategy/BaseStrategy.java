@@ -11,6 +11,7 @@ import dev.jwtly10.core.external.notifications.Notifier;
 import dev.jwtly10.core.indicators.Indicator;
 import dev.jwtly10.core.model.Number;
 import dev.jwtly10.core.model.*;
+import dev.jwtly10.core.risk.RiskManagementService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +47,10 @@ public abstract class BaseStrategy implements Strategy {
      */
     protected EventPublisher eventPublisher;
     /**
+     * The risk manager used by the strategy. Has access to the broker information of the running strategy
+     */
+    protected RiskManagementService riskManager;
+    /**
      * The news util used by the strategy.
      */
     private StrategyNewsUtil strategyNewsUtil;
@@ -69,7 +74,6 @@ public abstract class BaseStrategy implements Strategy {
      * The external notifier used by the strategy.
      */
     private Notifier notifier;
-
     /**
      * Flag to determine if the strategy should allow system notifications
      * Used to ensure the strategy runs can be monitored via an external system
@@ -94,6 +98,50 @@ public abstract class BaseStrategy implements Strategy {
      */
     public BaseStrategy(String strategyId) {
         this.strategyId = strategyId;
+    }
+
+    /**
+     * Initializes the strategy with the specified components.
+     *
+     * @param series         the bar series
+     * @param dataManager    the data manager
+     * @param accountManager the account manager
+     * @param tradeManager   the trade manager
+     * @param eventPublisher the event publisher
+     */
+    @Override
+    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, RiskManagementService riskManager, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil) {
+        this.barSeries = series;
+        this.dataManager = dataManager;
+        this.accountManager = accountManager;
+        this.tradeManager = tradeManager;
+        this.eventPublisher = eventPublisher;
+        this.SYMBOL = dataManager.getInstrument();
+        this.performanceAnalyser = performanceAnalyser;
+        this.strategyNewsUtil = strategyNewsUtil;
+        this.riskManager = riskManager;
+        if (notifier == null) {
+            log.warn("Notifier is null. Notifications will not be sent for strategy '{}'", strategyId);
+        }
+        this.notifier = notifier;
+        try {
+            ParameterHandler.initialize(this);
+        } catch (IllegalAccessException e) {
+            // TODO: Make this better - we should stop this and send event
+            log.error("Error initializing strategy parameters: {}", e.getMessage(), e);
+            throw new RuntimeException("Error initializing strategy parameters", e);
+        }
+        initIndicators();
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' initialized", strategyId));
+    }
+
+    /**
+     * Called to de initialize the strategy. Used by the system
+     */
+    @Override
+    public void onDeInit() {
+        log.info("Strategy run {} completed", strategyId);
+        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' de-initialized", strategyId));
     }
 
     /**
@@ -334,49 +382,6 @@ public abstract class BaseStrategy implements Strategy {
             }
         }
         return currentParams;
-    }
-
-    /**
-     * Initializes the strategy with the specified components.
-     *
-     * @param series         the bar series
-     * @param dataManager    the data manager
-     * @param accountManager the account manager
-     * @param tradeManager   the trade manager
-     * @param eventPublisher the event publisher
-     */
-    @Override
-    public void onInit(BarSeries series, DataManager dataManager, AccountManager accountManager, TradeManager tradeManager, EventPublisher eventPublisher, PerformanceAnalyser performanceAnalyser, Notifier notifier, StrategyNewsUtil strategyNewsUtil) {
-        this.barSeries = series;
-        this.dataManager = dataManager;
-        this.accountManager = accountManager;
-        this.tradeManager = tradeManager;
-        this.eventPublisher = eventPublisher;
-        this.SYMBOL = dataManager.getInstrument();
-        this.performanceAnalyser = performanceAnalyser;
-        this.strategyNewsUtil = strategyNewsUtil;
-        if (notifier == null) {
-            log.warn("Notifier is null. Notifications will not be sent for strategy '{}'", strategyId);
-        }
-        this.notifier = notifier;
-        try {
-            ParameterHandler.initialize(this);
-        } catch (IllegalAccessException e) {
-            // TODO: Make this better - we should stop this and send event
-            log.error("Error initializing strategy parameters: {}", e.getMessage(), e);
-            throw new RuntimeException("Error initializing strategy parameters", e);
-        }
-        initIndicators();
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' initialized", strategyId));
-    }
-
-    /**
-     * Called to de initialize the strategy. Used by the system
-     */
-    @Override
-    public void onDeInit() {
-        log.info("Strategy run {} completed", strategyId);
-        eventPublisher.publishEvent(new LogEvent(strategyId, LogEvent.LogType.INFO, "Strategy '%s' de-initialized", strategyId));
     }
 
     /**
