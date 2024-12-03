@@ -18,7 +18,7 @@ class BacktestRiskManagerTest {
     @BeforeEach
     void setUp() {
         riskManager = new BacktestRiskManager();
-        riskManager.setTimezone("Europe/Prague");
+        riskManager.setTimezone("UTC");
         testInstrument = Instrument.EURUSD;
     }
 
