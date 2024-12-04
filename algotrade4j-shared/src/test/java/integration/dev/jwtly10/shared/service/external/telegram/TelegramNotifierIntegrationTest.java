@@ -1,10 +1,15 @@
 package integration.dev.jwtly10.shared.service.external.telegram;
 
+import dev.jwtly10.core.model.Instrument;
+import dev.jwtly10.core.model.Number;
+import dev.jwtly10.core.model.Trade;
 import dev.jwtly10.shared.service.external.telegram.TelegramNotifier;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -42,5 +47,50 @@ public class TelegramNotifierIntegrationTest {
                 <b>This should be bold</b>
                 <i>This should be italic</i>
                 """, true);
+    }
+
+    @Test
+    void testMessageFormatting() {
+        Trade trade = new Trade(48, Instrument.NAS100USD, 38, ZonedDateTime.now(), new Number("3823.39"),
+                new Number("3823.39"),
+                new Number("3823.39"),
+                true);
+        trade.setProfit(39388.23);
+        trade.setClosePrice(new Number("3823.39"));
+        trade.setCloseTime(ZonedDateTime.now());
+
+        var strategyId = "TestStrategy";
+
+
+        String direction = trade.isLong() ? "Long" : "Short";
+        String profitLossText = trade.getProfit() >= 0 ? "Profit" : "Loss";
+        String emoji = trade.getProfit() >= 0 ? "✅" : "❌";
+        String sign = trade.getProfit() >= 0 ? "+" : "-";
+        String message = String.format(
+                "Trade Closed: %s %s$%.2f %s · %s\n" +
+                        "<b>Trade Details</b>\n" +
+                        "🔹 ID: #%d\n" +
+                        "📍 Dir: %s \n" +
+                        "🌐 Symbol: %s \n" +
+                        "📈 Entry: $%.2f\n" +
+                        "📉 Close: $%.2f",
+                emoji,
+                sign,
+                Math.abs(trade.getProfit()),
+                profitLossText,
+                strategyId,
+
+                trade.getId(),
+                direction,
+                trade.getInstrument(),
+                trade.getEntryPrice().doubleValue(),
+                trade.getClosePrice().doubleValue()
+        );
+
+        var sysString = String.format("""
+            [SYSTEM] 🚨
+            %s""", message);
+
+        telegramNotifier.sendNotification(testChatId, sysString, true);
     }
 }

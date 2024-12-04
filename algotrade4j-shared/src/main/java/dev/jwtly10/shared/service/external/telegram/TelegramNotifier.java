@@ -17,16 +17,12 @@ import java.util.Map;
 @Slf4j
 public class TelegramNotifier implements Notifier {
 
-    @Value("${telegram.system.chat.id}")
-    private String systemChatId;
-
-    @Value("${telegram.disable.notifications:false}")
-    private boolean disableNotifications;
-
-
     private final OkHttpClient client;
     private final ObjectMapper objectMapper;
-
+    @Value("${telegram.system.chat.id}")
+    private String systemChatId;
+    @Value("${telegram.disable.notifications:false}")
+    private boolean disableNotifications;
     private String botToken;
 
     public TelegramNotifier(OkHttpClient client, String botToken) {
@@ -82,7 +78,7 @@ public class TelegramNotifier implements Notifier {
     public void sendSysNotification(String message, boolean isHtml) {
         log.info("Sending system notification to chat: {}", systemChatId);
         send(systemChatId, String.format("""
-                [SYSTEM]
+                [SYSTEM] 🚨
                 %s""", message
         ), isHtml);
     }
@@ -101,7 +97,7 @@ public class TelegramNotifier implements Notifier {
         String errorDetails = NotifierUtils.formatError(e);
 
         send(systemChatId, String.format("""
-                [SYSTEM]
+                [SYSTEM] ERROR ⚠️
                 <b>Error:</b> %s
                 <pre>%s</pre>""", message, sanitize(errorDetails)
         ), isHtml);

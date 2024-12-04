@@ -596,23 +596,29 @@ public abstract class BaseStrategy implements Strategy {
      */
     private void systemCloseTradeNotif(Trade trade) {
         if (useSystemNotifications && notifier != null) {
-            String tradeType = trade.isLong() ? "Long" : "Short";
-            String profitStatus = trade.getProfit() >= 0 ? "Profit" : "Loss";
+            String direction = trade.isLong() ? "Long" : "Short";
+            String profitLossText = trade.getProfit() >= 0 ? "Profit" : "Loss";
+            String emoji = trade.getProfit() >= 0 ? "✅" : "❌";
+            String sign = trade.getProfit() >= 0 ? "+" : "-";
             String message = String.format(
-                    "🔔 <b>%s Trade Closed for '%s' !</b>\n" +
-                            "<b>Trade ID:</b> #%d\n" +
-                            "<b>Instrument:</b> %s\n" +
-                            "<b>Entry Price:</b> %.2f\n" +
-                            "<b>Close Price:</b> %.2f\n" +
-                            "<b>Profit/Loss:</b> $%.2f %s\n",
-                    tradeType,
+                    "Trade Closed: %s %s$%.2f %s · %s\n" +
+                            "<b>Trade Details</b>\n" +
+                            "🔹 ID: #%d\n" +
+                            "📍 Dir: %s \n" +
+                            "🌐 Symbol: %s \n" +
+                            "📈 Entry: $%.2f\n" +
+                            "📉 Close: $%.2f",
+                    emoji,
+                    sign,
+                    Math.abs(trade.getProfit()),
+                    profitLossText,
                     strategyId,
+
                     trade.getId(),
+                    direction,
                     trade.getInstrument(),
                     trade.getEntryPrice().doubleValue(),
-                    trade.getClosePrice().doubleValue(),
-                    Math.abs(trade.getProfit()),
-                    profitStatus
+                    trade.getClosePrice().doubleValue()
             );
 
             notifier.sendSysNotification(message, true);
