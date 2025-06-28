@@ -1,6 +1,6 @@
 # AlgoTrade4j
 
-🏗️ Note: Currently a work in progress and not yet ready for production live trading 🏗️
+🏗️ Note: Currently is a work in progress and not yet ready for production live trading 🏗️
 
 AlgoTrade4j is a complete (supporting strategy-dev, backtesting, optimising and live trading), high-performance algorithmic trading platform for Java, designed to be opinionated but simple.
 
